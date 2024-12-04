@@ -5,7 +5,6 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { RootRouteContext } from "../types/tanstack";
-import { tokenService } from "../services/storage/Factory";
 import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 

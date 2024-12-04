@@ -1,12 +1,13 @@
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import  { FC } from 'react';
 import { routeTree } from '../routeTree.gen';
-import { ModalProvider } from '../shared/context/ModalProvider';
-import { AuthProvider, useAuth } from '../features/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@mui/material';
-import { theme } from '../shared/ui/inputs-theme';
+import { AuthProvider, useAuth } from '../features/auth';
 import { LanguageProvider } from '../shared/context/LanguageProvider';
+import { theme } from '../shared/ui/inputs-theme';
+import { ModalProvider } from '../shared/context/ModalProvider';
+
 
 export const router = createRouter({
     routeTree,

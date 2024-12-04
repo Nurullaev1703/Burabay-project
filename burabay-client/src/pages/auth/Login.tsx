@@ -1,23 +1,21 @@
 import { FC, useState } from "react";
-import { DefaultForm } from "./ui/DefaultForm";
 import { Controller, useForm } from "react-hook-form";
-import { Button } from "../../shared/ui/Button";
 import { Header } from "../../components/Header";
-import { Typography } from "../../shared/ui/Typography";
-import { IconContainer } from "../../shared/ui/IconContainer";
-import { COLORS_TEXT } from "../../shared/ui/colors";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import SupportIcon from "../../app/icons/support-icon.svg";
 import BackIcon from "../../app/icons/back-icon.svg";
-import client from "../../app/img/ClientPhone.png";
-import provider from "../../app/img/ProviderPhone.png";
-import { phoneService, roleService } from "../../services/storage/Factory";
 import { useMask } from "@react-input/mask";
-import { TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { apiService } from "../../services/api/ApiService";
 import { Loader } from "../../components/Loader";
 import { useAuth } from "../../features/auth";
+import { apiService } from "../../services/api/ApiService";
+import { phoneService, roleService } from "../../services/storage/Factory";
+import { COLORS_TEXT } from "../../shared/ui/colors";
+import { IconContainer } from "../../shared/ui/IconContainer";
+import { DefaultForm } from "./ui/DefaultForm";
+import { Typography } from "../../shared/ui/Typography";
+import { TextField } from "@mui/material";
+import { Button } from "../../shared/ui/Button";
 
 // роль, которую выбрал пользователь
 interface Props {
@@ -102,7 +100,7 @@ export const Login: FC<Props> = function Login(props) {
             className={`w-36 aspect-square  flex items-end justify-center rounded-button`}
           >
             <img
-              src={props.role === t("buyerRole") ? client : provider}
+              src={""}
               alt=""
               className="mix-blend-multiply"
             />
@@ -161,7 +159,7 @@ export const Login: FC<Props> = function Login(props) {
               <span className={`${COLORS_TEXT.secondary}`}>
                 {t("termsOfUseText") + " "}
               </span>
-              <Link to={"/terms"}>
+              <Link to={"/"}>
                 <span className={`${COLORS_TEXT.main200}`}>
                   {t("termsOfUseLink")}
                 </span>
