@@ -1,0 +1,92 @@
+import  { FC, HTMLAttributes } from 'react';
+import { COLORS_TEXT } from './colors';
+import { Link, LinkProps } from '@tanstack/react-router';
+
+// типы для используемых параметров
+
+type TEXT_SIZE = 24 | 20 | 18 | 16 |14 |12
+
+type TEXT_WEIGHT = 800 | 700 | 600 | 500 | 400 | 300
+
+type TEXT_ALIGN = "left" | "center" | "right"
+
+// соответствие типов и значений
+const STYLE_SIZE =  {
+  24: "text-[24px]",
+  20: "text-[20px]",
+  18: "text-[18px]",
+  16: "text-[16px]",
+  14: "text-[14px]",
+  12: "text-[12px]"
+}
+
+const STYLE_WEIGHT = {
+  800: "font-extrabold",
+  700: "font-bold",
+  600: "font-semibold",
+  500: "font-medium",
+  400: "font-normal",
+  300: "font-light",
+}
+
+const STYLE_ALIGN = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right"
+}
+
+// перечисление параметров, возможных для типографии
+interface TypographyProps  extends HTMLAttributes<HTMLParagraphElement>
+{
+    size?: TEXT_SIZE
+    weight?: TEXT_WEIGHT
+    color?:string
+    align?: TEXT_ALIGN
+}
+
+export const Typography: FC<TypographyProps> = function Typography(props) {
+  // значения для типографии по умолчанию
+  const {
+    size = 16,
+    weight = 400,
+    color = COLORS_TEXT.primary,
+    align = "left",
+    ...rest
+  } = props
+
+  // формирование стилей для типографии
+  const styles = `${STYLE_SIZE[size]} ${STYLE_WEIGHT[weight]} ${color} ${STYLE_ALIGN[align]} ${props?.className} leading-none`
+  
+  //формирование типографии на выходе 
+  return <p {...rest} className={styles}>
+    {props.children}
+  </p>
+};
+
+// перечисление параметров, возможных для ссылок tanstack/react-router
+interface LinkTextProps extends Omit<LinkProps, "children">{
+  size?:TEXT_SIZE,
+  weight?:TEXT_WEIGHT,
+  color?:string
+  align?:TEXT_ALIGN,
+  text?:string
+}
+
+export const LinkText: FC<LinkTextProps> = function LinkText(props) {
+  // настройки для ссылок по умолчанию
+  const {size = 20, weight = 600, color, align="left", ...rest} = props
+
+  // формирование стилей для будуущей ссылки
+  const styles = `${STYLE_SIZE[size]} ${STYLE_ALIGN[align]} ${STYLE_WEIGHT[weight]}`
+
+  // формирование итоговой ссылки
+  return (
+    <Link
+      {...rest}
+      children={props.text}
+      className={`${styles}`}
+      inactiveProps={{className: COLORS_TEXT.context100}}
+      activeProps={{className: COLORS_TEXT.main100}}
+    />
+  )
+}
