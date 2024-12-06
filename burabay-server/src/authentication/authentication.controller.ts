@@ -18,8 +18,8 @@ export class AuthenticationController {
   
   @Public()
   @Post()
-  auth(@Body() signInDto: SignInDto) {
-    return this.authenticationService.auth(signInDto);
+  login(@Body() signInDto: SignInDto) {
+    return this.authenticationService.login(signInDto);
   }
   // ограниченное количество запросов на 30 минут
   @Public()
@@ -33,9 +33,5 @@ export class AuthenticationController {
   @Post('verify-code')
   verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
     return this.phoneService.verifyCode(verifyCodeDto);
-  }
-  @Get("/iin/:userIin")
-  getUserByIin(@Param() userIin: string){
-    return this.authenticationService.authByIin(userIin)
   }
 }

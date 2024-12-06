@@ -1,6 +1,5 @@
 import { FC, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Tile } from "../../components/Tile";
 import { useTranslation } from "react-i18next";
 import NotificationIcon from "../../app/icons/profile/notification.svg";
 import BaseLogo from "../../app/icons/profile/baseLogo.svg";

@@ -1,10 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Request} from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Public } from 'src/constants';
-import { UpdateRequisitiesDto } from './dto/update-requisities.dto';
-import { CreateRequisitiesDto } from './dto/create-requisities.dto';
 
 @ApiTags('Профиль')
 @ApiBearerAuth()

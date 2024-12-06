@@ -2,7 +2,6 @@
 import {
   createRootRouteWithContext,
   Outlet,
-  redirect,
 } from "@tanstack/react-router";
 import { RootRouteContext } from "../types/tanstack";
 import { useAuth } from "../features/auth";

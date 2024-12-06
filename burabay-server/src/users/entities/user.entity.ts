@@ -1,6 +1,7 @@
-import { Column, Entity, JoinTable, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { POSITION_TYPE, ROLE_TYPE, PERMISSIONS_TYPE } from '../types/user-types';
+import { ROLE_TYPE } from '../types/user-types';
+import { Organization } from './organization.entity';
 
 @Entity()
 export class User extends AbstractEntity<User> {
@@ -13,15 +14,13 @@ export class User extends AbstractEntity<User> {
   @Column()
   role: ROLE_TYPE;
 
-  @Column()
-  position: POSITION_TYPE;
+  @Column({unique: true})
+  email: string;
 
   @Column()
-  email: string;
-  
-  @Column({nullable:true})
-  iin: string;
-  
-  @Column("json")
-  permissions: PERMISSIONS_TYPE;
+  password: string;
+
+  @OneToOne(() => Organization, (organization) => organization.user, { cascade: true, nullable:true })
+  @JoinColumn()
+  organization: Organization;
 }

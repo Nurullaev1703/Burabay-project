@@ -2,19 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nes
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UpdateProfileDto } from 'src/profile/dto/update-profile.dto';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @ApiTags('Сотрудники')
 @ApiBearerAuth()
 @Controller('employees')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  create(@Request() req:AuthRequest,@Body() createEmployeeDto: CreateEmployeeDto) {
-    return this.userService.create(req.user, createEmployeeDto);
-  }
 
   @Get("filial/:filialId")
   findAll(@Request() req:AuthRequest,@Param("filialId") filialId:string) {
@@ -27,7 +20,7 @@ export class UserController {
   }
 
   @Patch(':employeeId')
-  update(@Param('employeeId') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
+  update(@Param('employeeId') id: string, @Body() updateEmployeeDto: any) {
     return this.userService.update(id, updateEmployeeDto);
   }
 

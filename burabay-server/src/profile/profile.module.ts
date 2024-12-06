@@ -4,10 +4,9 @@ import { User } from '../users/entities/user.entity';
 import { ProfileController } from './profile.controller';
 import { ProfileService } from './profile.service';
 import { Organization } from 'src/users/entities/organization.entity';
-import { Address } from 'src/users/entities/address.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([User, Organization, Address])],
+  imports:[TypeOrmModule.forFeature([User, Organization])],
   controllers: [ProfileController],
   providers: [ProfileService],
 })

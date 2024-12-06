@@ -14,7 +14,7 @@
 }
 
 .hide-number-input-arrows {
-    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 
@@ -45,7 +45,7 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 /* Firefox */
 input[type="number"] {
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 input[type="number"]::placeholder
 {
