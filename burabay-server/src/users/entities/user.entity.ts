@@ -14,13 +14,16 @@ export class User extends AbstractEntity<User> {
   @Column()
   role: ROLE_TYPE;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
-  @OneToOne(() => Organization, (organization) => organization.user, { cascade: true, nullable:true })
+  @OneToOne(() => Organization, (organization) => organization.user, {
+    cascade: true,
+    nullable: true,
+  })
   @JoinColumn()
   organization: Organization;
 }

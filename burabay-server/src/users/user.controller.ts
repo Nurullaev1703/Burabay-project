@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { UpdateProfileDto } from 'src/profile/dto/update-profile.dto';
 
 @ApiTags('Сотрудники')
 @ApiBearerAuth()
@@ -9,13 +8,13 @@ import { UpdateProfileDto } from 'src/profile/dto/update-profile.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get("filial/:filialId")
-  findAll(@Request() req:AuthRequest,@Param("filialId") filialId:string) {
+  @Get('filial/:filialId')
+  findAll(@Request() req: AuthRequest, @Param('filialId') filialId: string) {
     return this.userService.findAll(req.user, filialId);
   }
 
-  @Get(":employeeId")
-  findOne(@Param("employeeId") employeeId: string) {
+  @Get(':employeeId')
+  findOne(@Param('employeeId') employeeId: string) {
     return this.userService.findOne(employeeId);
   }
 

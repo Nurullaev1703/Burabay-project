@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-// Класс с различными общими функциями
-export class utilities {
-  // Функция для удаления полей со значением null
+/* Класс с различными методами для уменьшения кода. */
+export class Utils {
+  // TODO Переписать, чтоб пустые поля удалялись вообще.
+  /* Метод удаляет содержание пустых полей. */
   static removeNullFields(obj: any) {
     if (Array.isArray(obj)) {
       return obj.map((item) => this.removeNullFields(item));
@@ -23,18 +24,32 @@ export class utilities {
     }
   }
 
+  /* Метод для обработки HTTP ошибок. */
   static errorHandler(error) {
     console.error(error);
     throw new HttpException(
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: error.message,
-      },
-      HttpStatus.INTERNAL_SERVER_ERROR,
+      error.message,
+      error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
     );
-    // if (!(error instanceof HttpException)) {
-
-    // }
-    // throw error;
   }
+
+  // /* Метод для проверки существования объекта и вызова исключения в случае отсутствия. */
+  static check(obj: object, msg: string) {
+    if (!obj) throw new HttpException(msg, HttpStatus.NOT_FOUND);
+  }
+
+  // static errorHandler(error) {
+  //   console.error(error);
+
+  //   // Если у ошибки уже есть HTTP-статус, используем его.
+  //   const status =
+  //     error instanceof HttpException
+  //       ? error.getStatus() // Получаем статус из HttpException
+  //       : HttpStatus.INTERNAL_SERVER_ERROR; // По умолчанию 500
+
+  //   const message = error.message || 'Internal server error';
+
+  //   // Бросаем исключение с динамическим статусом.
+  //   throw new HttpException(message, status);
+  // }
 }

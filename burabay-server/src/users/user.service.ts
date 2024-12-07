@@ -1,6 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -12,11 +12,11 @@ export class UserService {
 
   async findAll(tokenData: TokenData, filialId: string) {
     const user = await this.userRep.findOne({
-        where:{
-            id: tokenData.id
-        }
-    })
-    return JSON.stringify("");
+      where: {
+        id: tokenData.id,
+      },
+    });
+    return JSON.stringify('');
   }
 
   async findOne(employeeId: string) {

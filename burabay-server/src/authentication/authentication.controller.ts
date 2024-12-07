@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -15,7 +15,7 @@ export class AuthenticationController {
     private readonly authenticationService: AuthenticationService,
     private readonly phoneService: PhoneService,
   ) {}
-  
+
   @Public()
   @Post()
   login(@Body() signInDto: SignInDto) {

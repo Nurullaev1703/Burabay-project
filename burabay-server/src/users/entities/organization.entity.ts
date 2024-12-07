@@ -1,6 +1,7 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { User } from './user.entity';
+import { Ad } from 'src/ad/entities/ad.entity';
 
 @Entity()
 export class Organization extends AbstractEntity<Organization> {
@@ -23,4 +24,7 @@ export class Organization extends AbstractEntity<Organization> {
 
   @OneToOne(() => User, (user) => user.organization)
   user: User;
+
+  @OneToMany(() => Ad, (ad) => ad.organization)
+  ads: Ad[];
 }
