@@ -27,7 +27,7 @@ export class AdService {
   async create(createAdDto: CreateAdDto) {
     try {
       // TODO Поменять категорию на подкатегорию после 29 декабря.
-      const { categoryId, organization_id: organizationId, ...otherFields } = createAdDto;
+      const { categoryId, organizationId: organizationId, ...otherFields } = createAdDto;
       const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
       Utils.check(category, 'Категория не найдена');
       const organization = await this.organizationRepository.findOne({
