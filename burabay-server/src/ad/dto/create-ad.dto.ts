@@ -1,6 +1,25 @@
-import { IsString, IsNotEmpty, IsArray, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsPhoneNumber,
+  IsObject,
+  Validate,
+} from 'class-validator';
+import { AdDetailsType } from '../types/ad.details.type';
+import { IsAdDetailsType } from '../validators/ad-details.validator.';
 
 export class CreateAdDto {
+  @IsString()
+  @IsNotEmpty()
+  subcategoryId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  organizationId: string;
+
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -18,16 +37,24 @@ export class CreateAdDto {
   images: string[];
 
   @IsString()
-  @IsNotEmpty()
-  organizationId: string;
+  @IsOptional()
+  youtubeLink?: string;
 
-  // TODO Удалить после 29 декабря.
   @IsString()
   @IsNotEmpty()
-  categoryId: string;
+  address: string;
 
-  // TODO Раскомментить после 29 декабря.
+  @IsObject()
+  @IsOptional()
+  @Validate(IsAdDetailsType)
+  details?: AdDetailsType;
+
+  @IsPhoneNumber()
+  @IsOptional()
+  phoneNumber: string;
+
+  // TODO Удалить после 29 декабря.
   // @IsString()
   // @IsNotEmpty()
-  // subcategoryId: string;
+  // categoryId: string;
 }

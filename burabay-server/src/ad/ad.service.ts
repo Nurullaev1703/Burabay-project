@@ -4,21 +4,17 @@ import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
 import { Repository } from 'typeorm';
-import { Category } from 'src/category/entities/category.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { Utils } from 'src/utilities';
+import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 
 @Injectable()
 export class AdService {
   constructor(
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
-    // TODO Удалить после 29 декабря.
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
-    // TODO Раскомментить после 29 декабря.
-    // @InjectRepository(Subcategory)
-    // private readonly subcategoryRepository: Repository<Subcategory>,
+    @InjectRepository(Subcategory)
+    private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
   ) {}
@@ -26,19 +22,23 @@ export class AdService {
   /* Метод для создания Объявления. Принимает айти Категории (Подкатегории) и Организации. */
   async create(createAdDto: CreateAdDto) {
     try {
-      // TODO Поменять категорию на подкатегорию после 29 декабря.
-      const { categoryId, organizationId: organizationId, ...otherFields } = createAdDto;
-      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
-      Utils.check(category, 'Категория не найдена');
+      const { organizationId, subcategoryId, ...otherFields } = createAdDto;
+
+      const subcategory = await this.subcategoryRepository.findOne({
+        where: { id: subcategoryId },
+      });
+      Utils.check(subcategory, 'Подкатегория не найдена');
+
       const organization = await this.organizationRepository.findOne({
         where: { id: organizationId },
       });
       Utils.check(organization, 'Организация не найдена');
+
       const newAd = this.adRepository.create({
-        category: category,
         organization: organization,
         ...otherFields,
       });
+
       return this.adRepository.save(newAd);
     } catch (error) {
       Utils.errorHandler(error);
@@ -88,12 +88,20 @@ export class AdService {
   /* Метод для редактирования Объявления. Принимает айди Объявления. */
   async update(id: string, updateAdDto: UpdateAdDto) {
     try {
-      const { categoryId, ...oF } = updateAdDto;
+      const { subcategoryId, ...oF } = updateAdDto;
       const ad = await this.adRepository.findOne({ where: { id: id } });
       Utils.check(ad, 'Объявление не найдено');
-      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
-      Utils.check(category, 'Категория не найдена');
-      Object.assign(ad, { category: category, ...oF });
+
+      if (subcategoryId) {
+        const subcategory = await this.subcategoryRepository.findOne({
+          where: { id: subcategoryId },
+        });
+        Utils.check(subcategory, 'Категория не найдена');
+        Object.assign(ad, { subcategory: subcategory, ...oF });
+      } else {
+        Object.assign(ad, oF);
+      }
+
       return this.adRepository.save(ad);
     } catch (error) {
       Utils.errorHandler(error);

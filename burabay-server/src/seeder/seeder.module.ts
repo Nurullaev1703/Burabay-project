@@ -7,6 +7,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { SeederService } from './seeder.service';
 
+/* Модуль для Сидера данных (Автоматичского заполнения базы данных) */
 @Module({
   imports: [TypeOrmModule.forFeature([User, Ad, Category, Subcategory, Organization])],
   providers: [SeederService],

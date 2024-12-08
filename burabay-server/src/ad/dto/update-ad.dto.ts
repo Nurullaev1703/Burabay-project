@@ -20,7 +20,7 @@ export class UpdateAdDto {
   // TODO Удалить после 29 декабря.
   @IsString()
   @IsNotEmpty()
-  categoryId: string;
+  subcategoryId: string;
 
   // TODO Раскомментить после 29 декабря.
   // @IsString()

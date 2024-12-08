@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Utils } from 'src/utilities';
 
+/* Модуль для подключения и настройки AdminJS. */
+
 const DEFAULT_ADMIN = {
   email: 'admin@example.com',
   password: 'password',

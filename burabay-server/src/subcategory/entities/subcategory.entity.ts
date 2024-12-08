@@ -1,16 +1,17 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Ad } from 'src/ad/entities/ad.entity';
+import { Category } from 'src/category/entities/category.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 export class Subcategory extends AbstractEntity<Subcategory> {
   @Column()
   name: string;
 
-  // TODO Раскомментить после 29 декабря.
-  // @ManyToOne(() => Category, (category) => category.subcategories)
-  // category: Category;
+  @ManyToOne(() => Category, (category) => category.subcategories)
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 
-  // TODO Раскомментить после 29 декабря.
-  // @OneToMany(() => Ad, (ad) => ad.subcategory)
-  // ads: Ad[];
+  @OneToMany(() => Ad, (ad) => ad.subcategory)
+  ads: Ad[];
 }
