@@ -38,18 +38,6 @@ export class Utils {
     if (!obj) throw new HttpException(msg, HttpStatus.NOT_FOUND);
   }
 
-  // static errorHandler(error) {
-  //   console.error(error);
-
-  //   // Если у ошибки уже есть HTTP-статус, используем его.
-  //   const status =
-  //     error instanceof HttpException
-  //       ? error.getStatus() // Получаем статус из HttpException
-  //       : HttpStatus.INTERNAL_SERVER_ERROR; // По умолчанию 500
-
-  //   const message = error.message || 'Internal server error';
-
-  //   // Бросаем исключение с динамическим статусом.
-  //   throw new HttpException(message, status);
-  // }
+  static dynamicImport = async (packageName: string) =>
+    new Function(`return import('${packageName}')`)();
 }

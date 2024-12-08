@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { Ad } from 'src/ad/entities/ad.entity';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
         password: configService.getOrThrow('POSTGRES_PASSWORD'),
         database: configService.getOrThrow('POSTGRES_DB'),
         autoLoadEntities: true,
+        entities: [Ad],
         synchronize: true,
       }),
       inject: [ConfigService],

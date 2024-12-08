@@ -12,6 +12,7 @@ import { AdModule } from './ad/ad.module';
 import { CategoryModule } from './category/category.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { SeederModule } from './seeder/seeder.module';
+import { AdminPanelModule } from './admin-panel/admin-panel.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SeederModule } from './seeder/seeder.module';
     CategoryModule,
     SubcategoryModule,
     SeederModule,
+    AdminPanelModule,
   ],
   controllers: [],
   providers: [
