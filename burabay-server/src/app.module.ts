@@ -1,21 +1,24 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/user.module';
-import { AuthenticationModule } from './authentication/authentication.module';
-import { ProfileModule } from './profile/profile.module';
-import { EmailModule } from './authentication/email.module';
-import { ImagesModule } from './images/images.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdModule } from './ad/ad.module';
-import { CategoryModule } from './category/category.module';
-import { SubcategoryModule } from './subcategory/subcategory.module';
-import { SeederModule } from './seeder/seeder.module';
 import { AdminPanelModule } from './admin-panel/admin-panel.module';
+import { AuthenticationModule } from './authentication/authentication.module';
+import { EmailModule } from './authentication/email.module';
+import { CategoryModule } from './category/category.module';
+import { DatabaseModule } from './database/database.module';
+import { ImagesModule } from './images/images.module';
+import { MainPageModule } from './main-page/main-page.module';
+import { ProfileModule } from './profile/profile.module';
+import { SeederModule } from './seeder/seeder.module';
+import { SubcategoryModule } from './subcategory/subcategory.module';
+import { TasksModule } from './tasks/tasks.module';
+import { UsersModule } from './users/user.module';
 
 @Module({
   imports: [
+    MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
       {
@@ -33,6 +36,7 @@ import { AdminPanelModule } from './admin-panel/admin-panel.module';
     CategoryModule,
     SubcategoryModule,
     SeederModule,
+    TasksModule,
     AdminPanelModule,
   ],
   controllers: [],

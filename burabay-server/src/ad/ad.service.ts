@@ -48,7 +48,11 @@ export class AdService {
   /* Метод для получения всех Объявлений. */
   async findAll() {
     try {
-      return await this.adRepository.find();
+      return await this.adRepository.find({
+        relations: {
+          organization: true,
+        },
+      });
     } catch (error) {
       Utils.errorHandler(error);
     }

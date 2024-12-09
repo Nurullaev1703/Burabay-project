@@ -37,11 +37,6 @@ export class Ad extends AbstractEntity<Ad> {
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 
-  // TODO Удалить после 29 декабря.
-  // @ManyToOne(() => Category, (category) => category.ads)
-  // @JoinColumn({ name: 'category_id' })
-  // category: Category;
-
   @ManyToOne(() => Subcategory, (subcategory) => subcategory.ads)
   @JoinColumn({ name: 'subcategory_id' })
   subcategory: Subcategory;

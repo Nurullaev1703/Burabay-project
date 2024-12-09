@@ -52,9 +52,4 @@ export class CreateAdDto {
   @IsPhoneNumber()
   @IsOptional()
   phoneNumber: string;
-
-  // TODO Удалить после 29 декабря.
-  // @IsString()
-  // @IsNotEmpty()
-  // categoryId: string;
 }
