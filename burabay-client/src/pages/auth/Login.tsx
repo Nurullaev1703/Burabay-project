@@ -19,7 +19,6 @@ import { Button } from "../../shared/ui/Button";
 
 // роль, которую выбрал пользователь
 interface Props {
-  role: string;
 }
 
 // форма отслеживает только номер телефона
@@ -48,21 +47,15 @@ export const Login: FC<Props> = function Login(props) {
       phone: phoneService.hasValue() ? phoneService.getValue() : "",
     },
   });
-  const styles = {
-    ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
-      padding: "16px 14px 16px 33px",
-      fontSize: "16px",
-    },
-  };
   return (
-    <div className="relative h-screen mt-18 px-4">
+    <div>
       <Header>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={20} weight={800}>
-            {props.role}
+            {""}
           </Typography>
           <IconContainer align="end" action={() => navigate({ to: "/help" })}>
             <img src={SupportIcon} alt="" />
@@ -87,7 +80,6 @@ export const Login: FC<Props> = function Login(props) {
             throw setPhoneError(true);
           }
           phoneService.setValue(form.phone);
-          roleService.setValue(props.role);
           navigate({
             to: "/auth/accept/$phone",
             params: { phone: form.phone },
@@ -125,10 +117,6 @@ export const Login: FC<Props> = function Login(props) {
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="relative">
-                  <div className="absolute top-0 left-0 h-[55px] flex w-8 justify-end items-center z-10">
-                    <Typography>{"+7"}</Typography>
-                  </div>
                   <TextField
                     {...field}
                     error={Boolean(error?.message) || phoneError}
@@ -138,7 +126,6 @@ export const Login: FC<Props> = function Login(props) {
                     variant="outlined"
                     autoFocus={true}
                     inputRef={mask}
-                    sx={styles}
                     placeholder="700 000-00-00"
                     onFocus={() => {
                       window.scrollTo({
@@ -152,7 +139,6 @@ export const Login: FC<Props> = function Login(props) {
                       setErrorMessage("");
                     }}
                   />
-                </div>
               )}
             />
             <Typography size={14}>
@@ -168,7 +154,7 @@ export const Login: FC<Props> = function Login(props) {
           </div>
         </div>
         <div className="sticky top-full left-0 w-full">
-          {props.role === t("buyerRole") ? (
+          {t("buyerRole") ? (
             <Button
               mode="transparent"
               type="button"
