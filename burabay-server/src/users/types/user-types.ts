@@ -1,4 +1,4 @@
-export enum ROLE_TYPE{
-    TOURIST = "турист",
-    BUSINESS = "бизнес"
+export enum ROLE_TYPE {
+  TOURIST = 'турист',
+  BUSINESS = 'бизнес',
 }
