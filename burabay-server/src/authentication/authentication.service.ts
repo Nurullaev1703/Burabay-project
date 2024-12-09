@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { SignInDto } from './dto/sign-in.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
@@ -17,7 +17,6 @@ export class AuthenticationService {
     private readonly entityManager: EntityManager,
     private jwtService: JwtService,
   ) {}
-
   // регистрация нового пользователя
   private async _register(signInDto: SignInDto) {
     let user: User;
@@ -30,7 +29,7 @@ export class AuthenticationService {
         reviewCount: 0,
       });
       await this.entityManager.save(organization);
-  
+
       user = new User({
         fullName: '',
         phoneNumber: "",
@@ -49,7 +48,8 @@ export class AuthenticationService {
         email: signInDto.email,
         password: ''
       });
-      await this.entityManager.save(user);
+      // сохраняем пользователя в кэш сервера
+    await this.entityManager.save(user);
     }
   }
   // логин пользователя по email и роли в проекте
@@ -67,7 +67,7 @@ export class AuthenticationService {
         return JSON.stringify(HttpStatus.OK)
       }
       await this._register(signInDto);
-      return JSON.stringify(HttpStatus.OK);
+      return JSON.stringify(HttpStatus.CREATED);
     }
     catch{
       return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -77,12 +77,15 @@ export class AuthenticationService {
   async checkUser(loginDto: LoginDto){
     const user = await this.userRepository.findOne({
       where:{
-        email: loginDto.email,
-        role: loginDto.role
+        email: loginDto.email
       }
     })
+    // если пользователь найден, но роли не совпадают
+    if(user.role !== loginDto.role){
+      return JSON.stringify(HttpStatus.CONFLICT)
+    }
 
-    if(user.password.length){
+    if(user?.password.length){
         const isPasswordMatch = await bcrypt.compare(loginDto.password, user.password);
         
         if(!isPasswordMatch){
@@ -97,8 +100,9 @@ export class AuthenticationService {
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(loginDto.password, salt);
 
+    // обновляем данные по пользователю
     const updatedUser = new User({...user, password: hash })
-    await  this.userRepository.save(updatedUser)
+    await this.entityManager.save(updatedUser)
 
     const payload: TokenData = { id: updatedUser.id };
     const token = await this.jwtService.signAsync(payload);
