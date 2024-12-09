@@ -1,12 +1,15 @@
 import { FC, HTMLAttributes } from "react";
-import { COLORS_BACKGROUND } from "../shared/ui/colors";
+import headerBg from "../app/icons/backgroundHeader.png"
 
 export const Header: FC<HTMLAttributes<HTMLElement>> = function Header(props) {
   return (
     <header
-      className={`fixed top-0 left-0 z-50 w-full h-16 p-4 ${COLORS_BACKGROUND.alternative}`}
+      className={`relative z-50 max-w-fullWidth h-24`} //FIXME: высоту хедера пофикстить
     >
-      <div className={`container mx-auto max-w-[1280px] ${props.className}`}>{props.children}</div>
+      <div className="absolute top-0 left-0 w-full ">
+        <img src={headerBg} className="rounded-bl-3xl object-cover w-full h-full bg-blue200"/>
+      </div>
+      <div className={`absolute top-0 left-0 z-10 container mx-auto w-full h-full px-4 ${props.className}`}>{props.children}</div>
     </header>
   );
 };

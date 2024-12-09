@@ -22,6 +22,18 @@ export const COLORS_TEXT = {
     error: "text-error", // #FF4242,
     background: "text-background", // #F1F2F5
     access: "text-access", // #04C900
+
+    blue100: "blue100", // #035F7C 
+    blue200: "blue200", //#0A7D9E
+    blue300: "blue300" , //#228AA8
+    red: "red", //#FF4545
+    almostWhite: "almostWhite", // #F1F2F6
+    angularWhiteBlue: "angularWhiteBlue", 
+    totalBlack: "totalBlack", // #000000
+    gray100: "gray100",// #999999
+    gray200: "gray200", //#DBDBDB
+    gray300: "gray300", // #E4E9EA
+    white: "white" // #FFFFFF
 }
 export const COLORS_BACKGROUND = {
     primary: "bg-primary", //#000000
@@ -46,6 +58,18 @@ export const COLORS_BACKGROUND = {
     error: "bg-error", // #FF4242,
     background: "bg-background", // #F1F2F5
     access: "bg-access", // #04C900
+
+    blue100: "blue100", // #035F7C 
+    blue200: "blue200", //#0A7D9E
+    blue300: "blue300" , //#228AA8
+    red: "red", //#FF4545
+    almostWhite: "almostWhite", // #F1F2F6
+    angularWhiteBlue: "angularWhiteBlue", 
+    totalBlack: "totalBlack", // #000000
+    gray100: "gray100",// #999999
+    gray200: "gray200", //#DBDBDB
+    gray300: "gray300", // #E4E9EA
+    white: "white" // #FFFFFF
 }
 export const COLORS_BORDER = {
     primary: "border-primary", //#000000
@@ -70,6 +94,18 @@ export const COLORS_BORDER = {
     error: "border-error", // #FF4242,
     background: "border-background", // #F1F2F5
     access: "border-access", // #04C900
+
+    blue100: "blue100", // #035F7C 
+    blue200: "blue200", //#0A7D9E
+    blue300: "blue300" , //#228AA8
+    red: "red", //#FF4545
+    almostWhite: "almostWhite", // #F1F2F6
+    angularWhiteBlue: "angularWhiteBlue", 
+    totalBlack: "totalBlack", // #000000
+    gray100: "gray100",// #999999
+    gray200: "gray200", //#DBDBDB
+    gray300: "gray300", // #E4E9EA
+    white: "white" // #FFFFFF
 
 }
 
@@ -96,6 +132,19 @@ export const COLORS = {
     error: "#FF4242",
     background: "#F1F2F5",
     access: "#04C900",
-    
+
+    blue100:  "#035F7C",
+    blue200:  "#0A7D9E",
+    blue300:  "#228AA8",
+    red: "#FF4545",
+    almostWhite: "#F1F2F6",
+    totalBlack: "#000000",
+    gray100: "#999999",
+    gray200: "#DBDBDB",
+    gray300: "#E4E9EA",
+    white: "#FFFFFF",
+    angularWhiteBlue: "linear-gradient(135deg, #FFFFFF 0%, #228AA8 100%)",
+    sunset: "linear-gradient(90deg, #FF7B1C 0%, #FF891C 50%, #FF9737 100%)",
+    softGray: "linear-gradient(180deg, #EDECEA 0%, #FAF9F7 100%)",
 
 }
