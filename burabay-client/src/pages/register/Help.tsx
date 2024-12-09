@@ -90,7 +90,7 @@ export const Help: FC = function Help() {
   };
 
   return (
-    <div className="px-4 min-h-screen">
+    <div className=" min-h-screen">
       <Header>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
