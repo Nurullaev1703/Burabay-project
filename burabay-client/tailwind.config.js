@@ -77,7 +77,7 @@ export default {
       }
     },
     fontFamily: {
-      sans: ['"SF Pro Text"', "sans-serif"],
+      sans: ['"Roboto"', "sans-serif"],
     },
   },
   plugins: [],

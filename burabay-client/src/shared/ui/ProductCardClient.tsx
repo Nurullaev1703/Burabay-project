@@ -13,7 +13,7 @@ import MinusIcon from "../../app/icons/minus.svg";
 import PlusIcon from "../../app/icons/plus.svg";
 import { CartItem } from "../../pages/cart/model/cart";
 import { Filial } from "../../pages/products/edit/types/edit-products";
-import ProviderImage from "../../app/img/provider.png"
+import ProviderImage from "../../app/img/provider.png";
 
 interface Props {
   product: Product;
@@ -31,7 +31,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
 }) {
   const [imgSrc, setImgSrc] = useState<string>(baseUrl + product.images[0]);
   const [providerImg, setProviderImg] = useState<string>(
-    (baseUrl + product?.providerFilial?.organization?.imgUrl) || ""
+    baseUrl + product?.providerFilial?.organization?.imgUrl || ""
   );
   const minProductCount = product.minSum
     ? Math.ceil(product.minSum / (product.finalPrice || product.price || 1))
@@ -79,16 +79,15 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
               "absolute z-10 top-1 right-[-17px] py-1 bg-main200 w-[90px] rotate-[30deg]"
             }
           >
-            <Typography
-              size={12}
-              color={COLORS_TEXT.alternative}
-              align="center"
-            >
+            <Typography size={12} color={COLORS_TEXT.white} align="center">
               {`Акция`}
             </Typography>
           </div>
         )}
-        <Link to="/product/client/$productId" params={{ productId: product.id }}>
+        <Link
+          to="/product/client/$productId"
+          params={{ productId: product.id }}
+        >
           <div
             className={`cover relative ${isBlockView ? "w-[110px] h-[110px]" : "w-full pt-[100%]"}`}
           >
@@ -111,11 +110,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
             )}
             {(product.status === PROD_STATUS.SALE || product.sale > 0) && (
               <div className="absolute bottom-2 left-[-8px] bg-main200 rounded-r-[10px] px-[7px] py-[2px]">
-                <Typography
-                  size={12}
-                  color={COLORS_TEXT.alternative}
-                  weight={700}
-                >
+                <Typography size={12} color={COLORS_TEXT.white} weight={700}>
                   {`-${product.sale}%`}
                 </Typography>
               </div>
@@ -138,7 +133,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
                   <Typography
                     size={18}
                     weight={600}
-                    color={COLORS_TEXT.main200}
+                    color={COLORS_TEXT.blue200}
                   >
                     {product.finalPrice + "₸" || "цена"}
                   </Typography>
@@ -183,7 +178,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
                       </Typography>
                       <Typography
                         size={12}
-                        color={COLORS_TEXT.main200}
+                        color={COLORS_TEXT.blue200}
                       >{`${Math.ceil(product.minSum / (product.finalPrice || product.price || 1))} ${product.unit} за ${product.minSum}₸`}</Typography>
                     </div>
                   ) : (
@@ -193,7 +188,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
                       </Typography>
                       <Typography
                         size={12}
-                        color={COLORS_TEXT.main200}
+                        color={COLORS_TEXT.blue200}
                       >{`${product.multiplicity} ${product.unit} за ${product.finalPrice || product.price}₸`}</Typography>
                     </div>
                   )}
@@ -248,7 +243,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
                   </Typography>
                   <Typography
                     size={12}
-                    color={COLORS_TEXT.main200}
+                    color={COLORS_TEXT.blue200}
                   >{`${Math.ceil(product.minSum / (product.finalPrice || product.price || 1))} ${product.unit} за ${product.minSum}₸`}</Typography>
                 </div>
               ) : (
@@ -258,7 +253,7 @@ export const ProductCardClient: FC<Props> = function ProductCardClient({
                   </Typography>
                   <Typography
                     size={12}
-                    color={COLORS_TEXT.main200}
+                    color={COLORS_TEXT.blue200}
                   >{`${product.multiplicity} ${product.unit} за ${product.finalPrice || product.price}`}</Typography>
                 </div>
               )}

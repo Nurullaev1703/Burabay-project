@@ -48,16 +48,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiSwitch-switchBase":{
-            color: COLORS.secondary
+            color: COLORS.softGray
           },
           "& .MuiSwitch-track":{
-            backgroundColor: COLORS.disabled
+            backgroundColor: COLORS.gray100
           },
           "& .MuiSwitch-switchBase.Mui-checked": {
-            color: COLORS.main200,
+            color: COLORS.blue200,
           },
           "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-            backgroundColor: COLORS.accent200,
+            backgroundColor: COLORS.gray200,
             opacity: 1
           },
         },
@@ -67,7 +67,7 @@ export const theme = createTheme({
       styleOverrides:{
         listbox:{
           padding: 0,
-          border: `1px solid ${COLORS.light100}`,
+          border: `1px solid ${COLORS.gray100}`,
           boxShadow: "none",
           marginTop: "4px",
           borderRadius: "4px",
@@ -75,7 +75,7 @@ export const theme = createTheme({
           height: "190px",
           "&::-webkit-scrollbar":{
             width: "5px",
-            backgroundColor: COLORS.background,
+            backgroundColor: COLORS.softGray,
             margin: "5px 0",
           },
           "&::-webkit-scrollbar-thumb":{
@@ -86,7 +86,7 @@ export const theme = createTheme({
             padding: "8px"
           },
           ".MuiAutocomplete-option:not(:hover).Mui-focused":{
-            backgroundColor: COLORS.accent200
+            backgroundColor: COLORS.softGray
           }
         },
         inputRoot:{

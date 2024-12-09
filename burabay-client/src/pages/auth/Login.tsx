@@ -2,8 +2,6 @@ import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Header } from "../../components/Header";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import SupportIcon from "../../app/icons/support-icon.svg";
-import BackIcon from "../../app/icons/back-icon.svg";
 import { useMask } from "@react-input/mask";
 import { useTranslation } from "react-i18next";
 import { Loader } from "../../components/Loader";
@@ -16,6 +14,8 @@ import { DefaultForm } from "./ui/DefaultForm";
 import { Typography } from "../../shared/ui/Typography";
 import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
+import InfoIcon from "../../app/icons/info.svg"
+import LanguageIcon from "../../app/icons/language.svg"
 
 // роль, которую выбрал пользователь
 interface Props {
@@ -51,14 +51,14 @@ export const Login: FC<Props> = function Login(props) {
     <div>
       <Header>
         <div className="flex justify-between items-center">
-          <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} alt="" />
+          <IconContainer align="start">
+            <img src={InfoIcon} alt="" />
           </IconContainer>
-          <Typography size={20} weight={800}>
-            {""}
+          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
+            {t("signin")}
           </Typography>
-          <IconContainer align="end" action={() => navigate({ to: "/help" })}>
-            <img src={SupportIcon} alt="" />
+          <IconContainer align="end">
+            <img src={LanguageIcon} alt="" />
           </IconContainer>
         </div>
       </Header>
@@ -142,11 +142,11 @@ export const Login: FC<Props> = function Login(props) {
               )}
             />
             <Typography size={14}>
-              <span className={`${COLORS_TEXT.secondary}`}>
+              <span className={`${COLORS_TEXT.gray100}`}>
                 {t("termsOfUseText") + " "}
               </span>
               <Link to={"/"}>
-                <span className={`${COLORS_TEXT.main200}`}>
+                <span className={`${COLORS_TEXT.blue200}`}>
                   {t("termsOfUseLink")}
                 </span>
               </Link>
