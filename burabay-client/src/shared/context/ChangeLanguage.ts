@@ -10,6 +10,13 @@ i18n.use(initReactI18next).init({
     },
     ru: {
       translation: {
+        "signin":"Вход",
+        "welcome":"Добро пожаловать!",
+        "mail": "почта",
+        "inputMail":"Введите адрес электронной почты",
+        "signinWith": "или войдите с помощью",
+        "next":"далее",
+        "registerBusiness":"зарегистрировать организацию"
       },
     },
   },

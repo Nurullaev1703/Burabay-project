@@ -38,7 +38,7 @@ export const Profile: FC<Props> = function Profile(props) {
               <h1 className="text-xl font-extrabold line-clamp-1 leading-6">
               {`${props.user?.organization?.type?.toUpperCase() || ""} «${props.user?.organization?.name?.toUpperCase() || ""}»`}
               </h1>
-              <span className={`${COLORS_TEXT.secondary}`}>
+              <span className={`${COLORS_TEXT.gray200}`}>
                 {props.user?.position || ""}
               </span>
             </div>
@@ -50,13 +50,13 @@ export const Profile: FC<Props> = function Profile(props) {
 
         <Hint align="center" title={t("waiting1C")}></Hint>
         <ul>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <li className={`border-t  ${COLORS_BORDER.gray300}`}>
             <Link className="flex py-3" to={"/"}>
               <img src={checklist} alt={t("historyOrder")} className="mr-2" />
               <span>{t("historyOrder")}</span>
             </Link>
           </li>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <li className={`border-t  ${COLORS_BORDER.gray300}`}>
             <Link className="flex py-3" to={"/"}>
               <img
                 src={SettingsIcon}
@@ -66,13 +66,13 @@ export const Profile: FC<Props> = function Profile(props) {
               <span>{t("profileSettings")}</span>
             </Link>
           </li>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <li className={`border-t  ${COLORS_BORDER.gray300}`}>
             <Link className="flex py-3" to="/help">
               <img src={HelpIcon} alt={t("help")} className="mr-2" />
               <span>{t("help")}</span>
             </Link>
           </li>
-          <li className={`border-t border-b ${COLORS_BORDER.light100}`}>
+          <li className={`border-t border-b ${COLORS_BORDER.gray300}`}>
             <div
               className="flex py-3 cursor-pointer"
               onClick={() => setShowModal(true)}

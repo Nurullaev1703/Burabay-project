@@ -78,7 +78,7 @@ export const AcceptPhone: FC<Props> = function AcceptPhone(props) {
           <div className="flex gap-2 mb-4">
             <Typography weight={500}>{"+7 "+props.phoneNumber}</Typography>
             <Typography
-              color={COLORS_TEXT.main200}
+              color={COLORS_TEXT.blue200}
               onClick={() => history.back()}
             >
               {t("change")}
@@ -98,7 +98,7 @@ export const AcceptPhone: FC<Props> = function AcceptPhone(props) {
               style={{
                 width: "54px",
                 height: "54px",
-                color: COLORS.main200,
+                color: COLORS.blue200,
                 fontWeight: "700",
                 textAlign: "center",
                 fontSize: (props.value) ? "48px" : "20px" 
