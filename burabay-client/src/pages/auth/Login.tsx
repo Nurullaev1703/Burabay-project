@@ -2,8 +2,6 @@ import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Header } from "../../components/Header";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import SupportIcon from "../../app/icons/support-icon.svg";
-import BackIcon from "../../app/icons/back-icon.svg";
 import { useMask } from "@react-input/mask";
 import { useTranslation } from "react-i18next";
 import { Loader } from "../../components/Loader";
@@ -16,10 +14,11 @@ import { DefaultForm } from "./ui/DefaultForm";
 import { Typography } from "../../shared/ui/Typography";
 import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
+import InfoIcon from "../../app/icons/info.svg"
+import LanguageIcon from "../../app/icons/language.svg"
 
 // роль, которую выбрал пользователь
 interface Props {
-  role: string;
 }
 
 // форма отслеживает только номер телефона
@@ -48,24 +47,18 @@ export const Login: FC<Props> = function Login(props) {
       phone: phoneService.hasValue() ? phoneService.getValue() : "",
     },
   });
-  const styles = {
-    ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
-      padding: "16px 14px 16px 33px",
-      fontSize: "16px",
-    },
-  };
   return (
-    <div className="relative h-screen mt-18 px-4">
+    <div>
       <Header>
         <div className="flex justify-between items-center">
-          <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} alt="" />
+          <IconContainer align="start">
+            <img src={InfoIcon} alt="" />
           </IconContainer>
-          <Typography size={20} weight={800}>
-            {props.role}
+          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
+            {t("signin")}
           </Typography>
-          <IconContainer align="end" action={() => navigate({ to: "/help" })}>
-            <img src={SupportIcon} alt="" />
+          <IconContainer align="end">
+            <img src={LanguageIcon} alt="" />
           </IconContainer>
         </div>
       </Header>
@@ -87,7 +80,6 @@ export const Login: FC<Props> = function Login(props) {
             throw setPhoneError(true);
           }
           phoneService.setValue(form.phone);
-          roleService.setValue(props.role);
           navigate({
             to: "/auth/accept/$phone",
             params: { phone: form.phone },
@@ -125,10 +117,6 @@ export const Login: FC<Props> = function Login(props) {
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="relative">
-                  <div className="absolute top-0 left-0 h-[55px] flex w-8 justify-end items-center z-10">
-                    <Typography>{"+7"}</Typography>
-                  </div>
                   <TextField
                     {...field}
                     error={Boolean(error?.message) || phoneError}
@@ -138,7 +126,6 @@ export const Login: FC<Props> = function Login(props) {
                     variant="outlined"
                     autoFocus={true}
                     inputRef={mask}
-                    sx={styles}
                     placeholder="700 000-00-00"
                     onFocus={() => {
                       window.scrollTo({
@@ -152,15 +139,14 @@ export const Login: FC<Props> = function Login(props) {
                       setErrorMessage("");
                     }}
                   />
-                </div>
               )}
             />
             <Typography size={14}>
-              <span className={`${COLORS_TEXT.secondary}`}>
+              <span className={`${COLORS_TEXT.gray100}`}>
                 {t("termsOfUseText") + " "}
               </span>
               <Link to={"/"}>
-                <span className={`${COLORS_TEXT.main200}`}>
+                <span className={`${COLORS_TEXT.blue200}`}>
                   {t("termsOfUseLink")}
                 </span>
               </Link>
@@ -168,7 +154,7 @@ export const Login: FC<Props> = function Login(props) {
           </div>
         </div>
         <div className="sticky top-full left-0 w-full">
-          {props.role === t("buyerRole") ? (
+          {t("buyerRole") ? (
             <Button
               mode="transparent"
               type="button"

@@ -78,7 +78,7 @@ export const ModalProvider: FC<PropsWithChildren> = function ModalProvider(
             {Boolean(options.onConfirm) && (
               <Button
                 mode={"dark"}
-                className={`mr-2 ${COLORS_BACKGROUND.main100}`}
+                className={`mr-2 ${COLORS_BACKGROUND.blue100}`}
                 onClick={() => {
                   options.onConfirm?.();
                   handleClosePress();

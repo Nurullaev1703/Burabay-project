@@ -13,8 +13,8 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 export const Hint: FC<Props> = function Hint(props) {
   const { title = "", align = "left", mode = "default" } = props;
-  const bgColor = mode == "error" ? COLORS_BACKGROUND.error : COLORS_BACKGROUND.accent100
-  const textColor = mode == "error" ? COLORS_TEXT.alternative : COLORS_TEXT.primary
+  const bgColor = mode == "error" ? COLORS_BACKGROUND.red : COLORS_BACKGROUND.gray200
+  const textColor = mode == "error" ? COLORS_TEXT.white : COLORS_TEXT.totalBlack
   return (
     <div
       {...props}

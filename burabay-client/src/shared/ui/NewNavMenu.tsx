@@ -16,7 +16,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
   return (
     <>
       <nav
-        className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.alternative}`}
+        className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.white}`}
       >
         {(role === t("noneRole") || role === t("buyerRole")) && (
           <ul className={"flex justify-between"}>
@@ -31,7 +31,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("main") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("main") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {t("main")}
                 </span>
@@ -50,7 +50,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("categories") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("categories") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {"Категории"}
                 </span>
@@ -69,7 +69,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("providers") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("providers") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {t("providers")}
                 </span>
@@ -86,7 +86,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("cart") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("cart") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {t("cart")}
                 </span>
@@ -105,7 +105,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("delivered") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("delivered") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {t("orders")}
                 </span>
@@ -124,7 +124,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("profile") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("profile") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {t("profile")}
                 </span>
@@ -152,9 +152,15 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("full-products") || location.pathname.includes("products") || location.pathname.includes("promo") || location.pathname.includes("discount") || location.pathname.includes("subcategories") 
-                    ? COLORS_TEXT.main200 : 
-                    COLORS_TEXT.context100} text-[10px]`}
+                  className={`${
+                    location.pathname.includes("full-products") ||
+                    location.pathname.includes("products") ||
+                    location.pathname.includes("promo") ||
+                    location.pathname.includes("discount") ||
+                    location.pathname.includes("subcategories")
+                      ? COLORS_TEXT.blue200
+                      : COLORS_TEXT.context100
+                  } text-[10px]`}
                 >
                   {"Товарный портфель"}
                 </span>
@@ -171,7 +177,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname.includes("orders") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname.includes("orders") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {"Заказы"}
                 </span>
@@ -191,7 +197,7 @@ export const NewNavMenu: FC = function NewNavMenu() {
                   }
                 />
                 <span
-                  className={`${location.pathname === "/" || location.pathname.includes("profile") ? COLORS_TEXT.main200 : COLORS_TEXT.context100} text-[10px]`}
+                  className={`${location.pathname === "/" || location.pathname.includes("profile") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
                 >
                   {"Профиль"}
                 </span>

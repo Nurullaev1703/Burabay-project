@@ -13,7 +13,7 @@ const LanguageToggleButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props
 
   return (
     <button onClick={toggleLanguage}
-    className={`p-[10px] ${COLORS_BACKGROUND.accent100} rounded-[8px] ${props.className}`}
+    className={`p-[10px] ${COLORS_BACKGROUND.gray200} rounded-[8px] ${props.className}`}
     >
       {language === 'ru' ? 'Каз' : 'Рус'}
     </button>
