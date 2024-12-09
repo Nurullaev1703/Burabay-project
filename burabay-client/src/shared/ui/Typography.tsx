@@ -4,7 +4,7 @@ import { Link, LinkProps } from '@tanstack/react-router';
 
 // типы для используемых параметров
 
-type TEXT_SIZE = 24 | 20 | 18 | 16 |14 |12
+type TEXT_SIZE = 28 | 24 | 22 | 20 | 18 | 16 |14 |12 | 10
 
 type TEXT_WEIGHT = 800 | 700 | 600 | 500 | 400 | 300
 
@@ -12,12 +12,15 @@ type TEXT_ALIGN = "left" | "center" | "right"
 
 // соответствие типов и значений
 const STYLE_SIZE =  {
+  28: "text-[28px]",
   24: "text-[24px]",
+  22: "text-[22px]",
   20: "text-[20px]",
   18: "text-[18px]",
   16: "text-[16px]",
   14: "text-[14px]",
-  12: "text-[12px]"
+  12: "text-[12px]",
+  10: "text-[10px]",
 }
 
 const STYLE_WEIGHT = {
@@ -74,7 +77,7 @@ interface LinkTextProps extends Omit<LinkProps, "children">{
 
 export const LinkText: FC<LinkTextProps> = function LinkText(props) {
   // настройки для ссылок по умолчанию
-  const {size = 20, weight = 600, color, align="left", ...rest} = props
+  const {size = 14, weight = 600, color, align="left", ...rest} = props
 
   // формирование стилей для будуущей ссылки
   const styles = `${STYLE_SIZE[size]} ${STYLE_ALIGN[align]} ${STYLE_WEIGHT[weight]}`

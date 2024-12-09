@@ -1,7 +1,7 @@
-interface TokenData{
-    id:string
+interface TokenData {
+  id: string;
 }
 
-interface AuthRequest{
-    user: TokenData
+interface AuthRequest {
+  user: TokenData;
 }

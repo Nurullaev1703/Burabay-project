@@ -7,7 +7,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { LoginDto } from './dto/login.dto';
-import * as bcrypt from "bcrypt"
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthenticationService {
@@ -20,11 +20,11 @@ export class AuthenticationService {
   // регистрация нового пользователя
   private async _register(signInDto: SignInDto) {
     let user: User;
-    if(signInDto.role == ROLE_TYPE.BUSINESS){
+    if (signInDto.role == ROLE_TYPE.BUSINESS) {
       const organization = new Organization({
         name: '',
         imgUrl: '',
-        address: "",
+        address: '',
         rating: 0,
         reviewCount: 0,
       });
@@ -32,21 +32,20 @@ export class AuthenticationService {
 
       user = new User({
         fullName: '',
-        phoneNumber: "",
+        phoneNumber: '',
         role: signInDto.role,
         email: signInDto.email,
-        password: "",
-        organization: organization
+        password: '',
+        organization: organization,
       });
       await this.entityManager.save(user);
-    }
-    else{
+    } else {
       user = new User({
         fullName: '',
         phoneNumber: '',
         role: signInDto.role,
         email: signInDto.email,
-        password: ''
+        password: '',
       });
       // сохраняем пользователя в кэш сервера
     await this.entityManager.save(user);
@@ -54,17 +53,17 @@ export class AuthenticationService {
   }
   // логин пользователя по email и роли в проекте
   async login(signInDto: SignInDto) {
-    try{
+    try {
       const userExist = await this.userRepository.findOne({
         where: {
           email: signInDto.email,
           role: signInDto.role,
-        }
+        },
       });
-  
+
       // если пользователь найден, значит уже зарегистрирован и авторизуем его
       if (userExist) {
-        return JSON.stringify(HttpStatus.OK)
+        return JSON.stringify(HttpStatus.OK);
       }
       await this._register(signInDto);
       return JSON.stringify(HttpStatus.CREATED);
@@ -74,7 +73,7 @@ export class AuthenticationService {
     }
   }
 
-  async checkUser(loginDto: LoginDto){
+  async checkUser(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({
       where:{
         email: loginDto.email
@@ -94,9 +93,9 @@ export class AuthenticationService {
         const payload:TokenData = { id: user.id}
         const token = await this.jwtService.signAsync(payload);
 
-        return JSON.stringify(token)
+      return JSON.stringify(token);
     }
-    
+
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(loginDto.password, salt);
 

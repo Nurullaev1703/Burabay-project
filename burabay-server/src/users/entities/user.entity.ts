@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { ROLE_TYPE } from '../types/user-types';
 import { Organization } from './organization.entity';
@@ -14,13 +14,16 @@ export class User extends AbstractEntity<User> {
   @Column()
   role: ROLE_TYPE;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
-  @OneToOne(() => Organization, (organization) => organization.user, { cascade: true, nullable:true })
-  @JoinColumn()
+  @OneToOne(() => Organization, (organization) => organization.user, {
+    cascade: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 }

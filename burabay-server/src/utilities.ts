@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-// Класс с различными общими функциями
-export class utilities {
-  // Функция для удаления полей со значением null
+/* Класс с различными методами для уменьшения кода. */
+export class Utils {
+  // TODO Переписать, чтоб пустые поля удалялись вообще.
+  /* Метод удаляет содержание пустых полей. */
   static removeNullFields(obj: any) {
     if (Array.isArray(obj)) {
       return obj.map((item) => this.removeNullFields(item));
@@ -23,18 +24,20 @@ export class utilities {
     }
   }
 
+  /* Метод для обработки HTTP ошибок. */
   static errorHandler(error) {
     console.error(error);
     throw new HttpException(
-      {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: error.message,
-      },
-      HttpStatus.INTERNAL_SERVER_ERROR,
+      error.message,
+      error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
     );
-    // if (!(error instanceof HttpException)) {
-
-    // }
-    // throw error;
   }
+
+  // /* Метод для проверки существования объекта и вызова исключения в случае отсутствия. */
+  static check(obj: object, msg: string) {
+    if (!obj) throw new HttpException(msg, HttpStatus.NOT_FOUND);
+  }
+
+  static dynamicImport = async (packageName: string) =>
+    new Function(`return import('${packageName}')`)();
 }
