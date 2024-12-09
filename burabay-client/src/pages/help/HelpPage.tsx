@@ -1,39 +1,88 @@
-import { FC } from "react";
+import BackIcon from "../../app/icons/back-icon.svg";
+import { FC, useState } from "react";
 import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
-import BackIcon from "../../app/icons/back-icon.svg";
-import WhatsAppIcon from "../../app/icons/help/whatsapp-icon.svg";
-import { useTranslation } from "react-i18next";
+import WhatsApp from "../../app/icons/whatsapp.svg";
 import { Button } from "../../shared/ui/Button";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { Loader } from "../../components/Loader";
+import { useAuth } from "../../features/auth";
+import { Hint } from "../../shared/ui/Hint";
+import { useTranslation } from "react-i18next";
 
 export const HelpPage: FC = function HelpPage() {
-    const { t } = useTranslation();
-    return (
-        <section className="px-4 min-h-screen">
-            <Header>
-                <div className="flex justify-between items-center">
-                    <IconContainer align="start" action={() => history.back()}>
-                        <img src={BackIcon} alt="" />
-                    </IconContainer>
-                    <Typography weight={700} size={20} align="center">
-                        {t("help")}
-                    </Typography>
-                    <IconContainer align="end" action={() => { }}>
-                        <img src={WhatsAppIcon} alt="" />
-                    </IconContainer>
-                </div>
-            </Header>
+  const { history } = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const { setToken } = useAuth();
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorText, setErrorText] = useState<string>("");
+  const { t } = useTranslation();
 
-            <div className="pt-20">
-                <ul>
-                    <li>
-                        <h2>{t("noAccessPhone")}</h2>
-                        <p>{t("loginEDS")}</p>
-                        <Button mode="border">{t("enterEgovMobile")}</Button>
-                    </li>
-                </ul>
-            </div>
-        </section>
-    )
-}
+  // авторизация через Egov по ИИН
+  const handleEgovAuth = async () => {};
+
+  return (
+    <div className=" min-h-screen">
+      <Header>
+        <div className="flex justify-between items-center">
+          <IconContainer align="start" action={() => history.back()}>
+            <img src={BackIcon} alt="" />
+          </IconContainer>
+          <Typography size={20} weight={700}>
+            {"Помощь"}
+          </Typography>
+          <IconContainer align="end">
+            <img src={WhatsApp} alt="" />
+          </IconContainer>
+        </div>
+      </Header>
+      <main className="mt-18 py-4">
+        <div className="py-4 border-b mb-4">
+          <Typography className="mb-4" size={20} weight={600}>
+            {"Если нет доступа к телефону"}
+          </Typography>
+          <Typography className="mb-4" size={16} weight={400}>
+            {"Вы можете войти в свой аккаунт с помощью ЭЦП"}
+          </Typography>
+          <Button mode="border" onClick={handleEgovAuth}>
+            {"Перейти в Egov Mobile"}
+          </Button>
+        </div>
+        {isError && (
+          <div className="relative">
+            <Hint title={errorText} mode="error" />
+            <button
+              className="absolute w-11 h-full right-0 top-0 flex justify-end pt-2 px-3 text-alternate cursor-pointer"
+              onClick={() => setIsError(false)}
+            >
+              {"X"}
+            </button>
+          </div>
+        )}
+        <div className="py-4 border-b mb-4">
+          <Typography className="mb-4" size={20} weight={600}>
+            {"О сервисе"}
+          </Typography>
+          <Typography className="mb-4" size={16} weight={400}>
+            {
+              "Сервис OneClick облегчает предпринимателям поиск и продажу товаров, подписание договоров и открывает новый путь для продвижения товаров"
+            }
+          </Typography>
+        </div>
+        <div className="py-4 border-b mb-4">
+          <Typography className="mb-4" size={20} weight={600}>
+            {"Сделки безопасны?"}
+          </Typography>
+          <Typography className="mb-4" size={16} weight={400}>
+            {
+              "Все поставщики проходят верификацию своего бизнеса используя Egov и ЭЦП. Мошенники не смогут создать аккаунт."
+            }
+          </Typography>
+        </div>
+        {isLoading && <Loader />}
+      </main>
+    </div>
+  );
+};
