@@ -8,10 +8,7 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 
 export const AUTH_PATH = [
-    "/auth/welcome","/auth/client","/auth/provider",
-    "/register", "/register/success", "/what-next", 
-    "/test", "/profile/edit/change-phone", "/contract",
-    "/register/accept"
+    "/auth/"
 ]
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({

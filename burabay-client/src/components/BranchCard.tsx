@@ -19,7 +19,7 @@ export const BranchCard: FC<Props> = function BranchCard(props) {
         size={16}
         weight={400}
         align="left"
-        color={COLORS_TEXT.primary}
+        color={COLORS_TEXT.totalBlack}
       >
         {props.city}
       </Typography>

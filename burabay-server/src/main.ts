@@ -31,6 +31,6 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'images'), { prefix: '/images' });
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(3001);
+  await app.listen(3000);
 }
 bootstrap();

@@ -50,7 +50,7 @@ export const HiddenSearchInput: FC<Props> = function HiddenSearchInput(props) {
         placeholder={props.hint || "Найти товар в категории"}
         onChange={(e) => props.setCurrentValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className={`border border-light100 rounded-[36px] w-full
+        className={`border border-gray300 rounded-[36px] w-full
                py-2 pr-3 pl-10 outline-none focus:caret-main200 transition-all`}
         style={{
           background: `${COLORS.light200}`,

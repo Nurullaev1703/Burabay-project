@@ -26,5 +26,5 @@ export class SubcategoryController {
     return this.subcategoryService.findOne(id);
   }
 
-  // XXX Нужна ли апишка для получения всех категорий у определенного поставщика?
+  // XXX Нужна ли апишка для получения всех подкатегорий у определенной организации?
 }

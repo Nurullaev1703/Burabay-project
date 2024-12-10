@@ -41,6 +41,16 @@ export class UserController {
     return this.userService.remove(id);
   }
 
+  @Post('delete-empty-password-users')
+  deleteEmptyPasswordUsers() {
+    return this.userService.deleteEmptyPasswordUsers();
+  }
+
+  @Post('delete-empty-name-orgs')
+  deleteEmptyNameOrgs() {
+    return this.userService.deleteOrganizationsAndUsers();
+  }
+
   private static testJson = {
     'full_name': 'Rayan Gosling',
     'phone_number': '+77077046669',

@@ -1,8 +1,5 @@
 // роли для пользователей сайта
-export enum ROLE_TYPE{
-    CLIENT = "клиент",
-    PROVIDER = "поставщик"
-}
+
 // данные, приходящие с API для выявления IP пользователя
 export interface IpDataType{
     ipString: string,
@@ -12,4 +9,8 @@ export interface IpDataType{
 export interface PointDataType{
     region:string,
     city:string
+
+export enum ROLE_TYPE {
+  TOURIST = "турист",
+  BUSINESS = "бизнес",
 }

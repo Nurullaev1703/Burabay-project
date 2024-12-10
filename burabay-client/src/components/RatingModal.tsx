@@ -11,10 +11,8 @@ import { apiService } from "../services/api/ApiService";
 import { Loader } from "./Loader";
 
 interface FormType {
-  filialId: string;
   stars: number;
-  positiveText: string;
-  negativeText: string;
+  text: string;
 }
 
 interface Props {
@@ -29,10 +27,8 @@ export const RatingModal: FC<Props> = function RatingModal({
   user,
 }) {
   const [currentRating, setCurrentRating] = useState<FormType>({
-    filialId: user.filial?.id || "",
     stars: 0,
-    positiveText: "",
-    negativeText: "228",
+    text: "",
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -41,10 +37,8 @@ export const RatingModal: FC<Props> = function RatingModal({
 
   const { handleSubmit, control, setValue } = useForm<FormType>({
     defaultValues: {
-      filialId: user.filial?.id,
       stars: currentRating.stars,
-      positiveText: currentRating.positiveText,
-      negativeText: "228",
+      text: currentRating.text,
     },
   });
 
@@ -54,28 +48,27 @@ export const RatingModal: FC<Props> = function RatingModal({
   });
 
   // Получение текущей оценки
-  useEffect(() => {
-    const fetchRating = async () => {
-      setIsLoading(true);
-      try {
-        const response = await apiService.get<FormType>({
-          url: `/feedback/${user.filial?.id}`,
-        });
-        if (response.data) {
-          setCurrentRating(response.data);
-          // Обновляем значения в форме
-          setValue("stars", response.data.stars);
-          setValue("positiveText", response.data.positiveText);
-          setValue("negativeText", "228");
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRating();
-  }, [user.filial?.id, setValue]);
+  // useEffect(() => {
+  //   const fetchRating = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await apiService.get<FormType>({
+  //         url: `/feedback/${user?.id}`,
+  //       });
+  //       if (response.data) {
+  //         setCurrentRating(response.data);
+  //         // Обновляем значения в форме
+  //         setValue("stars", response.data.stars);  
+  //         setValue("text", response.data.text);
+  //       }
+  //     } catch (e) {
+  //       console.log(e);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   fetchRating();
+  // }, [user?.id, setValue]);
 
   const handleClick = (index: number) => {
     setValue("stars", index);
@@ -142,7 +135,7 @@ export const RatingModal: FC<Props> = function RatingModal({
                   })}
                 >
                   <Controller
-                    name="positiveText"
+                    name="text"
                     control={control}
                     rules={{ required: t("requiredField") }}
                     render={({ field, fieldState: { error } }) => (

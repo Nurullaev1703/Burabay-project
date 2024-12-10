@@ -17,13 +17,7 @@ export class UpdateAdDto {
   @IsNotEmpty()
   images: string[];
 
-  // TODO Удалить после 29 декабря.
   @IsString()
   @IsNotEmpty()
   subcategoryId: string;
-
-  // TODO Раскомментить после 29 декабря.
-  // @IsString()
-  // @IsNotEmpty()
-  // subcategoryId: string;
 }
