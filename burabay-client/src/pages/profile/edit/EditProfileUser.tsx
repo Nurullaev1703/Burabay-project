@@ -25,7 +25,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
   });
 
   return (
-    <div className="px-4 bg-background min-h-screen">
+    <div className="bg-background min-h-screen">
       <Header>
         <div className="flex justify-between items-center">
           <IconContainer
@@ -54,7 +54,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
         </div>
       </Header>
 
-      <div className="pt-24">
+      <div className="pt-4 px-4">
         <DefaultForm>
           <Controller
             name="name"
@@ -74,9 +74,8 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   helperText={error?.message}
                   label={t("name")}
                   fullWidth={true}
-                  variant="standard"
+                  variant="outlined"
                   inputProps={{ maxLength: 40 }}
-                  focused
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/40
@@ -103,8 +102,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   helperText={error?.message}
                   label={t("email")}
                   fullWidth={true}
-                  variant="standard"
-                  focused
+                  variant="outlined"
                 />
               </div>
             )}
@@ -132,7 +130,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   fullWidth
                   type="tel"
                   label={t("phoneV2")}
-                  variant="standard"
+                  variant="outlined"
                   inputRef={mask}
                   placeholder="700 000-00-00"
                   InputLabelProps={{
@@ -144,13 +142,12 @@ export const EditProfileUser: FC = function EditProfileUser() {
                       backgroundColor: error ? "#fff0f0" : "transparent",
                     },
                   }}
-                  focused
                 />
               </div>
             )}
           />
 
-          <Button className="fixed bottom-4 left-0">{t("save")}</Button>
+          <Button className="fixed bottom-4 left-2 w-header">{t("save")}</Button>
         </DefaultForm>
       </div>
     </div>

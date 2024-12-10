@@ -27,7 +27,7 @@ export const EditProfile: FC = function EditProfile() {
   });
 
   return (
-    <div className="px-4 bg-background min-h-screen">
+    <div className="bg-background min-h-screen">
       <Header>
         <div className="flex justify-between items-center">
           <IconContainer
@@ -56,7 +56,7 @@ export const EditProfile: FC = function EditProfile() {
         </div>
       </Header>
 
-      <div className="pt-24">
+      <div className="pt-4 px-4">
         <DefaultForm>
           <Controller
             name="organizationName"
@@ -76,9 +76,8 @@ export const EditProfile: FC = function EditProfile() {
                   helperText={error?.message}
                   label={t("organizationName")}
                   fullWidth={true}
-                  variant="standard"
+                  variant="outlined"
                   inputProps={{ maxLength: 40 }}
-                  focused
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/40
@@ -105,10 +104,10 @@ export const EditProfile: FC = function EditProfile() {
                   helperText={error?.message}
                   label={t("organizationAbout")}
                   fullWidth={true}
-                  variant="standard"
+                  variant="outlined"
                   inputProps={{ maxLength: 300 }}
                   multiline
-                  focused
+                  sx={{paddingTop: "12px"}}
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/300
@@ -135,8 +134,7 @@ export const EditProfile: FC = function EditProfile() {
                   helperText={error?.message}
                   label={t("email")}
                   fullWidth={true}
-                  variant="standard"
-                  focused
+                  variant="outlined"
                 />
               </div>
             )}
@@ -146,7 +144,6 @@ export const EditProfile: FC = function EditProfile() {
             name="phone"
             control={control}
             rules={{
-              required: t("requiredField"),
               validate: (value: string) => {
                 const phoneRegex = /^\d{3} \d{3}-\d{2}-\d{2}$/;
                 return phoneRegex.test(value) || t("invalidNumber");
@@ -164,7 +161,7 @@ export const EditProfile: FC = function EditProfile() {
                   fullWidth
                   type="tel"
                   label={t("phoneV2")}
-                  variant="standard"
+                  variant="outlined"
                   inputRef={mask}
                   placeholder="700 000-00-00"
                   InputLabelProps={{
@@ -176,7 +173,6 @@ export const EditProfile: FC = function EditProfile() {
                       backgroundColor: error ? "#fff0f0" : "transparent",
                     },
                   }}
-                  focused
                 />
               </div>
             )}
@@ -186,22 +182,21 @@ export const EditProfile: FC = function EditProfile() {
             name="site"
             control={control}
             render={({ field, fieldState: { error } }) => (
-              <div className="p-2 rounded-md bg-white mb-2">
+              <div className="p-2 rounded-md bg-white mb-24">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   label={t("site")}
                   fullWidth={true}
-                  variant="standard"
+                  variant="outlined"
                   placeholder="burabay.kz"
-                  focused
                 />
               </div>
             )}
           />
 
-          <Button className="fixed bottom-4 left-0">{t("save")}</Button>
+          <Button className="fixed bottom-4 left-2 w-header">{t("save")}</Button>
         </DefaultForm>
       </div>
     </div>

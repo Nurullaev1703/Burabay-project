@@ -59,7 +59,7 @@ export const SearchInput: FC<Props> = function SearchInput(props) {
         placeholder={props.hint || "Найти товар в категории"}
         onChange={(e) => props.setCurrentValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className={`border border-light100 rounded-[36px] w-full bg-light200
+        className={`border border-gray300 rounded-[36px] w-full bg-light200
                py-2 pr-3 pl-10 outline-none focus:caret-main200 transition-all`}
       />
     </div>

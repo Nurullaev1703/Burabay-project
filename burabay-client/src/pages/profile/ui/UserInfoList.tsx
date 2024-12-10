@@ -29,7 +29,7 @@ export const UserInfoList: FC = function UserInfoList() {
   const { t } = useTranslation();
   const [params, setParams] = useState<string[]>(paramsOrganizator);
   const [accountStatus, setAccountStatus] =
-    useState<accountStatus>("unconfirmed");
+    useState<accountStatus>("confirmed");
   return (
     <div>
       <ul>

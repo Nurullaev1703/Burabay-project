@@ -25,14 +25,14 @@ interface Props {
 }
 
 type Language = "RU" | "KZ" | "EN";
-export let user = { role: "турист" };
+export let user = { role: "организация" };
 
 export const Profile: FC<Props> = function Profile() {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState<string>(baseUrl + user?.filial?.image);
   const [accountStatus, setAccountStatus] =
-    useState<accountStatus>("notFilled");
+    useState<accountStatus>("confirmed");
   const [language, setLanguage] = useState<Language>("RU");
 
   // Смена лого
@@ -130,33 +130,33 @@ export const Profile: FC<Props> = function Profile() {
       <UserInfoList />
 
       <ul>
-        <li className={`${COLORS_BORDER.light100}`}>
+        <li className={`${COLORS_BORDER.gray300}`}>
           <Link className="flex py-3" to={"/"}>
             <img src={KeyIcon} alt={t("safety")} className="mr-2" />
             <span>{t("safety")}</span>
           </Link>
         </li>
         {user?.role === "турист" && (
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <li className={`border-t  ${COLORS_BORDER.gray300}`}>
             <Link className="flex py-3" to={"/"}>
               <img src={FavouriteIcon} alt={t("saved")} className="mr-2" />
               <span>{t("saved")}</span>
             </Link>
           </li>
         )}
-        <li className={`border-t  ${COLORS_BORDER.light100}`}>
+        <li className={`border-t  ${COLORS_BORDER.gray300}`}>
           <Link className="flex py-3" to={"/"}>
             <img src={AttentionIcon} alt={t("aboutService")} className="mr-2" />
             <span>{t("aboutService")}</span>
           </Link>
         </li>
-        <li className={`border-t  ${COLORS_BORDER.light100}`}>
+        <li className={`border-t  ${COLORS_BORDER.gray300}`}>
           <Link className="flex py-3" to="/help">
             <img src={LifebuoyIcon} alt={t("help")} className="mr-2" />
             <span>{t("help")}</span>
           </Link>
         </li>
-        <li className={`border-t border-b ${COLORS_BORDER.light100}`}>
+        <li className={`border-t border-b ${COLORS_BORDER.gray300}`}>
           <div
             className="flex py-3 cursor-pointer"
             onClick={() => setShowModal(true)}
@@ -165,7 +165,7 @@ export const Profile: FC<Props> = function Profile() {
             <span>{t("estimateService")}</span>
           </div>
         </li>
-        <li className={`border-b  ${COLORS_BORDER.light100}`}>
+        <li className={`border-b  ${COLORS_BORDER.gray300}`}>
           <Link className="flex justify-between py-3" to="/help">
             <div className="flex items-center">
               <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
