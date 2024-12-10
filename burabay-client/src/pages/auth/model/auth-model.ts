@@ -1,7 +1,7 @@
 // роли для пользователей сайта
 export enum ROLE_TYPE{
-    CLIENT = "клиент",
-    PROVIDER = "поставщик"
+    CLIENT = "турист",
+    PROVIDER = "организатор"
 }
 // данные, приходящие с API для выявления IP пользователя
 export interface IpDataType{

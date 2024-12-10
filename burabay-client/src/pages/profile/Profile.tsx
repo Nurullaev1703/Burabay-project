@@ -1,96 +1,187 @@
 import { FC, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import NotificationIcon from "../../app/icons/profile/notification.svg";
-import BaseLogo from "../../app/icons/profile/baseLogo.svg";
-import SettingsIcon from "../../app/icons/profile/settings.svg";
-import HelpIcon from "../../app/icons/profile/help.svg";
-import EstimateIcon from "../../app/icons/profile/estimate.svg";
+import KeyIcon from "../../app/icons/profile/key.svg";
+import BaseLogo from "../../app/icons/profile/settings/image.svg";
+import AttentionIcon from "../../app/icons/profile/attention.svg";
+import FavouriteIcon from "../../app/icons/profile/favourite.svg";
+import StarIcon from "../../app/icons/profile/star.svg";
+import LifebuoyIcon from "../../app/icons/profile/lifebuoy.svg";
 import { Profile as ProfileType } from "./model/profile";
-import checklist from "../../app/icons/profile/checklist.svg";
+import LanguageIcon from "../../app/icons/language.svg";
 import { RatingModal } from "../../components/RatingModal";
 import { baseUrl } from "../../services/api/ServerUrl";
-import { COLORS_TEXT, COLORS_BORDER } from "../../shared/ui/colors";
-import { Hint } from "../../shared/ui/Hint";
+import { COLORS_BORDER } from "../../shared/ui/colors";
+import { accountStatus, Hint } from "./ui/Hint";
+import { imageService } from "../../services/api/ImageService";
+import { apiService } from "../../services/api/ApiService";
+import ChangeImageIcon from "../../app/icons/profile/settings/changeImage.svg";
+import ArrowRight from "../../app/icons/arrow-right.svg";
+import { UserInfoList } from "./ui/UserInfoList";
+import { HintTourist } from "./ui/HintToursit";
 
 interface Props {
-  user: ProfileType;
+  user?: ProfileType;
 }
 
-export const Profile: FC<Props> = function Profile(props) {
+type Language = "RU" | "KZ" | "EN";
+export let user = { role: "турист" };
+
+export const Profile: FC<Props> = function Profile() {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [imgSrc,setImgSrc] = useState<string>(baseUrl + props.user.filial?.image)
+  const [imgSrc, setImgSrc] = useState<string>(baseUrl + user?.filial?.image);
+  const [accountStatus, setAccountStatus] =
+    useState<accountStatus>("notFilled");
+  const [language, setLanguage] = useState<Language>("RU");
+
+  // Смена лого
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const imageChange = async (data: File) => {
+    if (data) {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append("file", data);
+      try {
+        if (user?.organization?.imgUrl.includes("/image")) {
+          // удаление картинки. Принимает на себя путь к картинке
+          await apiService.delete({
+            url: "/image",
+            dto: {
+              filepath: user?.organization?.imgUrl,
+            },
+          });
+        }
+        // сохранение картинки. В результате получаем ссылку на картинку
+        const response = await imageService.post<string>({
+          url: "/image/profile",
+          dto: formData,
+        });
+        await apiService.patch({
+          url: "/profile",
+          dto: {
+            organization: {
+              imgUrl: response.data,
+            },
+          },
+        });
+        setImgSrc(baseUrl + response.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    } else {
+      console.error("No file selected");
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (selectedFiles && selectedFiles.length > 0) {
+      imageChange(selectedFiles[0]);
+    } else {
+      console.error("Не выбрано изображение");
+    }
+  };
+
   return (
     <section className="px-4">
-      <div>
-        <header className="flex justify-between mb-4 py-2 items-center">
-          <div className="flex">
-            <div className="img-cover w-12 h-12">
-              <img
-                src={imgSrc}
-                onError={() => {setImgSrc(BaseLogo)}}
-                alt="Лого компании"
-                className="mr-2 object-cover rounded-full h-full w-full"
-              />
-            </div>
-            <div className="ml-2">
-              <h1 className="text-xl font-extrabold line-clamp-1 leading-6">
-              {`${props.user?.organization?.type?.toUpperCase() || ""} «${props.user?.organization?.name?.toUpperCase() || ""}»`}
-              </h1>
-              <span className={`${COLORS_TEXT.secondary}`}>
-                {props.user?.position || ""}
-              </span>
-            </div>
-          </div>
-          <Link to="/">
-            <img src={NotificationIcon} alt="Уведомление" />
-          </Link>
-        </header>
-
-        <Hint align="center" title={t("waiting1C")}></Hint>
-        <ul>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
-            <Link className="flex py-3" to={"/"}>
-              <img src={checklist} alt={t("historyOrder")} className="mr-2" />
-              <span>{t("historyOrder")}</span>
-            </Link>
-          </li>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
-            <Link className="flex py-3" to={"/"}>
-              <img
-                src={SettingsIcon}
-                alt={t("profileSettings")}
-                className="mr-2"
-              />
-              <span>{t("profileSettings")}</span>
-            </Link>
-          </li>
-          <li className={`border-t  ${COLORS_BORDER.light100}`}>
-            <Link className="flex py-3" to="/help">
-              <img src={HelpIcon} alt={t("help")} className="mr-2" />
-              <span>{t("help")}</span>
-            </Link>
-          </li>
-          <li className={`border-t border-b ${COLORS_BORDER.light100}`}>
-            <div
-              className="flex py-3 cursor-pointer"
-              onClick={() => setShowModal(true)}
-            >
-              <img
-                src={EstimateIcon}
-                alt={t("estimateService")}
-                className="mr-2"
-              />
-              <span>{t("estimateService")}</span>
-            </div>
-          </li>
-          {showModal && (
-            <RatingModal open={showModal} onClose={() => setShowModal(false)} user={props.user}/>
-          )}
-        </ul>
+      <div className="flex justify-center mb-4 py-2 items-center bg-white">
+        <div
+          className={`relative border-solid border-2 relative w-32 h-32 border-[#0A7D9E] rounded-full flex items-center justify-center`}
+        >
+          <img
+            src={imgSrc}
+            onError={() => {
+              setImgSrc(BaseLogo);
+            }}
+            alt="Изображение"
+            className="object-cover rounded-full"
+          />
+          <label
+            htmlFor="logo"
+            className="absolute bottom-0 right-0 p-1 rounded-full bg-[#0A7D9E] cursor-pointer w-11 h-11 flex items-center justify-center"
+          >
+            <img src={ChangeImageIcon} alt="" />
+          </label>
+          <input
+            type="file"
+            id="logo"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
       </div>
 
+      <div>
+        <Link className="flex justify-between my-2" to={"/profile/edit"}>
+          <span className={`font-semibold text-[#0A7D9E]`}>{t("account")}</span>
+          <img src={ArrowRight} alt="Стрелка" />
+        </Link>
+      </div>
+
+      {user?.role === "организация" && <Hint accountStatus={accountStatus} />}
+      {user?.role === "турист" && accountStatus === "notFilled" && (
+        <HintTourist />
+      )}
+
+      <UserInfoList />
+
+      <ul>
+        <li className={`${COLORS_BORDER.light100}`}>
+          <Link className="flex py-3" to={"/"}>
+            <img src={KeyIcon} alt={t("safety")} className="mr-2" />
+            <span>{t("safety")}</span>
+          </Link>
+        </li>
+        {user?.role === "турист" && (
+          <li className={`border-t  ${COLORS_BORDER.light100}`}>
+            <Link className="flex py-3" to={"/"}>
+              <img src={FavouriteIcon} alt={t("saved")} className="mr-2" />
+              <span>{t("saved")}</span>
+            </Link>
+          </li>
+        )}
+        <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <Link className="flex py-3" to={"/"}>
+            <img src={AttentionIcon} alt={t("aboutService")} className="mr-2" />
+            <span>{t("aboutService")}</span>
+          </Link>
+        </li>
+        <li className={`border-t  ${COLORS_BORDER.light100}`}>
+          <Link className="flex py-3" to="/help">
+            <img src={LifebuoyIcon} alt={t("help")} className="mr-2" />
+            <span>{t("help")}</span>
+          </Link>
+        </li>
+        <li className={`border-t border-b ${COLORS_BORDER.light100}`}>
+          <div
+            className="flex py-3 cursor-pointer"
+            onClick={() => setShowModal(true)}
+          >
+            <img src={StarIcon} alt={t("estimateService")} className="mr-2" />
+            <span>{t("estimateService")}</span>
+          </div>
+        </li>
+        <li className={`border-b  ${COLORS_BORDER.light100}`}>
+          <Link className="flex justify-between py-3" to="/help">
+            <div className="flex items-center">
+              <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
+              <span>{t("appLanguage")}</span>
+            </div>
+            <span className="font-medium text-lg">{language}</span>
+          </Link>
+        </li>
+        {showModal && (
+          <RatingModal
+            open={showModal}
+            onClose={() => setShowModal(false)}
+            user={user}
+          />
+        )}
+      </ul>
     </section>
   );
 };

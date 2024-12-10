@@ -287,8 +287,9 @@ i18n.use(initReactI18next).init({
           "Бұл жерде сіздің себетке қосылған тауарларыңыз көрсетіледі.",
 
         //poviders page
-        providersDescription: "Жеткізушіні таңдаңыз және оның санаттары осы қойындыда пайда болады",
-        selectProvder: "Жеткізушіні таңдаңыз"
+        providersDescription:
+          "Жеткізушіні таңдаңыз және оның санаттары осы қойындыда пайда болады",
+        selectProvder: "Жеткізушіні таңдаңыз",
       },
     },
     ru: {
@@ -364,18 +365,15 @@ i18n.use(initReactI18next).init({
           "После подтверждения данных через Egov Mobile вам придёт СМС",
 
         // profile page
-        waiting1C: "Ожидается подключение вашей 1С к сервису",
-        debts: "Долги",
-        contracts: "Договора",
-        branches: "Филиалы",
-        employees: "Сотрудники",
-        profileSettings: "Настройки профиля",
+        appLanguage: "Язык приложения",
+        aboutService: "О сервисе",
         help: "Помощь",
         estimateService: "Оценить сервис",
-        historyOrder: "История поставок",
+        safety: "Безопасность",
+        saved: "Сохраненное",
 
         // profile edit page
-        settings: "Настройки",
+        accountSettings: "Настройки аккаунта",
         region: "Регион",
         managerFilial: "Менеджер магазина",
         requisitesCheck: "Реквизиты счёта",
@@ -395,12 +393,15 @@ i18n.use(initReactI18next).init({
         fullBankName: "Полное наименование банка",
         bankNameError:
           "Банк не найден. Перед сохранением проверьте написание на наличие ошибки",
+        email: "Почта",
         // profile pages
         notifications: "Уведомления",
+        name: "Имя",
         noNotificaitions: "Нет уведомлений",
         authHistory: "История авторизаций",
         noAuthHistory: "Авторизаций ещё не было",
         invalidUsername: "Имя пользователя не совпадает",
+        invalidEmail: "Неверный формат почты",
         noEmployees: "Сотрудников ещё нет",
         acceptWaiting: "Ожидание подтверждения",
         newEmployee: "Новый сотрудник",
@@ -411,6 +412,20 @@ i18n.use(initReactI18next).init({
         signingContract: "Подписание договоров",
         employeeManagement: "Управление сотрудниками",
         portfolioEdit: "Редактирование товарного портфеля",
+        account: "Аккаунт",
+        accountConfirm:
+          "Для подтверждения аккаунта нужно дополнить или изменить данные!",
+        fillProfile: "Заполните свой профиль что бы бронировать быстрее",
+        fill: "Заполнить",
+        accountWaiting: "Данные отправлены, ожидайте подтверждение",
+        details: "Подробнее",
+        notFiled: "Не заполнено",
+        organizationName: "Название организации",
+        organizationAbout: "Об организации",
+        emailToLogin: "Адрес для входа в в аккаунт",
+        phone: "Номер телефона для связи с вами",
+        phoneV2: "Телефон",
+        site: "Сайт",
 
         //products page
         yourSuggestions: "Ваши предложения",
@@ -577,10 +592,10 @@ i18n.use(initReactI18next).init({
           "Тут будут отображаться ваши товары, добавленные в корзину.",
         noProducts: "Товаров пока нет",
         chooseProducts: "Выбрать товар",
-          //poviders page
-        providersDescription: "Выберите поставщика и его категории появятся в этой вкладке",
+        //poviders page
+        providersDescription:
+          "Выберите поставщика и его категории появятся в этой вкладке",
         selectProvder: "Выбрать поставщика",
-
       },
     },
   },
