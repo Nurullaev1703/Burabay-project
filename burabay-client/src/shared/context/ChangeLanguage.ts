@@ -12,10 +12,10 @@ i18n.use(initReactI18next).init({
       translation: {
         "signin":"Вход",
         "welcome":"Добро пожаловать!",
-        "mail": "почта",
+        "mail": "Почта",
         "inputMail":"Введите адрес электронной почты",
-        "signinWith": "или войдите с помощью",
-        "next":"далее",
+        "signinWith": "Или войдите с помощью",
+        "next":"Далее",
         "registerBusiness":"зарегистрировать организацию"
       },
     },

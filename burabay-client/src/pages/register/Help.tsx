@@ -6,12 +6,22 @@ import { Typography } from "../../shared/ui/Typography";
 import WhatsApp from "../../app/icons/whatsapp.svg";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate, useRouter } from "@tanstack/react-router";
+import device from "current-device";
+import {
+  firstAuth,
+  getDocuments,
+  getQrCode,
+  postSignResponse,
+  secondAuth,
+} from "../auth/egovData/EgovData";
 import { Loader } from "../../components/Loader";
+import { apiService } from "../../services/api/ApiService";
 import { useAuth } from "../../features/auth";
+import { NCALayerClient } from "ncalayer-js-client";
 import { Hint } from "../../shared/ui/Hint";
 import { useTranslation } from "react-i18next";
 
-export const HelpPage: FC = function HelpPage() {
+export const Help: FC = function Help() {
   const { history } = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -21,7 +31,63 @@ export const HelpPage: FC = function HelpPage() {
   const { t } = useTranslation();
 
   // авторизация через Egov по ИИН
-  const handleEgovAuth = async () => {};
+  const handleEgovAuth = async () => {
+    if (device.type === "mobile" || device.type === "tablet") {
+      // api, необходимые для получения авторизации с egov
+      const qrData = await getQrCode();
+      setIsLoading(true);
+
+      // открываем egovMobile
+      window.location.href = qrData.data.eGovMobileLaunchLink;
+      const authData = await firstAuth();
+      await postSignResponse(qrData.data.signURL, authData.data.nonce);
+      const docs = await getDocuments(qrData.data.signURL);
+      const userData = await secondAuth(
+        authData.data.nonce,
+        docs.data.documentsToSign[0].document.file.data
+      );
+      const response = await apiService.get<string>({
+        url: `/auth/iin/${userData.data.userId}`,
+      });
+      if (response.data) {
+        setToken(response.data);
+        navigate({ to: "/profile" });
+      }
+    } else {
+      const ncalayerClient = new NCALayerClient();
+
+      try {
+        await ncalayerClient.connect();
+      } catch {
+        setErrorText(t("ncalayerError"));
+        throw setIsError(true);
+      }
+      const authData = await firstAuth();
+      let base64EncodedSignature;
+      try {
+        base64EncodedSignature = await ncalayerClient.basicsSignCMS(
+          NCALayerClient.basicsStorageAll,
+          authData.data.nonce,
+          NCALayerClient.basicsCMSParamsDetached,
+          NCALayerClient.basicsSignerAuthAny
+        );
+      } catch {
+        setErrorText(t("signingError"));
+        throw setIsError(true);
+      }
+      const userData = await secondAuth(
+        authData.data.nonce,
+        base64EncodedSignature
+      );
+      const response = await apiService.get<string>({
+        url: `/auth/iin/${userData.data.userId}`,
+      });
+      if (response.data) {
+        setToken(response.data);
+        navigate({ to: "/profile" });
+      }
+    }
+  };
 
   return (
     <div className=" min-h-screen">
