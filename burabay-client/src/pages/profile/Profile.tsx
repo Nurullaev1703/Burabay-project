@@ -12,6 +12,8 @@ import { RatingModal } from "../../components/RatingModal";
 import { baseUrl } from "../../services/api/ServerUrl";
 import { COLORS_TEXT, COLORS_BORDER } from "../../shared/ui/colors";
 import { Hint } from "../../shared/ui/Hint";
+import { NewNavMenu } from "../../shared/ui/NewNavMenu";
+import { Typography } from "@mui/material";
 
 interface Props {
   user: ProfileType;
@@ -92,5 +94,8 @@ export const Profile: FC<Props> = function Profile(props) {
       </div>
 
     </section>
+    
+
+    
   );
 };
