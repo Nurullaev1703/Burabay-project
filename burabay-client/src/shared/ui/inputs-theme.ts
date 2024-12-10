@@ -4,25 +4,43 @@ import { COLORS } from "./colors";
 export const theme = createTheme({
   palette: {
     primary: {
-      main: "#FF891C",
+      main: "#0A7D9E",
     },
   },
-  typography:{
-    fontFamily: "SF Pro Text"
+  typography: {
+    fontFamily: "Roboto",
   },
   components: {
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: "14px",
+          borderRadius: "8px",
+          paddingTop: "20px",
+          border: "none",
+          background: "white",
+          caretColor: "#0A7D9E",
+          ".css-14lo706": {
+            display: "none",
+            visibility: "visible", // Отображение placeholder
+          },
+          ".MuiOutlinedInput-notchedOutline": {
+            display: "none",
+          },
+          "&:hover .css-14lo706, &:focus-within .css-14lo706": {
+            opacity: 1, // Полное отображение при фокусе или наведении
+          },
+          "::placeholder": {
+            visibility: "visible",
+          },
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
-          borderRadius: "14px",
+          borderRadius: "8px",
           outline: "none",
+          border: "none",
         },
       },
     },
@@ -32,8 +50,8 @@ export const theme = createTheme({
           caretColor: "#FF891C",
           padding: "0",
           height: "fit-content",
-          "&::before":{
-            borderBottom: "1px solid #edecea"
+          "&::before": {
+            borderBottom: "1px solid #edecea",
           },
           "&:hover:not(.Mui-disabled, .Mui-error):before": {
             borderBottom: "2px solid #FF7B1C",
@@ -44,28 +62,44 @@ export const theme = createTheme({
         },
       },
     },
+    MuiInputLabel: {
+      defaultProps: {
+        shrink: true,
+      },
+      styleOverrides: {
+        root: {
+          position: "absolute",
+          top: "12px",
+          left: "12px",
+          transform: "none",
+          color: COLORS.gray100,
+          fontSize: "12px",
+          fontWeight: 400
+        },
+      },
+    },
     MuiSwitch: {
       styleOverrides: {
         root: {
-          "& .MuiSwitch-switchBase":{
-            color: COLORS.softGray
+          "& .MuiSwitch-switchBase": {
+            color: COLORS.softGray,
           },
-          "& .MuiSwitch-track":{
-            backgroundColor: COLORS.gray100
+          "& .MuiSwitch-track": {
+            backgroundColor: COLORS.gray100,
           },
           "& .MuiSwitch-switchBase.Mui-checked": {
             color: COLORS.blue200,
           },
           "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
             backgroundColor: COLORS.gray200,
-            opacity: 1
+            opacity: 1,
           },
         },
       },
     },
-    MuiAutocomplete:{
-      styleOverrides:{
-        listbox:{
+    MuiAutocomplete: {
+      styleOverrides: {
+        listbox: {
           padding: 0,
           border: `1px solid ${COLORS.gray100}`,
           boxShadow: "none",
@@ -73,39 +107,41 @@ export const theme = createTheme({
           borderRadius: "4px",
           outline: "none",
           height: "190px",
-          "&::-webkit-scrollbar":{
+          "&::-webkit-scrollbar": {
             width: "5px",
             backgroundColor: COLORS.softGray,
             margin: "5px 0",
           },
-          "&::-webkit-scrollbar-thumb":{
-            backgroundColor: '#BCBCBC',
-            borderRadius: "23px"
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#BCBCBC",
+            borderRadius: "23px",
           },
-          ".MuiAutocomplete-option":{
-            padding: "8px"
+          ".MuiAutocomplete-option": {
+            padding: "8px",
           },
-          ".MuiAutocomplete-option:not(:hover).Mui-focused":{
-            backgroundColor: COLORS.softGray
-          }
+          ".MuiAutocomplete-option:not(:hover).Mui-focused": {
+            backgroundColor: COLORS.softGray,
+          },
         },
-        inputRoot:{
-          paddingRight: 0
+        inputRoot: {
+          paddingRight: 0,
         },
-        root:{
+        root: {
           height: "32px",
-          ".MuiInput-root .MuiInput-input":{
+          ".MuiInput-root .MuiInput-input": {
             padding: "4px 0",
-            textOverflow: "inherit"
+            textOverflow: "inherit",
           },
-          ".css-1glvl0p-MuiButtonBase-root-MuiIconButton-root-MuiAutocomplete-clearIndicator":{
-            display: "none"
-          },
-          ".MuiInputBase-root.MuiInput-root.MuiInput-underline.MuiInputBase-colorPrimary.MuiInputBase-fullWidth.MuiInputBase-formControl.MuiInputBase-adornedEnd.MuiAutocomplete-inputRoot.css-jk6q6j-MuiInputBase-root-MuiInput-root":{
-            paddingRight: 0
-          }
-        }
-      }
-    },   
+          ".css-1glvl0p-MuiButtonBase-root-MuiIconButton-root-MuiAutocomplete-clearIndicator":
+            {
+              display: "none",
+            },
+          ".MuiInputBase-root.MuiInput-root.MuiInput-underline.MuiInputBase-colorPrimary.MuiInputBase-fullWidth.MuiInputBase-formControl.MuiInputBase-adornedEnd.MuiAutocomplete-inputRoot.css-jk6q6j-MuiInputBase-root-MuiInput-root":
+            {
+              paddingRight: 0,
+            },
+        },
+      },
+    },
   },
 });

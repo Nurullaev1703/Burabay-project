@@ -14,7 +14,7 @@ export const COLORS_TEXT = {
   gray100: "text-gray100", // #999999
   gray200: "text-gray200", //#DBDBDB
   gray300: "text-gray300", // #E4E9EA
-  white: "text-#FFF", // #FFFFFF
+  white: "text-white", // #FFFFFF
 };
 export const COLORS_BACKGROUND = {
   blue100: "bg-blue100", // #035F7C

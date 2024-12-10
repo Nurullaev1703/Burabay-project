@@ -1,15 +1,12 @@
 import { FC, useRef, useState } from "react";
-import { Header } from "../../components/Header";
+import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import BackIcon from "../../app/icons/back-icon.svg";
 import SupportIcon from "../../app/icons/support-icon.svg";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import { Controller, useForm } from "react-hook-form";
-import {
-  Autocomplete,
-  TextField,
-} from "@mui/material";
+import { Autocomplete, TextField } from "@mui/material";
 import { Hint } from "../../shared/ui/Hint";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
@@ -44,9 +41,8 @@ const options = [
   "ОгП",
   "ОБП",
   "ПОО",
-  "ЧФ"
-]
-
+  "ЧФ",
+];
 
 export const Register: FC = function Register() {
   const [isError, setIsError] = useState<boolean>(false);
@@ -78,7 +74,7 @@ export const Register: FC = function Register() {
       username: "",
       city: "",
     },
-    mode: "onSubmit"
+    mode: "onSubmit",
   });
 
   const onSubmit = handleSubmit(async (form) => {
@@ -104,7 +100,7 @@ export const Register: FC = function Register() {
 
   return (
     <div className="px-4">
-      <Header>
+      <AlternativeHeader>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -112,17 +108,19 @@ export const Register: FC = function Register() {
           <Typography size={20} weight={800}>
             {t("register")}
           </Typography>
-          <IconContainer align="end" action={() => navigate({to: "/help"})}>
+          <IconContainer align="end" action={() => navigate({ to: "/help" })}>
             <img src={SupportIcon} alt="" />
           </IconContainer>
         </div>
-      </Header>
+      </AlternativeHeader>
 
       <DefaultForm
         onSubmit={onSubmit}
         className={"flex flex-col justify-between mt-18 "}
       >
-        <Typography size={12} color={COLORS_TEXT.secondary}>{t("orgName")}</Typography>
+        <Typography size={12} color={COLORS_TEXT.secondary}>
+          {t("orgName")}
+        </Typography>
         <div className={"flex flex-col"}>
           <div className="flex gap-4">
             <Controller
@@ -145,7 +143,11 @@ export const Register: FC = function Register() {
                   options={options}
                   sx={{ width: 80 }}
                   renderInput={(params) => (
-                    <TextField {...params} variant="standard" sx={{height: "fit-content"}}/>
+                    <TextField
+                      {...params}
+                      variant="standard"
+                      sx={{ height: "fit-content" }}
+                    />
                   )}
                 />
               )}
@@ -189,7 +191,7 @@ export const Register: FC = function Register() {
               />
             )}
           />
-          {inputValue == "ИП" &&
+          {inputValue == "ИП" && (
             <Controller
               name="username"
               control={control}
@@ -210,7 +212,7 @@ export const Register: FC = function Register() {
                 />
               )}
             />
-          }
+          )}
         </div>
         <div className={"mt-2"}>
           <Hint title={t("acceptEgovData")} />

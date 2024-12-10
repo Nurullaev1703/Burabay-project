@@ -7,22 +7,6 @@ export default {
     // добавление собственных именований классов в приложении
     extend: {
       colors: {
-        main100: "#FF7B1C",
-        main200: "#FF891C",
-        main300: "#FF9737",
-        accent100: "#FFEDCA",
-        accent200: "#FFFDD4",
-        context100: "#878787",
-        context200: "#A0A0A0",
-        light100: "#EDECEA",
-        light200: "#FAF9F7",
-        alternate: "#FFFFFF",
-        primary: "#000000",
-        disabled: "#E7E7E7",
-        secondary: "#939393",
-        error: "#FF4242",
-        background: "#F1F2F5",
-        access: "#04C900",
         error: "#FF4242",
         background: "#F1F2F5",
         access: "#04C900",

@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Header } from "../../components/Header";
+import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import BackIcon from "../../app/icons/back-icon.svg";
@@ -32,62 +32,60 @@ export const RegisterAccept: FC = function RegisterAccept() {
   const [errorText, setErrorText] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleRegister = async (user: Profile, userData: userDataType) =>{
+  const handleRegister = async (user: Profile, userData: userDataType) => {
     const username = getName(userData);
-    console.log(username)
-      // обновление данных для ИП
-      if(user.organization?.type == "ИП"){
-        if (
-          user?.fullName.toUpperCase().includes(username)
-        ) {
-          const bin = getBusinessId(userData)
-          const response = await apiService.patch<string>({
-            url: "/profile",
-            dto: {
-              fullName: username,
-              organization: {
-                identityNumber: bin,
-              },
+    console.log(username);
+    // обновление данных для ИП
+    if (user.organization?.type == "ИП") {
+      if (user?.fullName.toUpperCase().includes(username)) {
+        const bin = getBusinessId(userData);
+        const response = await apiService.patch<string>({
+          url: "/profile",
+          dto: {
+            fullName: username,
+            organization: {
+              identityNumber: bin,
             },
-          });
-          if (response.data) {
-            navigate({ to: "/register/success" });
-          }
-        } else {
-          setErrorText(t('ownerError'));
-          throw setIsError(true);
+          },
+        });
+        if (response.data) {
+          navigate({ to: "/register/success" });
         }
+      } else {
+        setErrorText(t("ownerError"));
+        throw setIsError(true);
       }
-      // обновление данных для других организаций
-      else{
-        if (
-          userData.businessId &&
-          user?.fullName.toUpperCase().includes(username)
-        ) {
-          const orgName = getOrganizationName(userData)
-          const response = await apiService.patch<string>({
-            url: "/profile",
-            dto: {
-              fullName: username,
-              iin: userData.userId,
-              organization: {
-                name: orgName,
-                identityNumber: userData.businessId.replace("BIN", ""),
-              },
+    }
+    // обновление данных для других организаций
+    else {
+      if (
+        userData.businessId &&
+        user?.fullName.toUpperCase().includes(username)
+      ) {
+        const orgName = getOrganizationName(userData);
+        const response = await apiService.patch<string>({
+          url: "/profile",
+          dto: {
+            fullName: username,
+            iin: userData.userId,
+            organization: {
+              name: orgName,
+              identityNumber: userData.businessId.replace("BIN", ""),
             },
-          });
-          if (response.data) {
-            navigate({ to: "/register/success" });
-          }
-        } else if (!userData.businessId) {
-          setErrorText(t("noBusinessInfo"));
-          throw setIsError(true);
-        } else {
-          setErrorText(t('ownerError'));
-          throw setIsError(true);
+          },
+        });
+        if (response.data) {
+          navigate({ to: "/register/success" });
         }
+      } else if (!userData.businessId) {
+        setErrorText(t("noBusinessInfo"));
+        throw setIsError(true);
+      } else {
+        setErrorText(t("ownerError"));
+        throw setIsError(true);
       }
-  }
+    }
+  };
 
   const handleSubmit = async () => {
     const user = await apiService.get<Profile>({
@@ -108,8 +106,8 @@ export const RegisterAccept: FC = function RegisterAccept() {
         docs.data.documentsToSign[0].document.file.data
       );
       // обновление данных о пользователе
-      await handleRegister(user.data, userData.data)
-      setIsLoading(false)
+      await handleRegister(user.data, userData.data);
+      setIsLoading(false);
     } else {
       const ncalayerClient = new NCALayerClient();
 
@@ -136,7 +134,7 @@ export const RegisterAccept: FC = function RegisterAccept() {
         authData.data.nonce,
         base64EncodedSignature[0] || base64EncodedSignature
       );
-      await handleRegister(user.data, userData.data)
+      await handleRegister(user.data, userData.data);
     }
   };
 
@@ -156,7 +154,7 @@ export const RegisterAccept: FC = function RegisterAccept() {
   };
   return (
     <div className="px-4 h-view">
-      <Header>
+      <AlternativeHeader>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -168,7 +166,7 @@ export const RegisterAccept: FC = function RegisterAccept() {
             <img src={WhatsappIcon} alt="" />
           </IconContainer>
         </div>
-      </Header>
+      </AlternativeHeader>
       <main className="mt-18 h-view flex flex-col justify-between">
         <div className="mt-8">
           <div

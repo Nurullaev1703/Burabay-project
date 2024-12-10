@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, FC } from "react";
-import { COLORS_BACKGROUND, COLORS_BORDER, COLORS_TEXT } from "./colors";
+import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
 import fingerprint from "../../app/icons/fingerprint.svg";
 
 // виды кнопок в приложении
@@ -30,7 +30,7 @@ export const Button: FC<Props> = function Button(props) {
 
   // стили для темной кнопки
   if (mode == "dark") {
-    bgButton = COLORS_BACKGROUND.context100;
+    bgButton = COLORS_BACKGROUND.gray100;
   }
   // стили для кнопки с границами
   else if (mode == "border") {
@@ -44,13 +44,13 @@ export const Button: FC<Props> = function Button(props) {
     bgButton = COLORS_BACKGROUND.red;
   } else if (mode == "red") {
     bgButton = `transparent`;
-    textColor = COLORS_TEXT.error;
+    textColor = COLORS_TEXT.red;
   }
 
   // стили для выключенной кнопки
   if (props.disabled) {
-    bgButton = COLORS_BACKGROUND.disabled;
-    textColor = COLORS_TEXT.secondary;
+    bgButton = COLORS_BACKGROUND.gray100;
+    textColor = COLORS_TEXT.white;
   }
 
   return (
