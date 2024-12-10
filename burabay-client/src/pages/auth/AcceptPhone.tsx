@@ -2,18 +2,16 @@ import { FC, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DefaultForm } from "./ui/DefaultForm";
 import OtpInput from "react-otp-input";
-import { COLORS, COLORS_TEXT } from "../../shared/ui/colors";
-import TimerButton from "../../shared/ui/TimerButton";
-import { Button } from "../../shared/ui/Button";
-import { Typography } from "../../shared/ui/Typography";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { apiService } from "../../services/api/ApiService";
-import { phoneService, roleService } from "../../services/storage/Factory";
-import { IpDataType, PointDataType, ROLE_TYPE } from "./model/auth-model";
-import { useAuth } from "../../features/auth";
 import { Loader } from "../../components/Loader";
-import { Profile } from "../profile/model/profile";
+import { useAuth } from "../../features/auth";
+import { apiService } from "../../services/api/ApiService";
+import { phoneService } from "../../services/storage/Factory";
+import { Typography } from "../../shared/ui/Typography";
+import { COLORS, COLORS_TEXT } from "../../shared/ui/colors";
+import { Button } from "../../shared/ui/Button";
+import TimerButton from "../../shared/ui/TimerButton";
 
 interface Props {
   phoneNumber: string;
@@ -64,70 +62,6 @@ export const AcceptPhone: FC<Props> = function AcceptPhone(props) {
 
   const onSubmit = async (otp: string) => {
     setIsSubmitting(true)
-    const response = await apiService.post({
-      url: "/auth/verify-code",
-      dto: {
-        phone: "+7"+phoneService.getValue().replace(/[ -]/g, ""),
-        code: otp,
-      },
-    });
-    if (response.status.toString().startsWith("4")) {
-      setIsSubmitting(false)
-      setError(true);
-      setErrorText(t("invalidCode"));
-      setTimeout(() => {
-        setError(false);
-      }, 2000);
-      setShaking(true);
-      setTimeout(() => setShaking(false), 500);
-      setOtp("");
-    } else {
-      // формируем роль пользователя исходя из перевода
-      let userRole: ROLE_TYPE = ROLE_TYPE.PROVIDER;
-      if (roleService.getValue() === t("buyerRole")) {
-        userRole = ROLE_TYPE.CLIENT;
-      }
-
-      // получаем IP пользователя
-      const userIp = await apiService.get<IpDataType>({
-        url: "https://api.bigdatacloud.net/data/client-ip",
-      });
-
-      // ищем местоположение запроса по IP
-      const userPoint = await apiService.get<PointDataType>({
-        url: `http://ipwho.is/${userIp.data.ipString}?fields=region,city&lang=ru`,
-      });
-
-      const response = await apiService.post<string>({
-        url: "/auth",
-        dto: {
-          phoneNumber: "+7"+phoneService.getValue().replace(/[ -]/g, ""),
-          role: userRole,
-          authPoint: userPoint.data.city,
-        },
-      });
-      if (response.data) {
-        // сохраняем токен
-        setToken(response.data);
-        if (userRole === ROLE_TYPE.CLIENT) {
-          navigate({ to: "/profile" });
-        } else {
-          // получаем профиль, чтобы понять хватает ли данных для авторизации
-          const userData = await apiService.get<Profile>({
-            url: "/profile"
-          })
-          if(userData.data.organization?.identityNumber && userData.data.organization?.name){
-            navigate({to:"/profile"})
-          }
-          else if(!userData.data.organization?.identityNumber && userData.data.organization?.name){
-            navigate({to:"/register/accept"})
-          }
-          else{
-            navigate({ to:"/register" });
-          }
-        }
-      }
-    }
   };
 
   return (
@@ -144,7 +78,7 @@ export const AcceptPhone: FC<Props> = function AcceptPhone(props) {
           <div className="flex gap-2 mb-4">
             <Typography weight={500}>{"+7 "+props.phoneNumber}</Typography>
             <Typography
-              color={COLORS_TEXT.main200}
+              color={COLORS_TEXT.blue200}
               onClick={() => history.back()}
             >
               {t("change")}
@@ -164,7 +98,7 @@ export const AcceptPhone: FC<Props> = function AcceptPhone(props) {
               style={{
                 width: "54px",
                 height: "54px",
-                color: COLORS.main200,
+                color: COLORS.blue200,
                 fontWeight: "700",
                 textAlign: "center",
                 fontSize: (props.value) ? "48px" : "20px" 

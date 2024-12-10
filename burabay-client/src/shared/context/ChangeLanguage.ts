@@ -5,6 +5,7 @@ i18n.use(initReactI18next).init({
   resources: {
     kz: {
       translation: {
+
         //welcome page
         welcome: "Қош келдіңіз",
         buyer: "Мен сатып алушымын",
@@ -294,16 +295,8 @@ i18n.use(initReactI18next).init({
     },
     ru: {
       translation: {
+
         // welcome page
-        welcome: "Добро пожаловать",
-        buyer: "Я покупатель",
-        provider: "Я продавец",
-        providerRole: "Поставщик",
-        buyerRole: "Покупатель",
-        noneRole: "Гость",
-        buyerHint: "Купить или взять товар на реализацию в свой магазин",
-        providerHint:
-          "Продать или отдать свой товар на реализацию в чужой магазин",
         continue: "Продолжить",
 
         // login page
@@ -596,6 +589,15 @@ i18n.use(initReactI18next).init({
         providersDescription:
           "Выберите поставщика и его категории появятся в этой вкладке",
         selectProvder: "Выбрать поставщика",
+
+        "signin":"Вход",
+        "welcome":"Добро пожаловать!",
+        "mail": "Почта",
+        "inputMail":"Введите адрес электронной почты",
+        "signinWith": "Или войдите с помощью",
+        "next":"Далее",
+        "registerBusiness":"зарегистрировать организацию"
+
       },
     },
   },

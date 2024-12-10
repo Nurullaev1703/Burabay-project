@@ -15,12 +15,12 @@ export const Tile: FC<Props> = function Tile(props) {
       <img
         src={props.imgUrl}
         alt={props.title}
-        className="absolute w-[70%] h-[100%] right-0 bottom-0 object-cover" 
+        className="absolute w-[70%] h-[100%] right-0 bottom-0 object-cover"
       />
       <Typography
         size={14}
         weight={600}
-        color={COLORS_TEXT.primary}
+        color={COLORS_TEXT.totalBlack}
         className="z-10 p-2"
       >
         {props.title}

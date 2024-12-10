@@ -1,6 +1,6 @@
 import BackIcon from "../../app/icons/back-icon.svg";
 import { FC, useState } from "react";
-import { Header } from "../../components/Header";
+import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import WhatsApp from "../../app/icons/whatsapp.svg";
@@ -90,8 +90,8 @@ export const Help: FC = function Help() {
   };
 
   return (
-    <div className="px-4 min-h-screen">
-      <Header>
+    <div className=" min-h-screen">
+      <AlternativeHeader>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -103,7 +103,7 @@ export const Help: FC = function Help() {
             <img src={WhatsApp} alt="" />
           </IconContainer>
         </div>
-      </Header>
+      </AlternativeHeader>
       <main className="mt-18 py-4">
         <div className="py-4 border-b mb-4">
           <Typography className="mb-4" size={20} weight={600}>
@@ -112,18 +112,20 @@ export const Help: FC = function Help() {
           <Typography className="mb-4" size={16} weight={400}>
             {"Вы можете войти в свой аккаунт с помощью ЭЦП"}
           </Typography>
-          <Button mode="border" onClick={handleEgovAuth}>{"Перейти в Egov Mobile"}</Button>
+          <Button mode="border" onClick={handleEgovAuth}>
+            {"Перейти в Egov Mobile"}
+          </Button>
         </div>
         {isError && (
-            <div className="relative">
-              <Hint title={errorText} mode="error" />
-              <button
-                className="absolute w-11 h-full right-0 top-0 flex justify-end pt-2 px-3 text-alternate cursor-pointer"
-                onClick={() => setIsError(false)}
-              >
-                {"X"}
-              </button>
-            </div>
+          <div className="relative">
+            <Hint title={errorText} mode="error" />
+            <button
+              className="absolute w-11 h-full right-0 top-0 flex justify-end pt-2 px-3 text-alternate cursor-pointer"
+              onClick={() => setIsError(false)}
+            >
+              {"X"}
+            </button>
+          </div>
         )}
         <div className="py-4 border-b mb-4">
           <Typography className="mb-4" size={20} weight={600}>

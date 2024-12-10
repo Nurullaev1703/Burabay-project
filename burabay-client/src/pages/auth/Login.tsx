@@ -1,30 +1,28 @@
 import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Header } from "../../components/Header";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import SupportIcon from "../../app/icons/support-icon.svg";
-import BackIcon from "../../app/icons/back-icon.svg";
-import { useMask } from "@react-input/mask";
+import { AlternativeHeader } from "../../components/AlternativeHeader";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Loader } from "../../components/Loader";
 import { useAuth } from "../../features/auth";
-import { apiService } from "../../services/api/ApiService";
-import { phoneService, roleService } from "../../services/storage/Factory";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { DefaultForm } from "./ui/DefaultForm";
 import { Typography } from "../../shared/ui/Typography";
 import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
+import InfoIcon from "../../app/icons/info.svg";
+import LanguageIcon from "../../app/icons/language.svg";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import FacebookLogin from "react-facebook-login";
 
 // роль, которую выбрал пользователь
-interface Props {
-  role: string;
-}
+interface Props {}
 
 // форма отслеживает только номер телефона
 interface FormType {
-  phone: string;
+  email: string;
 }
 
 export const Login: FC<Props> = function Login(props) {
@@ -36,170 +34,113 @@ export const Login: FC<Props> = function Login(props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { setToken } = useAuth();
 
-  // маска для ввода номера телефона
-  const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
-
+  const handleFacebookCallback = (response: any) => {
+    if (response?.status === "unknown") {
+      console.error("Sorry!", "Something went wrong with facebook Login.");
+      return;
+    }
+    console.log(response);
+  };
   const {
     handleSubmit,
     control,
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      phone: phoneService.hasValue() ? phoneService.getValue() : "",
+      email: "",
     },
   });
-  const styles = {
-    ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
-      padding: "16px 14px 16px 33px",
-      fontSize: "16px",
-    },
-  };
   return (
-    <div className="relative h-screen mt-18 px-4">
-      <Header>
-        <div className="flex justify-between items-center">
-          <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} alt="" />
+    <div className="bg-almostWhite h-screen">
+      <AlternativeHeader>
+        <div className="flex justify-between items-center mb-2">
+          <IconContainer align="start">
+            <img src={InfoIcon} alt="" />
           </IconContainer>
-          <Typography size={20} weight={800}>
-            {props.role}
+          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
+            {t("signin")}
           </Typography>
-          <IconContainer align="end" action={() => navigate({ to: "/help" })}>
-            <img src={SupportIcon} alt="" />
+          <IconContainer align="end">
+            <img src={LanguageIcon} alt="" />
           </IconContainer>
         </div>
-      </Header>
+        <Typography
+          size={18}
+          weight={500}
+          color={COLORS_TEXT.white}
+          className="text-center"
+        >
+          {t("welcome")}
+        </Typography>
+      </AlternativeHeader>
 
       <DefaultForm
-        onSubmit={handleSubmit(async (form) => {
-          const sendCode = await apiService.post<number>({
-            url: "/auth/verification",
-            dto: {
-              phone: "+7" + form.phone.replace(/[ -]/g, ""),
-            },
-          });
-          if (sendCode.status === 400) {
-            setErrorMessage(t("invalidNumber"));
-            throw setPhoneError(true);
-          }
-          if (sendCode.status === 429) {
-            setErrorMessage(t("tooManyRequests"));
-            throw setPhoneError(true);
-          }
-          phoneService.setValue(form.phone);
-          roleService.setValue(props.role);
-          navigate({
-            to: "/auth/accept/$phone",
-            params: { phone: form.phone },
-          });
-        })}
+        onSubmit={handleSubmit(async (form) => {})}
         className="flex flex-col"
       >
-        <div className="flex flex-col items-center mb-10">
-          <div
-            className={`w-36 aspect-square  flex items-end justify-center rounded-button`}
-          >
-            <img
-              src={""}
-              alt=""
-              className="mix-blend-multiply"
-            />
-          </div>
-          <div className="flex flex-col gap-2 mt-4">
-            <div>
-              <Typography weight={500} align="center">
-                {t("inputNumber")}
-              </Typography>
-              <Typography weight={300} align="center">
-                {t("inputNumberText")}
-              </Typography>
-            </div>
-            <Controller
-              name="phone"
-              control={control}
-              rules={{
-                required: t("requiredField"),
-                validate: (value: string) => {
-                  const phoneRegex = /^\d{3} \d{3}-\d{2}-\d{2}$/;
-                  return phoneRegex.test(value) || t("invalidNumber");
-                },
-              }}
-              render={({ field, fieldState: { error } }) => (
-                <div className="relative">
-                  <div className="absolute top-0 left-0 h-[55px] flex w-8 justify-end items-center z-10">
-                    <Typography>{"+7"}</Typography>
-                  </div>
-                  <TextField
-                    {...field}
-                    error={Boolean(error?.message) || phoneError}
-                    helperText={error?.message || errorMessage}
-                    fullWidth={true}
-                    type={"tel"}
-                    variant="outlined"
-                    autoFocus={true}
-                    inputRef={mask}
-                    sx={styles}
-                    placeholder="700 000-00-00"
-                    onFocus={() => {
-                      window.scrollTo({
-                        top: window.screen.height / 2,
-                        behavior: "smooth", // Для плавного скролла (поддержка может быть не у всех браузеров)
-                      });
-                    }}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      setPhoneError(false);
-                      setErrorMessage("");
-                    }}
-                  />
-                </div>
-              )}
-            />
-            <Typography size={14}>
-              <span className={`${COLORS_TEXT.secondary}`}>
-                {t("termsOfUseText") + " "}
-              </span>
-              <Link to={"/"}>
-                <span className={`${COLORS_TEXT.main200}`}>
-                  {t("termsOfUseLink")}
-                </span>
-              </Link>
+        <div className="flex flex-col items-center gap-5 py-6 px-4">
+          <Controller
+            name="email"
+            control={control}
+            rules={{
+              validate: (value: string) => {
+                const emailRegex =
+                  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailRegex.test(value) || t("invalidNumber");
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                error={Boolean(error?.message) || phoneError}
+                helperText={error?.message || errorMessage}
+                fullWidth={true}
+                type={"email"}
+                variant="outlined"
+                label={t("mail")}
+                autoFocus={true}
+                placeholder={t("inputMail")}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setPhoneError(false);
+                  setErrorMessage("");
+                }}
+              />
+            )}
+          />
+          <div className="relative w-full h-4 my-4 flex items-center">
+            <div className="w-full h-[1px] bg-gray100"></div>
+            <Typography
+              size={12}
+              color={COLORS_TEXT.gray100}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-almostWhite px-4"
+            >
+              {t("signinWith")}
             </Typography>
           </div>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              const decode = jwtDecode(String(credentialResponse?.credential));
+              console.log(decode);
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+          <FacebookLogin
+            buttonStyle={{ padding: "6px" }}
+            appId="939844554734638"
+            autoLoad={false}
+            fields="name,email,picture"
+            callback={handleFacebookCallback}
+          />
         </div>
-        <div className="sticky top-full left-0 w-full">
-          {props.role === t("buyerRole") ? (
-            <Button
-              mode="transparent"
-              type="button"
-              onClick={async () => {
-                setIsLoading(true)
-                roleService.setValue("Гость");
-                const token = await apiService.post<string>({
-                  url: "/auth",
-                  dto: {
-                    phoneNumber: "+77000000000",
-                    role: "гость",
-                    authPoint: "string",
-                  },
-                });
-                if(token.data){
-                  setToken(token.data)
-                  navigate({ to: "/profile" });
-                }
-              }}
-            >
-              {t("skip")}
-            </Button>
-          ) : (
-            <></>
-          )}
-          <Button disabled={!isValid || isSubmitting} type="submit">
-            {t("getCode")}
-          </Button>
-        </div>
+        <Button disabled={!isValid || isSubmitting} type="submit">
+          {t("next")}
+        </Button>
       </DefaultForm>
-      {isLoading && <Loader/>}
+
+      {isLoading && <Loader />}
     </div>
   );
 };
