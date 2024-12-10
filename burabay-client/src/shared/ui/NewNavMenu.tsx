@@ -1,211 +1,128 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { FC } from "react";
-import { ProductBack } from "../../app/icons/nav-menu/ProductBack";
-import { Orders } from "../../app/icons/nav-menu/Orders";
+import { Announcements } from "../../app/icons/navbar/announcements";
+import { Star } from "../../app/icons/navbar/star";
+import { Map } from "../../app/icons/navbar/map"; 
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
-import { Profile } from "../../app/icons/nav-menu/Profile";
-import { roleService } from "../../services/storage/Factory";
+import { Profile } from "../../app/icons/navbar/profile"; 
+import { Notifications} from "../../app/icons/navbar/notifications";
 import { useTranslation } from "react-i18next";
-import { Main } from "../../app/icons/nav-menu/Main";
-import { Providers } from "../../app/icons/nav-menu/Providers";
-import { Cart } from "../../app/icons/nav-menu/Cart";
 
 export const NewNavMenu: FC = function NewNavMenu() {
-  const role = roleService.getValue();
   const { t } = useTranslation();
-  return (
-    <>
-      <nav
-        className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.white}`}
-      >
-        {(role === t("noneRole") || role === t("buyerRole")) && (
-          <ul className={"flex justify-between"}>
-            <li className="w-[68px]">
-              <Link
-                to="/main"
-                className="flex justify-center items-center flex-col"
-              >
-                <Main
-                  strokeColor={
-                    location.pathname.includes("main") ? "#FF891C" : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("main") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {t("main")}
-                </span>
-              </Link>
-            </li>
-            <li className="w-[68px]">
-              <Link
-                to="/categories"
-                className="flex justify-center items-center flex-col"
-              >
-                <Providers
-                  strokeColor={
-                    location.pathname.includes("categories")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("categories") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {"Категории"}
-                </span>
-              </Link>
-            </li>
-            {/* <li className="w-[68px]">
-              <Link
-                to="/providers"
-                className="flex justify-center items-center flex-col"
-              >
-                <Providers
-                  strokeColor={
-                    location.pathname.includes("providers")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("providers") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {t("providers")}
-                </span>
-              </Link>
-            </li> */}
-            <li className="w-[68px]">
-              <Link
-                to="/cart"
-                className="flex justify-center items-center flex-col"
-              >
-                <Cart
-                  strokeColor={
-                    location.pathname.includes("cart") ? "#FF891C" : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("cart") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {t("cart")}
-                </span>
-              </Link>
-            </li>
-            <li className="w-[68px]">
-              <Link
-                to="/delivered"
-                className="flex justify-center items-center flex-col"
-              >
-                <Orders
-                  strokeColor={
-                    location.pathname.includes("delivered")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("delivered") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {t("orders")}
-                </span>
-              </Link>
-            </li>
-            <li className="w-[68px]">
-              <Link
-                to="/profile"
-                className="flex justify-center items-center flex-col"
-              >
-                <Profile
-                  strokeColor={
-                    location.pathname.includes("profile")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("profile") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {t("profile")}
-                </span>
-              </Link>
-            </li>
-          </ul>
-        )}
+  const navigate = useNavigate();
 
-        {role === t("providerRole") && (
-          <ul className={"flex justify-between"}>
-            <li className="w-[114px]">
-              <Link
-                to="/full-products"
-                className="flex justify-center items-center flex-col"
-              >
-                <ProductBack
-                  strokeColor={
-                    location.pathname.includes("full-products") ||
-                    location.pathname.includes("products") ||
-                    location.pathname.includes("promo") ||
-                    location.pathname.includes("discount") ||
-                    location.pathname.includes("subcategories")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${
-                    location.pathname.includes("full-products") ||
-                    location.pathname.includes("products") ||
-                    location.pathname.includes("promo") ||
-                    location.pathname.includes("discount") ||
-                    location.pathname.includes("subcategories")
-                      ? COLORS_TEXT.blue200
-                      : COLORS_TEXT.context100
-                  } text-[10px]`}
-                >
-                  {"Товарный портфель"}
-                </span>
-              </Link>
-            </li>
-            <li className="w-[114px]">
-              <Link
-                to="/orders"
-                className="flex justify-center items-center flex-col"
-              >
-                <Orders
-                  strokeColor={
-                    location.pathname.includes("orders") ? "#FF891C" : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname.includes("orders") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {"Заказы"}
-                </span>
-              </Link>
-            </li>
-            <li className="w-[114px]">
-              <Link
-                to="/profile"
-                className="flex justify-center items-center flex-col"
-              >
-                <Profile
-                  strokeColor={
-                    location.pathname === "/" ||
-                    location.pathname.includes("profile")
-                      ? "#FF891C"
-                      : "#939393"
-                  }
-                />
-                <span
-                  className={`${location.pathname === "/" || location.pathname.includes("profile") ? COLORS_TEXT.blue200 : COLORS_TEXT.context100} text-[10px]`}
-                >
-                  {"Профиль"}
-                </span>
-              </Link>
-            </li>
-          </ul>
-        )}
-      </nav>
-    </>
+  const getStrokeColor = (path: string) =>
+    location.pathname.includes(path) ? "#0A7D9E" : "#999999";
+
+  const getFillColor = (path: string) =>
+    location.pathname.includes(path) ? "#0A7D9E" : "#FFFFFF"; 
+
+  const getFillColorMask = (path: string) =>
+    location.pathname.includes(path) ? "#FFFFFF" : "#999999";
+
+  return (
+    <nav
+      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.alternative}`}
+    >
+      <ul className="flex justify-between w-full px-4">
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/announcements"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Announcements 
+              strokeColor={getStrokeColor("announcements")}
+              fillColor={getFillColor("announcements")} 
+              fillColorMask = {getFillColorMask("announcements")}
+            />
+            <span
+              className={`${
+                location.pathname.includes("announcements")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {t("Объявления")}
+            </span>
+          </div>
+        </li>
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/reviews"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Star 
+              strokeColor={getStrokeColor("reviews")}
+              fillColor={getFillColor("reviews")} 
+            />
+            <span
+              className={`${
+                location.pathname.includes("reviews")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {"Отзывы"}
+            </span>
+          </div>
+        </li>
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/map"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Map 
+              strokeColor={getStrokeColor("map")}
+              fillColor={getFillColor("map")} 
+            />
+            <span
+              className={`${
+                location.pathname.includes("map")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {t("Карта")}
+            </span>
+          </div>
+        </li>
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/notifications"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Notifications 
+              strokeColor={getStrokeColor("notifications")}
+              fillColor={getFillColor("notifications")} 
+            />
+            <span
+              className={`${
+                location.pathname.includes("notifications")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {t("Уведомления")}
+            </span>
+          </div>
+        </li>
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/profile"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Profile 
+              strokeColor={getStrokeColor("profile")}
+              fillColor={getFillColor("profile")} 
+            />
+            <span
+              className={`${
+                location.pathname.includes("profile")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {t("Профиль")}
+            </span>
+          </div>
+        </li>
+      </ul>
+    </nav>
   );
 };

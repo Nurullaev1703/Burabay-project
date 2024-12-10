@@ -20,6 +20,7 @@ import ArrowRight from "../../app/icons/arrow-right.svg";
 import { UserInfoList } from "./ui/UserInfoList";
 import { HintTourist } from "./ui/HintToursit";
 
+
 interface Props {
   user?: ProfileType;
 }
@@ -183,5 +184,8 @@ export const Profile: FC<Props> = function Profile() {
         )}
       </ul>
     </section>
+    
+
+    
   );
 };
