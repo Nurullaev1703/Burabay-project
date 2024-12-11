@@ -14,7 +14,7 @@ export class CategoryService {
   /* Метод для получения всех Категорий */
   async findAll() {
     try {
-      return await this.categoryRepository.find();
+      return await this.categoryRepository.find({ relations: { subcategories: true } });
     } catch (error) {
       Utils.errorHandler(error);
     }
@@ -23,7 +23,10 @@ export class CategoryService {
   /* Метод для получения Категории по id */
   async findOne(id: string) {
     try {
-      const subcategory = await this.categoryRepository.findOne({ where: { id: id } });
+      const subcategory = await this.categoryRepository.findOne({
+        where: { id: id },
+        relations: { subcategories: true },
+      });
       Utils.check(subcategory, 'Категория не найдена');
       return subcategory;
     } catch (error) {
