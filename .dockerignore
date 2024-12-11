@@ -1,0 +1,8 @@
+/burabay-server/node_modules
+/burabay-server/dist
+/burabay-server/.env
+/burabay-server/Dockerfile
+/burabay-server/docker-compose.yml
+
+/burabay-client/node_modules
+/burabay-client/dist

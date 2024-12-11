@@ -26,46 +26,76 @@ export class SeederService {
   async seedCategoryAndSubcategory() {
     try {
       const data = {
-        'Отдых': [
-          'Туристические тропы',
-          'Грибные места',
-          'Рыбные места',
-          'Зоны для отдыха и пикников',
-          'Игровые площади',
-          'Пляжи и водоемы',
-        ],
-        'Жилье': [
-          'Гостиницы',
-          'Квартиры',
-          'Комнаты',
-          'Дома и Коттеджи',
-          'Хостелы',
-          'Гостевые дома',
-          'Апарт-отели',
-          'Мини-гостиницы',
-        ],
-        'Питание': ['Кафе', 'Рестораны', 'Столовые'],
-        'Достопримечательности': ['Особые памятники и объекты культуры'],
-        'Здоровье': ['Оздоровление'],
-        'Развлечения': [
-          'Вечеринки и шоу',
-          'Зоопарки',
-          'Парки аттракционов',
-          'Развлекательные заведения',
-          'Экскурсии',
-          'Культурные мероприятия',
-          'Сувенирные магазины',
-        ],
-        'Экстрим': ['Экстримальный отдых'],
-        'Прокат': ['Прокат и аренда снаряжения и оборудования'],
-        'Безопасность': ['Инфраструктура и безопасность'],
+        'Отдых': {
+          'description': 'Туристическая тропа, грибное место, зона для отдыха и пикников, и т.д.',
+          'subcategories': [
+            'Туристические тропы',
+            'Грибные места',
+            'Рыбные места',
+            'Зоны для отдыха и пикников',
+            'Игровые площади',
+            'Пляжи и водоемы',
+          ],
+        },
+        'Жилье': {
+          'description': 'Гостиницы, санатории, квартиры, команты, дома и коттеджи, и т.д.',
+          'subcategories': [
+            'Гостиницы',
+            'Квартиры',
+            'Комнаты',
+            'Дома и Коттеджи',
+            'Хостелы',
+            'Гостевые дома',
+            'Апарт-отели',
+            'Мини-гостиницы',
+          ],
+        },
+        'Питание': {
+          'description': 'Кафе, столовые, рестораны',
+          'subcategories': ['Кафе', 'Рестораны', 'Столовые'],
+        },
+        'Достопримечательности': {
+          'description': 'Исторические и культурные объекты, музеи, памятники, парки, и т.д.',
+          'subcategories': ['Особые памятники и объекты культуры'],
+        },
+        'Здоровье': {
+          'description': 'Медицинские центры, санатории, SPA-салоны, фитнес-клубы, и т.д.',
+          'subcategories': ['Оздоровление'],
+        },
+        'Развлечения': {
+          'description': 'Вечеринки и шоу, местный зоопарк, парк атракционов, экскурсии, и т.д.',
+          'subcategories': [
+            'Вечеринки и шоу',
+            'Зоопарки',
+            'Парки аттракционов',
+            'Развлекательные заведения',
+            'Экскурсии',
+            'Культурные мероприятия',
+            'Сувенирные магазины',
+          ],
+        },
+        'Экстрим': {
+          'description': 'Активные виды спорта, альпинизм, парапланы, квадроциклы, и т.д.',
+          'subcategories': ['Экстримальный отдых'],
+        },
+        'Прокат': {
+          'description': 'Автотранспорт, снаряжение, средства индивидуальной мобильности',
+          'subcategories': ['Прокат и аренда снаряжения и оборудования'],
+        },
+        'Безопасность': {
+          'description': 'Аптеки, банкоматы, консьерж-сервисы',
+          'subcategories': ['Инфраструктура и безопасность'],
+        },
       };
 
-      for (const [categoryName, subcategoryNames] of Object.entries(data)) {
+      for (const [categoryName, categoryData] of Object.entries(data)) {
         if (!(await this.categoryRepository.findOne({ where: { name: categoryName } }))) {
-          const category = this.categoryRepository.create({ name: categoryName });
+          const category = this.categoryRepository.create({
+            name: categoryName,
+            description: categoryData.description,
+          });
           await this.categoryRepository.save(category);
-          for (const subcategoryName of subcategoryNames) {
+          for (const subcategoryName of categoryData.subcategories) {
             if (!(await this.subcategoryRepository.findOne({ where: { name: subcategoryName } }))) {
               const subcategory = this.subcategoryRepository.create({
                 name: subcategoryName,
@@ -89,7 +119,7 @@ export class SeederService {
           imgUrl: 'img_link',
           name: 'Тестовая организация',
           address: 'Pavlodar',
-          isConfirmed: true
+          isConfirmed: true,
         });
         await this.orgRepository.save(org);
       } else {

@@ -1,0 +1,20 @@
+# backend
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Копируем package.json и yarn.lock для установки зависимостей
+COPY burabay-server/package.json burabay-server/yarn.lock ./
+
+RUN yarn install --frozen-lockfile
+
+# Копируем остальные файлы проекта
+COPY burabay-server .
+
+RUN yarn build
+
+# ENV DATABASE_HOST=postgres
+
+EXPOSE 3000
+
+CMD ["yarn", "start:prod"]

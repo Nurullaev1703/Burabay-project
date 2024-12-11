@@ -1,0 +1,25 @@
+# frontend
+FROM node:22-alpine
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем package.json и package-lock.json
+COPY burabay-client/package.json burabay-client/yarn.lock ./
+
+# Устанавливаем зависимости
+RUN yarn install --frozen-lockfile
+
+# Копируем файлы фронтенда
+COPY burabay-client .
+
+# TODO Раскомментить когда все будет работать.
+# Собираем проект фронтенда
+# RUN yarn build
+
+# Открываем порт для фронтенда
+EXPOSE 5173
+
+# TODO Изменить команду на запуск прод приложения.
+# Запускаем приложение
+CMD ["yarn", "dev"] 

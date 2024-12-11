@@ -7,6 +7,9 @@ export class Category extends AbstractEntity<Category> {
   @Column()
   name: string;
 
+  @Column()
+  description: string;
+
   // @OneToMany(() => Ad, (ad) => ad.category)
   // ads: Ad[];
 

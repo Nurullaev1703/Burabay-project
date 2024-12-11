@@ -8,7 +8,7 @@ import { Ad } from 'src/ad/entities/ad.entity';
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.getOrThrow('POSTGRES_HOST'),
+        host: configService.get('POSTGRES_HOST') || 'postgres',
         port: configService.getOrThrow('POSTGRES_PORT'),
         username: configService.getOrThrow('POSTGRES_USER'),
         password: configService.getOrThrow('POSTGRES_PASSWORD'),

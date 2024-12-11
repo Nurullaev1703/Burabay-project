@@ -2,7 +2,6 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 
 /* Класс с различными методами для уменьшения кода. */
 export class Utils {
-  // TODO Переписать, чтоб пустые поля удалялись вообще.
   /* Метод удаляет содержание пустых полей. */
   static removeNullFields(obj: any) {
     if (Array.isArray(obj)) {

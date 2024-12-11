@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+    # Сервис для бэкенда
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile.backend
+        env_file:
+            - burabay-server/.env
+        depends_on:
+            - postgres
+        ports:
+            - "3000:3000"
+        networks:
+            - app-network
+
+    # Сервис для фронтенда
+    frontend:
+        build:
+            context: .
+            dockerfile: Dockerfile.frontend
+        ports:
+            - "5173:5173"
+        depends_on:
+            - backend
+        networks:
+            - app-network
+
+    # Сервис для PostgreSQL базы данных
+    postgres:
+        image: postgres:latest
+        env_file:
+            - burabay-server/.env
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        networks:
+            - app-network
+        ports:
+            - "5432:5432"
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    postgres-data:
