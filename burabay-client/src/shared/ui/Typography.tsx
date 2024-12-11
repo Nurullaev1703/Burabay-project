@@ -56,7 +56,7 @@ export const Typography: FC<TypographyProps> = function Typography(props) {
   } = props;
 
   // формирование стилей для типографии
-  const styles = `${STYLE_SIZE[size]} ${STYLE_WEIGHT[weight]} ${color} ${STYLE_ALIGN[align]} ${props?.className} leading-none`;
+  const styles = `${STYLE_SIZE[size]} ${STYLE_WEIGHT[weight]} ${color} ${STYLE_ALIGN[align]} ${props?.className} tracking-wide`;
 
   //формирование типографии на выходе
   return (

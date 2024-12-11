@@ -25,6 +25,8 @@ export class Organization extends AbstractEntity<Organization> {
   @OneToOne(() => User, (user) => user.organization)
   user: User;
 
+  @Column()
+  isConfirmed: boolean;
   @OneToMany(() => Ad, (ad) => ad.organization)
   ads: Ad[];
 }

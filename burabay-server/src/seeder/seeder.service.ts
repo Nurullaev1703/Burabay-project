@@ -89,6 +89,7 @@ export class SeederService {
           imgUrl: 'img_link',
           name: 'Тестовая организация',
           address: 'Pavlodar',
+          isConfirmed: true
         });
         await this.orgRepository.save(org);
       } else {

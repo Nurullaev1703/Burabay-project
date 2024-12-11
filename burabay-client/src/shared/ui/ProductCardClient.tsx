@@ -2,7 +2,7 @@ import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import defaultImage from "../../app/img/default-image.png";
 import { Typography } from "./Typography";
 import { COLORS_TEXT } from "./colors";
-import { baseUrl } from "../../services/api/ServerUrl";
+import { baseUrl } from "../../services/api/ServerData";
 import { Link } from "@tanstack/react-router";
 import { PROD_STATUS } from "../../pages/subcategory/types/subcategory-types";
 import { Product } from "../../pages/subcategory/types/subcategory-types";

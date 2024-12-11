@@ -1,10 +1,8 @@
 import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Loader } from "../../components/Loader";
-import { useAuth } from "../../features/auth";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { DefaultForm } from "./ui/DefaultForm";
@@ -18,23 +16,20 @@ import FacebookLogin from "react-facebook-login";
 import GoogleLogo from "../../app/icons/google-logo.svg";
 import FacebookLogo from "../../app/icons/facebook-logo.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
+import { apiService } from "../../services/api/ApiService";
+import { HTTP_STATUS } from "../../services/api/ServerData";
 
-// роль, которую выбрал пользователь
-interface Props {}
-
-// форма отслеживает только номер телефона
+// форма отслеживает только email
 interface FormType {
   email: string;
 }
 
-export const Login: FC<Props> = function Login(props) {
+export const Login: FC = function Login() {
   const navigate = useNavigate();
-  const { history } = useRouter();
   const { t } = useTranslation();
-  const [phoneError, setPhoneError] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { setToken } = useAuth();
 
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => console.log(tokenResponse),
@@ -78,7 +73,23 @@ export const Login: FC<Props> = function Login(props) {
       </AlternativeHeader>
 
       <DefaultForm
-        onSubmit={handleSubmit(async (form) => {})}
+        onSubmit={handleSubmit(async (form) => {
+          setIsLoading(true)
+          const response = await apiService.post({
+            url:"/auth",
+            dto: form
+          })
+          if(response.data == HTTP_STATUS.CREATED){
+            navigate({to:"/auth/accept/$email", params:{email: form.email}})
+          }
+          if(response.data == HTTP_STATUS.UNAUTHORIZED){
+            navigate({to:"/auth/accept/$email", params:{email: form.email}})
+          }
+          if(response.data == HTTP_STATUS.OK){
+            console.log("Пользователь авторизован")
+          }
+          setIsLoading(false);
+        })}
         className="flex flex-col"
       >
         <div className="flex flex-col items-center gap-5 py-6 px-4">
@@ -89,13 +100,13 @@ export const Login: FC<Props> = function Login(props) {
               validate: (value: string) => {
                 const emailRegex =
                   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                return emailRegex.test(value) || t("invalidNumber");
+                return emailRegex.test(value) || t("invalidEmail");
               },
             }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                error={Boolean(error?.message) || phoneError}
+                error={Boolean(error?.message) || emailError}
                 helperText={error?.message || errorMessage}
                 fullWidth={true}
                 type={"email"}
@@ -103,10 +114,9 @@ export const Login: FC<Props> = function Login(props) {
                 label={t("mail")}
                 autoFocus={true}
                 placeholder={t("inputMail")}
-                onBlur={() => {}}
                 onChange={(e) => {
                   field.onChange(e);
-                  setPhoneError(false);
+                  setEmailError(false);
                   setErrorMessage("");
                 }}
               />
@@ -155,12 +165,12 @@ export const Login: FC<Props> = function Login(props) {
             />
           </div>
         </div>
-        <Button disabled={!isValid || isSubmitting} type="submit" className="w-header mx-auto">
+        <Button disabled={!isValid || isSubmitting} loading={isLoading} type="submit" className="w-header mx-auto">
           {t("next")}
         </Button>
+        <Link to="/register" className="text-center text-blue200 py-[18px] w-full font-semibold text-[16px] mt-2">{t('registerBusiness')}</Link>
       </DefaultForm>
 
-      {isLoading && <Loader />}
     </div>
   );
 };

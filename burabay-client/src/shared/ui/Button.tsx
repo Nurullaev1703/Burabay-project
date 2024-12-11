@@ -11,7 +11,8 @@ type ButtonType =
   | "error"
   | "red"
   | "fingerprint"
-  | "loading";
+  | "loading"
+  | "hidden";
 
 // выбор вида кнопки
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,7 +23,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: FC<Props> = function Button(props) {
   // настройки кнопки по умолчанию
   const { mode = "default", loading = false, ...rest } = props;
-  const active = `active:bg-blue100`;
+  const active = `active:bg-blue300`;
 
   let bgButton = `bg-blue200
         ${active}`;
@@ -36,7 +37,7 @@ export const Button: FC<Props> = function Button(props) {
   else if (mode == "border") {
     bgButton = `border-[3px] border-blue200
         ${active}`;
-    textColor = `${COLORS_TEXT.totalBlack} hover:text-alternate active:text-alternate`;
+    textColor = `${COLORS_TEXT.blue200} active:text-blue300`;
   } else if (mode == "transparent") {
     bgButton = `transparent`;
     textColor = COLORS_TEXT.blue200;
@@ -45,6 +46,10 @@ export const Button: FC<Props> = function Button(props) {
   } else if (mode == "red") {
     bgButton = `transparent`;
     textColor = COLORS_TEXT.red;
+  }
+  else if(mode == "hidden"){
+    bgButton = `transparent`;
+    textColor = "text-transparent"
   }
 
   // стили для выключенной кнопки
@@ -56,7 +61,7 @@ export const Button: FC<Props> = function Button(props) {
   return (
     <button
       {...rest}
-      className={`rounded-button flex justify-center items-center py-4 w-full ${bgButton} ${mode == "fingerprint" ? "flex items-center gap-2.5 justify-center" : ""} transition-all font-semibold ${textColor} ${rest.className}`}
+      className={`rounded-button flex justify-center items-center py-4 w-full ${bgButton} ${mode == "fingerprint" ? "flex items-center gap-2.5 justify-center" : ""} ${mode !== "hidden" && "transition-all"} font-semibold ${textColor} ${rest.className}`}
       disabled={loading || props.disabled}
     >
       {loading ? (

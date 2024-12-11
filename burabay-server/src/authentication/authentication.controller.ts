@@ -7,6 +7,7 @@ import { VerificationDto } from './dto/verification.dto';
 import { PhoneService } from './phone.service';
 import { Throttle } from '@nestjs/throttler';
 import { VerifyCodeDto } from './dto/verify-code.dto';
+import { EmailService } from './email.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,6 +15,7 @@ export class AuthenticationController {
   constructor(
     private readonly authenticationService: AuthenticationService,
     private readonly phoneService: PhoneService,
+    private readonly emailService: EmailService,
   ) {}
 
   @Public()
@@ -26,12 +28,11 @@ export class AuthenticationController {
   @Throttle({ default: { limit: 8, ttl: 1800000 } })
   @Post('verification')
   verification(@Body() verificationDto: VerificationDto) {
-    return this.phoneService.sendVerification(verificationDto);
+    return this.emailService.sendAcceptMessage(verificationDto.email);
   }
-
   @Public()
   @Post('verify-code')
   verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
-    return this.phoneService.verifyCode(verifyCodeDto);
+    return this.emailService.verifyCode(verifyCodeDto);
   }
 }
