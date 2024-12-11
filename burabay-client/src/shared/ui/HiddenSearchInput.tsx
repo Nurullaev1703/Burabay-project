@@ -12,7 +12,7 @@ interface Props extends HTMLAttributes<HTMLInputElement> {
   currentValue: string;
   setCurrentValue: Dispatch<SetStateAction<string>>;
   handleSearch?: (value: string) => void;
-  navigateTo?: ProductRoutes
+  navigateTo?: ProductRoutes;
 }
 export const HiddenSearchInput: FC<Props> = function HiddenSearchInput(props) {
   // получаем доступ к текущему маршруту
@@ -53,7 +53,7 @@ export const HiddenSearchInput: FC<Props> = function HiddenSearchInput(props) {
         className={`border border-gray300 rounded-[36px] w-full
                py-2 pr-3 pl-10 outline-none focus:caret-main200 transition-all`}
         style={{
-          background: `${COLORS.light200}`,
+          background: `${COLORS.gray200}`,
         }}
         onBlur={(field) => {
           if (field.target.parentElement) {
@@ -64,7 +64,7 @@ export const HiddenSearchInput: FC<Props> = function HiddenSearchInput(props) {
             setTimeout(() => {
               props.handleSetIsSearch(false);
             }, 150);
-            performSearch(field.target.value)
+            performSearch(field.target.value);
           }
         }}
         onFocus={(field) => {

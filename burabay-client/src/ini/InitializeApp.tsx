@@ -29,7 +29,7 @@ export const InitializeApp: FC = function InitializeApp() {
       <LanguageProvider>
         <ThemeProvider theme={theme}>
           <ModalProvider>
-            <GoogleOAuthProvider clientId="341782365191-neb4hegmfbaamno7c79soqqckf7grb7m.apps.googleusercontent.com">
+            <GoogleOAuthProvider clientId="212408784108-o7ca4g27il4qqkd0fg3kvdfblccu8376.apps.googleusercontent.com">
               <AuthProvider>
                 <InnerApp />
               </AuthProvider>

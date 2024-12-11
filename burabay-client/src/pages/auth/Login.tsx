@@ -31,8 +31,24 @@ export const Login: FC = function Login() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const login = useGoogleLogin({
-    onSuccess: (tokenResponse) => console.log(tokenResponse),
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true)
+      const response = await apiService.post<string>({
+        url:"/auth/google-login",
+        dto: {
+          token: tokenResponse.access_token
+        }
+      })
+      if (response.data == HTTP_STATUS.CREATED) {
+        console.log("Пользователь создан")
+      }
+      if (response.data == HTTP_STATUS.OK) {
+        console.log("Пользователь авторизован");
+      }
+      setIsLoading(false);
+    },
+
   });
   const handleFacebookCallback = (response: any) => {
     if (response?.status === "unknown") {
@@ -74,19 +90,25 @@ export const Login: FC = function Login() {
 
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
-          setIsLoading(true)
+          setIsLoading(true);
           const response = await apiService.post({
-            url:"/auth",
-            dto: form
-          })
-          if(response.data == HTTP_STATUS.CREATED){
-            navigate({to:"/auth/accept/$email", params:{email: form.email}})
+            url: "/auth",
+            dto: form,
+          });
+          if (response.data == HTTP_STATUS.CREATED) {
+            navigate({
+              to: "/auth/accept/$email",
+              params: { email: form.email },
+            });
           }
-          if(response.data == HTTP_STATUS.UNAUTHORIZED){
-            navigate({to:"/auth/accept/$email", params:{email: form.email}})
+          if (response.data == HTTP_STATUS.UNAUTHORIZED) {
+            navigate({
+              to: "/auth/accept/$email",
+              params: { email: form.email },
+            });
           }
-          if(response.data == HTTP_STATUS.OK){
-            console.log("Пользователь авторизован")
+          if (response.data == HTTP_STATUS.OK) {
+            console.log("Пользователь авторизован");
           }
           setIsLoading(false);
         })}
@@ -114,11 +136,6 @@ export const Login: FC = function Login() {
                 label={t("mail")}
                 autoFocus={true}
                 placeholder={t("inputMail")}
-                onChange={(e) => {
-                  field.onChange(e);
-                  setEmailError(false);
-                  setErrorMessage("");
-                }}
               />
             )}
           />
@@ -135,6 +152,7 @@ export const Login: FC = function Login() {
           <div className="flex items-center justify-between w-full">
             <button
               type="button"
+              onClick={() => handleGoogleLogin()}
               className="bg-white flex items-center justify-center gap-3 w-[48%] p-4 rounded-button"
             >
               <img src={GoogleLogo} alt="" />
@@ -151,10 +169,10 @@ export const Login: FC = function Login() {
                 textTransform: "capitalize",
                 fontSize: "16px",
                 fontWeight: 400,
-                borderRadius: "32px"
+                borderRadius: "32px",
               }}
               containerStyle={{
-                width:"48%"
+                width: "48%",
               }}
               appId="939844554734638"
               autoLoad={false}
@@ -165,12 +183,21 @@ export const Login: FC = function Login() {
             />
           </div>
         </div>
-        <Button disabled={!isValid || isSubmitting} loading={isLoading} type="submit" className="w-header mx-auto">
+        <Button
+          disabled={!isValid || isSubmitting}
+          loading={isLoading}
+          type="submit"
+          className="w-header mx-auto"
+        >
           {t("next")}
         </Button>
-        <Link to="/register" className="text-center text-blue200 py-[18px] w-full font-semibold text-[16px] mt-2">{t('registerBusiness')}</Link>
+        <Link
+          to="/register"
+          className="text-center text-blue200 py-[18px] w-full font-semibold text-[16px] mt-2"
+        >
+          {t("registerBusiness")}
+        </Link>
       </DefaultForm>
-
     </div>
   );
 };
