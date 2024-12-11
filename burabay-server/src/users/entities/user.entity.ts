@@ -20,6 +20,9 @@ export class User extends AbstractEntity<User> {
   @Column({ nullable: true })
   password: string;
 
+  @Column()
+  isEmailConfirmed: boolean;
+
   @OneToOne(() => Organization, (organization) => organization.user, {
     cascade: true,
     nullable: true,

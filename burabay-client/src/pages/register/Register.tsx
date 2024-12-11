@@ -1,67 +1,32 @@
-import { FC, useRef, useState } from "react";
-import { AlternativeHeader } from "../../components/AlternativeHeader";
-import { IconContainer } from "../../shared/ui/IconContainer";
-import { Typography } from "../../shared/ui/Typography";
-import BackIcon from "../../app/icons/back-icon.svg";
-import SupportIcon from "../../app/icons/support-icon.svg";
-import { DefaultForm } from "../auth/ui/DefaultForm";
+import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Autocomplete, TextField } from "@mui/material";
-import { Hint } from "../../shared/ui/Hint";
-import { Button } from "../../shared/ui/Button";
-import { useNavigate } from "@tanstack/react-router";
-import { apiService } from "../../services/api/ApiService";
+import { AlternativeHeader } from "../../components/AlternativeHeader";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../shared/ui/colors";
+import { IconContainer } from "../../shared/ui/IconContainer";
+import { Typography } from "../../shared/ui/Typography";
+import { TextField } from "@mui/material";
+import { Button } from "../../shared/ui/Button";
+import BackIcon from "../../app/icons/back-icon-white.svg";
+import { LanguageButton } from "../../shared/ui/LanguageButton";
+import { apiService } from "../../services/api/ApiService";
+import { HTTP_STATUS } from "../../services/api/ServerData";
+import { DefaultForm } from "../auth/ui/DefaultForm";
+import { ROLE_TYPE } from "../auth/model/auth-model";
 
-// данные, формируемые в форме
+// форма отслеживает данные
 interface FormType {
-  type: string;
-  name: string;
-  username: string;
-  city: string;
+  email: string;
+  password: string
 }
-const options = [
-  "ИП",
-  "ТОО",
-  "ХТ",
-  "ПТ",
-  "КТ",
-  "ТДО",
-  "АО",
-  "ПК",
-  "ГУП",
-  "ОО",
-  "РО",
-  "НАО",
-  "ЧК",
-  "ИК",
-  "КОР",
-  "КСН",
-  "ОгП",
-  "ОБП",
-  "ПОО",
-  "ЧФ",
-];
 
 export const Register: FC = function Register() {
-  const [isError, setIsError] = useState<boolean>(false);
-  const [errorText, setIsErrorText] = useState<string>("");
-  const [orgTypeValue, setOrgTypeValue] = useState<string | null>(options[0]);
-  const [inputValue, setInputValue] = useState(options[0] || "");
   const navigate = useNavigate();
-
   const { t } = useTranslation();
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // скролл страницы при фокусе на поле
-  const handleFocus = () => {
-    if (inputRef.current) {
-      setIsError(false);
-      inputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
+  const [emailError, setEmailError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
     handleSubmit,
@@ -69,161 +34,128 @@ export const Register: FC = function Register() {
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      type: inputValue,
-      name: "",
-      username: "",
-      city: "",
+      email: "",
+      password: ""
     },
-    mode: "onSubmit",
+    mode: "onChange",
   });
-
-  const onSubmit = handleSubmit(async (form) => {
-    const response = await apiService.patch<string>({
-      url: "/profile",
-      dto: {
-        fullName: form.username || "",
-        organization: {
-          type: inputValue,
-          name: form.name,
-        },
-        address: {
-          city: form.city,
-        },
-      },
-    });
-    // перенаправляем человека только после обновления данных
-    if (response.data) navigate({ to: "/register/accept" });
-    else {
-      throw setIsError(true);
-    }
-  });
-
   return (
-    <div className="px-4">
-      <AlternativeHeader>
+    <div className="bg-almostWhite h-screen">
+      <AlternativeHeader isMini>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
-          <Typography size={20} weight={800}>
-            {t("register")}
+          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
+            {"Business"}
           </Typography>
-          <IconContainer align="end" action={() => navigate({ to: "/help" })}>
-            <img src={SupportIcon} alt="" />
-          </IconContainer>
+          <LanguageButton />
         </div>
       </AlternativeHeader>
 
       <DefaultForm
-        onSubmit={onSubmit}
-        className={"flex flex-col justify-between mt-18 "}
+        onSubmit={handleSubmit(async (form) => {
+          setIsLoading(true);
+          const response = await apiService.post({
+            url: "/auth",
+            dto: {
+              email: form.email,
+              password: form.password,
+              role: ROLE_TYPE.BUSINESS
+            },
+          });
+          console.log(response.data)
+          if (response.data == HTTP_STATUS.CREATED) {
+            navigate({
+              to: "/auth/accept/$email",
+              params: { email: form.email },
+            });
+          }
+          else if (response.data == HTTP_STATUS.UNAUTHORIZED) {
+            navigate({
+              to: "/auth/accept/$email",
+              params: { email: form.email },
+            });
+          } 
+          else if (response.data == HTTP_STATUS.CONFLICT) {
+            setErrorMessage(t('emailBusy'))
+            setEmailError(true)
+          } 
+          setIsLoading(false);
+        })}
+        className="flex flex-col"
       >
-        <Typography size={12} color={COLORS_TEXT.secondary}>
-          {t("orgName")}
-        </Typography>
-        <div className={"flex flex-col"}>
-          <div className="flex gap-4">
-            <Controller
-              name="type"
-              control={control}
-              rules={{
-                required: t("requiredField"),
-              }}
-              render={({ field }) => (
-                <Autocomplete
-                  {...field}
-                  value={orgTypeValue}
-                  onChange={(event: any, newValue: string | null) => {
-                    setOrgTypeValue(newValue);
-                  }}
-                  inputValue={inputValue}
-                  onInputChange={(event, newInputValue) => {
-                    setInputValue(newInputValue);
-                  }}
-                  options={options}
-                  sx={{ width: 80 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      variant="standard"
-                      sx={{ height: "fit-content" }}
-                    />
-                  )}
-                />
-              )}
-            />
-            <Controller
-              name="name"
-              control={control}
-              rules={{
-                required: t("requiredField"),
-                validate: (value) => value.length > 2 || `${t("minSymbols")} 2`,
-              }}
-              render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  variant="standard"
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
-                  autoFocus
-                  fullWidth
-                />
-              )}
-            />
-          </div>
+        <div className="flex flex-col items-center gap-5 py-6 px-4">
           <Controller
-            name="city"
+            name="email"
             control={control}
             rules={{
-              required: t("requiredField"),
-              validate: (value) => value.length > 3 || `${t("minSymbols")} 3`,
+              validate: (value: string) => {
+                const emailRegex =
+                  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailRegex.test(value) || t("invalidEmail");
+              },
             }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                label={t("city")}
-                variant="standard"
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                sx={{ marginBottom: "24px" }}
-                onFocus={handleFocus}
-                inputRef={inputRef}
+                error={Boolean(error?.message) || emailError}
+                helperText={error?.message || errorMessage}
+                fullWidth={true}
+                type={"email"}
+                variant="outlined"
+                label={t("mail")}
+                autoFocus={true}
+                placeholder={t("inputMail")}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setEmailError(false);
+                  setErrorMessage("");
+                }}
               />
             )}
           />
-          {inputValue == "ИП" && (
-            <Controller
-              name="username"
-              control={control}
-              rules={{
-                required: t("requiredField"),
-                validate: (value) => value.length > 2 || `${t("minSymbols")} 2`,
-              }}
-              render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  label={t("nameHint")}
-                  variant="standard"
-                  error={Boolean(error?.message) || isError}
-                  helperText={error?.message || errorText}
-                  sx={{ marginBottom: "24px" }}
-                  onFocus={handleFocus}
-                  inputRef={inputRef}
-                />
-              )}
-            />
-          )}
+          <Controller
+            name="password"
+            control={control}
+            rules={{
+              validate: (value: string) => {
+                const passwordRegex = /^[^\s]{8,}$/;
+                return passwordRegex.test(value) || t("invalidPassword");
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                error={Boolean(error?.message)}
+                helperText={error?.message}
+                fullWidth={true}
+                type={"password"}
+                variant="outlined"
+                label={t("password")}
+                placeholder={t("inputPassword")}
+              />
+            )}
+          />
         </div>
-        <div className={"mt-2"}>
-          <Hint title={t("acceptEgovData")} />
-          <Button
-            disabled={!isValid || isSubmitting}
-            className="mt-1"
-            type="submit"
-          >
-            {t("goToEgov")}
-          </Button>
-        </div>
+        <Button
+          disabled={!isValid || isSubmitting}
+          loading={isLoading}
+          type="submit"
+          className="w-header mx-auto mb-4"
+        >
+          {t("register")}
+        </Button>
+        <Typography size={14} align="center" className="flex flex-col">
+          <span className={`${COLORS_TEXT.totalBlack}`}>
+            {t("termsOfUseText")}
+          </span>
+          <Link to={"/"}>
+            <span className={`${COLORS_TEXT.blue200} font-semibold`}>
+              {t("termsOfUseLink")}
+            </span>
+          </Link>
+        </Typography>
       </DefaultForm>
     </div>
   );

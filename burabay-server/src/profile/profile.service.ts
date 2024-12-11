@@ -23,7 +23,6 @@ export class ProfileService {
     return new Profile(user);
   }
 
-  // TODO добавить обновление данных о менеджере
   async updateProfile(tokenData: TokenData, updateProfileDto: UpdateProfileDto) {
     const user = await this.userRepository.findOne({
       where: {

@@ -1,4 +1,4 @@
-import { baseUrl } from "./ServerUrl";
+import { baseUrl } from "./ServerData";
 
 // Данные необходимые для запроса
 interface RequestOptions {
@@ -43,8 +43,8 @@ class ApiService {
       method: method,
       body: JSON.stringify(options.dto),
       headers: {
-        "Content-Type" : "application/json",
-        ...this._checkBearerNecessity(options.url)
+        "Content-Type": "application/json",
+        ...this._checkBearerNecessity(options.url),
       },
     }).then(async (response) => {
       const data = await response.json();

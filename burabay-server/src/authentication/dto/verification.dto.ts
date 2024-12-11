@@ -1,6 +1,6 @@
-import { IsPhoneNumber } from "class-validator";
+import { IsEmail } from "class-validator";
 
 export class VerificationDto{
-    @IsPhoneNumber()
-    phone: string
+    @IsEmail()
+    email: string
 }

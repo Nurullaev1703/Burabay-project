@@ -1,7 +1,5 @@
 import { createTheme } from "@mui/material/styles";
 import { COLORS } from "./colors";
-import { colors } from "@mui/material";
-import zIndex from "@mui/material/styles/zIndex";
 
 export const theme = createTheme({
   palette: {
@@ -23,55 +21,36 @@ export const theme = createTheme({
           fontSize: "16px",
           caretColor: COLORS.blue200,
           lineHeight: "16px",
-          ".css-14lo706": {
-            display: "none",
-            visibility: "visible", // Отображение placeholder
-          },
-          // FIXME при наличии подсказки и ошибки, border уезжает вниз
-          // отключаем обводку поля
-          /*"&.Mui-focused:placeholder-shown .MuiOutlinedInput-notchedOutline": {
-            top: "0",
-          },
-          "&:not(.Mui-focused) .MuiOutlinedInput-notchedOutline":
-            {
-              top: "-5px",
-            },
-          "&.Mui-focused:not(:placeholder-shown) .MuiOutlinedInput-notchedOutline":
-            {
-              top: "0",
-            },
-          "&:not(.Mui-focused):not(:placeholder-shown) .MuiOutlinedInput-notchedOutline":
-            {
-              top: "-5px",
-            },*/
+
           ".MuiOutlinedInput-notchedOutline": {
             display: "none",
+            borderColor: "transparent",
+            transition: "border-color 0.3s, top 0.3s",
+            width: "100%",
+            top: "-5px", // Оставить фиксированную позицию
           },
-          "&:hover .css-14lo706, &:focus-within .css-14lo706": {
-            opacity: 1, // Полное отображение при фокусе или наведении
+          // убирает верхнюю подсказку
+          ".css-14lo706>span, .css-yjsfm1>span": {
+            display: "none",
           },
-          "::placeholder": {
-            visibility: "visible",
+          "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+            display: "block",
+            borderColor: COLORS.red,
+            transform: "none",
+            borderWidth: "1px", // Убедитесь, что толщина границы не меняется
           },
-          // стиль для настоящего поля ввода
+          "&.Mui-error.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            display: "block",
+            borderColor: COLORS.red,
+            transform: "none",
+          },
           ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
             paddingTop: "36px",
-          },
-          // стилизация ошибки
-          "&.Mui-error": {
-            background: "white",
-            caretColor: COLORS.red,
-            height: "100%",
-            ".MuiOutlinedInput-notchedOutline": {
-              display: "block",
-              borderColor: COLORS.red,
-              borderWidth: "1px",
-              top: "0",
-            },
           },
         },
       },
     },
+
     MuiTextField: {
       styleOverrides: {
         root: {

@@ -8,6 +8,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -15,58 +16,83 @@ export class AuthenticationService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly entityManager: EntityManager,
+    private readonly emailService: EmailService,
     private jwtService: JwtService,
   ) {}
 
   // регистрация нового пользователя
-  private async _register(signInDto: SignInDto) {
+  private async _registerTourist(signInDto: SignInDto) {
     let user: User;
-    if (signInDto.role == ROLE_TYPE.BUSINESS) {
+      user = new User({
+        fullName: '',
+        phoneNumber: '',
+        role: ROLE_TYPE.TOURIST,
+        email: signInDto.email,
+        password: '',
+        isEmailConfirmed: false
+      });
+      await this.entityManager.save(user);  
+  }
+  // регистрация новой компании
+  private async _registerBusiness(signInDto: SignInDto) {
+    let user: User;
       const organization = new Organization({
         name: '',
         imgUrl: '',
         address: '',
         rating: 0,
         reviewCount: 0,
+        isConfirmed: false
       });
       await this.entityManager.save(organization);
-
+      const salt = await bcrypt.genSalt();
+      const hash = await bcrypt.hash(signInDto.password, salt);
       user = new User({
         fullName: '',
         phoneNumber: '',
         role: signInDto.role,
         email: signInDto.email,
-        password: '',
+        password: hash,
         organization: organization,
+        isEmailConfirmed: false
       });
       await this.entityManager.save(user);
-    } else {
-      user = new User({
-        fullName: '',
-        phoneNumber: '',
-        role: signInDto.role,
-        email: signInDto.email,
-        password: '',
-      });
-      await this.entityManager.save(user);
-    }
   }
-  // логин пользователя по email и роли в проекте
+  // логин пользователя по email
   async login(signInDto: SignInDto) {
     try {
       const userExist = await this.userRepository.findOne({
         where: {
-          email: signInDto.email,
-          role: signInDto.role,
+          email: signInDto.email
         },
       });
+      
+      // если почта уже зарегистрирована на туриста
+      if (userExist && userExist.role !== signInDto.role) {
+        return JSON.stringify(HttpStatus.CONFLICT);
+      }
+
+      // если пользователь зарегистрирован, но не подтвержден
+      if(userExist && !userExist.isEmailConfirmed){
+        await this.emailService.sendAcceptMessage(signInDto.email);
+        return JSON.stringify(HttpStatus.UNAUTHORIZED)
+      }
 
       // если пользователь найден, значит уже зарегистрирован и авторизуем его
       if (userExist) {
         return JSON.stringify(HttpStatus.OK);
       }
-      await this._register(signInDto);
-      return JSON.stringify(HttpStatus.OK);
+
+      // если пришел пароль, то регистрируем как организацию
+      if(signInDto.password?.length){
+        await this._registerBusiness(signInDto);
+        await this.emailService.sendAcceptMessage(signInDto.email)
+        return JSON.stringify(HttpStatus.CREATED);
+      }
+
+      await this._registerTourist(signInDto);
+      await this.emailService.sendAcceptMessage(signInDto.email);
+      return JSON.stringify(HttpStatus.CREATED);
     } catch {
       return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR);
     }

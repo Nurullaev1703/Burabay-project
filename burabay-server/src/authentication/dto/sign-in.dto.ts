@@ -1,11 +1,15 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 
 export class SignInDto {
+  @IsOptional()
   @IsNotEmpty()
-  role: ROLE_TYPE;
+  role?: ROLE_TYPE;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @IsString()
+  password?: ROLE_TYPE;
+
   @IsEmail()
   email: string;
 }

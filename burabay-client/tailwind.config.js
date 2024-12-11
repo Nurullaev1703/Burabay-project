@@ -56,7 +56,7 @@ export default {
         "view": "calc(100vh - 88px)"
       },
       width:{
-        "header": "calc(100% - 16px)",
+        "header": "calc(100% - 32px)",
         "list": "calc(100% - 108px)"
       }
     },

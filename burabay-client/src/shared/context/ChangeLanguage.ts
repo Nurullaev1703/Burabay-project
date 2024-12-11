@@ -55,7 +55,7 @@ i18n.use(initReactI18next).init({
         inputMail: "Введите адрес электронной почты",
         signinWith: "Или войдите с помощью",
         next: "Далее",
-        registerBusiness: "зарегистрировать организацию",
+        registerBusiness: "Зарегистрировать организацию",
 
         // new profile
         account: "Аккаунт",
@@ -86,6 +86,25 @@ i18n.use(initReactI18next).init({
         invalidNumber: "Некорректный номер телефона",
         saved: "Сохраненное",
         save: "Сохранить",
+
+        // auth accept
+        confirmEmail: "Подтверждение email",
+        inputCode: "Введите код из письма",
+        sendCodeInfo: "Код отправлен на почту",
+        invalidCode: "Неверный код",
+        tooManyRequest: "Слишком много попыток, попробуйте позже",
+        goToAuth: "Вернуться на страницу входа",
+
+        // register
+        password: "Пароль",
+        invalidPassword: "Пароль слишком короткий",
+        inputPassword: "Введите пароль",
+        register: "Регистрация",
+        termsOfUseText: "Регистрируясь, Вы соглашаетесь",
+        termsOfUseLink: "с Условиями и Политикой конфиденциальности",
+        emailBusy:
+          "Почта зарегестрирована на туристическом аккаунте, измените адрес в аккаунте или укажите другой адрес",
+        // errors
       },
     },
     en: {

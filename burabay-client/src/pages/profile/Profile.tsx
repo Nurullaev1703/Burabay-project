@@ -10,7 +10,7 @@ import LifebuoyIcon from "../../app/icons/profile/lifebuoy.svg";
 import { Profile as ProfileType } from "./model/profile";
 import LanguageIcon from "../../app/icons/language.svg";
 import { RatingModal } from "../../components/RatingModal";
-import { baseUrl } from "../../services/api/ServerUrl";
+import { baseUrl } from "../../services/api/ServerData";
 import { COLORS_BORDER } from "../../shared/ui/colors";
 import { accountStatus, Hint } from "./ui/Hint";
 import { imageService } from "../../services/api/ImageService";
@@ -19,7 +19,6 @@ import ChangeImageIcon from "../../app/icons/profile/settings/changeImage.svg";
 import ArrowRight from "../../app/icons/arrow-right.svg";
 import { UserInfoList } from "./ui/UserInfoList";
 import { HintTourist } from "./ui/HintToursit";
-
 
 interface Props {
   user?: ProfileType;
@@ -184,8 +183,5 @@ export const Profile: FC<Props> = function Profile() {
         )}
       </ul>
     </section>
-    
-
-    
   );
 };
