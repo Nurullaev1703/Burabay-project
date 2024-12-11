@@ -1,6 +1,6 @@
 import  { FC } from 'react';
 import { Typography } from '../../shared/ui/Typography';
-import { NewNavMenu } from '../../shared/ui/NewNavMenu';
+import { NavMenuOrg } from '../../shared/ui/NavMenuOrg';
 
 interface Props {
 
@@ -9,7 +9,7 @@ interface Props {
 export const Notifications: FC<Props> = function Notifications() {
   return (
     <div><Typography>{"уведомления"}</Typography>
-    <NewNavMenu/>
+    <NavMenuOrg/>
     </div>
   )
 };

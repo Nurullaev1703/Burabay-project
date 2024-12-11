@@ -1,14 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
 import { FC } from "react";
-import { Announcements } from "../../app/icons/navbar/announcements";
-import { Star } from "../../app/icons/navbar/star";
 import { Map } from "../../app/icons/navbar/map"; 
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
 import { Profile } from "../../app/icons/navbar/profile"; 
 import { Notifications} from "../../app/icons/navbar/notifications";
 import { useTranslation } from "react-i18next";
+import { Main} from "../../app/icons/navbar/main"
+import { Booking} from "../../app/icons/navbar/booking"
 
-export const NewNavMenu: FC = function NewNavMenu() {
+export const NavMenuClient: FC = function NavMenuClient() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -23,48 +23,30 @@ export const NewNavMenu: FC = function NewNavMenu() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.alternative}`}
+      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.almostWhite}`}
     >
       <ul className="flex justify-between w-full px-4">
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/announcements"
+          to: "/main"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Announcements 
-              strokeColor={getStrokeColor("announcements")}
-              fillColor={getFillColor("announcements")} 
-              fillColorMask = {getFillColorMask("announcements")}
+            <Main 
+              strokeColor={getStrokeColor("main")}
+              fillColor={getFillColor("main")} 
+              fillColorMask = {getFillColorMask("main")}
             />
             <span
               className={`${
-                location.pathname.includes("announcements")
+                location.pathname.includes("main")
                   ? COLORS_TEXT.blue200
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Объявления")}
+              {t("Главная")}
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/reviews"
-        })}>
-          <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Star 
-              strokeColor={getStrokeColor("reviews")}
-              fillColor={getFillColor("reviews")} 
-            />
-            <span
-              className={`${
-                location.pathname.includes("reviews")
-                  ? COLORS_TEXT.blue200
-                  : COLORS_TEXT.gray100
-              } text-[10px]`}
-            >
-              {"Отзывы"}
-            </span>
-          </div>
-        </li>
+
         <li className="w-[68px]" onClick={() => navigate({
           to: "/map"
         })}>
@@ -81,6 +63,25 @@ export const NewNavMenu: FC = function NewNavMenu() {
               } text-[10px]`}
             >
               {t("Карта")}
+            </span>
+          </div>
+        </li>
+        <li className="w-[68px]" onClick={() => navigate({
+          to: "/booking"
+        })}>
+          <div className="flex justify-center items-center flex-col cursor-pointer">
+            <Booking 
+              strokeColor={getStrokeColor("booking")}
+              fillColor={getFillColor("booking")} 
+            />
+            <span
+              className={`${
+                location.pathname.includes("booking")
+                  ? COLORS_TEXT.blue200
+                  : COLORS_TEXT.gray100
+              } text-[10px]`}
+            >
+              {t("Брони")}
             </span>
           </div>
         </li>

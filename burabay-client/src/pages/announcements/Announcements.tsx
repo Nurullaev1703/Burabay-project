@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Typography } from '../../shared/ui/Typography';
-import { NewNavMenu } from '../../shared/ui/NewNavMenu';
+import { NavMenuOrg } from '../../shared/ui/NavMenuOrg';
 import { Button } from '../../shared/ui/Button';
 import Intersect from '../../app/icons/Intersect.png';
 import { useNavigate } from '@tanstack/react-router';
@@ -30,7 +30,7 @@ export const Announcements: FC<Props> = function Announcements() {
       </div>
  
 
-      <NewNavMenu />
+      <NavMenuOrg />
     </div>
   );
 };
