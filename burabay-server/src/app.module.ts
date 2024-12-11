@@ -35,9 +35,9 @@ import { UsersModule } from './users/user.module';
     AdModule,
     CategoryModule,
     SubcategoryModule,
-    SeederModule,
     TasksModule,
     AdminPanelModule,
+    SeederModule,
   ],
   controllers: [],
   providers: [

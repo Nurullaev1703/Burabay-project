@@ -11,10 +11,15 @@ RUN yarn install --frozen-lockfile
 # Копируем остальные файлы проекта
 COPY burabay-server .
 
+RUN chmod +x ./wait-for-it.sh
+
+RUN apk add --no-cache bash
+
 RUN yarn build
 
 # ENV DATABASE_HOST=postgres
 
 EXPOSE 3000
 
-CMD ["yarn", "start:prod"]
+CMD ["bash", "-c", "./wait-for-it.sh postgres:5432 -- yarn start:prod"]
+

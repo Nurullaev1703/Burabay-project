@@ -15,7 +15,10 @@ import { SeederService } from './seeder.service';
 export class SeederModule {
   constructor(private readonly seederService: SeederService) {}
 
-  onModuleInit() {
+  // onModuleInit() {
+
+  // }
+  onApplicationBootstrap() {
     this.seederService.seed();
   }
 }

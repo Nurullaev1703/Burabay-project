@@ -14,6 +14,7 @@ services:
             - "3000:3000"
         networks:
             - app-network
+        command: ["bash", "-c", "./wait-for-it.sh postgres:5432 -- yarn start:prod"]
 
     # Сервис для фронтенда
     frontend:
@@ -32,8 +33,6 @@ services:
         image: postgres:latest
         env_file:
             - burabay-server/.env
-        volumes:
-            - postgres-data:/var/lib/postgresql/data
         networks:
             - app-network
         ports:
