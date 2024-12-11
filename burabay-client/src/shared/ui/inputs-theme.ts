@@ -1,5 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 import { COLORS } from "./colors";
+import { colors } from "@mui/material";
+import zIndex from "@mui/material/styles/zIndex";
 
 export const theme = createTheme({
   palette: {
@@ -15,14 +17,33 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: "8px",
-          paddingTop: "20px",
+          padding: "0",
           border: "none",
           background: "white",
-          caretColor: "#0A7D9E",
+          fontSize: "16px",
+          caretColor: COLORS.blue200,
+          lineHeight: "16px",
           ".css-14lo706": {
             display: "none",
             visibility: "visible", // Отображение placeholder
           },
+          // FIXME при наличии подсказки и ошибки, border уезжает вниз
+          // отключаем обводку поля
+          /*"&.Mui-focused:placeholder-shown .MuiOutlinedInput-notchedOutline": {
+            top: "0",
+          },
+          "&:not(.Mui-focused) .MuiOutlinedInput-notchedOutline":
+            {
+              top: "-5px",
+            },
+          "&.Mui-focused:not(:placeholder-shown) .MuiOutlinedInput-notchedOutline":
+            {
+              top: "0",
+            },
+          "&:not(.Mui-focused):not(:placeholder-shown) .MuiOutlinedInput-notchedOutline":
+            {
+              top: "-5px",
+            },*/
           ".MuiOutlinedInput-notchedOutline": {
             display: "none",
           },
@@ -32,12 +53,29 @@ export const theme = createTheme({
           "::placeholder": {
             visibility: "visible",
           },
+          // стиль для настоящего поля ввода
+          ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
+            paddingTop: "36px",
+          },
+          // стилизация ошибки
+          "&.Mui-error": {
+            background: "white",
+            caretColor: COLORS.red,
+            height: "100%",
+            ".MuiOutlinedInput-notchedOutline": {
+              display: "block",
+              borderColor: COLORS.red,
+              borderWidth: "1px",
+              top: "0",
+            },
+          },
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
+          height: "100%",
           borderRadius: "8px",
           outline: "none",
           border: "none",
@@ -72,9 +110,13 @@ export const theme = createTheme({
           top: "12px",
           left: "12px",
           transform: "none",
+          visibility: "visible",
           color: COLORS.gray100,
           fontSize: "12px",
-          fontWeight: 400
+          fontWeight: 400,
+          "&.Mui-error": {
+            color: COLORS.gray100,
+          },
         },
       },
     },
@@ -140,6 +182,16 @@ export const theme = createTheme({
             {
               paddingRight: 0,
             },
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          marginLeft: 0,
+          marginTop: "8px",
+          color: COLORS.red,
+          border: "none",
         },
       },
     },

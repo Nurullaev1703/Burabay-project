@@ -12,10 +12,12 @@ import { Typography } from "../../shared/ui/Typography";
 import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import InfoIcon from "../../app/icons/info.svg";
-import LanguageIcon from "../../app/icons/language.svg";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import FacebookLogin from "react-facebook-login";
+import GoogleLogo from "../../app/icons/google-logo.svg";
+import FacebookLogo from "../../app/icons/facebook-logo.svg";
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 // роль, которую выбрал пользователь
 interface Props {}
@@ -34,9 +36,11 @@ export const Login: FC<Props> = function Login(props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { setToken } = useAuth();
 
+  const login = useGoogleLogin({
+    onSuccess: (tokenResponse) => console.log(tokenResponse),
+  });
   const handleFacebookCallback = (response: any) => {
     if (response?.status === "unknown") {
-      console.error("Sorry!", "Something went wrong with facebook Login.");
       return;
     }
     console.log(response);
@@ -49,6 +53,7 @@ export const Login: FC<Props> = function Login(props) {
     defaultValues: {
       email: "",
     },
+    mode: "onChange"
   });
   return (
     <div className="bg-almostWhite h-screen">
@@ -60,9 +65,7 @@ export const Login: FC<Props> = function Login(props) {
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
             {t("signin")}
           </Typography>
-          <IconContainer align="end">
-            <img src={LanguageIcon} alt="" />
-          </IconContainer>
+          <LanguageButton />
         </div>
         <Typography
           size={18}
@@ -100,6 +103,7 @@ export const Login: FC<Props> = function Login(props) {
                 label={t("mail")}
                 autoFocus={true}
                 placeholder={t("inputMail")}
+                onBlur={() => {}}
                 onChange={(e) => {
                   field.onChange(e);
                   setPhoneError(false);
@@ -118,24 +122,40 @@ export const Login: FC<Props> = function Login(props) {
               {t("signinWith")}
             </Typography>
           </div>
-          <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              const decode = jwtDecode(String(credentialResponse?.credential));
-              console.log(decode);
-            }}
-            onError={() => {
-              console.log("Login Failed");
-            }}
-          />
-          <FacebookLogin
-            buttonStyle={{ padding: "6px" }}
-            appId="939844554734638"
-            autoLoad={false}
-            fields="name,email,picture"
-            callback={handleFacebookCallback}
-          />
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              className="bg-white flex items-center justify-center gap-3 w-[48%] p-4 rounded-button"
+            >
+              <img src={GoogleLogo} alt="" />
+              <Typography>Google</Typography>
+            </button>
+            <FacebookLogin
+              buttonStyle={{
+                padding: "16px",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+                textTransform: "capitalize",
+                fontSize: "16px",
+                fontWeight: 400,
+                borderRadius: "32px"
+              }}
+              containerStyle={{
+                width:"48%"
+              }}
+              appId="939844554734638"
+              autoLoad={false}
+              textButton="Facebook"
+              fields="name,email,picture"
+              callback={handleFacebookCallback}
+              icon={<img src={FacebookLogo} />}
+            />
+          </div>
         </div>
-        <Button disabled={!isValid || isSubmitting} type="submit">
+        <Button disabled={!isValid || isSubmitting} type="submit" className="w-header mx-auto">
           {t("next")}
         </Button>
       </DefaultForm>
