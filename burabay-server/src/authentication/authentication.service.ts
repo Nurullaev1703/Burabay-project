@@ -9,6 +9,7 @@ import { ROLE_TYPE } from 'src/users/types/user-types';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from './email.service';
+import { GoogleAccessToken, GoogleAuthType } from './model/GoogleAuth';
 
 @Injectable()
 export class AuthenticationService {
@@ -29,7 +30,8 @@ export class AuthenticationService {
         role: ROLE_TYPE.TOURIST,
         email: signInDto.email,
         password: '',
-        isEmailConfirmed: false
+        isEmailConfirmed: false,
+        picture: ""
       });
       await this.entityManager.save(user);  
   }
@@ -54,7 +56,8 @@ export class AuthenticationService {
         email: signInDto.email,
         password: hash,
         organization: organization,
-        isEmailConfirmed: false
+        isEmailConfirmed: false,
+        picture: ""
       });
       await this.entityManager.save(user);
   }
@@ -95,6 +98,45 @@ export class AuthenticationService {
       return JSON.stringify(HttpStatus.CREATED);
     } catch {
       return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async googleLogin(token: GoogleAccessToken){
+    try{
+        const userInfo: GoogleAuthType = await fetch(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          {
+            headers: {
+              Authorization: `Bearer ${token.accessToken}`,
+            },
+          },
+        ).then((res) => res.json());
+        const userExist = await this.userRepository.findOne({
+          where:{
+            email: userInfo.email
+          }
+        })
+
+        // если пользователь существует, отправляем на авторизацию
+        if(userExist){
+          return JSON.stringify(HttpStatus.OK)
+        }
+
+        // регистрируем нового пользователя
+        const user = new User({
+          fullName: userInfo.name,
+          phoneNumber: '',
+          role: ROLE_TYPE.TOURIST,
+          email: userInfo.email,
+          password: '',
+          isEmailConfirmed: false,
+          picture: userInfo.picture,
+        });
+        await this.entityManager.save(user);  
+        return JSON.stringify(HttpStatus.CREATED);
+
+    }
+    catch{
+      return JSON.stringify(HttpStatus.CONFLICT)
     }
   }
 

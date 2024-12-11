@@ -8,6 +8,7 @@ import { PhoneService } from './phone.service';
 import { Throttle } from '@nestjs/throttler';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { EmailService } from './email.service';
+import { GoogleAccessToken } from './model/GoogleAuth';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,6 +23,11 @@ export class AuthenticationController {
   @Post()
   login(@Body() signInDto: SignInDto) {
     return this.authenticationService.login(signInDto);
+  }
+  @Public()
+  @Post('google-login')
+  googleLogin(@Body() token: GoogleAccessToken) {
+    return this.authenticationService.googleLogin(token);
   }
   // ограниченное количество запросов на 30 минут
   @Public()
