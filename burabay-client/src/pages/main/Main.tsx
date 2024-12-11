@@ -37,6 +37,8 @@ export const Main: FC<Props> = function Main() {
   const [announcementsName, setAnnouncementsName] = useState<string>("");
   const announcements: Announcement[] = [
     {
+
+        
       title: "БЕСПЛАТНО",
       subtitle: "Бурабайская чаща",
       location: "Боровое",
@@ -126,7 +128,7 @@ export const Main: FC<Props> = function Main() {
     ({ title, subtitle, location, rating, reviews, image, name }, index) => (
       <div key={index} className="rounded-2xl relative overflow-hidden">
         <img
-        
+
           src={image}
           alt={subtitle}
           className="w-full h-60 object-cover rounded-b-2xl"
