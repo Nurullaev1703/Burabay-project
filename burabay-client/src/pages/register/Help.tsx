@@ -20,7 +20,7 @@ import { useAuth } from "../../features/auth";
 import { NCALayerClient } from "ncalayer-js-client";
 import { Hint } from "../../shared/ui/Hint";
 import { useTranslation } from "react-i18next";
-import { NewNavMenu } from "../../shared/ui/NewNavMenu";
+import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 
 export const Help: FC = function Help() {
   const { history } = useRouter();
@@ -152,7 +152,7 @@ export const Help: FC = function Help() {
         {isLoading && <Loader />}
       </main>
       
-      <NewNavMenu/>
+      <NavMenuOrg/>
     </div>
     
   );

@@ -1,3 +1,4 @@
+
 import  { FC } from 'react';
 import { Typography } from '../../shared/ui/Typography';
 import { NavMenuOrg } from '../../shared/ui/NavMenuOrg';
@@ -6,11 +7,11 @@ interface Props {
 
 }
 
-export const Map: FC<Props> = function Map() {
+export const Booking: FC<Props> = function Booking() {
   return (
     <div>
-      <Typography>{"карта"}</Typography>
-      <NavMenuOrg/>
+        <Typography>{"Бронирование"}</Typography>
+        <NavMenuOrg/>
     </div>
   )
 };
