@@ -10,6 +10,9 @@ export class Category extends AbstractEntity<Category> {
   @Column()
   description: string;
 
+  @Column({ name: 'img_path' })
+  imgPath: string;
+
   // @OneToMany(() => Ad, (ad) => ad.category)
   // ads: Ad[];
 

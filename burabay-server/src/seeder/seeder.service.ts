@@ -28,6 +28,7 @@ export class SeederService {
       const data = {
         'Отдых': {
           'description': 'Туристическая тропа, грибное место, зона для отдыха и пикников, и т.д.',
+          'imgPath': '/icons/chill.svg',
           'subcategories': [
             'Туристические тропы',
             'Грибные места',
@@ -39,6 +40,7 @@ export class SeederService {
         },
         'Жилье': {
           'description': 'Гостиницы, санатории, квартиры, команты, дома и коттеджи, и т.д.',
+          'imgPath': '/icons/home.svg',
           'subcategories': [
             'Гостиницы',
             'Квартиры',
@@ -52,18 +54,22 @@ export class SeederService {
         },
         'Питание': {
           'description': 'Кафе, столовые, рестораны',
+          'imgPath': '/icons/food.svg',
           'subcategories': ['Кафе', 'Рестораны', 'Столовые'],
         },
         'Достопримечательности': {
           'description': 'Исторические и культурные объекты, музеи, памятники, парки, и т.д.',
+          'imgPath': '/icons/wow.svg',
           'subcategories': ['Особые памятники и объекты культуры'],
         },
         'Здоровье': {
           'description': 'Медицинские центры, санатории, SPA-салоны, фитнес-клубы, и т.д.',
+          'imgPath': '/icons/health.svg',
           'subcategories': ['Оздоровление'],
         },
         'Развлечения': {
           'description': 'Вечеринки и шоу, местный зоопарк, парк атракционов, экскурсии, и т.д.',
+          'imgPath': '/icons/fun.svg',
           'subcategories': [
             'Вечеринки и шоу',
             'Зоопарки',
@@ -76,14 +82,17 @@ export class SeederService {
         },
         'Экстрим': {
           'description': 'Активные виды спорта, альпинизм, парапланы, квадроциклы, и т.д.',
+          'imgPath': '/icons/extrim.svg',
           'subcategories': ['Экстримальный отдых'],
         },
         'Прокат': {
           'description': 'Автотранспорт, снаряжение, средства индивидуальной мобильности',
+          'imgPath': '/icons/prokate.svg',
           'subcategories': ['Прокат и аренда снаряжения и оборудования'],
         },
         'Безопасность': {
           'description': 'Аптеки, банкоматы, консьерж-сервисы',
+          'imgPath': '/icons/security.svg',
           'subcategories': ['Инфраструктура и безопасность'],
         },
       };
@@ -93,7 +102,9 @@ export class SeederService {
           const category = this.categoryRepository.create({
             name: categoryName,
             description: categoryData.description,
+            imgPath: categoryData.imgPath,
           });
+          console.log(categoryData.description);
           await this.categoryRepository.save(category);
           for (const subcategoryName of categoryData.subcategories) {
             if (!(await this.subcategoryRepository.findOne({ where: { name: subcategoryName } }))) {
