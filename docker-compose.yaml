@@ -10,6 +10,8 @@ services:
             - burabay-server/.env
         depends_on:
             - postgres
+        volumes:
+            ./burabay-server:/app # HACK Я не уверен что это будет работать.
         ports:
             - "3000:3000"
         networks:
