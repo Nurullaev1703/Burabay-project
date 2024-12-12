@@ -104,7 +104,6 @@ export class SeederService {
             description: categoryData.description,
             imgPath: categoryData.imgPath,
           });
-          console.log(categoryData.description);
           await this.categoryRepository.save(category);
           for (const subcategoryName of categoryData.subcategories) {
             if (!(await this.subcategoryRepository.findOne({ where: { name: subcategoryName } }))) {

@@ -15,9 +15,10 @@ RUN chmod +x ./wait-for-it.sh
 
 RUN apk add --no-cache bash
 
+ENV POSTGRES_HOST=postgres
+
 RUN yarn build
 
-# ENV DATABASE_HOST=postgres
 
 EXPOSE 3000
 
