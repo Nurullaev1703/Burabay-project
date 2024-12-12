@@ -25,10 +25,11 @@ import { useNavigate } from '@tanstack/react-router';
 
 
 interface Props {
-category: Category[]
+category: Category
 }
 
-export const AddAnnouncements: FC<Props> = function AddAnnouncements({category}) {
+export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepTwo({category}) {
+    console.log(category)
   const navigate = useNavigate();
   const icons = [
     rest,
@@ -50,7 +51,7 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
       </IconContainer>
       <div>
       <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>{"Новое обьявление"}</Typography>
-      <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>{"Выберите категорию"}</Typography>
+      <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>{"Выберите подкатегорию"}</Typography>
       </div>
       <IconContainer align='end' action={async() =>  history.back()}>
       <img src={XIcon} alt="" />
@@ -58,8 +59,8 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
       </div>
     </Header>
     <div className="flex items-center gap-2 px-4 mb-2">
-  <div className="h-2 flex-1 bg-blue200 rounded-full"></div>
   <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
+  <div className="h-2 flex-1 bg-blue200 rounded-full"></div>
   <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
   <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
   <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
@@ -67,35 +68,9 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
     </div>
 
     <div className="space-y-4 px-4 ">
-    {category.map((item , index) =>{
-      const [imgSource , setImgSource] = useState<string>(baseUrl + item.imgPath)
-      const icon = icons[index %  icons.length];
-      return (
-        <div key={item.id} onClick={() => navigate({
-          to: `/announcements/addAnnouncementsStepTwo/${item.id}`,
-        })} className="flex items-center justify-between border-b-[1px] rounded-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-[20%]">
-            <img src={icon}
-            onError={() => setImgSource(defaultImage)}
-            className='w-[34px] h-[34px]' alt="" />
-          </div>
-          <div className='gap-1'>
-            <Typography size={16} weight={400} className="text-black">{item.name}</Typography>
-            <Typography size={14} weight={400} color={COLORS_TEXT.gray100} className="mb-4">
-              {item.description}
-            </Typography>
-          </div>
-        </div>
-        <div className="">
-        <img src={RightArrow} className='w-7 h-4' alt="" />
-        </div>
-      </div>
-      )
-    })}
     </div>
-    <div className='mb-2 mt-2 px-2'>
-    <Button mode='border' onClick={async() =>  history.back()}>{"Отменить"}</Button>
+    <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
+    <Button mode='default'>{"Сохранить"}</Button>
     </div>
     </section>
   )
