@@ -4,6 +4,8 @@ burabay-server/.env
 burabay-server/.yarn
 burabay-server/yarn.lock
 
+burabay-admin-panel
+
 burabay-client/.yarn
 burabay-client/.yarn
 burabay-client/yarn.lock

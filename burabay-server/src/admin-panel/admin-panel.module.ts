@@ -1,34 +1,30 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Utils } from 'src/utilities';
-
-/* Модуль для подключения и настройки AdminJS. */
-
-const DEFAULT_ADMIN = {
-  email: 'admin@example.com',
-  password: 'password',
-};
-
-const authenticate = async (email: string, password: string) => {
-  if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
-    return Promise.resolve(DEFAULT_ADMIN);
-  }
-  return null;
-};
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ad]),
     Utils.dynamicImport('@adminjs/nestjs').then(({ AdminModule }) =>
       AdminModule.createAdminAsync({
-        useFactory: () => ({
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
           adminJsOptions: {
             rootPath: '/admin',
             resources: [],
           },
           auth: {
-            authenticate,
+            authenticate: async (email: string, password: string) => {
+              const adminEmail = configService.get<string>('ADMIN_EMAIL');
+              const adminPassword = configService.get<string>('ADMIN_PASSWORD');
+
+              if (email === adminEmail && password === adminPassword) {
+                return Promise.resolve({ email: adminEmail });
+              }
+              return null;
+            },
             cookieName: 'adminjs',
             cookiePassword: 'secret',
           },
@@ -42,4 +38,14 @@ const authenticate = async (email: string, password: string) => {
     ),
   ],
 })
-export class AdminPanelModule {}
+export class AdminPanelModule implements OnModuleInit {
+  async onModuleInit() {
+    const adminJSModule = await Utils.dynamicImport('adminjs');
+    const adminJSTypeORM = await Utils.dynamicImport('@adminjs/typeorm');
+    const AdminJS = adminJSModule.default;
+    AdminJS.registerAdapter({
+      Resource: adminJSTypeORM.Resource,
+      Database: adminJSTypeORM.Database,
+    });
+  }
+}

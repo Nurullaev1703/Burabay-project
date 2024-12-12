@@ -1,6 +1,6 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity()
 export class Category extends AbstractEntity<Category> {
@@ -16,6 +16,6 @@ export class Category extends AbstractEntity<Category> {
   // @OneToMany(() => Ad, (ad) => ad.category)
   // ads: Ad[];
 
-  @ManyToOne(() => Subcategory, (subcategory) => subcategory.category)
+  @OneToMany(() => Subcategory, (subcategory) => subcategory.category)
   subcategories: Subcategory[];
 }
