@@ -3,5 +3,6 @@ export interface Category {
     name: string;
     subcategories: null;
     description: string;
+    imgPath: string;
 
 }
