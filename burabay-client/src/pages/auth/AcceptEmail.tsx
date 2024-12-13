@@ -15,11 +15,11 @@ import { IconContainer } from "../../shared/ui/IconContainer";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { ROLE_TYPE } from "./model/auth-model";
+import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
-  role?: ROLE_TYPE
+  role?: string
 }
 
 interface FormType {
@@ -81,7 +81,19 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
       },
     });
     if (response.data == HTTP_STATUS.OK) {
-      console.log("Подтвержден");
+      // если есть роль, то это регистрация бизнеса
+      if(roleService.hasValue()){
+        navigate({
+          to: "/register/business/$email",
+          params: { email: props.email },
+        });
+      }
+      else{
+        navigate({
+          to: "/register/password/new/$email",
+          params: { email: props.email },
+        });
+      }
     }
     if (response.data == HTTP_STATUS.CONFLICT) {
       handleError(t("invalidCode"));
@@ -94,8 +106,8 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
 
   return (
     <div className="flex flex-col h-screen">
-      <AlternativeHeader>
-        <div className="flex justify-between items-baseline mt-4">
+      <AlternativeHeader isMini>
+        <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -104,9 +116,9 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
             weight={700}
             color={COLORS_TEXT.white}
             align="center"
-            className="w-4/5"
+            className="w-3/5"
           >
-            {t("confirmEmail")}
+            {props.role ?  "Business" : "Tourist"}
           </Typography>
           <LanguageButton />
         </div>
@@ -157,7 +169,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
           </Button>
         ) : (
           <Button mode="hidden" className="mt-8">
-            {"Ошибка"}
+            {t('defaultError')}
           </Button>
         )}
         {errorText !== t("tooManyRequest") ? (

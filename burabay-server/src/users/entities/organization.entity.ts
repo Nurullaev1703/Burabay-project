@@ -27,6 +27,13 @@ export class Organization extends AbstractEntity<Organization> {
 
   @Column()
   isConfirmed: boolean;
+
+  @Column()
+  description: string;
+
+  @Column({name: "site_url"})
+  siteUrl: string;
+
   @OneToMany(() => Ad, (ad) => ad.organization)
   ads: Ad[];
 }

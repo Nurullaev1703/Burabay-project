@@ -107,7 +107,6 @@ export const EditProfile: FC = function EditProfile() {
                   variant="outlined"
                   inputProps={{ maxLength: 300 }}
                   multiline
-                  sx={{paddingTop: "12px"}}
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/300

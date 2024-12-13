@@ -8,7 +8,4 @@ export class LoginDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty()
-  role: ROLE_TYPE;
 }

@@ -11,110 +11,86 @@ import { Button } from "../../shared/ui/Button";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
-import { HTTP_STATUS } from "../../services/api/ServerData";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import { ROLE_TYPE } from "../auth/model/auth-model";
+import ClosedEye from "../../app/icons/close-eye.svg"
+import OpenedEye from "../../app/icons/open-eye.svg"
+import { useAuth } from "../../features/auth";
+import { HTTP_STATUS } from "../../services/api/ServerData";
+
+interface Props {
+  email: string;
+}
 
 // форма отслеживает данные
 interface FormType {
-  email: string;
-  password: string
+  password: string;
 }
 
-export const Register: FC = function Register() {
+export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [emailError, setEmailError] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [isShowPassword, setIsShowPassword] = useState<boolean>(false)
+  const {setToken} = useAuth()
+  const [passwordError, setPasswordError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const {
     handleSubmit,
     control,
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      email: "",
-      password: ""
+      password: "",
     },
     mode: "onChange",
   });
   return (
     <div className="bg-almostWhite h-screen">
-      <AlternativeHeader isMini>
-        <div className="flex justify-between items-center">
+      <AlternativeHeader>
+        <div className="flex justify-between items-center mb-2">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {"Business"}
+            {t("register")}
           </Typography>
           <LanguageButton />
         </div>
+        <Typography
+          align="center"
+          color={COLORS_TEXT.white}
+          size={18}
+          weight={500}
+          className="w-1/2 mx-auto leading-none"
+        >
+          {t("createPassword")}
+        </Typography>
       </AlternativeHeader>
 
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
-          const response = await apiService.post({
-            url: "/auth",
+          const response = await apiService.post<string>({
+            url: "/auth/check-password",
             dto: {
-              email: form.email,
               password: form.password,
-              role: ROLE_TYPE.BUSINESS
+              email: props.email,
             },
           });
-          console.log(response.data)
-          if (response.data == HTTP_STATUS.CREATED) {
+          if (response.data !== HTTP_STATUS.CONFLICT) {
+            setToken(response.data);
             navigate({
-              to: "/auth/accept/$email",
-              params: { email: form.email },
+              to: "/profile",
             });
+          } else {
+            setErrorMessage(t('defaultError'))
+            setPasswordError(true)
           }
-          else if (response.data == HTTP_STATUS.UNAUTHORIZED) {
-            navigate({
-              to: "/auth/accept/$email",
-              params: { email: form.email },
-            });
-          } 
-          else if (response.data == HTTP_STATUS.CONFLICT) {
-            setErrorMessage(t('emailBusy'))
-            setEmailError(true)
-          } 
           setIsLoading(false);
         })}
-        className="flex flex-col"
+        className="flex flex-col h-[60vh]"
       >
-        <div className="flex flex-col items-center gap-5 py-6 px-4">
-          <Controller
-            name="email"
-            control={control}
-            rules={{
-              validate: (value: string) => {
-                const emailRegex =
-                  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                return emailRegex.test(value) || t("invalidEmail");
-              },
-            }}
-            render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message) || emailError}
-                helperText={error?.message || errorMessage}
-                fullWidth={true}
-                type={"email"}
-                variant="outlined"
-                label={t("mail")}
-                autoFocus={true}
-                placeholder={t("inputMail")}
-                onChange={(e) => {
-                  field.onChange(e);
-                  setEmailError(false);
-                  setErrorMessage("");
-                }}
-              />
-            )}
-          />
+        <div className="flex flex-col items-center gap-5 py-6 px-4 pb-[120px]">
           <Controller
             name="password"
             control={control}
@@ -125,16 +101,35 @@ export const Register: FC = function Register() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                fullWidth={true}
-                type={"password"}
-                variant="outlined"
-                label={t("password")}
-                placeholder={t("inputPassword")}
-              />
+              <div className="relative w-full">
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message) || passwordError}
+                  helperText={error?.message || errorMessage}
+                  fullWidth={true}
+                  type={isShowPassword ? "text" : "password"}
+                  variant="outlined"
+                  label={t("password")}
+                  placeholder={t("inputPassword")}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setPasswordError(false);
+                    setErrorMessage("");
+                  }}
+                />
+                {field.value && (
+                  <IconContainer
+                    align="center"
+                    className="absolute right-0 top-[24px]"
+                    action={() => setIsShowPassword(!isShowPassword)}
+                  >
+                    <img
+                      src={isShowPassword ? ClosedEye : OpenedEye}
+                      alt="eye"
+                    />
+                  </IconContainer>
+                )}
+              </div>
             )}
           />
         </div>

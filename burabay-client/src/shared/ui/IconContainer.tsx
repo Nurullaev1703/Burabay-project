@@ -1,10 +1,10 @@
-import  { FC, PropsWithChildren } from 'react';
+import  { FC, HTMLAttributes } from 'react';
 
 type alignType = "start" | "end" | "center"
 
-interface Props extends PropsWithChildren {
-    align: alignType,
-    action?: () => void
+interface Props extends HTMLAttributes<HTMLDivElement> {
+  align: alignType;
+  action?: () => void;
 }
 
 export const IconContainer: FC<Props> = function IconContainer(props) {
@@ -17,7 +17,7 @@ export const IconContainer: FC<Props> = function IconContainer(props) {
     iconAlign = "justify-center"
   }
 
-  const style = `h-11 min-w-11 w-11 flex items-center ${iconAlign} cursor-pointer select-none`
+  const style = `w-[44px] h-[44px] flex items-center ${iconAlign} cursor-pointer select-none ${props.className}`
   return <div className={style} onClick={props.action}>
     {props.children}
   </div>
