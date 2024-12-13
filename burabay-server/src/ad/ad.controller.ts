@@ -3,7 +3,7 @@ import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { Public } from 'src/constants';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
@@ -13,6 +13,7 @@ export class AdController {
   constructor(private readonly adService: AdService) {}
 
   @Post()
+  @ApiBody({ schema: { example: AdController.adExample } })
   create(@Body() createAdDto: CreateAdDto) {
     return this.adService.create(createAdDto);
   }
@@ -41,4 +42,23 @@ export class AdController {
   remove(@Param('id') id: string) {
     return this.adService.remove(id);
   }
+
+  private static adExample = {
+    'subcategoryId': 'string',
+    'organizationId': 'string',
+    'title': 'string',
+    'description': 'string',
+    'price': 0,
+    'images': ['string'],
+    'youtubeLink': 'string',
+    'address': 'string',
+    'details': {
+      type: 'rent',
+      bicycles: true,
+      electricScooters: true,
+      campingEquipment: true,
+      carRentalWithDriver: true,
+    },
+    'phoneNumber': '+77077046669',
+  };
 }

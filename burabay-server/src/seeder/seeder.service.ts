@@ -161,7 +161,13 @@ export class SeederService {
             address: 'Pavlodar',
             phoneNumber: '+77077045632',
             subcategory: subcategory,
-            details: { type: 'livingPlace', 'rooms': 3, wifi: true },
+            details: {
+              type: 'rent',
+              bicycles: true,
+              electricScooters: true,
+              campingEquipment: true,
+              carRentalWithDriver: true,
+            },
             organization: org,
           });
           await this.adRepository.save(ad);

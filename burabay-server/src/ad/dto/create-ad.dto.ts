@@ -6,10 +6,8 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsObject,
-  Validate,
 } from 'class-validator';
 import { AdDetailsType } from '../types/ad.details.type';
-import { IsAdDetailsType } from '../validators/ad-details.validator.';
 
 export class CreateAdDto {
   @IsString()
@@ -46,7 +44,7 @@ export class CreateAdDto {
 
   @IsObject()
   @IsOptional()
-  @Validate(IsAdDetailsType)
+  // @Validate(IsAdDetailsType)
   details?: AdDetailsType;
 
   @IsPhoneNumber()

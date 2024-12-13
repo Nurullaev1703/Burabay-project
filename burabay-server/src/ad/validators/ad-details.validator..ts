@@ -1,56 +1,110 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  ValidationArguments,
 } from 'class-validator';
+import {
+  AdDetailsType,
+  IAttractionsDetails,
+  IChillDetails,
+  IEntertainmentDetails,
+  IExtrimDetails,
+  IFoodDetails,
+  IHealthDetails,
+  ILivingPlaceDetails,
+  IRentDetails,
+  ISecurityDetails,
+} from '../types/ad.details.type';
 
 @ValidatorConstraint({ async: false })
 export class IsAdDetailsType implements ValidatorConstraintInterface {
-  validate(details: any, args: ValidationArguments) {
-    if (!details || typeof details !== 'object') {
+  validate(value: AdDetailsType, args: ValidationArguments) {
+    if (!value || !value.type) return false;
+
+    // Check that the type is one of the valid options
+    const validTypes = [
+      'chillPlace',
+      'livingPlace',
+      'food',
+      'attractions',
+      'health',
+      'entertainment',
+      'extreme',
+      'security',
+      'rent',
+    ];
+
+    // Check if the value type matches one of the valid types
+    if (!validTypes.includes(value.type)) {
       return false;
     }
 
-    // Проверяем тип, соответствующий IChillPlaceDetails
-    if (details.type === 'chillPlace') {
-      if (Object.keys(details).length > 1) {
-        // Ожидается только поле 'type'
+    // If the type is valid, validate based on the specific details type
+    switch (value.type) {
+      case 'chillPlace':
+        return this.validateChillPlaceDetails(value);
+      case 'livingPlace':
+        return this.validateLivingPlaceDetails(value);
+      case 'food':
+        return this.validateFoodDetails(value);
+      case 'attractions':
+        return this.validateAttractionsDetails(value);
+      case 'health':
+        return this.validateHealthDetails(value);
+      case 'entertainment':
+        return this.validateEntertainmentDetails(value);
+      case 'extreme':
+        return this.validateExtremeDetails(value);
+      case 'security':
+        return this.validateSecurityDetails(value);
+      case 'rent':
+        return this.validateRentDetails(value);
+      default:
         return false;
-      }
-      return details.type === 'chillPlace'; // Проверка поля type
     }
+  }
 
-    // Проверяем тип, соответствующий ILivingPlaceDetails
-    if (details.type === 'livingPlace') {
-      const allowedKeys = ['type', 'rooms', 'bathrooms', 'wifi'];
-      const extraKeys = Object.keys(details).filter((key) => !allowedKeys.includes(key));
+  // Example validation method for 'chillPlace' details
+  private validateChillPlaceDetails(details: IChillDetails): boolean {
+    // Validate that all properties are either `true`, `false`, or `null`
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
 
-      if (extraKeys.length > 0) {
-        // Проверяем наличие лишних полей
-        return false;
-      }
+  // You can repeat this pattern for each type (livingPlace, food, etc.)
+  private validateLivingPlaceDetails(details: ILivingPlaceDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
 
-      return (
-        typeof details.rooms === 'number' &&
-        typeof details.bathrooms === 'number' &&
-        typeof details.wifi === 'boolean'
-      );
-    }
+  private validateFoodDetails(details: IFoodDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
 
-    // Проверяем тип, соответствующий ISupplyDetails
-    if (details.type === 'supply') {
-      if (Object.keys(details).length > 1) {
-        // Ожидается только поле 'type'
-        return false;
-      }
-      return details.type === 'supply';
-    }
+  private validateAttractionsDetails(details: IAttractionsDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
 
-    return false;
+  private validateHealthDetails(details: IHealthDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
+
+  private validateEntertainmentDetails(details: IEntertainmentDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
+
+  private validateExtremeDetails(details: IExtrimDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
+
+  private validateSecurityDetails(details: ISecurityDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
+  }
+
+  private validateRentDetails(details: IRentDetails): boolean {
+    return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
   defaultMessage(args: ValidationArguments): string {
-    return 'Details must be a valid AdDetailsType with no extra fields.';
+    return 'Invalid ad details type or value!';
   }
 }
