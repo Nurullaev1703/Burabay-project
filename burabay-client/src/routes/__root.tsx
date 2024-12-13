@@ -8,7 +8,7 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 
 export const AUTH_PATH = [
-    "/auth/"
+    "/auth/", "/auth/"
 ]
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
@@ -21,7 +21,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         }
         return(
         <>
-            <div className="overflow-y-auto container mx-auto relative max-w-[1280px] overflow-x-hidden">
+            <div className="overflow-y-auto container mx-auto relative max-w-fullWidth overflow-x-hidden">
                 <Outlet />
             </div>
         </>

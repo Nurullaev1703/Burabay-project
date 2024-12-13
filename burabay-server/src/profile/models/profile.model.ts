@@ -6,11 +6,9 @@ export class Profile{
     id: string = ""
     fullName:string = ""
     phoneNumber: string = ""
+    email: string = ""
     role: ROLE_TYPE | null = null
-    notifications: Notification[] | null = null
     organization: Organization | null = null
-    address: string | null = null
-    clientManager: User | null = null
 
     constructor(item:any){
         const keys = Object.keys(this)

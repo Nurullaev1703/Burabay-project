@@ -130,6 +130,8 @@ export class SeederService {
           name: 'Тестовая организация',
           address: 'Pavlodar',
           isConfirmed: true,
+          description: "Мы занимаемся всем подряд и не только",
+          siteUrl:"https://wikipedia.org"
         });
         await this.orgRepository.save(org);
       } else {

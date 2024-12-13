@@ -31,8 +31,7 @@ export class EmailService {
     const data = {
       to: email,
       from: 'Burabay Travel',
-      subject: 'Accept your email',
-      text: `Accept Email`,
+      subject: 'Burabay Travel Auth',
       html: getAcceptMessage(code),
     };
     try {
