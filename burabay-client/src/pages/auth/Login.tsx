@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -11,13 +11,14 @@ import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import InfoIcon from "../../app/icons/info.svg";
 import { useGoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 import FacebookLogin from "react-facebook-login";
 import GoogleLogo from "../../app/icons/google-logo.svg";
 import FacebookLogo from "../../app/icons/facebook-logo.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { HTTP_STATUS } from "../../services/api/ServerData";
+import { FacebookAuthData, GoogleAuthType } from "./model/auth-model";
+import { roleService, tokenService } from "../../services/storage/Factory";
 
 // форма отслеживает только email
 interface FormType {
@@ -30,31 +31,62 @@ export const Login: FC = function Login() {
   const [emailError, setEmailError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  useEffect(() => {
+    roleService.deleteValue();
+    tokenService.deleteValue();
+  }, []);
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      setIsLoading(true)
-      const response = await apiService.post<string>({
-        url:"/auth/google-login",
-        dto: {
-          token: tokenResponse.access_token
+      setIsLoading(true);
+      const userInfo: GoogleAuthType = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
         }
-      })
+      ).then((res) => res.json());
+      const response = await apiService.post({
+        url: "/auth/google-login",
+        dto: userInfo,
+      });
       if (response.data == HTTP_STATUS.CREATED) {
-        console.log("Пользователь создан")
+        navigate({
+          to: "/register/password/new/$email",
+          params: { email: userInfo.email },
+        });
       }
       if (response.data == HTTP_STATUS.OK) {
-        console.log("Пользователь авторизован");
+        navigate({
+          to: "/register/password/check/$email",
+          params: { email: userInfo.email },
+        });
       }
       setIsLoading(false);
     },
-
   });
-  const handleFacebookCallback = (response: any) => {
+  const handleFacebookCallback = async (response: FacebookAuthData) => {
+    setIsLoading(true);
     if (response?.status === "unknown") {
       return;
     }
-    console.log(response);
+    const handleResponse = await apiService.post<string>({
+      url: "/auth/facebook-login",
+      dto: response,
+    });
+    if (handleResponse.data == HTTP_STATUS.CREATED) {
+      navigate({
+        to: "/register/password/new/$email",
+        params: { email: response.email },
+      });
+    }
+    if (handleResponse.data == HTTP_STATUS.OK) {
+      navigate({
+        to: "/register/password/check/$email",
+        params: { email: response.email },
+      });
+    }
+    setIsLoading(false);
   };
   const {
     handleSubmit,
@@ -64,7 +96,7 @@ export const Login: FC = function Login() {
     defaultValues: {
       email: "",
     },
-    mode: "onChange"
+    mode: "onChange",
   });
   return (
     <div className="bg-almostWhite h-screen">
@@ -108,7 +140,10 @@ export const Login: FC = function Login() {
             });
           }
           if (response.data == HTTP_STATUS.OK) {
-            console.log("Пользователь авторизован");
+            navigate({
+              to: "/register/password/check/$email",
+              params: { email: form.email },
+            });
           }
           setIsLoading(false);
         })}

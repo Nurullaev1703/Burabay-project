@@ -1,10 +1,3 @@
-// роли для пользователей сайта
-
-export enum ROLE_TYPE {
-  TOURIST = "турист",
-  BUSINESS = "бизнес",
-}
-
 export interface FacebookAuthData {
   accessToken: string;
   data_access_expiration_time: number;
@@ -16,7 +9,7 @@ export interface FacebookAuthData {
   picture: FacebookPictureData;
   signedRequest: string;
   userID: string;
-  status: string
+  status: string;
 }
 interface FacebookPictureData {
   data: {
@@ -24,13 +17,4 @@ interface FacebookPictureData {
     width: number;
     url: string;
   };
-}
-export interface GoogleAuthType {
-  email: string;
-  email_verified: boolean;
-  family_name: string;
-  given_name: string;
-  name: string;
-  picture: string;
-  sub: string;
 }

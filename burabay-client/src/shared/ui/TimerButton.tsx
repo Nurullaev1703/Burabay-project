@@ -1,5 +1,6 @@
 import { useState, useEffect, FC, ButtonHTMLAttributes } from 'react';
 import { Button } from './Button';
+import { useTranslation } from 'react-i18next';
 
 interface TimerButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   initialTime: number; // Время в секундах
@@ -8,7 +9,7 @@ interface TimerButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const TimerButton: FC<TimerButtonProps> = (props) => {
   const [timeLeft, setTimeLeft] = useState<number>(props.initialTime);
   const [isTimeout, setIsTimeout] = useState<boolean>(false);
-
+  const {t} = useTranslation()
   useEffect(() => {
     let timerId: NodeJS.Timeout;
 
@@ -39,7 +40,7 @@ const TimerButton: FC<TimerButtonProps> = (props) => {
       className={props.className}
       onClick={handleClick}
     >
-      {isTimeout ? 'Повторить СМС' : `Повторить СМС через ${timeLeft}`}
+      {isTimeout ? t('repeatMail') : `${t('repeatMailAfter')} ${timeLeft}`}
     </Button>
   );
 };

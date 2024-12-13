@@ -104,6 +104,21 @@ i18n.use(initReactI18next).init({
         termsOfUseLink: "с Условиями и Политикой конфиденциальности",
         emailBusy:
           "Почта зарегестрирована на туристическом аккаунте, измените адрес в аккаунте или укажите другой адрес",
+        createPassword: "Придумайте пароль от 8 символов",
+        defaultError: "Произошла ошибка",
+        wrongPassword: "Неверный пароль",
+        auth: "Авторизация",
+        passwordFor: "Введите пароль от аккаунта",
+        inputOrgName: "Введите название",
+        description: "Описание",
+        inputDescription: "Напишите, чем вы занимаетесь",
+        siteUrl: "Сайт, при наличии",
+        webAddress: "Адрес сайта",
+        acceptRegister: "Зарегистрировать",
+        signIn: "Войти",
+        forgotPassword: "Забыли пароль?",
+        repeatMail: "Повторить письмо",
+        repeatMailAfter: "Повторить можно через"
         // errors
       },
     },
