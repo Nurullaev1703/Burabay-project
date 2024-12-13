@@ -6,15 +6,15 @@ import {
 } from 'class-validator';
 import {
   AdDetailsType,
-  IAttractionsDetails,
-  IChillDetails,
-  IEntertainmentDetails,
-  IExtrimDetails,
-  IFoodDetails,
-  IHealthDetails,
-  ILivingPlaceDetails,
-  IRentDetails,
-  ISecurityDetails,
+  AttractionsDetails,
+  ChillDetails,
+  EntertainmentDetails,
+  ExtrimDetails,
+  FoodDetails,
+  HealthDetails,
+  LivingPlaceDetails,
+  RentDetails,
+  SecurityDetails,
 } from '../types/ad.details.type';
 
 @ValidatorConstraint({ async: false })
@@ -66,41 +66,41 @@ export class IsAdDetailsType implements ValidatorConstraintInterface {
   }
 
   // Example validation method for 'chillPlace' details
-  private validateChillPlaceDetails(details: IChillDetails): boolean {
+  private validateChillPlaceDetails(details: ChillDetails): boolean {
     // Validate that all properties are either `true`, `false`, or `null`
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
   // You can repeat this pattern for each type (livingPlace, food, etc.)
-  private validateLivingPlaceDetails(details: ILivingPlaceDetails): boolean {
+  private validateLivingPlaceDetails(details: LivingPlaceDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateFoodDetails(details: IFoodDetails): boolean {
+  private validateFoodDetails(details: FoodDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateAttractionsDetails(details: IAttractionsDetails): boolean {
+  private validateAttractionsDetails(details: AttractionsDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateHealthDetails(details: IHealthDetails): boolean {
+  private validateHealthDetails(details: HealthDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateEntertainmentDetails(details: IEntertainmentDetails): boolean {
+  private validateEntertainmentDetails(details: EntertainmentDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateExtremeDetails(details: IExtrimDetails): boolean {
+  private validateExtremeDetails(details: ExtrimDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateSecurityDetails(details: ISecurityDetails): boolean {
+  private validateSecurityDetails(details: SecurityDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 
-  private validateRentDetails(details: IRentDetails): boolean {
+  private validateRentDetails(details: RentDetails): boolean {
     return Object.values(details).every((value) => value === null || typeof value === 'boolean');
   }
 

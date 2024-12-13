@@ -39,4 +39,9 @@ export class Utils {
 
   static dynamicImport = async (packageName: string) =>
     new Function(`return import('${packageName}')`)();
+
+  static getClassKeys<T extends object>(classType: new () => T): (keyof T)[] {
+    const instance = new classType();
+    return Object.getOwnPropertyNames(instance) as (keyof T)[];
+  }
 }
