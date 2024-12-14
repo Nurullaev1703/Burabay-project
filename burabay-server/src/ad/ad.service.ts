@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -116,7 +116,7 @@ export class AdService {
   async remove(id: string) {
     try {
       const ad = await this.adRepository.findOne({ where: { id: id } });
-      if (!ad) throw new HttpException('Объявление не найдено', HttpStatus.NOT_FOUND);
+      Utils.check(ad, 'Объявление не найдено');
       return await this.adRepository.remove(ad);
     } catch (error) {
       Utils.errorHandler(error);

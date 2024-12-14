@@ -1,8 +1,9 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { Organization } from 'src/users/entities/organization.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { AdDetailsType } from '../types/ad.details.type';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -21,8 +22,15 @@ export class Ad extends AbstractEntity<Ad> {
   @Column({ name: 'youtube_link' })
   youtubeLink: string;
 
-  @Column()
+  @Column({ type: 'float', array: true, nullable: true })
+  coordinates: number[];
+
+  @Column({ nullable: true })
   address: string;
+
+  @OneToOne(() => Schedule, (schedule) => schedule.ad)
+  @JoinColumn()
+  schedule: Schedule;
 
   @Column({ type: 'json' })
   details: AdDetailsType;
