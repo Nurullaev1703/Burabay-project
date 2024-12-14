@@ -8,8 +8,14 @@ export class UpdateOrganizationDto{
     name?: string
 
     @IsOptional()
-    type?: string
+    address?: string
 
     @IsOptional()
-    identityNumber?:string
+    description?:string
+
+    @IsOptional()
+    isConfirmed?:boolean
+
+    @IsOptional()
+    siteUrl?:string
 }

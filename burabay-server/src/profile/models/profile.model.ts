@@ -3,11 +3,12 @@ import { User } from "src/users/entities/user.entity"
 import { ROLE_TYPE } from "src/users/types/user-types"
 
 export class Profile{
-    id: string = ""
     fullName:string = ""
     phoneNumber: string = ""
-    email: string = ""
     role: ROLE_TYPE | null = null
+    picture: string | null = null
+    email: string = ""
+    isEmailConfirmed: boolean = false
     organization: Organization | null = null
 
     constructor(item:any){
