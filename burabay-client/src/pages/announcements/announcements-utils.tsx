@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
-import { Category } from "./model/announcements";
+import { Category, Subcategories } from "./model/announcements";
 
 export function useGetCategory(){
     return useQuery({
@@ -24,3 +24,19 @@ export function useGetCategoryId(categoryId: string){
         }
     })
 }
+
+export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: string){
+    return useQuery({
+        queryKey:["/subcategory" , categoryId,subcategoryId],
+        queryFn: async () =>{
+            const category = await apiService.get<Category>({
+                url: `/category/${categoryId}/${subcategoryId}`,
+            });
+            return category.data
+        }
+    })
+}
+
+            // const subcategory = await apiService.get<Subcategories>({
+            //     url: `/category/${category.data.id}/${subcategoryId}`
+            // })

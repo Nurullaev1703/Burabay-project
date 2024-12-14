@@ -21,6 +21,7 @@ import rental from "../../app/icons/main/rental.svg"
 import rest from "../../app/icons/main/rest.svg"
 import security from "../../app/icons/main/security.svg"
 import { useNavigate } from '@tanstack/react-router';
+import { ProgressSteps } from './ui/ProgressSteps';
 
 
 
@@ -56,15 +57,8 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
       <img src={XIcon} alt="" />
       </IconContainer>
       </div>
+      <ProgressSteps currentStep={1} totalSteps={9}></ProgressSteps>
     </Header>
-    <div className="flex items-center gap-2 px-4 mb-2">
-  <div className="h-2 flex-1 bg-blue200 rounded-full"></div>
-  <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
-  <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
-  <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
-  <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
-  <div className="h-2 flex-1 bg-gray300 rounded-full"></div>
-    </div>
 
     <div className="space-y-4 px-4 ">
     {category.map((item , index) =>{
