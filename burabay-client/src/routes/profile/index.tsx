@@ -8,10 +8,10 @@ export const Route = createFileRoute("/profile/")({
 });
 
 function ProfileRoute() {
-  // const { data, isLoading } = useGetProfile();
-  // if (isLoading) return <Loader />;
+  const { data, isLoading } = useGetProfile();
+  if (isLoading) return <Loader />;
 
-  // if (data) {
+  if (data) {
         return <Profile />;
-  // }
+  }
 }
