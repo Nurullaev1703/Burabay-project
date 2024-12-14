@@ -27,11 +27,31 @@ export class SubcategoryService {
     }
   }
 
-  findAll() {
-    return `This action returns all subcategory`;
+  async findAll() {
+    try {
+      return await this.subcategoryRepository.find();
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} subcategory`;
+  async findOne(id: string, withAds: boolean = false) {
+    try {
+      let subcategory: Subcategory;
+      if (!withAds) {
+        subcategory = await this.subcategoryRepository.findOne({
+          where: { id: id },
+        });
+      } else {
+        subcategory = await this.subcategoryRepository.findOne({
+          where: { id: id },
+          relations: { ads: true },
+        });
+      }
+      Utils.check(subcategory, 'Подкатегория не найдена');
+      return subcategory;
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
   }
 }
