@@ -31,6 +31,7 @@
     "leaflet": "^1.9.4",
     "mui-tel-input": "^5.1.2",
     "ncalayer-js-client": "^1.5.1",
+    "ol": "^10.3.1",
     "react": "^19.0.0-rc.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
