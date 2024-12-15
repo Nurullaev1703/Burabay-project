@@ -16,6 +16,7 @@ import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { BreaksModule } from './breaks/breaks.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ScheduleModule } from './schedule/schedule.module';
     AdminPanelModule,
     SeederModule,
     ScheduleModule,
+    BreaksModule,
   ],
   controllers: [],
   providers: [

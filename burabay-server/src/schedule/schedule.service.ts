@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,6 +28,16 @@ export class ScheduleService {
 
       await this.scheduleRepository.save(newSchedule);
       return JSON.stringify(HttpStatus.CREATED);
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
+  }
+
+  async findByAd(adId: string) {
+    try {
+      const schedule = await this.scheduleRepository.find({ where: { ad: { id: adId } } });
+      Utils.check(schedule, 'График не найден');
+      return schedule;
     } catch (error) {
       Utils.errorHandler(error);
     }

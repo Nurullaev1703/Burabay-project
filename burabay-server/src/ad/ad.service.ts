@@ -51,6 +51,8 @@ export class AdService {
       return await this.adRepository.find({
         relations: {
           organization: true,
+          breaks: true,
+          schedule: true,
         },
       });
     } catch (error) {
@@ -64,6 +66,11 @@ export class AdService {
       const ad = await this.adRepository.find({
         where: {
           organization: { id: orgId },
+        },
+        relations: {
+          organization: true,
+          breaks: true,
+          schedule: true,
         },
       });
       Utils.check(ad, 'Объявления не найдены');
@@ -80,6 +87,8 @@ export class AdService {
         where: { id: id },
         relations: {
           organization: true,
+          breaks: true,
+          schedule: true,
         },
       });
       Utils.check(ad, 'Объявление не найдено');
@@ -105,7 +114,6 @@ export class AdService {
       } else {
         Object.assign(ad, oF);
       }
-
       return this.adRepository.save(ad);
     } catch (error) {
       Utils.errorHandler(error);
