@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
@@ -12,8 +12,8 @@ import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import ClosedEye from "../../app/icons/close-eye.svg"
-import OpenedEye from "../../app/icons/open-eye.svg"
+import ClosedEye from "../../app/icons/close-eye.svg";
+import OpenedEye from "../../app/icons/open-eye.svg";
 import { useAuth } from "../../features/auth";
 import { HTTP_STATUS } from "../../services/api/ServerData";
 
@@ -26,7 +26,7 @@ interface FormType {
   password: string;
 }
 
-export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
+export const ResetPasswordPage: FC<Props> = function ResetPasswordPage(props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -52,54 +52,43 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {t("auth")}
+            {t("newPassword")}
           </Typography>
           <LanguageButton />
         </div>
-        <div>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="leading-none"
-          >
-            {t("passwordFor")}
-          </Typography>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="line-clamp-1"
-          >
-            {props.email}
-          </Typography>
-        </div>
+        <Typography
+          align="center"
+          color={COLORS_TEXT.white}
+          size={18}
+          weight={500}
+          className="w-1/2 mx-auto leading-none"
+        >
+          {t("createPassword")}
+        </Typography>
       </AlternativeHeader>
 
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
           const response = await apiService.post<string>({
-            url: "/auth/check-password",
+            url: "/auth/new-password",
             dto: {
               password: form.password,
               email: props.email,
             },
           });
-          if (response.data && response.status == Number(HTTP_STATUS.CREATED)) {
+          if (response.data !== HTTP_STATUS.CONFLICT) {
             setToken(response.data);
             navigate({
               to: "/profile",
             });
           } else {
-            setErrorMessage(t("wrongPassword"));
+            setErrorMessage(t("defaultError"));
             setPasswordError(true);
           }
           setIsLoading(false);
         })}
-        className="flex flex-col"
+        className="flex flex-col h-[60vh]"
       >
         <div className="flex flex-col items-center gap-5 py-6 px-4 pb-[120px]">
           <Controller
@@ -150,15 +139,8 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           type="submit"
           className="w-header mx-auto mb-4"
         >
-          {t("signIn")}
+          {t("accept")}
         </Button>
-        <Typography size={14} align="center" className="flex flex-col">
-          <Link to={"/auth/reset-password"}>
-            <span className={`${COLORS_TEXT.blue200} font-semibold`}>
-              {t("forgotPassword")}
-            </span>
-          </Link>
-        </Typography>
       </DefaultForm>
     </div>
   );

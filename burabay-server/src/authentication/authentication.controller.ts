@@ -60,6 +60,20 @@ export class AuthenticationController {
     return this.emailService.sendAcceptMessage(verificationDto.email);
   }
 
+  // ограниченное количество запросов на 30 минут
+  @Public()
+  @Throttle({ default: { limit: 8, ttl: 1800000 } })
+  @Post('reset-password')
+  resetPasswordMessage(@Body() verificationDto: VerificationDto) {
+    return this.emailService.resetPasswordMessage(verificationDto.email);
+  }
+
+  @Public()
+  @Post('new-password')
+  newPassword(@Body() loginDto: LoginDto) {
+    return this.authenticationService.resetPassword(loginDto);
+  }
+
   @Public()
   @Post('verify-code')
   verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {

@@ -19,6 +19,7 @@ import { apiService } from "../../services/api/ApiService";
 import { HTTP_STATUS } from "../../services/api/ServerData";
 import { FacebookAuthData, GoogleAuthType } from "./model/auth-model";
 import { roleService, tokenService } from "../../services/storage/Factory";
+import { SmallHint } from "../../shared/ui/SmallHint";
 
 // форма отслеживает только email
 interface FormType {
@@ -64,6 +65,10 @@ export const Login: FC = function Login() {
       }
       setIsLoading(false);
     },
+    onError: () => {
+      setErrorMessage(t('defaultError'))
+      setEmailError(true)
+    }
   });
   const handleFacebookCallback = async (response: FacebookAuthData) => {
     setIsLoading(true);
@@ -174,16 +179,7 @@ export const Login: FC = function Login() {
               />
             )}
           />
-          <div className="relative w-full h-4 my-4 flex items-center">
-            <div className="w-full h-[1px] bg-gray100"></div>
-            <Typography
-              size={12}
-              color={COLORS_TEXT.gray100}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-almostWhite px-4"
-            >
-              {t("signinWith")}
-            </Typography>
-          </div>
+          <SmallHint />
           <div className="flex items-center justify-between w-full">
             <button
               type="button"
