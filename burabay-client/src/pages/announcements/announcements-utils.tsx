@@ -30,13 +30,14 @@ export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: 
         queryKey:["/subcategory" , categoryId,subcategoryId],
         queryFn: async () =>{
             const category = await apiService.get<Category>({
-                url: `/category/${categoryId}/${subcategoryId}`,
+                url: `/category/${categoryId}`,
             });
-            return category.data
+            const subcategory = await apiService.get<Subcategories>({
+                url: `/subcategory/${subcategoryId}`
+            })
+            return {category: category.data , subcategory: subcategory.data}
+
         }
     })
 }
 
-            // const subcategory = await apiService.get<Subcategories>({
-            //     url: `/category/${category.data.id}/${subcategoryId}`
-            // })

@@ -13,13 +13,13 @@ interface Props {
 export const TermsOfUse: FC<Props> = function TermsOfUse() {
   return (
     <main>
-            <AlternativeHeader>
+    <AlternativeHeader>
     <div className="flex justify-between items-center">
       <IconContainer align="start" action={() => history.back()}>
         <img src={BackIcon} alt="" />
       </IconContainer>
       <Typography size={20} weight={700} color={COLORS_TEXT.white}>
-        {"Конфеденциальность"}
+        {"Условия использования"}
       </Typography>
       <IconContainer align="end">
         <img src={language} alt="" />
