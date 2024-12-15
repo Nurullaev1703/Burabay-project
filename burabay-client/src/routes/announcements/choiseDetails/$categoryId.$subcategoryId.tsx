@@ -14,6 +14,6 @@ function ChoiseDetailsRoute() {
     const { data, isLoading } = useGetCategorySubcategoryId(categoryId , subcategoryId)
     if (isLoading) return <Loader />
     if (data) {
-      return <ChoiseDetails category={data} subcategory={data} />
+      return <ChoiseDetails category={data.category} subcategory={data.subcategory} />
     }
   }

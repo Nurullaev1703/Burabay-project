@@ -4,6 +4,7 @@ export interface Category {
     subcategories: Subcategories[];
     description: string;
     imgPath: string;
+    details: string[];
 
 }
 
