@@ -18,7 +18,11 @@ export class ProfileService {
   async getProfile(tokenData: TokenData) {
     const user = await this.userRepository.findOne({
       where: { id: tokenData.id },
-    });
+      relations:{
+        organization: true
+      }
+    }
+  );
 
     return new Profile(user);
   }
@@ -27,17 +31,34 @@ export class ProfileService {
     const user = await this.userRepository.findOne({
       where: {
         id: tokenData.id,
+      },
+      relations:{
+        organization: true
       }
     });
 
-    if (!user) throw new HttpException('Данный пользователь не найден', HttpStatus.NOT_FOUND);
+    if (!user) throw JSON.stringify(HttpStatus.NOT_FOUND);
 
     await this.userRepository.update(user.id, {
       ...user,
       fullName: updateProfileDto.fullName || user.fullName,
-      phoneNumber: updateProfileDto.phoneNumber,
+      email: updateProfileDto.email || user.email,
+      isEmailConfirmed: updateProfileDto.isEmailConfirmed || user.isEmailConfirmed,
+      picture: updateProfileDto.picture || user.picture,
+      phoneNumber: updateProfileDto.phoneNumber || user.phoneNumber,
     });
-    return JSON.stringify('Пользователь изменен');
+    if(updateProfileDto.organization){
+      await this.organizationRepository.update(user.organization.id,{
+        ...user.organization,
+        imgUrl: updateProfileDto.organization.imgUrl || user.organization.imgUrl,
+        name: updateProfileDto.organization.name || user.organization.name,
+        description: updateProfileDto.organization.description || user.organization.description,
+        address: updateProfileDto.organization.address || user.organization.address,
+        isConfirmed: updateProfileDto.organization.isConfirmed || user.organization.isConfirmed,
+        siteUrl: updateProfileDto.organization.siteUrl || user.organization.siteUrl,
+      })
+    }
+    return JSON.stringify(HttpStatus.OK);
   }
 
   async getUsers() {

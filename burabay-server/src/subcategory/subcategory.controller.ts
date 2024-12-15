@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { SubcategoryService } from './subcategory.service';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -22,8 +22,9 @@ export class SubcategoryController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subcategoryService.findOne(id);
+  findOne(@Param('id') id: string, @Query('ads') ads: string = 'false') {
+    const withAds = ads === 'true';
+    return this.subcategoryService.findOne(id, withAds);
   }
 
   // XXX Нужна ли апишка для получения всех подкатегорий у определенной организации?

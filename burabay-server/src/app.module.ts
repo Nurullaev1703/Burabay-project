@@ -15,6 +15,7 @@ import { SeederModule } from './seeder/seeder.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { UsersModule } from './users/user.module';
     TasksModule,
     AdminPanelModule,
     SeederModule,
+    ScheduleModule,
   ],
   controllers: [],
   providers: [
