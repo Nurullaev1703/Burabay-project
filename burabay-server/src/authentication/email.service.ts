@@ -4,6 +4,7 @@ import { getAcceptMessage } from './mail-visual/mail.example';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { VerifyCodeDto } from './dto/verify-code.dto';
+import { getResetMessage } from './mail-visual/reset.example';
 
 @Injectable()
 export class EmailService {
@@ -33,6 +34,23 @@ export class EmailService {
       from: 'Burabay Travel',
       subject: 'Burabay Travel Auth',
       html: getAcceptMessage(code),
+    };
+    try {
+      await this.transporter.sendMail(data);
+      return JSON.stringify(HttpStatus.OK);
+    } catch (error) {
+      return JSON.stringify(HttpStatus.FAILED_DEPENDENCY);
+    }
+  }
+  async resetPasswordMessage(email: string) {
+    const code = this._generateCode();
+    // Устанавливаем время жизни кода - 60 минут (время в миллисекундах)
+    await this.cacheManager.set(email, code, 3600000);
+    const data = {
+      to: email,
+      from: 'Burabay Travel',
+      subject: 'Reset Password',
+      html: getResetMessage(code, email),
     };
     try {
       await this.transporter.sendMail(data);

@@ -15,18 +15,16 @@ import { IconContainer } from "../../shared/ui/IconContainer";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
-  role?: string;
 }
 
 interface FormType {
   code: string;
 }
 
-export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
+export const RecoveryPasswordEmail: FC<Props> = function RecoveryPasswordEmail(props) {
   const [otp, setOtp] = useState<string>("");
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
@@ -74,22 +72,15 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
       },
     });
     if (response.data == HTTP_STATUS.OK) {
-      // если есть роль, то это регистрация бизнеса
-      if(roleService.hasValue()){
         navigate({
-          to: "/register/business/$email",
-          params: { email: props.email },
-        });
-      }
-      else{
-        navigate({
-          to: "/register/password/new/$email",
-          params: { email: props.email },
-        });
-      }
+          to:"/auth/new-password/$email",
+          params:{
+            email: props.email
+          }
+        })
     }
-    if (response.data == HTTP_STATUS.CONFLICT) {
-      handleError(t("invalidCode"));
+    if (response.data == HTTP_STATUS.FAILED_DEPENDENCY) {
+      handleError(t("defaultError"));
     }
     if (response.data == HTTP_STATUS.SERVER_ERROR) {
       handleError(t("tooManyRequest"));
@@ -99,8 +90,8 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
 
   return (
     <div className="flex flex-col h-screen">
-      <AlternativeHeader isMini>
-        <div className="flex justify-between items-center">
+      <AlternativeHeader>
+        <div className="flex justify-between items-start">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -111,7 +102,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
             align="center"
             className="w-3/5"
           >
-            {props.role ?  "Business" : "Tourist"}
+            {t("recoveryPassword")}
           </Typography>
           <LanguageButton />
         </div>
@@ -162,10 +153,9 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
           </Button>
         ) : (
           <Button mode="hidden" className="mt-8">
-            {t('defaultError')}
+            {t("defaultError")}
           </Button>
         )}
-        {errorText !== t("tooManyRequest") ? (
           <TimerButton
             initialTime={time}
             type="button"
@@ -178,20 +168,11 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
                 },
               });
               if (response.data == HTTP_STATUS.SERVER_ERROR) {
-                setErrorText(t("tooManyRequests"));
-                setError(true);
-                setTimeout(() => {
-                  setError(false);
-                }, 2000);
+                handleError(t("tooManyRequest"));
               }
             }}
             className="my-4"
           />
-        ) : (
-          <Button mode="border" onClick={() => navigate({ to: "/auth" })}>
-            {t("goToAuth")}
-          </Button>
-        )}
       </DefaultForm>
       {isSubmitting && <Loader />}
     </div>

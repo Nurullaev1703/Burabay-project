@@ -56,7 +56,7 @@ export class AuthenticationService {
       user = new User({
         fullName: '',
         phoneNumber: '',
-        role: signInDto.role,
+        role: signInDto.role || ROLE_TYPE.BUSINESS,
         email: signInDto.email,
         password: hash,
         organization: organization,
@@ -126,13 +126,13 @@ export class AuthenticationService {
 
       // регистрируем нового пользователя
       const user = new User({
-        fullName: userInfo.name,
+        fullName: userInfo.name || "",
         phoneNumber: '',
         role: ROLE_TYPE.TOURIST,
         email: userInfo.email,
         password: '',
         isEmailConfirmed: false,
-        picture: userInfo.picture,
+        picture: userInfo.picture || "",
       });
       await this.entityManager.save(user);
       return JSON.stringify(HttpStatus.CREATED);
@@ -160,13 +160,13 @@ export class AuthenticationService {
 
         // регистрируем нового пользователя
         const user = new User({
-          fullName: userInfo.name,
+          fullName: userInfo.name || "",
           phoneNumber: '',
           role: ROLE_TYPE.TOURIST,
           email: userInfo.email,
           password: '',
           isEmailConfirmed: false,
-          picture: userInfo.picture.data.url,
+          picture: userInfo?.picture?.data?.url || "",
         });
         await this.entityManager.save(user);  
         return JSON.stringify(HttpStatus.CREATED);
@@ -209,7 +209,24 @@ export class AuthenticationService {
 
     return JSON.stringify(token);
   }
+  async resetPassword(loginDto: LoginDto){
+     const user = await this.userRepository.findOne({
+       where: {
+         email: loginDto.email,
+       },
+     });
 
+     const salt = await bcrypt.genSalt();
+     const hash = await bcrypt.hash(loginDto.password, salt);
+
+     const updatedUser = new User({ ...user, password: hash });
+     await this.userRepository.save(updatedUser);
+
+     const payload: TokenData = { id: updatedUser.id };
+     const token = await this.jwtService.signAsync(payload);
+
+     return JSON.stringify(token);
+  }
   async updateOrganizationInfo(updateDto: UpdateOrganizationDto){
     const user = await this.userRepository.findOne({
       where:{

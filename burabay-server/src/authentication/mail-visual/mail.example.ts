@@ -38,6 +38,7 @@ export const getAcceptMessage = (code: string): string => {
         .email-header .lang {
             background-color: #ffffff;
             color: #000;
+            height: fit-content;
             padding: 8px;
             border-radius: 12px;
             font-size: 12px;
@@ -95,7 +96,7 @@ export const getAcceptMessage = (code: string): string => {
     <div class="email-container">
         <!-- Header Section -->
         <div class="email-header">
-            <span class="lang">Рус</span>
+            <div class="lang">Рус</div>
             <h4>Подтверждение email</h4>
         </div>
         <!-- Body Section -->
@@ -115,7 +116,7 @@ export const getAcceptMessage = (code: string): string => {
     <div class="email-container">
         <!-- Header Section -->
         <div class="email-header">
-            <span class="lang">Eng</span>
+            <div class="lang">Eng</div>
             <h4>Сonfirmation email</h4>
         </div>
         <!-- Body Section -->
@@ -135,7 +136,7 @@ export const getAcceptMessage = (code: string): string => {
     <div class="email-container">
         <!-- Header Section -->
         <div class="email-header">
-            <span class="lang">Қаз</span>
+            <div class="lang">Қаз</div>
             <h4>Растау электрондық поштасы</h4>
         </div>
         <!-- Body Section -->
