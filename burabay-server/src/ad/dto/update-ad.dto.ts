@@ -54,6 +54,10 @@ export class UpdateAdDto {
   @IsOptional()
   isRoundTheClock: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isFullDay: boolean;
+
   @IsArray()
   @IsOptional()
   startTime: string[];

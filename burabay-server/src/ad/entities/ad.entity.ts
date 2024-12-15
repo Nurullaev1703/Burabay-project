@@ -63,6 +63,13 @@ export class Ad extends AbstractEntity<Ad> {
   @OneToMany(() => Break, (breaks) => breaks.ad)
   breaks: Break[];
 
+  @Column({ nullable: true })
+  isFullDay: boolean;
+
+  // Времена начала услуги. Массив со строками времени типа: ['10:00', '12:00']
+  @Column({ type: 'text', array: true, nullable: true })
+  startTime: string[];
+
   // Имеется ли длительность у услуги.
   @Column({ type: 'boolean', name: 'is_duration', nullable: true })
   isDuration: boolean;
@@ -70,10 +77,6 @@ export class Ad extends AbstractEntity<Ad> {
   // Длительность услуги.
   @Column({ nullable: true })
   duration: string;
-
-  // Времена начала услуги. Массив со строками времени типа: ['10:00', '12:00']
-  @Column({ type: 'text', array: true, nullable: true })
-  startTime: string[];
 
   @Column({ name: 'is_blocked', type: 'boolean', default: false })
   isBlocked: boolean;
