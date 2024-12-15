@@ -1,23 +1,76 @@
-import { IsString, IsNotEmpty, IsArray, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsPhoneNumber,
+  IsBoolean,
+} from 'class-validator';
+import { AdDetailsType } from '../types/ad.details.type';
 
 export class UpdateAdDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
+  subcategoryId: string;
+
+  @IsString()
+  @IsOptional()
   title: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   description: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   price: number;
 
   @IsArray()
-  @IsNotEmpty()
+  @IsOptional()
   images: string[];
 
+  @IsPhoneNumber()
+  @IsOptional()
+  phoneNumber: string;
+
+  @IsObject()
+  @IsOptional()
+  details: AdDetailsType;
+
   @IsString()
-  @IsNotEmpty()
-  subcategoryId: string;
+  @IsOptional()
+  youtubeLink: string;
+
+  @IsArray()
+  @IsOptional()
+  coordinates: number[];
+
+  @IsString()
+  @IsOptional()
+  address: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isRoundTheClock: boolean;
+
+  @IsArray()
+  @IsOptional()
+  startTime: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isDuration: boolean;
+
+  @IsString()
+  @IsOptional()
+  duration: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isBlocked: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isComplete: boolean;
 }

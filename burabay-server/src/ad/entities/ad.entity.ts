@@ -60,6 +60,9 @@ export class Ad extends AbstractEntity<Ad> {
   @OneToOne(() => Schedule, (schedule) => schedule.ad)
   schedule: Schedule;
 
+  @OneToMany(() => Break, (breaks) => breaks.ad)
+  breaks: Break[];
+
   // Имеется ли длительность у услуги.
   @Column({ type: 'boolean', name: 'is_duration', nullable: true })
   isDuration: boolean;
@@ -82,7 +85,4 @@ export class Ad extends AbstractEntity<Ad> {
   // Дата создания объявления.
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
-
-  @OneToMany(() => Break, (breaks) => breaks.ad)
-  breaks: Break[];
 }

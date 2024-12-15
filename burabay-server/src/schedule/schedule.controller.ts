@@ -2,8 +2,13 @@ import { Controller, Post, Body, Patch, Param, Delete, Get } from '@nestjs/commo
 import { ScheduleService } from './schedule.service';
 import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/constants';
 
 @Controller('schedule')
+@ApiBearerAuth()
+@Public() // TODO Удалить после тестирования.
+@ApiTags('График работы')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
