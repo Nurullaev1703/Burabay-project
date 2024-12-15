@@ -79,7 +79,7 @@ i18n.use(initReactI18next).init({
         phoneV2: "Телефон",
         site: "Сайт",
         accountSettings: "Настройки аккаунта",
-        requiredField: "Это поле обязательно",
+        requiredField: "Поле обязательно",
         invalidEmail: "Неверный формат почты",
         name: "Имя",
         email: "Почта",
@@ -118,8 +118,23 @@ i18n.use(initReactI18next).init({
         signIn: "Войти",
         forgotPassword: "Забыли пароль?",
         repeatMail: "Повторить письмо",
-        repeatMailAfter: "Повторить можно через"
+        repeatMailAfter: "Повторить можно через",
         // errors
+
+        // announcements
+        newAnnouncemet: "Новое обьявление",
+        workingDays: "Режим работы",
+        aroundClock: "Круглосуточно, без ограничений",
+        monday: "Понедельник",
+        tuesday: "Вторник",
+        wednesday: "Среда",
+        thursday: "Четверг",
+        friday: "Пятница",
+        saturday: "Суббота",
+        sunday: "Воскресенье",
+        breakTime: "Перерыв",
+        breakDescription: "Ежедневно время, на которое запрещено бронирование. Данная информация будет учтена при бронировании услуги клиентом",
+        add: "Добавить",
       },
     },
     en: {
