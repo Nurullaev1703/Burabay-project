@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBookingBanDateDto {
   @IsNotEmpty()
@@ -13,7 +13,7 @@ export class CreateBookingBanDateDto {
   @IsBoolean()
   allDay: boolean;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
   times: string[];
 }

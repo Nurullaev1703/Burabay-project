@@ -14,6 +14,6 @@ export class BookingBanDate extends AbstractEntity<BookingBanDate> {
   @Column({ name: 'all_day' })
   allDay: boolean;
 
-  @Column({ type: 'text', array: true })
+  @Column({ type: 'text', array: true, nullable: true })
   times: string[];
 }
