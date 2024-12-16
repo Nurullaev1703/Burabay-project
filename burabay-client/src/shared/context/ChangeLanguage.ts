@@ -554,7 +554,16 @@ i18n.use(initReactI18next).init({
           "Укажите почту, на которую придёт письмо для востановления пароля",
         sendMail: "Отправить письмо",
         newPassword: "Новый пароль",
-        accept: "Подтвердить"
+        accept: "Подтвердить",
+        changingPassword:"Изменение пароля",
+        oldPassword:"Старый пароль",
+        change: "Изменить",
+        incorrectPassword: "Неверный пароль",
+        changePassword: "Изменение пароля",
+        changeEmail: "Изменение почты",
+        deleteAccount: "Удаление аккаунта",
+        inputNewEmail: "Введите новый адрес электронной почты, мы отправим на него письмо с подтверждением",
+        accepting:"Подтверждение"
       },
     },
     en: {
