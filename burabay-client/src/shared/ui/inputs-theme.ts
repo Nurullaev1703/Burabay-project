@@ -107,16 +107,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiSwitch-switchBase": {
-            color: COLORS.softGray,
+            color: COLORS.gray100,
           },
           "& .MuiSwitch-track": {
-            backgroundColor: COLORS.gray100,
+            backgroundColor: COLORS.gray300,
           },
           "& .MuiSwitch-switchBase.Mui-checked": {
             color: COLORS.blue200,
           },
           "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-            backgroundColor: COLORS.gray200,
+            backgroundColor: COLORS.gray300,
             opacity: 1,
           },
         },
