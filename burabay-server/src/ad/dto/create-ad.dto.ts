@@ -38,10 +38,6 @@ export class CreateAdDto {
   @IsOptional()
   youtubeLink?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  address: string;
-
   @IsObject()
   @IsOptional()
   // @Validate(IsAdDetailsType)

@@ -19,7 +19,7 @@ export class SubcategoryService {
     try {
       const { categoryId, ...oF } = createSubcategoryDto;
       const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
-      Utils.check(category, 'Категория не найдена');
+      Utils.checkEntity(category, 'Категория не найдена');
       const newSubcategory = this.subcategoryRepository.create({ category: category, ...oF });
       return await this.subcategoryRepository.save(newSubcategory);
     } catch (error) {
@@ -48,7 +48,7 @@ export class SubcategoryService {
           relations: { ads: true },
         });
       }
-      Utils.check(subcategory, 'Подкатегория не найдена');
+      Utils.checkEntity(subcategory, 'Подкатегория не найдена');
       return subcategory;
     } catch (error) {
       Utils.errorHandler(error);

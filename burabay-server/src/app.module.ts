@@ -17,6 +17,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { BreaksModule } from './breaks/breaks.module';
+import { AddressModule } from './address/address.module';
+import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { BreaksModule } from './breaks/breaks.module';
     SeederModule,
     ScheduleModule,
     BreaksModule,
+    AddressModule,
+    BookingBanDateModule,
   ],
   controllers: [],
   providers: [

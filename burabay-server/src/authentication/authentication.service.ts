@@ -26,65 +26,64 @@ export class AuthenticationService {
   // регистрация нового пользователя
   private async _registerTourist(signInDto: SignInDto) {
     let user: User;
-      user = new User({
-        fullName: '',
-        phoneNumber: '',
-        role: ROLE_TYPE.TOURIST,
-        email: signInDto.email,
-        password: '',
-        isEmailConfirmed: false,
-        picture: ""
-      });
-      await this.entityManager.save(user);  
+    user = new User({
+      fullName: '',
+      phoneNumber: '',
+      role: ROLE_TYPE.TOURIST,
+      email: signInDto.email,
+      password: '',
+      isEmailConfirmed: false,
+      picture: '',
+    });
+    await this.entityManager.save(user);
   }
   // регистрация новой компании
   private async _registerBusiness(signInDto: SignInDto) {
     let user: User;
-      const organization = new Organization({
-        name: '',
-        imgUrl: '',
-        address: '',
-        description: "",
-        siteUrl: "",
-        rating: 0,
-        reviewCount: 0,
-        isConfirmed: false
-      });
-      await this.entityManager.save(organization);
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash(signInDto.password, salt);
-      user = new User({
-        fullName: '',
-        phoneNumber: '',
-        role: signInDto.role || ROLE_TYPE.BUSINESS,
-        email: signInDto.email,
-        password: hash,
-        organization: organization,
-        isEmailConfirmed: false,
-        picture: ""
-      });
-      await this.entityManager.save(user);
+    const organization = new Organization({
+      name: '',
+      imgUrl: '',
+      description: '',
+      siteUrl: '',
+      rating: 0,
+      reviewCount: 0,
+      isConfirmed: false,
+    });
+    await this.entityManager.save(organization);
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(signInDto.password, salt);
+    user = new User({
+      fullName: '',
+      phoneNumber: '',
+      role: signInDto.role || ROLE_TYPE.BUSINESS,
+      email: signInDto.email,
+      password: hash,
+      organization: organization,
+      isEmailConfirmed: false,
+      picture: '',
+    });
+    await this.entityManager.save(user);
   }
   // логин пользователя по email
   async login(signInDto: SignInDto) {
     try {
       const userExist = await this.userRepository.findOne({
         where: {
-          email: signInDto.email
+          email: signInDto.email,
         },
       });
 
       // если почта уже зарегистрирована на туриста
-      if(signInDto.role){
+      if (signInDto.role) {
         if (userExist && userExist.role !== signInDto?.role) {
           return JSON.stringify(HttpStatus.CONFLICT);
         }
       }
 
       // если пользователь зарегистрирован, но не подтвержден
-      if(userExist && !userExist.isEmailConfirmed){
+      if (userExist && !userExist.isEmailConfirmed) {
         await this.emailService.sendAcceptMessage(signInDto.email);
-        return JSON.stringify(HttpStatus.UNAUTHORIZED)
+        return JSON.stringify(HttpStatus.UNAUTHORIZED);
       }
 
       // если пользователь найден, значит уже зарегистрирован и авторизуем его
@@ -93,9 +92,9 @@ export class AuthenticationService {
       }
 
       // если пришел пароль, то регистрируем как организацию
-      if(signInDto.password?.length){
+      if (signInDto.password?.length) {
         await this._registerBusiness(signInDto);
-        await this.emailService.sendAcceptMessage(signInDto.email)
+        await this.emailService.sendAcceptMessage(signInDto.email);
         return JSON.stringify(HttpStatus.CREATED);
       }
 
@@ -107,8 +106,8 @@ export class AuthenticationService {
     }
   }
   // обработка Google авторизации
-  async googleLogin(userInfo: GoogleAuthType){
-    try{
+  async googleLogin(userInfo: GoogleAuthType) {
+    try {
       const userExist = await this.userRepository.findOne({
         where: {
           email: userInfo.email,
@@ -126,61 +125,58 @@ export class AuthenticationService {
 
       // регистрируем нового пользователя
       const user = new User({
-        fullName: userInfo.name || "",
+        fullName: userInfo.name || '',
         phoneNumber: '',
         role: ROLE_TYPE.TOURIST,
         email: userInfo.email,
         password: '',
         isEmailConfirmed: false,
-        picture: userInfo.picture || "",
+        picture: userInfo.picture || '',
       });
       await this.entityManager.save(user);
       return JSON.stringify(HttpStatus.CREATED);
-    }
-    catch{
-      return JSON.stringify(HttpStatus.CONFLICT)
+    } catch {
+      return JSON.stringify(HttpStatus.CONFLICT);
     }
   }
   // обработка Facebook авторизации
-  async facebookLogin(userInfo: FacebookAuthData){
-    try{
-        const userExist = await this.userRepository.findOne({
-          where:{
-            email: userInfo.email
-          }
-        })
-        // если пользователь существует, отправляем на авторизацию
-        if(userExist){
-          // если пользователь есть, но без пароля
-          if (!userExist.password?.length) {
-            return JSON.stringify(HttpStatus.CREATED);
-          }
-          return JSON.stringify(HttpStatus.OK);
-        }
-
-        // регистрируем нового пользователя
-        const user = new User({
-          fullName: userInfo.name || "",
-          phoneNumber: '',
-          role: ROLE_TYPE.TOURIST,
+  async facebookLogin(userInfo: FacebookAuthData) {
+    try {
+      const userExist = await this.userRepository.findOne({
+        where: {
           email: userInfo.email,
-          password: '',
-          isEmailConfirmed: false,
-          picture: userInfo?.picture?.data?.url || "",
-        });
-        await this.entityManager.save(user);  
-        return JSON.stringify(HttpStatus.CREATED);
+        },
+      });
+      // если пользователь существует, отправляем на авторизацию
+      if (userExist) {
+        // если пользователь есть, но без пароля
+        if (!userExist.password?.length) {
+          return JSON.stringify(HttpStatus.CREATED);
+        }
+        return JSON.stringify(HttpStatus.OK);
+      }
 
-    }
-    catch{
-      return JSON.stringify(HttpStatus.CONFLICT)
+      // регистрируем нового пользователя
+      const user = new User({
+        fullName: userInfo.name || '',
+        phoneNumber: '',
+        role: ROLE_TYPE.TOURIST,
+        email: userInfo.email,
+        password: '',
+        isEmailConfirmed: false,
+        picture: userInfo?.picture?.data?.url || '',
+      });
+      await this.entityManager.save(user);
+      return JSON.stringify(HttpStatus.CREATED);
+    } catch {
+      return JSON.stringify(HttpStatus.CONFLICT);
     }
   }
 
   async checkUser(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({
       where: {
-        email: loginDto.email
+        email: loginDto.email,
       },
     });
 
@@ -201,7 +197,7 @@ export class AuthenticationService {
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(loginDto.password, salt);
 
-    const updatedUser = new User({ ...user, isEmailConfirmed:true, password: hash });
+    const updatedUser = new User({ ...user, isEmailConfirmed: true, password: hash });
     await this.userRepository.save(updatedUser);
 
     const payload: TokenData = { id: updatedUser.id };
@@ -209,36 +205,36 @@ export class AuthenticationService {
 
     return JSON.stringify(token);
   }
-  async resetPassword(loginDto: LoginDto){
-     const user = await this.userRepository.findOne({
-       where: {
-         email: loginDto.email,
-       },
-     });
-
-     const salt = await bcrypt.genSalt();
-     const hash = await bcrypt.hash(loginDto.password, salt);
-
-     const updatedUser = new User({ ...user, password: hash });
-     await this.userRepository.save(updatedUser);
-
-     const payload: TokenData = { id: updatedUser.id };
-     const token = await this.jwtService.signAsync(payload);
-
-     return JSON.stringify(token);
-  }
-  async updateOrganizationInfo(updateDto: UpdateOrganizationDto){
+  async resetPassword(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({
-      where:{
-        email: updateDto.email
+      where: {
+        email: loginDto.email,
       },
-      relations:{
-        organization: true
-      }
-    })
+    });
 
-    if(!user){
-      return JSON.stringify(HttpStatus.CONFLICT)
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(loginDto.password, salt);
+
+    const updatedUser = new User({ ...user, password: hash });
+    await this.userRepository.save(updatedUser);
+
+    const payload: TokenData = { id: updatedUser.id };
+    const token = await this.jwtService.signAsync(payload);
+
+    return JSON.stringify(token);
+  }
+  async updateOrganizationInfo(updateDto: UpdateOrganizationDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: updateDto.email,
+      },
+      relations: {
+        organization: true,
+      },
+    });
+
+    if (!user) {
+      return JSON.stringify(HttpStatus.CONFLICT);
     }
 
     const organization = new Organization({
@@ -246,16 +242,16 @@ export class AuthenticationService {
       name: updateDto.orgName,
       description: updateDto.description,
       siteUrl: updateDto.siteUrl || user.organization.siteUrl,
-    })
-    await this.entityManager.save(organization)
+    });
+    await this.entityManager.save(organization);
     const updatedUser = new User({
       ...user,
-      isEmailConfirmed: true
-    })
+      isEmailConfirmed: true,
+    });
     await this.entityManager.save(updatedUser);
 
     const payload: TokenData = { id: updatedUser.id };
     const token = await this.jwtService.signAsync(payload);
-    return JSON.stringify(token)
+    return JSON.stringify(token);
   }
 }
