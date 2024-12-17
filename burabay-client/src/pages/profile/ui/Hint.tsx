@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 import CheckMark from "../../../app/icons/check-mark.svg";
 import WaitingMark from "../../../app/icons/waiting-mark.svg";
 
-export type accountStatus = "unconfirmed" | "waiting" | "notFilled" | "confirmed";
+export type accountStatus =
+  | "unconfirmed"
+  | "waiting"
+  | "notFilled"
+  | "confirmed";
 
 interface Props {
   accountStatus: accountStatus;

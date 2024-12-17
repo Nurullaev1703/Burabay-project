@@ -275,7 +275,7 @@ i18n.use(initReactI18next).init({
         fillProfile: "Заполните свой профиль что бы бронировать быстрее",
         fill: "Заполнить",
         accountConfirm:
-          "Для подтверждения аккаунта нужно дополнить или изменить данные!",
+          "Подтвердите аккаунт что бы принимать предоплату",
         details: "Подробнее",
         notFiled: "Не заполнено",
         accountWaiting: "Данные отправлены, ожидайте подтверждение",
@@ -293,7 +293,7 @@ i18n.use(initReactI18next).init({
         invalidNumber: "Некорректный номер телефона",
         saved: "Сохраненное",
         save: "Сохранить",
-
+        description: "Описание",
         // auth accept
         confirmEmail: "Подтверждение email",
         inputCode: "Введите код из письма",

@@ -90,9 +90,10 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           });
           if (response.data && response.status == Number(HTTP_STATUS.CREATED)) {
             setToken(response.data);
-            navigate({
-              to: "/profile",
-            });
+            // navigate({
+            //   to: "/profile",
+            // });
+            window.location.href = "/profile"
           } else {
             setErrorMessage(t("wrongPassword"));
             setPasswordError(true);
