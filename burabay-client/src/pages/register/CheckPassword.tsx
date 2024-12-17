@@ -88,7 +88,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
               email: props.email,
             },
           });
-          if (response.data && response.status == Number(HTTP_STATUS.CREATED)) {
+          if (response.data != HTTP_STATUS.CONFLICT) {
             setToken(response.data);
             // navigate({
             //   to: "/profile",

@@ -60,17 +60,35 @@ export const AcceptPassword: FC<Props> = function AcceptPassword(props) {
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
           const response = await apiService.post<string>({
-            url: "/auth/change-password",
-            dto: form,
+            url: "/auth/check-password",
+            dto: {
+              email: props.currentEmail,
+              password: form.password,
+            },
           });
           if (response.data == HTTP_STATUS.CONFLICT) {
             setErrorMessage(t("incorrectPassword"));
             setPasswordError(true);
           } 
-          else if(response.data == HTTP_STATUS.OK){
-            navigate({
-                to:"/auth"
-            })
+          else if(response.data !== HTTP_STATUS.SERVER_ERROR){
+            const response = await apiService.post<string>({
+              url: "/auth/verification",
+              dto: {
+                email: props.email,
+              },
+            });
+            if(response.data == HTTP_STATUS.OK){
+              navigate({
+                  to:"/profile/security/accept-email/$email",
+                  params:{
+                    email: props.email
+                  }
+              })
+            }
+            else{
+              setErrorMessage(t("defaultError"));
+              setPasswordError(true)
+            }
           }
           setIsLoading(false);
         })}

@@ -13,7 +13,6 @@ import { IconContainer } from "../../shared/ui/IconContainer";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { roleService } from "../../services/storage/Factory";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import TimerButton from "../../shared/ui/TimerButton";
 
@@ -73,11 +72,20 @@ export const AcceptNewEmail: FC<Props> = function AcceptNewEmail(props) {
       },
     });
     if (response.data == HTTP_STATUS.OK) {
-        navigate({
-          to: "/profile/security/accept-password/$email",
-          params: { email: props.email },
-        });
-      
+      const updateResponse = await apiService.patch<string>({
+        url: "/auth/update-email",
+        dto: {
+          email: props.email
+        }
+      });
+        if(updateResponse.data == HTTP_STATUS.OK){
+          navigate({
+            to:"/auth"
+          })
+        }
+        else{
+          handleError(t('defaultError'))
+        }
     }
     if (response.data == HTTP_STATUS.CONFLICT) {
       handleError(t("invalidCode"));

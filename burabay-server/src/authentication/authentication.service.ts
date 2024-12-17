@@ -14,6 +14,7 @@ import { FacebookAuthData } from './model/FacebookAuth';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { VerificationDto } from './dto/verification.dto';
+import { UpdateEmailDto } from './dto/update-email.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -187,7 +188,7 @@ export class AuthenticationService {
       const isPasswordMatch = await bcrypt.compare(loginDto.password, user.password);
 
       if (!isPasswordMatch) {
-        throw JSON.stringify(HttpStatus.CONFLICT);
+        return JSON.stringify(HttpStatus.CONFLICT);
       }
       const payload: TokenData = { id: user.id };
       const token = await this.jwtService.signAsync(payload);
@@ -281,5 +282,23 @@ export class AuthenticationService {
       })
       await this.entityManager.save(newUser)
       return JSON.stringify(HttpStatus.OK)
+  }
+
+  async updateUserEmail(tokenData: TokenData, updateEmailDto:UpdateEmailDto){
+    const user = await this.userRepository.findOne({
+      where:{
+        id:tokenData.id
+      }
+    })
+    if(!user){
+      return JSON.stringify(HttpStatus.CONFLICT)
+    }
+
+    const updatedUser = new User({
+      ...user,
+      email: updateEmailDto.email
+    })
+    await this.entityManager.save(updatedUser);
+    return JSON.stringify(HttpStatus.OK)
   }
 }
