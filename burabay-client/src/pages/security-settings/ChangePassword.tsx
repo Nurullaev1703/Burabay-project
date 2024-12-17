@@ -12,26 +12,21 @@ import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import ClosedEye from "../../app/icons/close-eye.svg"
-import OpenedEye from "../../app/icons/open-eye.svg"
-import { useAuth } from "../../features/auth";
+import ClosedEye from "../../app/icons/close-eye.svg";
+import OpenedEye from "../../app/icons/open-eye.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-
-interface Props {
-  email: string;
-}
 
 // форма отслеживает данные
 interface FormType {
-  password: string;
+  oldPassword: string;
+  newPassword: string;
 }
 
-export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
+export const ChangePasswordPage: FC = function ChangePasswordPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
-  const { setToken } = useAuth();
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const {
@@ -40,71 +35,48 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      password: "",
+      oldPassword: "",
+      newPassword: "",
     },
     mode: "onChange",
   });
   return (
     <div className="bg-almostWhite h-screen">
-      <AlternativeHeader>
+      <AlternativeHeader isMini>
         <div className="flex justify-between items-center mb-2">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
-          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {t("auth")}
+          <Typography size={18} weight={500} color={COLORS_TEXT.white}>
+            {t("changingPassword")}
           </Typography>
-          <LanguageButton />
-        </div>
-        <div>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="leading-none"
-          >
-            {t("passwordFor")}
-          </Typography>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="line-clamp-1"
-          >
-            {props.email}
-          </Typography>
+          <LanguageButton hideIcon />
         </div>
       </AlternativeHeader>
 
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
-          const response = await apiService.post<string>({
-            url: "/auth/check-password",
-            dto: {
-              password: form.password,
-              email: props.email,
-            },
+          const response = await apiService.patch<string>({
+            url: "/auth/change-password",
+            dto: form,
           });
-          if (response.data != HTTP_STATUS.CONFLICT) {
-            setToken(response.data);
-            // navigate({
-            //   to: "/profile",
-            // });
-            window.location.href = "/profile"
-          } else {
-            setErrorMessage(t("wrongPassword"));
+          if (response.data == HTTP_STATUS.CONFLICT) {
+            setErrorMessage(t("incorrectPassword"));
             setPasswordError(true);
+          } 
+          else if(response.data == HTTP_STATUS.OK){
+            navigate({
+                to:"/auth"
+            })
           }
           setIsLoading(false);
         })}
-        className="flex flex-col"
+        className="flex flex-col h-[60vh]"
       >
-        <div className="flex flex-col items-center gap-5 py-6 px-4 pb-[120px]">
+        <div className="flex flex-col items-center gap-5 py-6 px-4">
           <Controller
-            name="password"
+            name="oldPassword"
             control={control}
             rules={{
               validate: (value: string) => {
@@ -116,12 +88,12 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
               <div className="relative w-full">
                 <TextField
                   {...field}
-                  error={Boolean(error?.message) || passwordError}
-                  helperText={error?.message || errorMessage}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
                   fullWidth={true}
                   type={isShowPassword ? "text" : "password"}
                   variant="outlined"
-                  label={t("password")}
+                  label={t("oldPassword")}
                   placeholder={t("inputPassword")}
                   onChange={(e) => {
                     field.onChange(e);
@@ -144,6 +116,52 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
               </div>
             )}
           />
+          <div className="w-full mb-11">
+            <Typography size={14} className="mb-2">
+              {t("createPassword")}
+            </Typography>
+            <Controller
+              name="newPassword"
+              control={control}
+              rules={{
+                validate: (value: string) => {
+                  const passwordRegex = /^[^\s]{8,}$/;
+                  return passwordRegex.test(value) || t("invalidPassword");
+                },
+              }}
+              render={({ field, fieldState: { error } }) => (
+                <div className="relative w-full">
+                  <TextField
+                    {...field}
+                    error={Boolean(error?.message) || passwordError}
+                    helperText={error?.message || errorMessage}
+                    fullWidth={true}
+                    type={isShowPassword ? "text" : "password"}
+                    variant="outlined"
+                    label={t("newPassword")}
+                    placeholder={t("inputPassword")}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      setPasswordError(false);
+                      setErrorMessage("");
+                    }}
+                  />
+                  {field.value && (
+                    <IconContainer
+                      align="center"
+                      className="absolute right-0 top-[24px]"
+                      action={() => setIsShowPassword(!isShowPassword)}
+                    >
+                      <img
+                        src={isShowPassword ? ClosedEye : OpenedEye}
+                        alt="eye"
+                      />
+                    </IconContainer>
+                  )}
+                </div>
+              )}
+            />
+          </div>
         </div>
         <Button
           disabled={!isValid || isSubmitting}
@@ -151,7 +169,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           type="submit"
           className="w-header mx-auto mb-4"
         >
-          {t("signIn")}
+          {t("change")}
         </Button>
         <Typography size={14} align="center" className="flex flex-col">
           <Link to={"/auth/reset-password"}>

@@ -12,26 +12,24 @@ import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import ClosedEye from "../../app/icons/close-eye.svg"
-import OpenedEye from "../../app/icons/open-eye.svg"
-import { useAuth } from "../../features/auth";
+import ClosedEye from "../../app/icons/close-eye.svg";
+import OpenedEye from "../../app/icons/open-eye.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
 
-interface Props {
-  email: string;
+interface Props{
+  currentEmail: string
+  email:string
 }
-
 // форма отслеживает данные
 interface FormType {
   password: string;
 }
 
-export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
+export const AcceptPassword: FC<Props> = function AcceptPassword(props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
-  const { setToken } = useAuth();
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const {
@@ -46,35 +44,15 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
   });
   return (
     <div className="bg-almostWhite h-screen">
-      <AlternativeHeader>
+      <AlternativeHeader isMini>
         <div className="flex justify-between items-center mb-2">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
-          <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {t("auth")}
+          <Typography size={18} weight={500} color={COLORS_TEXT.white}>
+            {t("accepting")}
           </Typography>
-          <LanguageButton />
-        </div>
-        <div>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="leading-none"
-          >
-            {t("passwordFor")}
-          </Typography>
-          <Typography
-            align="center"
-            color={COLORS_TEXT.white}
-            size={18}
-            weight={500}
-            className="line-clamp-1"
-          >
-            {props.email}
-          </Typography>
+          <LanguageButton hideIcon />
         </div>
       </AlternativeHeader>
 
@@ -84,25 +62,40 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           const response = await apiService.post<string>({
             url: "/auth/check-password",
             dto: {
+              email: props.currentEmail,
               password: form.password,
-              email: props.email,
             },
           });
-          if (response.data != HTTP_STATUS.CONFLICT) {
-            setToken(response.data);
-            // navigate({
-            //   to: "/profile",
-            // });
-            window.location.href = "/profile"
-          } else {
-            setErrorMessage(t("wrongPassword"));
+          if (response.data == HTTP_STATUS.CONFLICT) {
+            setErrorMessage(t("incorrectPassword"));
             setPasswordError(true);
+          } 
+          else if(response.data !== HTTP_STATUS.SERVER_ERROR){
+            const response = await apiService.post<string>({
+              url: "/auth/verification",
+              dto: {
+                email: props.email,
+              },
+            });
+            if(response.data == HTTP_STATUS.OK){
+              navigate({
+                  to:"/profile/security/accept-email/$email",
+                  params:{
+                    email: props.email
+                  }
+              })
+            }
+            else{
+              setErrorMessage(t("defaultError"));
+              setPasswordError(true)
+            }
           }
           setIsLoading(false);
         })}
-        className="flex flex-col"
+        className="flex flex-col h-[60vh]"
       >
-        <div className="flex flex-col items-center gap-5 py-6 px-4 pb-[120px]">
+        <div className="flex flex-col items-center gap-2 py-6 px-4">
+          <Typography>{`${t('passwordFor')} ${props.currentEmail}`}</Typography>
           <Controller
             name="password"
             control={control}
@@ -151,7 +144,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           type="submit"
           className="w-header mx-auto mb-4"
         >
-          {t("signIn")}
+          {t("change")}
         </Button>
         <Typography size={14} align="center" className="flex flex-col">
           <Link to={"/auth/reset-password"}>

@@ -18,7 +18,7 @@ export const InitPage: FC<Props> = function InitPage() {
         const response = await apiService.get<Profile>({
           url: "/profile",
         });
-        if(response.data.email){
+        if(response.data){
           setUser(response.data);
         }
         else{

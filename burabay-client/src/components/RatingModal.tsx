@@ -58,7 +58,7 @@ export const RatingModal: FC<Props> = function RatingModal({
   //       if (response.data) {
   //         setCurrentRating(response.data);
   //         // Обновляем значения в форме
-  //         setValue("stars", response.data.stars);  
+  //         setValue("stars", response.data.stars);
   //         setValue("text", response.data.text);
   //       }
   //     } catch (e) {

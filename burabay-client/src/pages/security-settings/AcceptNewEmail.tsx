@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { DefaultForm } from "./ui/DefaultForm";
 import OtpInput from "react-otp-input";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -9,24 +8,23 @@ import { apiService } from "../../services/api/ApiService";
 import { Typography } from "../../shared/ui/Typography";
 import { COLORS, COLORS_TEXT } from "../../shared/ui/colors";
 import { Button } from "../../shared/ui/Button";
-import TimerButton from "../../shared/ui/TimerButton";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { roleService } from "../../services/storage/Factory";
+import { DefaultForm } from "../auth/ui/DefaultForm";
+import TimerButton from "../../shared/ui/TimerButton";
 
 interface Props {
   email: string;
-  role?: string;
 }
 
 interface FormType {
   code: string;
 }
 
-export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
+export const AcceptNewEmail: FC<Props> = function AcceptNewEmail(props) {
   const [otp, setOtp] = useState<string>("");
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
@@ -74,20 +72,20 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
       },
     });
     if (response.data == HTTP_STATUS.OK) {
-      // если есть роль, то это регистрация бизнеса
-
-      if(roleService.hasValue()){
-        navigate({
-          to: "/register/business/$email",
-          params: { email: props.email },
-        });
-      }
-      else{
-        navigate({
-          to: "/register/password/new/$email",
-          params: { email: props.email },
-        });
-      }
+      const updateResponse = await apiService.patch<string>({
+        url: "/auth/update-email",
+        dto: {
+          email: props.email
+        }
+      });
+        if(updateResponse.data == HTTP_STATUS.OK){
+          navigate({
+            to:"/auth"
+          })
+        }
+        else{
+          handleError(t('defaultError'))
+        }
     }
     if (response.data == HTTP_STATUS.CONFLICT) {
       handleError(t("invalidCode"));
@@ -100,8 +98,8 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
 
   return (
     <div className="flex flex-col h-screen">
-      <AlternativeHeader isMini>
-        <div className="flex justify-between items-center">
+      <AlternativeHeader>
+        <div className="flex justify-between items-start">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -112,7 +110,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
             align="center"
             className="w-3/5"
           >
-            {props.role ?  "Business" : "Tourist"}
+            {t("changeEmail")}
           </Typography>
           <LanguageButton />
         </div>
