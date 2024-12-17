@@ -10,6 +10,7 @@ import { Button } from "../../shared/ui/Button";
 import PlusIcon from "../../app/icons/announcements/bluePlus.svg"
 import editIcon from "../../app/icons/announcements/edit.svg"
 import { Switch } from "@mui/material";
+import { useNavigate } from "@tanstack/react-router";
 
 interface DateSettings {
   allDay: boolean;
@@ -22,6 +23,7 @@ export const BookingBan: FC = function BookingBan() {
   const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate()
 
   // Добавить новую дату
   const addDate = () => {
@@ -207,7 +209,9 @@ export const BookingBan: FC = function BookingBan() {
       )}
 
       <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button mode='default'>{"Продолжить"}</Button>
+        <Button onClick={() => navigate({
+          to: `/announcements/newService`,
+        })} mode='default'>{"Продолжить"}</Button>
       </div>
     </main>
   );
