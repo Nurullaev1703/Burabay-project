@@ -33,7 +33,7 @@ export class Utils {
   }
 
   // /* Метод для проверки существования объекта и вызова исключения в случае отсутствия. */
-  static check(obj: object, msg: string) {
+  static checkEntity(obj: object, msg: string) {
     if (!obj) throw new HttpException(msg, HttpStatus.NOT_FOUND);
   }
 

@@ -27,7 +27,7 @@ export class CategoryService {
         where: { id: id },
         relations: { subcategories: true },
       });
-      Utils.check(subcategory, 'Категория не найдена');
+      Utils.checkEntity(subcategory, 'Категория не найдена');
       return subcategory;
     } catch (error) {
       Utils.errorHandler(error);

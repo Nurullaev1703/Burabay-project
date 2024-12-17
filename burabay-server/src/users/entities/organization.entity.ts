@@ -1,7 +1,8 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { User } from './user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
+import { Address } from 'src/address/entities/address.entity';
 
 @Entity()
 export class Organization extends AbstractEntity<Organization> {
@@ -11,8 +12,12 @@ export class Organization extends AbstractEntity<Organization> {
   @Column({ name: 'name' })
   name: string;
 
-  @Column()
-  address: string;
+  // @Column()
+  // address: string;
+
+  @OneToOne(() => Address, (address) => address.organization)
+  @JoinColumn({ name: 'address_id' })
+  address: Address;
 
   // Средний рейтинг.
   @Column('float', { nullable: true })
@@ -31,7 +36,7 @@ export class Organization extends AbstractEntity<Organization> {
   @Column()
   description: string;
 
-  @Column({name: "site_url"})
+  @Column({ name: 'site_url' })
   siteUrl: string;
 
   @OneToMany(() => Ad, (ad) => ad.organization)

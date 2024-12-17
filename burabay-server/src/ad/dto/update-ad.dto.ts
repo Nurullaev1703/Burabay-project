@@ -46,10 +46,6 @@ export class UpdateAdDto {
   @IsOptional()
   coordinates: number[];
 
-  @IsString()
-  @IsOptional()
-  address: string;
-
   @IsBoolean()
   @IsOptional()
   isRoundTheClock: boolean;

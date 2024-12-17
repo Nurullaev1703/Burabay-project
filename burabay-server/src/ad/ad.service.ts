@@ -27,12 +27,12 @@ export class AdService {
       const subcategory = await this.subcategoryRepository.findOne({
         where: { id: subcategoryId },
       });
-      Utils.check(subcategory, 'Подкатегория не найдена');
+      Utils.checkEntity(subcategory, 'Подкатегория не найдена');
 
       const organization = await this.organizationRepository.findOne({
         where: { id: organizationId },
       });
-      Utils.check(organization, 'Организация не найдена');
+      Utils.checkEntity(organization, 'Организация не найдена');
 
       const newAd = this.adRepository.create({
         organization: organization,
@@ -73,7 +73,7 @@ export class AdService {
           schedule: true,
         },
       });
-      Utils.check(ad, 'Объявления не найдены');
+      Utils.checkEntity(ad, 'Объявления не найдены');
       return ad;
     } catch (error) {
       Utils.errorHandler(error);
@@ -91,7 +91,7 @@ export class AdService {
           schedule: true,
         },
       });
-      Utils.check(ad, 'Объявление не найдено');
+      Utils.checkEntity(ad, 'Объявление не найдено');
       return ad;
     } catch (error) {
       Utils.errorHandler(error);
@@ -103,13 +103,13 @@ export class AdService {
     try {
       const { subcategoryId, ...oF } = updateAdDto;
       const ad = await this.adRepository.findOne({ where: { id: id } });
-      Utils.check(ad, 'Объявление не найдено');
+      Utils.checkEntity(ad, 'Объявление не найдено');
 
       if (subcategoryId) {
         const subcategory = await this.subcategoryRepository.findOne({
           where: { id: subcategoryId },
         });
-        Utils.check(subcategory, 'Категория не найдена');
+        Utils.checkEntity(subcategory, 'Категория не найдена');
         Object.assign(ad, { subcategory: subcategory, ...oF });
       } else {
         Object.assign(ad, oF);
@@ -124,7 +124,7 @@ export class AdService {
   async remove(id: string) {
     try {
       const ad = await this.adRepository.findOne({ where: { id: id } });
-      Utils.check(ad, 'Объявление не найдено');
+      Utils.checkEntity(ad, 'Объявление не найдено');
       return await this.adRepository.remove(ad);
     } catch (error) {
       Utils.errorHandler(error);

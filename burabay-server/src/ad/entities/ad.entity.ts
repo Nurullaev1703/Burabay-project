@@ -13,6 +13,8 @@ import {
 import { AdDetailsType } from '../types/ad.details.type';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Break } from 'src/breaks/entities/break.entity';
+import { Address } from 'src/address/entities/address.entity';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -47,11 +49,18 @@ export class Ad extends AbstractEntity<Ad> {
   youtubeLink: string;
 
   // Массив с двумя координатами с карты.
-  @Column({ type: 'float', array: true, nullable: true })
-  coordinates: number[];
+  // @Column({ type: 'float', array: true, nullable: true })
+  // coordinates: number[];
 
-  @Column({ nullable: true })
-  address: string;
+  // @Column({ nullable: true })
+  // address: string;
+
+  @ManyToOne(() => Address, (address) => address.ad)
+  @JoinColumn({ name: 'address_id' })
+  address: Address;
+
+  @OneToMany(() => BookingBanDate, (bbd) => bbd.ad)
+  bookingBanDate: BookingBanDate[];
 
   // Круглосуточно ли объявление.
   @Column({ name: 'is_round_the_clock', nullable: true })
