@@ -57,7 +57,7 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
-          const response = await apiService.post<string>({
+          const response = await apiService.patch<string>({
             url: "/auth/change-password",
             dto: form,
           });

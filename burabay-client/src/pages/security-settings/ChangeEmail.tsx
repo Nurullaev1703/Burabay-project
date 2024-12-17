@@ -10,9 +10,8 @@ import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
-import { apiService } from "../../services/api/ApiService";
-import { HTTP_STATUS } from "../../services/api/ServerData";
 import { DefaultForm } from "../auth/ui/DefaultForm";
+import { useAuth } from "../../features/auth";
 
 // форма отслеживает только email
 interface FormType {
@@ -24,6 +23,7 @@ export const ChangeEmail: FC = function ChangeEmail() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { history } = useRouter()
+  const {user} = useAuth()
   const {
     handleSubmit,
     control,
@@ -69,7 +69,12 @@ export const ChangeEmail: FC = function ChangeEmail() {
                 validate: (value: string) => {
                   const emailRegex =
                     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                  return emailRegex.test(value) || t("invalidEmail");
+                    if (!emailRegex.test(value)){
+                      return t("invalidEmail");
+                    }
+                    if(value == user?.email){
+                      return t("emailIsTheSame");
+                    }
                 },
               }}
               render={({ field, fieldState: { error } }) => (

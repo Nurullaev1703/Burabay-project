@@ -555,15 +555,17 @@ i18n.use(initReactI18next).init({
         sendMail: "Отправить письмо",
         newPassword: "Новый пароль",
         accept: "Подтвердить",
-        changingPassword:"Изменение пароля",
-        oldPassword:"Старый пароль",
+        changingPassword: "Изменение пароля",
+        oldPassword: "Старый пароль",
         change: "Изменить",
         incorrectPassword: "Неверный пароль",
         changePassword: "Изменение пароля",
         changeEmail: "Изменение почты",
         deleteAccount: "Удаление аккаунта",
-        inputNewEmail: "Введите новый адрес электронной почты, мы отправим на него письмо с подтверждением",
-        accepting:"Подтверждение"
+        inputNewEmail:
+          "Введите новый адрес электронной почты, мы отправим на него письмо с подтверждением",
+        accepting: "Подтверждение",
+        emailIsTheSame: "Новый email не должен совпадать со старым"
       },
     },
     en: {

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request } from '@nestjs/common';
+import { Controller, Post, Body, Request, Patch } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -13,6 +13,7 @@ import { FacebookAuthData } from './model/FacebookAuth';
 import { LoginDto } from './dto/login.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateEmailDto } from './dto/update-email.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -53,6 +54,24 @@ export class AuthenticationController {
     return this.authenticationService.updateOrganizationInfo(updateDto);
   }
 
+  @ApiBearerAuth()
+  @Patch('change-password')
+  changePassword(@Request() req: AuthRequest, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authenticationService.changePassword(req.user, changePasswordDto);
+  }
+
+  @Public()
+  @Patch('new-password')
+  newPassword(@Body() loginDto: LoginDto) {
+    return this.authenticationService.resetPassword(loginDto);
+  }
+
+  @ApiBearerAuth()
+  @Patch('update-email')
+  newEmail(@Request() req: AuthRequest, @Body() updateEmailDto: UpdateEmailDto) {
+    return this.authenticationService.updateUserEmail(req.user, updateEmailDto);
+  }
+
   // ограниченное количество запросов на 30 минут
   @Public()
   @Throttle({ default: { limit: 8, ttl: 1800000 } })
@@ -70,24 +89,8 @@ export class AuthenticationController {
   }
 
   @Public()
-  @Post('new-password')
-  newPassword(@Body() loginDto: LoginDto) {
-    return this.authenticationService.resetPassword(loginDto);
-  }
-
-  @Public()
   @Post('verify-code')
   verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
     return this.emailService.verifyCode(verifyCodeDto);
   }
-
-  @ApiBearerAuth()
-  @Post('change-password')
-  changePassword(
-    @Request() req: AuthRequest,
-    @Body() changePasswordDto: ChangePasswordDto
-  ) {
-    return this.authenticationService.changePassword(req.user,changePasswordDto);
-  }
 }
-

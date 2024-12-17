@@ -70,7 +70,7 @@ export const ResetPasswordPage: FC<Props> = function ResetPasswordPage(props) {
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
-          const response = await apiService.post<string>({
+          const response = await apiService.patch<string>({
             url: "/auth/new-password",
             dto: {
               password: form.password,
