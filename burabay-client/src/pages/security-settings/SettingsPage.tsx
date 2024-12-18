@@ -39,7 +39,7 @@ export const SettingsPage: FC = function SettingsPage() {
                 <img src={NextIcon} alt="" />
             </IconContainer>
         </Link>
-        <Link className="flex justify-between items-center border-b border-b-gray-300">
+        <Link className="flex justify-between items-center border-b border-b-gray-300" to="/profile/security/delete-account">
             <Typography>{t('deleteAccount')}</Typography>
             <IconContainer align="center">
                 <img src={NextIcon} alt="" />
