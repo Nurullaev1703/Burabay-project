@@ -10,7 +10,7 @@ import LifebuoyIcon from "../../app/icons/profile/lifebuoy.svg";
 import LanguageIcon from "../../app/icons/language-blue.svg";
 import { RatingModal } from "../../components/RatingModal";
 import { baseUrl } from "../../services/api/ServerData";
-import { COLORS_BORDER } from "../../shared/ui/colors";
+import { COLORS_BORDER, COLORS_TEXT } from "../../shared/ui/colors";
 import { accountStatus, Hint } from "./ui/Hint";
 import { imageService } from "../../services/api/ImageService";
 import { apiService } from "../../services/api/ApiService";
@@ -19,6 +19,7 @@ import ArrowRight from "../../app/icons/arrow-right.svg";
 import { UserInfoList } from "./ui/UserInfoList";
 import { HintTourist } from "./ui/HintToursit";
 import { Profile as ProfileType } from "./model/profile";
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 interface Props {
   user: ProfileType;
@@ -140,7 +141,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
 
       <ul>
         <li className={`${COLORS_BORDER.gray300}`}>
-          <Link className="flex py-3" to={"/"}>
+          <Link className="flex py-3" to={"/profile/security"}>
             <img src={KeyIcon} alt={t("safety")} className="mr-2" />
             <span>{t("safety")}</span>
           </Link>
@@ -174,14 +175,12 @@ export const Profile: FC<Props> = function Profile({ user }) {
             <span>{t("estimateService")}</span>
           </div>
         </li>
-        <li className={`border-b  ${COLORS_BORDER.gray300}`}>
-          <Link className="flex justify-between py-3" to="/help">
+        <li className={`border-b  ${COLORS_BORDER.gray300} flex justify-between items-center`}>
             <div className="flex items-center">
               <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
               <span>{t("appLanguage")}</span>
             </div>
-            <span className="font-medium text-lg">{language}</span>
-          </Link>
+            <LanguageButton hideIcon color={COLORS_TEXT.totalBlack}/>
         </li>
         {showModal && (
           <RatingModal
