@@ -32,7 +32,7 @@ interface FormType {
     photo: string;
   }
 
-export const ChoiseDetails: FC<Props> = function ChoiseDetails({category , subcategory}) {
+export const ChoiseDetails: FC<Props> = function ChoiseDetails({category}) {
     const [toggles, setToggles] = useState<Record<string, boolean>>({});
     const handleToggle = (item:string) => {
         setToggles((prev) => ({
