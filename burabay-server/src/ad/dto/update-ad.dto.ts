@@ -22,10 +22,6 @@ export class UpdateAdDto {
   @IsOptional()
   description: string;
 
-  @IsNumber()
-  @IsOptional()
-  price: number;
-
   @IsArray()
   @IsOptional()
   images: string[];
@@ -65,6 +61,46 @@ export class UpdateAdDto {
   @IsString()
   @IsOptional()
   duration: string;
+
+  @IsBoolean()
+  @IsOptional()
+  unlimitedClients: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  adultsNumber: number;
+
+  @IsNumber()
+  @IsOptional()
+  kidsNumber: number;
+
+  @IsNumber()
+  @IsOptional()
+  kidsMinAge: number;
+
+  @IsBoolean()
+  @IsOptional()
+  petsAllowed: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isBookable: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  price: number;
+
+  @IsNumber()
+  @IsOptional()
+  priceForChild: number;
+
+  @IsBoolean()
+  @IsOptional()
+  onSitePayment: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  onlinePayment: boolean;
 
   @IsBoolean()
   @IsOptional()

@@ -32,9 +32,6 @@ export class Ad extends AbstractEntity<Ad> {
   @Column()
   description: string;
 
-  @Column()
-  price: number;
-
   @Column({ type: 'text', array: true })
   images: string[];
 
@@ -86,6 +83,36 @@ export class Ad extends AbstractEntity<Ad> {
   // Длительность услуги.
   @Column({ nullable: true })
   duration: string;
+
+  @Column({ nullable: true, name: 'unlimited_clients' })
+  unlimitedClients: boolean;
+
+  @Column({ nullable: true, name: 'adults_number' })
+  adultsNumber: number;
+
+  @Column({ nullable: true, name: 'kids_number' })
+  kidsNumber: number;
+
+  @Column({ nullable: true, name: 'kids_min_age' })
+  kidsMinAge: number;
+
+  @Column({ nullable: true, name: 'pets_allowed' })
+  petsAllowed: boolean;
+
+  @Column({ nullable: true, name: 'is_bookable' })
+  isBookable: boolean;
+
+  @Column({ nullable: true })
+  price: number;
+
+  @Column({ nullable: true, name: 'price_for_child' })
+  priceForChild: number;
+
+  @Column({ nullable: true, name: 'on_site_payment' })
+  onSitePayment: boolean;
+
+  @Column({ nullable: true, name: 'online_payment' })
+  onlinePayment: boolean;
 
   @Column({ name: 'is_blocked', type: 'boolean', default: false })
   isBlocked: boolean;

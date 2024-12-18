@@ -2,7 +2,6 @@ import {
   IsString,
   IsNotEmpty,
   IsArray,
-  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsObject,
@@ -26,22 +25,18 @@ export class CreateAdDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  price: number;
-
   @IsArray()
   @IsNotEmpty()
   images: string[];
 
   @IsString()
   @IsOptional()
-  youtubeLink?: string;
+  youtubeLink: string;
 
   @IsObject()
   @IsOptional()
   // @Validate(IsAdDetailsType)
-  details?: AdDetailsType;
+  details: AdDetailsType;
 
   @IsPhoneNumber()
   @IsOptional()

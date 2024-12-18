@@ -51,7 +51,6 @@ export class AdController {
     'price': 0,
     'images': ['string'],
     'youtubeLink': 'string',
-    'address': 'string',
     'details': {
       type: 'rent',
       bicycles: true,
