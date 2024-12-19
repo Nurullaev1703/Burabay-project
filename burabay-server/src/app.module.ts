@@ -20,6 +20,7 @@ import { AddressModule } from './address/address.module';
 import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { join } from 'path';
     BreaksModule,
     AddressModule,
     BookingBanDateModule,
+    FeedbackModule,
   ],
   controllers: [],
   providers: [
