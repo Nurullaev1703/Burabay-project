@@ -20,7 +20,8 @@ export class ImagesService {
 
   async saveImage(file: Express.Multer.File, directory: string): Promise<string> {
     try {
-      const filename = `${uuidv4()}${extname(file.originalname)}`;
+      // const filename = `${uuidv4()}${extname(file.originalname)}`;
+      const filename = `${uuidv4()}.webp`;
       const dirpath = `./images/${directory}`;
       const filepath = `${dirpath}/${filename}`;
       // Создает новую директорию, если ее не существовало
@@ -31,13 +32,13 @@ export class ImagesService {
         // Сжатие для изображения профиля.
         compressedBuffer = await sharp(file.buffer)
           .resize(512)
-          .toFormat('jpeg', { quality: 80, progressive: true })
+          .toFormat('webp', { quality: 80, loseless: false })
           .toBuffer();
       } else {
         // Сжатие для изображения объявления.
         compressedBuffer = await sharp(file.buffer)
           .resize(1280)
-          .toFormat('jpeg', { quality: 80, progressive: true })
+          .toFormat('webp', { quality: 80, loseless: false })
           .toBuffer();
       }
 
