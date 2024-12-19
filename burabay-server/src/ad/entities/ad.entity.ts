@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -15,6 +16,7 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Break } from 'src/breaks/entities/break.entity';
 import { Address } from 'src/address/entities/address.entity';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -45,19 +47,15 @@ export class Ad extends AbstractEntity<Ad> {
   @Column({ name: 'youtube_link', nullable: true })
   youtubeLink: string;
 
-  // Массив с двумя координатами с карты.
-  // @Column({ type: 'float', array: true, nullable: true })
-  // coordinates: number[];
-
-  // @Column({ nullable: true })
-  // address: string;
-
   @ManyToOne(() => Address, (address) => address.ad)
   @JoinColumn({ name: 'address_id' })
   address: Address;
 
   @OneToMany(() => BookingBanDate, (bbd) => bbd.ad)
   bookingBanDate: BookingBanDate[];
+
+  @ManyToMany(() => User, (user) => user.favorites)
+  usersFavorited: User[];
 
   // Круглосуточно ли объявление.
   @Column({ name: 'is_round_the_clock', nullable: true })
@@ -124,4 +122,7 @@ export class Ad extends AbstractEntity<Ad> {
   // Дата создания объявления.
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @Column({ default: 0 })
+  views: number;
 }

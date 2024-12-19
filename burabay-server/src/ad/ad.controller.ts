@@ -33,6 +33,16 @@ export class AdController {
     return this.adService.findOne(id);
   }
 
+  @Get('favorite/:userId/:id')
+  addToFavorite(@Param('userId') userId: string, @Param('id') adId: string) {
+    return this.adService.addToFavorites(userId, adId);
+  }
+
+  @Get('favorite/list/:userId')
+  findAllFavorite(@Param('userId') userId: string) {
+    return this.adService.findAllFavorite(userId);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto) {
     return this.adService.update(id, updateAdDto);

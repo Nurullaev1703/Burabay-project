@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from 'typeorm';
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { ROLE_TYPE } from '../types/user-types';
 import { Organization } from './organization.entity';
+import { Ad } from 'src/ad/entities/ad.entity';
 
 @Entity()
 export class User extends AbstractEntity<User> {
@@ -14,7 +15,7 @@ export class User extends AbstractEntity<User> {
   @Column()
   role: ROLE_TYPE;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   picture: string;
 
   @Column({ unique: true })
@@ -25,6 +26,10 @@ export class User extends AbstractEntity<User> {
 
   @Column()
   isEmailConfirmed: boolean;
+
+  @ManyToMany(() => Ad, (ad) => ad.usersFavorited)
+  @JoinTable() // Обязательно для владельца связи
+  favorites: Ad[];
 
   @OneToOne(() => Organization, (organization) => organization.user, {
     cascade: true,

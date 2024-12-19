@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdModule } from './ad/ad.module';
-import { AdminPanelModule } from './admin-panel/admin-panel.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { EmailModule } from './authentication/email.module';
 import { CategoryModule } from './category/category.module';
@@ -46,7 +45,6 @@ import { join } from 'path';
     CategoryModule,
     SubcategoryModule,
     TasksModule,
-    AdminPanelModule,
     SeederModule,
     ScheduleModule,
     BreaksModule,

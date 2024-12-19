@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,10 +7,13 @@ import { Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AdService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Subcategory)
@@ -51,8 +54,9 @@ export class AdService {
       return await this.adRepository.find({
         relations: {
           organization: true,
-          breaks: true,
           schedule: true,
+          breaks: true,
+          address: true,
         },
       });
     } catch (error) {
@@ -69,12 +73,27 @@ export class AdService {
         },
         relations: {
           organization: true,
-          breaks: true,
           schedule: true,
+          breaks: true,
+          address: true,
         },
       });
       Utils.checkEntity(ad, 'Объявления не найдены');
       return ad;
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
+  }
+
+  async findAllFavorite(userId: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: { favorites: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
+      return user.favorites;
     } catch (error) {
       Utils.errorHandler(error);
     }
@@ -87,12 +106,40 @@ export class AdService {
         where: { id: id },
         relations: {
           organization: true,
-          breaks: true,
           schedule: true,
+          breaks: true,
+          address: true,
+          usersFavorited: true,
         },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
-      return ad;
+      const favCount = ad.usersFavorited.length;
+      delete ad.usersFavorited;
+      ad.views++;
+      await this.adRepository.save(ad);
+      return { ...ad, favCount };
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
+  }
+
+  async addToFavorites(userId: string, adId: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: { favorites: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
+      const ad = await this.adRepository.findOne({ where: { id: adId } });
+      Utils.checkEntity(ad, 'Объявление не найдено');
+
+      // Проверяем, есть ли объявление уже в избранных
+      if (!user.favorites.some((fav) => fav.id === ad.id)) {
+        user.favorites.push(ad);
+        await this.userRepository.save(user);
+      }
+      return JSON.stringify(HttpStatus.CREATED);
     } catch (error) {
       Utils.errorHandler(error);
     }
