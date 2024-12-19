@@ -5,9 +5,7 @@ import { ImagesService } from './images.service';
 import { Organization } from 'src/users/entities/organization.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Organization]),
-  ],
+  imports: [TypeOrmModule.forFeature([Organization])],
   controllers: [ImagesController],
   providers: [ImagesService],
 })

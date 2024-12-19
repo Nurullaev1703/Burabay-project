@@ -19,15 +19,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // const adminJSModule = await Utils.dynamicImport('adminjs');
-  // const adminJSTypeORM = await Utils.dynamicImport('@adminjs/typeorm');
-  // const AdminJS = adminJSModule.default;
-  // AdminJS.registerAdapter({
-  //   Resource: adminJSTypeORM.Resource,
-  //   Database: adminJSTypeORM.Database, // Change with whatever adapter you want to use
-  // });
-
-  app.useStaticAssets(join(__dirname, '..', 'images'), { prefix: '/images' });
+  app.useStaticAssets(join(__dirname, '..', 'public', 'images'), { prefix: '/images' });
+  app.useStaticAssets(join(__dirname, '..', 'public', 'icons'), { prefix: '/icons' });
   app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(3000);
