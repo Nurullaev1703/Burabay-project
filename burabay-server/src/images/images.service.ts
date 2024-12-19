@@ -42,8 +42,8 @@ export class ImagesService {
 
       // Сохранение файла в полученную директорию
       await writeFile(filepath, compressedBuffer);
-
-      return JSON.stringify(filepath.replace('.', ''));
+      const filepathForFront = filepath.replace('/public', '');
+      return JSON.stringify(filepathForFront.replace('.', ''));
     } catch (error) {
       // throw new HttpException('Произошла ошибка', HttpStatus.CONFLICT);
       Utils.errorHandler(error);
@@ -78,8 +78,9 @@ export class ImagesService {
 
           // Сохранение файла в полученную директорию
           await writeFile(filepath, compressedBuffer);
-
-          return filepath;
+          let filepathForFront = filepath.replace('/public', '');
+          filepathForFront = filepathForFront.replace('.', '');
+          return filepathForFront;
         }),
       );
 
