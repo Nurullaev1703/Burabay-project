@@ -13,7 +13,6 @@ import { GoogleAccessToken, GoogleAuthType } from './model/GoogleAuth';
 import { FacebookAuthData } from './model/FacebookAuth';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { VerificationDto } from './dto/verification.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
 
 @Injectable()

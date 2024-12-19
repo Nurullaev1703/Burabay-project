@@ -5,7 +5,8 @@ import { Typography } from './Typography';
 import { COLORS_TEXT } from './colors';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement>{
-  hideIcon?: boolean
+  hideIcon?: boolean,
+  color?: string
 }
 
 export const LanguageButton: FC<Props> =
@@ -19,7 +20,7 @@ export const LanguageButton: FC<Props> =
 
     return (
       <button type="button" className="py-3 min-w-11 flex items-center justify-center gap-1 uppercase" onClick={toggleLanguage}>
-        <Typography color={COLORS_TEXT.white}>{language}</Typography>
+        <Typography color={props.color || COLORS_TEXT.white}>{language}</Typography>
         {!props.hideIcon &&
           <img src={LanguageIcon} alt="" />
         }
