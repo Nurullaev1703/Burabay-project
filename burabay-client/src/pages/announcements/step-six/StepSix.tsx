@@ -151,7 +151,7 @@ export const StepSix: FC = function StepSix() {
                   className={`border-2 ${COLORS_BORDER.blue200} border-solid flex items-center gap-2 w-28 h-10 rounded-3xl`}
                 >
                   <Controller
-                    name={`serviceTime.${editingIndex}`}
+                    name={`serviceTime.${editingIndex ?? 0}`}
                     control={control}
                     render={({ field }) => {
                       const timeMask = useMask({
