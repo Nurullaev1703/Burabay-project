@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../shared/ui/Button";
@@ -7,10 +7,10 @@ import ArrowRight from "../../../app/icons/arrow-right.svg";
 import ConfirmedIcon from "../../../app/icons/profile/confirmed.svg";
 import { accountStatus } from "./Hint";
 import { useAuth } from "../../../features/auth";
-import { tokenService } from "../../../services/storage/Factory";
+import { ModalExit } from "./ModalExit";
 
 interface Props {
-  accountStatus: accountStatus
+  accountStatus: accountStatus;
 }
 
 export const paramsOrganizator: string[] = [
@@ -21,14 +21,15 @@ export const paramsOrganizator: string[] = [
 ];
 export const paramsTourist: string[] = ["name", "emailToLogin", "phone"];
 
-export const UserInfoList: FC<Props> = function UserInfoList({accountStatus}) {
+export const UserInfoList: FC<Props> = function UserInfoList({
+  accountStatus,
+}) {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [params, setParams] = useState<string[]>(
     user?.role === "бизнес" ? paramsOrganizator : paramsTourist
   );
-  const navigate = useNavigate();
-
 
   const userInfo: any = {
     organizationName: user?.organization?.name,
@@ -36,7 +37,7 @@ export const UserInfoList: FC<Props> = function UserInfoList({accountStatus}) {
     emailToLogin: user?.email,
     phone: user?.phoneNumber,
     site: user?.organization?.siteUrl,
-    name: user?.fullName
+    name: user?.fullName,
   };
 
   return (
@@ -72,12 +73,14 @@ export const UserInfoList: FC<Props> = function UserInfoList({accountStatus}) {
         mode={"red"}
         className={`mb-[42px] ${COLORS_TEXT.red}`}
         onClick={() => {
-          tokenService.deleteValue();
-          navigate({ to: "/auth" });
+        setShowModal(true)
         }}
       >
         {t("logoutFromAccount")}
       </Button>
+      {showModal && (
+        <ModalExit open={showModal} onClose={() => setShowModal(false)} />
+      )}
     </div>
   );
 };
