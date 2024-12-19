@@ -53,7 +53,9 @@ export const HelpPage: FC = function HelpPage() {
           <Typography size={16} weight={400}>{"Условия использования"}</Typography>
           <img src={RightArrow} className="w-4 h-4" alt="" />
         </div>
-        <div className="flex gap-2 items-center border-b pb-3 mb-4">
+        <div onClick={() => navigate({
+          to: "/HelpPage"
+        })} className="flex gap-2 items-center border-b pb-3 mb-4">
           <img src={Union} alt="" />
           <Typography size={16} weight={400}>{"Помощь"}</Typography>
         </div>
