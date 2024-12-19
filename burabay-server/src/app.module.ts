@@ -19,9 +19,19 @@ import { BreaksModule } from './breaks/breaks.module';
 import { AddressModule } from './address/address.module';
 import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public', 'images'),
+      serveRoot: '/images',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public', 'icons'),
+      serveRoot: '/icons',
+    }),
     MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([

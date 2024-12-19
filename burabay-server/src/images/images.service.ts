@@ -8,8 +8,8 @@ import { mkdir, writeFile } from 'fs/promises';
 import { promises } from 'fs';
 import { DeleteImageDto } from './dto/delete-image.dto';
 import { Utils } from 'src/utilities';
-import Jimp from 'jimp';
-const sharp = require('sharp');
+import * as sharp from 'sharp';
+import { error } from 'console';
 
 @Injectable()
 export class ImagesService {
@@ -22,23 +22,22 @@ export class ImagesService {
     try {
       // const filename = `${uuidv4()}${extname(file.originalname)}`;
       const filename = `${uuidv4()}.webp`;
-      const dirpath = `./images/${directory}`;
+      const dirpath = `./public/images/${directory}`;
       const filepath = `${dirpath}/${filename}`;
       // Создает новую директорию, если ее не существовало
       await mkdir(dirpath, { recursive: true });
-
       let compressedBuffer;
       if (directory === 'profile') {
         // Сжатие для изображения профиля.
         compressedBuffer = await sharp(file.buffer)
           .resize(512)
-          .toFormat('webp', { quality: 80, loseless: false })
+          .toFormat('webp', { quality: 80 })
           .toBuffer();
       } else {
         // Сжатие для изображения объявления.
         compressedBuffer = await sharp(file.buffer)
           .resize(1280)
-          .toFormat('webp', { quality: 80, loseless: false })
+          .toFormat('webp', { quality: 80 })
           .toBuffer();
       }
 
@@ -56,13 +55,30 @@ export class ImagesService {
     try {
       const results = await Promise.all(
         files.map(async (item) => {
-          const filename = `${uuidv4()}${extname(item.originalname)}`;
-          const dirpath = `./images/${directory}`;
+          // const filename = `${uuidv4()}${extname(item.originalname)}`;
+          const filename = `${uuidv4()}.webp`;
+          const dirpath = `./public/images/${directory}`;
           const filepath = `${dirpath}/${filename}`;
           // Создает новую директорию, если её не существовало
           await mkdir(dirpath, { recursive: true });
+
+          let compressedBuffer;
+          if (directory === 'profile') {
+            // Сжатие для изображения профиля.
+            compressedBuffer = await sharp(item.buffer)
+              .resize(512)
+              .toFormat('webp', { quality: 80 })
+              .toBuffer();
+          } else {
+            // Сжатие для изображения объявления.
+            compressedBuffer = await sharp(item.buffer)
+              .resize(1280)
+              .toFormat('webp', { quality: 80 })
+              .toBuffer();
+          }
+
           // Сохранение файла в полученную директорию
-          await writeFile(filepath, item.buffer);
+          await writeFile(filepath, compressedBuffer);
 
           return filepath;
         }),
@@ -70,7 +86,7 @@ export class ImagesService {
 
       return JSON.stringify(results);
     } catch {
-      throw new HttpException('Произошла ошибка', HttpStatus.CONFLICT);
+      Utils.errorHandler(error);
     }
   }
 
