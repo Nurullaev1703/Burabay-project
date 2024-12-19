@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,7 +19,7 @@ export class ScheduleService {
     try {
       const { adId, ...oF } = createScheduleDto;
       const ad = await this.adRepository.findOne({ where: { id: adId } });
-      Utils.check(ad, 'Объявление не найдено');
+      Utils.checkEntity(ad, 'Объявление не найдено');
 
       const newSchedule = this.scheduleRepository.create({
         ad: ad,
@@ -33,10 +33,20 @@ export class ScheduleService {
     }
   }
 
+  async findByAd(adId: string) {
+    try {
+      const schedule = await this.scheduleRepository.find({ where: { ad: { id: adId } } });
+      Utils.checkEntity(schedule, 'График не найден');
+      return schedule;
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
+  }
+
   async update(id: string, updateScheduleDto: UpdateScheduleDto) {
     try {
       const schedule = await this.scheduleRepository.findOne({ where: { id: id } });
-      Utils.check(schedule, 'График не найден');
+      Utils.checkEntity(schedule, 'График не найден');
       Object.assign(schedule, updateScheduleDto);
       await this.scheduleRepository.save(schedule);
       return JSON.stringify(HttpStatus.OK);
@@ -48,7 +58,7 @@ export class ScheduleService {
   async remove(id: string) {
     try {
       const schedule = await this.scheduleRepository.findOne({ where: { id: id } });
-      Utils.check(schedule, 'График не найден');
+      Utils.checkEntity(schedule, 'График не найден');
       await this.scheduleRepository.remove(schedule);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {

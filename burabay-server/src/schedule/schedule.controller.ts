@@ -1,9 +1,14 @@
-import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, Get } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/constants';
 
 @Controller('schedule')
+@ApiBearerAuth()
+@Public() // TODO Удалить после тестирования.
+@ApiTags('График работы')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
@@ -11,6 +16,12 @@ export class ScheduleController {
   create(@Body() createScheduleDto: CreateScheduleDto) {
     return this.scheduleService.create(createScheduleDto);
   }
+
+  @Get(':adId')
+  findByAd(@Param('adId') adId: string) {
+    return this.scheduleService.findByAd(adId);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto) {
     return this.scheduleService.update(id, updateScheduleDto);

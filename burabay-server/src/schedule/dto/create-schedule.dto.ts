@@ -1,7 +1,6 @@
-import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-import { BreakType } from '../types/break.type';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateScheduleDto {
+export default class CreateScheduleDto {
   @IsString()
   @IsNotEmpty()
   adId: string;
@@ -61,8 +60,4 @@ export class CreateScheduleDto {
   @IsString()
   @IsOptional()
   sunEnd: string;
-
-  @IsObject()
-  @IsOptional()
-  break: BreakType[];
 }

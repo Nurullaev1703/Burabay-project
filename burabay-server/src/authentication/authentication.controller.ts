@@ -1,17 +1,19 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Request, Patch } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { SignInDto } from './dto/sign-in.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/constants';
 import { VerificationDto } from './dto/verification.dto';
 import { PhoneService } from './phone.service';
 import { Throttle } from '@nestjs/throttler';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { EmailService } from './email.service';
-import { GoogleAccessToken, GoogleAuthType } from './model/GoogleAuth';
+import { GoogleAuthType } from './model/GoogleAuth';
 import { FacebookAuthData } from './model/FacebookAuth';
 import { LoginDto } from './dto/login.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateEmailDto } from './dto/update-email.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -52,12 +54,38 @@ export class AuthenticationController {
     return this.authenticationService.updateOrganizationInfo(updateDto);
   }
 
+  @ApiBearerAuth()
+  @Patch('change-password')
+  changePassword(@Request() req: AuthRequest, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authenticationService.changePassword(req.user, changePasswordDto);
+  }
+
+  @Public()
+  @Patch('new-password')
+  newPassword(@Body() loginDto: LoginDto) {
+    return this.authenticationService.resetPassword(loginDto);
+  }
+
+  @ApiBearerAuth()
+  @Patch('update-email')
+  newEmail(@Request() req: AuthRequest, @Body() updateEmailDto: UpdateEmailDto) {
+    return this.authenticationService.updateUserEmail(req.user, updateEmailDto);
+  }
+
   // ограниченное количество запросов на 30 минут
   @Public()
   @Throttle({ default: { limit: 8, ttl: 1800000 } })
   @Post('verification')
   verification(@Body() verificationDto: VerificationDto) {
     return this.emailService.sendAcceptMessage(verificationDto.email);
+  }
+
+  // ограниченное количество запросов на 30 минут
+  @Public()
+  @Throttle({ default: { limit: 8, ttl: 1800000 } })
+  @Post('reset-password')
+  resetPasswordMessage(@Body() verificationDto: VerificationDto) {
+    return this.emailService.resetPasswordMessage(verificationDto.email);
   }
 
   @Public()

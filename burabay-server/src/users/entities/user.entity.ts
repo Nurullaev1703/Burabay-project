@@ -14,7 +14,7 @@ export class User extends AbstractEntity<User> {
   @Column()
   role: ROLE_TYPE;
 
-  @Column()
+  @Column({nullable: true})
   picture: string;
 
   @Column({ unique: true })

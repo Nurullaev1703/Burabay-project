@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profile } from './models/profile.model';
@@ -18,11 +18,10 @@ export class ProfileService {
   async getProfile(tokenData: TokenData) {
     const user = await this.userRepository.findOne({
       where: { id: tokenData.id },
-      relations:{
-        organization: true
-      }
-    }
-  );
+      relations: {
+        organization: true,
+      },
+    });
 
     return new Profile(user);
   }
@@ -32,9 +31,9 @@ export class ProfileService {
       where: {
         id: tokenData.id,
       },
-      relations:{
-        organization: true
-      }
+      relations: {
+        organization: true,
+      },
     });
 
     if (!user) throw JSON.stringify(HttpStatus.NOT_FOUND);
@@ -47,24 +46,23 @@ export class ProfileService {
       picture: updateProfileDto.picture || user.picture,
       phoneNumber: updateProfileDto.phoneNumber || user.phoneNumber,
     });
-    if(updateProfileDto.organization){
-      await this.organizationRepository.update(user.organization.id,{
+    if (updateProfileDto.organization) {
+      await this.organizationRepository.update(user.organization.id, {
         ...user.organization,
         imgUrl: updateProfileDto.organization.imgUrl || user.organization.imgUrl,
         name: updateProfileDto.organization.name || user.organization.name,
         description: updateProfileDto.organization.description || user.organization.description,
-        address: updateProfileDto.organization.address || user.organization.address,
+        // address: updateProfileDto.organization.address || user.organization.address, // FIXME ИЛЬЯ ПАМЕНЯЙ.
         isConfirmed: updateProfileDto.organization.isConfirmed || user.organization.isConfirmed,
         siteUrl: updateProfileDto.organization.siteUrl || user.organization.siteUrl,
-      })
+      });
     }
     return JSON.stringify(HttpStatus.OK);
   }
 
   async getUsers() {
     return this.userRepository.find({
-      relations: {
-      },
+      relations: {},
     });
   }
 }

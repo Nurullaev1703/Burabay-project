@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import KeyIcon from "../../app/icons/profile/key.svg";
@@ -7,11 +7,10 @@ import AttentionIcon from "../../app/icons/profile/attention.svg";
 import FavouriteIcon from "../../app/icons/profile/favourite.svg";
 import StarIcon from "../../app/icons/profile/star.svg";
 import LifebuoyIcon from "../../app/icons/profile/lifebuoy.svg";
-import { Profile as ProfileType } from "./model/profile";
-import LanguageIcon from "../../app/icons/language.svg";
+import LanguageIcon from "../../app/icons/language-blue.svg";
 import { RatingModal } from "../../components/RatingModal";
 import { baseUrl } from "../../services/api/ServerData";
-import { COLORS_BORDER } from "../../shared/ui/colors";
+import { COLORS_BORDER, COLORS_TEXT } from "../../shared/ui/colors";
 import { accountStatus, Hint } from "./ui/Hint";
 import { imageService } from "../../services/api/ImageService";
 import { apiService } from "../../services/api/ApiService";
@@ -19,20 +18,24 @@ import ChangeImageIcon from "../../app/icons/profile/settings/changeImage.svg";
 import ArrowRight from "../../app/icons/arrow-right.svg";
 import { UserInfoList } from "./ui/UserInfoList";
 import { HintTourist } from "./ui/HintToursit";
+import { Profile as ProfileType } from "./model/profile";
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 interface Props {
-  user?: ProfileType;
+  user: ProfileType;
 }
 
 type Language = "RU" | "KZ" | "EN";
-export let user = { role: "организация" };
 
-export const Profile: FC<Props> = function Profile() {
+export const Profile: FC<Props> = function Profile({ user }) {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [imgSrc, setImgSrc] = useState<string>(baseUrl + user?.filial?.image);
+  const [imgSrc, setImgSrc] = useState<string>(
+    baseUrl + user?.organization?.imgUrl
+  );
+  console.log(user);
   const [accountStatus, setAccountStatus] =
-    useState<accountStatus>("confirmed");
+    useState<accountStatus>("notFilled");
   const [language, setLanguage] = useState<Language>("RU");
 
   // Смена лого
@@ -85,6 +88,13 @@ export const Profile: FC<Props> = function Profile() {
     }
   };
 
+  useEffect(() => {
+    if (user?.role === "турист") {
+      setAccountStatus("notFilled");
+    } else {
+      setAccountStatus("unconfirmed");
+    }
+  }, []);
   return (
     <section className="px-4">
       <div className="flex justify-center mb-4 py-2 items-center bg-white">
@@ -122,16 +132,16 @@ export const Profile: FC<Props> = function Profile() {
         </Link>
       </div>
 
-      {user?.role === "организация" && <Hint accountStatus={accountStatus} />}
+      {user?.role === "бизнес" && <Hint accountStatus={accountStatus} />}
       {user?.role === "турист" && accountStatus === "notFilled" && (
         <HintTourist />
       )}
 
-      <UserInfoList />
+      <UserInfoList accountStatus={accountStatus} />
 
       <ul>
         <li className={`${COLORS_BORDER.gray300}`}>
-          <Link className="flex py-3" to={"/"}>
+          <Link className="flex py-3" to={"/profile/security"}>
             <img src={KeyIcon} alt={t("safety")} className="mr-2" />
             <span>{t("safety")}</span>
           </Link>
@@ -165,14 +175,12 @@ export const Profile: FC<Props> = function Profile() {
             <span>{t("estimateService")}</span>
           </div>
         </li>
-        <li className={`border-b  ${COLORS_BORDER.gray300}`}>
-          <Link className="flex justify-between py-3" to="/help">
+        <li className={`border-b  ${COLORS_BORDER.gray300} flex justify-between items-center`}>
             <div className="flex items-center">
               <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
               <span>{t("appLanguage")}</span>
             </div>
-            <span className="font-medium text-lg">{language}</span>
-          </Link>
+            <LanguageButton hideIcon color={COLORS_TEXT.totalBlack}/>
         </li>
         {showModal && (
           <RatingModal

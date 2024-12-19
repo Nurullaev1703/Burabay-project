@@ -12,6 +12,6 @@ function ProfileRoute() {
   if (isLoading) return <Loader />;
 
   if (data) {
-        return <Profile />;
+        return <Profile user={data}/>;
   }
 }

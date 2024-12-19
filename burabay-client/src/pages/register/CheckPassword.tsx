@@ -88,11 +88,12 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
               email: props.email,
             },
           });
-          if (response.data && response.status == Number(HTTP_STATUS.CREATED)) {
+          if (response.data != HTTP_STATUS.CONFLICT) {
             setToken(response.data);
-            navigate({
-              to: "/profile",
-            });
+            // navigate({
+            //   to: "/profile",
+            // });
+            window.location.href = "/profile"
           } else {
             setErrorMessage(t("wrongPassword"));
             setPasswordError(true);
@@ -153,7 +154,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           {t("signIn")}
         </Button>
         <Typography size={14} align="center" className="flex flex-col">
-          <Link to={"/"}>
+          <Link to={"/auth/reset-password"}>
             <span className={`${COLORS_TEXT.blue200} font-semibold`}>
               {t("forgotPassword")}
             </span>

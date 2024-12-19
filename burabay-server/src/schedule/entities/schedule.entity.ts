@@ -1,11 +1,11 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
-import { Column, Entity, OneToOne } from 'typeorm';
-import { BreakType } from '../types/break.type';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
 @Entity()
 export class Schedule extends AbstractEntity<Schedule> {
   @OneToOne(() => Ad, (ad) => ad.schedule)
+  @JoinColumn()
   ad: Ad;
 
   @Column({ nullable: true, name: 'mon_start' })
@@ -49,7 +49,4 @@ export class Schedule extends AbstractEntity<Schedule> {
 
   @Column({ nullable: true, name: 'sun_end' })
   sunEnd: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  break: BreakType[];
 }

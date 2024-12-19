@@ -16,9 +16,18 @@ import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { BreaksModule } from './breaks/breaks.module';
+import { AddressModule } from './address/address.module';
+import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', `public`),
+      serveRoot: '/',
+    }),
     MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
@@ -40,6 +49,9 @@ import { ScheduleModule } from './schedule/schedule.module';
     AdminPanelModule,
     SeederModule,
     ScheduleModule,
+    BreaksModule,
+    AddressModule,
+    BookingBanDateModule,
   ],
   controllers: [],
   providers: [

@@ -149,7 +149,7 @@ export class SeederService {
         org = await this.orgRepository.create({
           imgUrl: 'img_link',
           name: 'Тестовая организация',
-          address: 'Pavlodar',
+          // address: 'Pavlodar',
           isConfirmed: true,
           description: 'Мы занимаемся всем подряд и не только',
           siteUrl: 'https://wikipedia.org',
@@ -181,7 +181,7 @@ export class SeederService {
             price: Math.floor(Math.random() * 1000),
             images: ['images_path'],
             youtubeLink: 'youtube_link',
-            address: 'Pavlodar',
+            // address: 'Pavlodar',
             phoneNumber: '+77077045632',
             subcategory: subcategory,
             details: {

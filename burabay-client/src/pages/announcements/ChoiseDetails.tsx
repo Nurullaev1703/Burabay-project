@@ -12,7 +12,7 @@ import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
 import { DefaultForm } from '../auth/ui/DefaultForm';
 import { Controller, useForm } from 'react-hook-form';
-import { TextField } from '@mui/material';
+import { Switch, TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useMask } from '@react-input/mask';
 import { ProgressSteps } from './ui/ProgressSteps';
@@ -32,7 +32,14 @@ interface FormType {
     photo: string;
   }
 
-export const ChoiseDetails: FC<Props> = function ChoiseDetails({category , subcategory}) {
+export const ChoiseDetails: FC<Props> = function ChoiseDetails({category}) {
+    const [toggles, setToggles] = useState<Record<string, boolean>>({});
+    const handleToggle = (item:string) => {
+        setToggles((prev) => ({
+          ...prev,
+          [item]: !prev[item],
+        }));
+      };
     const [isLoading, setIsLoading] = useState<boolean>(false);
     console.log(category)
     const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
@@ -213,6 +220,23 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({category , subca
     />
               
 
+  </div>
+  <div className='bg-white rounded-lg p-4 mb-24'>
+    <Typography size={16} weight={400} color={COLORS_TEXT.gray100}>{"Подробности"}</Typography>
+    {category.details.map((item) =>{
+        return (
+            <div key={item} className='flex items-center justify-between  border-b py-2 '>
+            <Typography>{t(item)}</Typography>
+            <Switch checked={toggles[item] || false} 
+            onChange={() => handleToggle(item)}
+            className={`${
+              toggles[item] ? "" : ""
+            } relative inline-flex h-6 w-11 items-center rounded-full`}></Switch>
+
+
+            </div>
+        )
+    })}
   </div>
 </DefaultForm>
 

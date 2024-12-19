@@ -19,7 +19,7 @@ import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
-  role?: string
+  role?: string;
 }
 
 interface FormType {
@@ -48,13 +48,6 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
     setTimeout(() => setShaking(false), 500);
     setOtp("");
   };
-  // скролл до центра экрана для ввода при запуске приложения
-  useEffect(() => {
-    window.scrollTo({
-      top: window.screen.height / 2,
-      behavior: "smooth", // Для плавного скролла
-    });
-  }, []);
   useEffect(() => {
     if (otp.length === 4) {
       onSubmit(otp);
@@ -82,6 +75,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
     });
     if (response.data == HTTP_STATUS.OK) {
       // если есть роль, то это регистрация бизнеса
+
       if(roleService.hasValue()){
         navigate({
           to: "/register/business/$email",
