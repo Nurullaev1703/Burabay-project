@@ -7,6 +7,9 @@ import { extname } from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 import { promises } from 'fs';
 import { DeleteImageDto } from './dto/delete-image.dto';
+import { Utils } from 'src/utilities';
+import Jimp from 'jimp';
+const sharp = require('sharp');
 
 @Injectable()
 export class ImagesService {
@@ -22,12 +25,29 @@ export class ImagesService {
       const filepath = `${dirpath}/${filename}`;
       // Создает новую директорию, если ее не существовало
       await mkdir(dirpath, { recursive: true });
+
+      let compressedBuffer;
+      if (directory === 'profile') {
+        // Сжатие для изображения профиля.
+        compressedBuffer = await sharp(file.buffer)
+          .resize(512)
+          .toFormat('jpeg', { quality: 80, progressive: true })
+          .toBuffer();
+      } else {
+        // Сжатие для изображения объявления.
+        compressedBuffer = await sharp(file.buffer)
+          .resize(1280)
+          .toFormat('jpeg', { quality: 80, progressive: true })
+          .toBuffer();
+      }
+
       // Сохранение файла в полученную директорию
-      await writeFile(filepath, file.buffer);
+      await writeFile(filepath, compressedBuffer);
 
       return JSON.stringify(filepath.replace('.', ''));
-    } catch {
-      throw new HttpException('Произошла ошибка', HttpStatus.CONFLICT);
+    } catch (error) {
+      // throw new HttpException('Произошла ошибка', HttpStatus.CONFLICT);
+      Utils.errorHandler(error);
     }
   }
 
