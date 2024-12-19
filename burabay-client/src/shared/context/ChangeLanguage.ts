@@ -341,6 +341,16 @@ i18n.use(initReactI18next).init({
         breakDescription:
           "Ежедневно время, на которое запрещено бронирование. Данная информация будет учтена при бронировании услуги клиентом",
         add: "Добавить",
+
+        serviceSchedule: "Расписание услуг",
+        preview: "Просмотр",
+        serviceFullDay: "Услуга длится полные сутки",
+        serviceTime: "Время начала услуги",
+        serviceTimeDescription: "Во сколько начинается услуга? Добавьте несколько вариантов при необходимости",
+        standardDuration: "Стандартная длительность услуги",
+        infoForClients: "Эта информация будет видна клиентам",
+        continue: "Продолжить",
+
         type: "Тип",
         freeWiFi: "Бесплатный Wi-Fi",
         privateParking: "Своя парковка",
@@ -571,6 +581,7 @@ i18n.use(initReactI18next).init({
           deleteProfile:"Удалить аккаунт",
           changeEmailAddress: "Изменить адрес почты",
           successDelete: "Аккаунт удален"
+
       },
     },
     en: {
