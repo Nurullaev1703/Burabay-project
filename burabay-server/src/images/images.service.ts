@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
 import { mkdir, writeFile } from 'fs/promises';
 import { promises } from 'fs';
 import { DeleteImageDto } from './dto/delete-image.dto';

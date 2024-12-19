@@ -21,6 +21,7 @@ import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module
 import { FeedbackModule } from './feedback/feedback.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     AddressModule,
     BookingBanDateModule,
     FeedbackModule,
+    ReviewModule,
   ],
   controllers: [],
   providers: [

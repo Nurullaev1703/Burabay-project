@@ -1,9 +1,10 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne } from 'typeorm';
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { ROLE_TYPE } from '../types/user-types';
 import { Organization } from './organization.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Feedback } from 'src/feedback/entities/feedback.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity()
 export class User extends AbstractEntity<User> {
@@ -42,4 +43,7 @@ export class User extends AbstractEntity<User> {
   @OneToOne(() => Feedback, (feedback) => feedback.user)
   @JoinColumn({ name: 'feedback_id' })
   feedback: Feedback;
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

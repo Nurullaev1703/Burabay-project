@@ -17,6 +17,7 @@ import { Break } from 'src/breaks/entities/break.entity';
 import { Address } from 'src/address/entities/address.entity';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -125,4 +126,13 @@ export class Ad extends AbstractEntity<Ad> {
 
   @Column({ default: 0 })
   views: number;
+
+  @OneToMany(() => Review, (review) => review.ad)
+  reviews: Review[];
+
+  @Column({ default: 0 })
+  reviewCount: number;
+
+  @Column({ type: 'numeric', name: 'avg_rating', default: 0, precision: 2, scale: 1 })
+  avgRating: number;
 }
