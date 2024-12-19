@@ -48,7 +48,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
         </li>
 
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/map"
+          to: "/mapNav"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Map 
