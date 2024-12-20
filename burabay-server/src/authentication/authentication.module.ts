@@ -10,10 +10,11 @@ import { AuthenticationService } from './authentication.service';
 import { EmailService } from './email.service';
 import { PhoneService } from './phone.service';
 import { AuthGuard } from './authentication.guard';
+import { Organization } from 'src/users/entities/organization.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Organization]),
     CacheModule.register({
       isGlobal: true,
     }),

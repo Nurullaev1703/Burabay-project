@@ -20,6 +20,8 @@ export class AuthenticationService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Organization)
+    private readonly organizationRepository: Repository<Organization>,
     private readonly entityManager: EntityManager,
     private readonly emailService: EmailService,
     private jwtService: JwtService,
@@ -238,66 +240,63 @@ export class AuthenticationService {
     if (!user) {
       return JSON.stringify(HttpStatus.CONFLICT);
     }
-
-    const organization = new Organization({
+    await this.userRepository.update(user.id, {
+      ...user,
+      isEmailConfirmed: true,
+    });
+    await this.organizationRepository.update(user.organization.id, {
       ...user.organization,
       name: updateDto.orgName,
       description: updateDto.description,
       siteUrl: updateDto.siteUrl || user.organization.siteUrl,
     });
-    await this.entityManager.save(organization);
-    const updatedUser = new User({
-      ...user,
-      isEmailConfirmed: true,
-    });
-    await this.entityManager.save(updatedUser);
-
-    const payload: TokenData = { id: updatedUser.id };
+    
+    const payload: TokenData = { id: user.id };
     const token = await this.jwtService.signAsync(payload);
     return JSON.stringify(token);
   }
 
-  async changePassword(tokenData: TokenData, changePasswordDto: ChangePasswordDto ){
-      const user = await this.userRepository.findOne({
-        where:{
-          id: tokenData.id
-        }
-      })
+  async changePassword(tokenData: TokenData, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: tokenData.id,
+      },
+    });
 
-      if(!user){
-        return JSON.stringify(HttpStatus.CONFLICT)
-      }
+    if (!user) {
+      return JSON.stringify(HttpStatus.CONFLICT);
+    }
 
-      const isPasswordMatch = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
+    const isPasswordMatch = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
 
-      if (!isPasswordMatch) {
-        throw JSON.stringify(HttpStatus.CONFLICT);
-      }
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash(changePasswordDto.newPassword, salt);
-      const newUser = new User({
-        ...user,
-        password: hash
-      })
-      await this.entityManager.save(newUser)
-      return JSON.stringify(HttpStatus.OK)
+    if (!isPasswordMatch) {
+      throw JSON.stringify(HttpStatus.CONFLICT);
+    }
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(changePasswordDto.newPassword, salt);
+    const newUser = new User({
+      ...user,
+      password: hash,
+    });
+    await this.entityManager.save(newUser);
+    return JSON.stringify(HttpStatus.OK);
   }
 
-  async updateUserEmail(tokenData: TokenData, updateEmailDto:UpdateEmailDto){
+  async updateUserEmail(tokenData: TokenData, updateEmailDto: UpdateEmailDto) {
     const user = await this.userRepository.findOne({
-      where:{
-        id:tokenData.id
-      }
-    })
-    if(!user){
-      return JSON.stringify(HttpStatus.CONFLICT)
+      where: {
+        id: tokenData.id,
+      },
+    });
+    if (!user) {
+      return JSON.stringify(HttpStatus.CONFLICT);
     }
 
     const updatedUser = new User({
       ...user,
-      email: updateEmailDto.email
-    })
+      email: updateEmailDto.email,
+    });
     await this.entityManager.save(updatedUser);
-    return JSON.stringify(HttpStatus.OK)
+    return JSON.stringify(HttpStatus.OK);
   }
 }
