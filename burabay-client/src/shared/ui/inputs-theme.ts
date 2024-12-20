@@ -50,6 +50,7 @@ export const theme = createTheme({
           textarea: {
             padding: "16.5px 14px",
             paddingTop: "44px",
+            lineHeight: "20px"
           },
         },
       },

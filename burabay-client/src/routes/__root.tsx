@@ -2,13 +2,15 @@
 import {
   createRootRouteWithContext,
   Outlet,
+  redirect,
 } from "@tanstack/react-router";
 import { RootRouteContext } from "../types/tanstack";
 import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
+import { tokenService } from "../services/storage/Factory";
 
 export const AUTH_PATH = [
-    "/auth/", "/auth/"
+    "/auth", "/register", "/help","/welcome"
 ]
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
@@ -27,16 +29,17 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         </>
         )
     },
-    // beforeLoad: (options) =>{
-    //     const isAuthPath = AUTH_PATH.includes(options.location.pathname);
-    //     const isAuthAcceptPath = options.location.pathname.startsWith('/auth/accept/');
-
-    //     if(
-    //         !isAuthPath &&
-    //         !isAuthAcceptPath &&
-    //         !tokenService.hasValue()
-    //     ){
-    //         throw redirect({to:"/auth"})
-    //     }
-    // }
+    beforeLoad: (options) =>{
+        const isAuthPath = AUTH_PATH.some((path) =>
+          options.location.pathname.startsWith(path)
+        );
+        const isAuthAcceptPath = options.location.pathname.startsWith('/auth');
+        if(
+            !isAuthPath &&
+            !isAuthAcceptPath &&
+            !tokenService.hasValue()
+        ){
+            throw redirect({to:"/welcome"})
+        }
+    }
 });

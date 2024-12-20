@@ -20,6 +20,9 @@ import { UserInfoList } from "./ui/UserInfoList";
 import { HintTourist } from "./ui/HintToursit";
 import { Profile as ProfileType } from "./model/profile";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
+import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
+import { ROLE_TYPE } from "../auth/model/auth-model";
+import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 
 interface Props {
   user: ProfileType;
@@ -33,7 +36,6 @@ export const Profile: FC<Props> = function Profile({ user }) {
   const [imgSrc, setImgSrc] = useState<string>(
     baseUrl + user?.organization?.imgUrl
   );
-  console.log(user);
   const [accountStatus, setAccountStatus] =
     useState<accountStatus>("notFilled");
   const [language, setLanguage] = useState<Language>("RU");
@@ -96,7 +98,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
     }
   }, []);
   return (
-    <section className="px-4">
+    <section className="px-4 mb-14">
       <div className="flex justify-center mb-4 py-2 items-center bg-white">
         <div
           className={`relative border-solid border-2 relative w-32 h-32 border-[#0A7D9E] rounded-full flex items-center justify-center`}
@@ -175,12 +177,14 @@ export const Profile: FC<Props> = function Profile({ user }) {
             <span>{t("estimateService")}</span>
           </div>
         </li>
-        <li className={`border-b  ${COLORS_BORDER.gray300} flex justify-between items-center`}>
-            <div className="flex items-center">
-              <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
-              <span>{t("appLanguage")}</span>
-            </div>
-            <LanguageButton hideIcon color={COLORS_TEXT.totalBlack}/>
+        <li
+          className={`border-b  ${COLORS_BORDER.gray300} flex justify-between items-center`}
+        >
+          <div className="flex items-center">
+            <img src={LanguageIcon} alt={t("appLanguage")} className="mr-2" />
+            <span>{t("appLanguage")}</span>
+          </div>
+          <LanguageButton hideIcon color={COLORS_TEXT.totalBlack} />
         </li>
         {showModal && (
           <RatingModal
@@ -190,6 +194,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
           />
         )}
       </ul>
+      {user.role == ROLE_TYPE.TOURIST ? <NavMenuClient /> : <NavMenuOrg />}
     </section>
   );
 };
