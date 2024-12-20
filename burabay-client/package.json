@@ -42,6 +42,7 @@
     "react-i18next": "^14.1.2",
     "react-input-mask": "^3.0.0-alpha.2",
     "react-leaflet": "^5.0.0-rc.2",
+    "react-loader-spinner": "^6.1.6",
     "react-otp-input": "^3.1.1",
     "react-slick": "^0.30.2",
     "slick-carousel": "^1.8.1",
