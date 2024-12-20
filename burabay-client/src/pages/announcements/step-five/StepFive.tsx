@@ -348,7 +348,7 @@ export const StepFive: FC = function StepFive() {
         )}
       </div>
       <Button onClick={() => navigate({
-          to: `/map`,
+          to: `/announcements/addAnnouncements/step-six`,
         })} className="fixed bottom-4 left-4 w-header">{t("Продолжить")}</Button>
 
     </section>

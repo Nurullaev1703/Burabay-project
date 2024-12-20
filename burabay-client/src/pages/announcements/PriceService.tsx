@@ -52,7 +52,7 @@ export const PriceService: FC<Props> = function PriceService() {
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={10} totalSteps={10} />
+        <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
       <div className=''>
       <div className='flex justify-between items-center px-4'>
@@ -162,10 +162,14 @@ export const PriceService: FC<Props> = function PriceService() {
       </div>
       <div className='px-4 mt-2'>
       <Typography size={12} weight={700} color={COLORS_TEXT.red}>{"Подтвердите аккаунт,"} <span style={{ fontWeight: 400}}>{"что бы иметь возможность принимать онлайн предоплату"}</span></Typography>
-      <Button mode="transparent">{"Подтвердить аккаунт"}</Button>
+      <Button onClick={() => navigate({
+          to: `/profile`,
+        })} mode="transparent">{"Подтвердить аккаунт"}</Button>
       </div>
       <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button mode='default'>{"Продолжить"}</Button>
+        <Button onClick={() => navigate({
+          to: `/announcements`,
+        })} mode='default'>{"Продолжить"}</Button>
       </div>
     </main>
 )
