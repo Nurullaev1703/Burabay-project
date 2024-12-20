@@ -37,7 +37,7 @@ export const NewService: FC<Props> = function NewService() {
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={9} totalSteps={10} />
+        <ProgressSteps currentStep={8} totalSteps={9} />
       </Header>
       <div className="p-4 space-y-6 ">
       {/* блок c клиентами */}

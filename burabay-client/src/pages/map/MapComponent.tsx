@@ -109,7 +109,7 @@ export const MapComponent: FC = () => {
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={4} totalSteps={10}></ProgressSteps>
+        <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
       <div id="map" style={containerStyle}></div>
       {address && (
