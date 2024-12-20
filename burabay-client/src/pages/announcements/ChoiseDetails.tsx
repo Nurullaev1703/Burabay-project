@@ -81,7 +81,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({category}) {
               <img src={XIcon} alt="" />
             </IconContainer>
           </div>
-          <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
+          <ProgressSteps currentStep={3} totalSteps={10}></ProgressSteps>
         </Header>
         <div className='px-4'>
         <DefaultForm className="mt-2">

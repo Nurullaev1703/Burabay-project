@@ -98,7 +98,7 @@ export const BookingBan: FC = function BookingBan() {
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={8} totalSteps={9} />
+        <ProgressSteps currentStep={8} totalSteps={10} />
       </Header>
       <div className="p-4">
         <Button 

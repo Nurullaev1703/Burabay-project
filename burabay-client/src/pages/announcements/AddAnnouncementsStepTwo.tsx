@@ -54,7 +54,7 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={2} totalSteps={9}></ProgressSteps>
+        <ProgressSteps currentStep={2} totalSteps={10}></ProgressSteps>
       </Header>
       
 
