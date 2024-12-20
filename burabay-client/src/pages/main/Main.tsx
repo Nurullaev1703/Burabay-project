@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg"
 import FilterIcon from "../../app/icons/main/filter.svg"
-import { COLORS, COLORS_BACKGROUND, COLORS_BORDER, COLORS_TEXT } from "../../shared/ui/colors";
+import { COLORS_TEXT } from "../../shared/ui/colors";
 import { Typography } from "../../shared/ui/Typography";
 import locationImg from "../../app/icons/main/location.png"
 import investirovanie from "../../app/icons/main/investirovanie.png"
@@ -18,6 +18,10 @@ import security from "../../app/icons/main/security.svg"
 import ellipse from "../../app/icons/main/Ellipse.svg"
 import maptracker from "../../app/icons/main/maptracker.svg"
 import star from "../../app/icons/main/star.svg"
+import ploshadka from "../../app/img/ploshadka.jpeg"
+import hotel from "../../app/img/hotel.jpg"
+import tropa from "../../app/img/tropa.jpeg";
+import { Link } from "@tanstack/react-router";
 
 interface Announcement {
   title: string;
@@ -37,15 +41,13 @@ export const Main: FC<Props> = function Main() {
   const [announcementsName, setAnnouncementsName] = useState<string>("");
   const announcements: Announcement[] = [
     {
-
-        
       title: "БЕСПЛАТНО",
       subtitle: "Бурабайская чаща",
       location: "Боровое",
       name: "Тропа",
       rating: 4.8,
       reviews: 12,
-      image: locationImg,
+      image: tropa,
     },
     {
       title: "120 000₸ в сутки",
@@ -54,7 +56,7 @@ export const Main: FC<Props> = function Main() {
       location: "Боровое",
       rating: 4.8,
       reviews: 22,
-      image: locationImg,
+      image: hotel,
     },
     {
       title: "БЕСПЛАТНО",
@@ -63,7 +65,7 @@ export const Main: FC<Props> = function Main() {
       location: "Боровое",
       rating: 4.8,
       reviews: 12,
-      image: locationImg,
+      image: ploshadka,
     },
   ];
 
@@ -126,7 +128,7 @@ export const Main: FC<Props> = function Main() {
 <div className="mt-6 grid grid-cols-2 gap-4 mb-10">
   {filteredAnnouncements.map(
     ({ title, subtitle, location, rating, reviews, image, name }, index) => (
-      <div key={index} className="rounded-2xl relative overflow-hidden">
+      <Link to="/announcements/$announcementId" params={{announcementId: "4de2373e-7c41-4426-a2ea-87c09574a40d"}} key={index} className="rounded-2xl relative overflow-hidden">
         <img
 
           src={image}
@@ -163,7 +165,7 @@ export const Main: FC<Props> = function Main() {
             </Typography>
           </div>
         </div>
-      </div>
+      </Link>
     )
   )}
 </div>

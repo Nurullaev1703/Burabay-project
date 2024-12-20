@@ -101,7 +101,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
     <section className="px-4 mb-14">
       <div className="flex justify-center mb-4 py-2 items-center bg-white">
         <div
-          className={`relative border-solid border-2 relative w-32 h-32 border-[#0A7D9E] rounded-full flex items-center justify-center`}
+          className={`relative border-solid border-2 w-32 h-32 border-[#0A7D9E] rounded-full flex items-center justify-center`}
         >
           <img
             src={imgSrc}
@@ -109,7 +109,8 @@ export const Profile: FC<Props> = function Profile({ user }) {
               setImgSrc(BaseLogo);
             }}
             alt="Изображение"
-            className="object-cover rounded-full"
+            className={`rounded-full absolute
+             top-0 left-0 w-full h-full ${imgSrc.startsWith(baseUrl) ? "object-cover" : ""}`}
           />
           <label
             htmlFor="logo"

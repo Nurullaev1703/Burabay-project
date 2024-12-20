@@ -1,4 +1,4 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { UseGetAnnouncement } from "../../pages/announcements/announcement/announcement-util";
 import { Loader } from "../../components/Loader";
 import { Announcement } from "../../pages/announcements/announcement/Announcement";

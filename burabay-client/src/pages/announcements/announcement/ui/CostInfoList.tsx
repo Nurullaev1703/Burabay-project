@@ -30,7 +30,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
       <ul className="flex mb-4">
         <li className="flex flex-col w-44">
           <span className={`text-[#155A77] font-medium text-lg`}>
-            {formatPrice(price)}
+            {formatPrice(price || 0)}
           </span>
           <span className={`${COLORS_TEXT.gray100} text-sm`}>{t("forAdults")}</span>
         </li>
