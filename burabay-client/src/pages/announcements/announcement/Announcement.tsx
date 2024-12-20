@@ -12,7 +12,7 @@ import EditIcon from "../../../app/icons/edit.svg";
 import { baseUrl } from "../../../services/api/ServerData";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
-
+import tropa from "../../../app/img/tropa.jpeg"
 interface Props {
   announcement: AnnouncementType;
 }
@@ -45,7 +45,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
 
       <div className="px-4 bg-white pb-4 mb-2">
         <img
-          src={baseUrl + announcement.images[0]}
+          src={tropa}
           alt={announcement.title}
           className="h-96 mb-4"
         />
@@ -82,9 +82,9 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
           schedule={announcement.schedule}
         />
       </div>
-
+      {/* FIXME цена в виде boolean */}
       <CostInfoList
-        price={announcement.price}
+        price={0}
         priceForChild={announcement.priceForChild}
         adultNumbers={announcement.adultsNumber}
         kidsNumber={announcement.kidsNumber}
