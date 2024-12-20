@@ -54,6 +54,7 @@ interface AnnouncementOrganization {
   siteUrl: string;
 }
 export interface Announcement {
+  address: location;
   id: string;
   title: string;
   description: string;
@@ -84,4 +85,13 @@ export interface Announcement {
   schedule: string;
   views: number;
   favCount: number;
+}
+
+export interface location {
+  organizationId: string;
+  adId: string;
+  address: string;
+  specialName: string
+  latitude: number;
+  longitude: number;
 }
