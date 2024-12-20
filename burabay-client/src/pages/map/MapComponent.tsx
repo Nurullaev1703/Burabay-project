@@ -109,7 +109,7 @@ export const MapComponent: FC = () => {
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
-        <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
+        <ProgressSteps currentStep={4} totalSteps={10}></ProgressSteps>
       </Header>
       <div id="map" style={containerStyle}></div>
       {address && (
@@ -134,7 +134,7 @@ export const MapComponent: FC = () => {
         <Button
           onClick={() =>
             navigate({
-              to: `/map`,
+              to: `/announcements/addAnnouncements/step-five`,
             })
           }
           mode="default"
