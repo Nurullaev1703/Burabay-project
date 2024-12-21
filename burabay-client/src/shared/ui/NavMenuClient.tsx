@@ -23,7 +23,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.almostWhite}`}
+      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.white}`}
     >
       <ul className="flex justify-between w-full px-4">
         <li className="w-[68px]" onClick={() => navigate({

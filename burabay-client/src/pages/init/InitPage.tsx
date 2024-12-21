@@ -23,11 +23,11 @@ export const InitPage: FC<Props> = function InitPage() {
         }
         else{
           resetToken()
-          navigate({ to: "/auth" });
+          navigate({ to: "/welcome" });
         }
       } catch (error) {
         resetToken();
-        navigate({ to: "/auth" });
+        navigate({ to: "/welcome" });
       }
     })();
   }, [token]);

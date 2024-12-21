@@ -11,6 +11,7 @@ import defaultImage from "../../app/icons/main/health.svg";
 import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
 import { ProgressSteps } from './ui/ProgressSteps';
+import { Radio, RadioGroup } from '@mui/material';
 
 interface Props {
   category: Category;
@@ -67,17 +68,25 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
           />
           <Typography size={22} weight={500}>{category.name}</Typography>
         </div>
-        <ul className="space-y-4">
+        <ul  className="space-y-4">
           {category.subcategories.map((subcategory) => (
-            <li key={subcategory.id} className="flex items-center">
-              <input
-                type="radio"
-                name="subcategory"
-                value={subcategory.id}
-                checked={selectedSubcategoryId === subcategory.id}
-                onChange={() => handleRadioChange(subcategory.id)}
-                className="w-5 h-5 text-blue200 border-gray300 focus:ring-blue200 rounded-full"
-              />
+            <li onChange={() => handleRadioChange(subcategory.id)} key={subcategory.id} className="flex items-center">
+              <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                    name="controlled-radio-buttons-group"
+                    value={subcategory.id}
+                    onChange={() => handleRadioChange(subcategory.id)}
+                    >
+                      <Radio
+                      checked={selectedSubcategoryId === subcategory.id}
+                sx={{
+                padding: 0,
+                "& .MuiSvgIcon-root": {
+                  fontSize: 20,
+                },
+              }}
+            />
+              </RadioGroup>
               <Typography
                 size={16}
                 weight={400}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
-import { Category, Subcategories } from "./model/announcements";
+import { Announcement, Category, Subcategories } from "./model/announcements";
 
 export function useGetCategory(){
     return useQuery({
@@ -41,3 +41,14 @@ export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: 
     })
 }
 
+export function UseGetAnnouncements() {
+    return useQuery({
+        queryKey: [`/map`],
+        queryFn: async() => {
+            const response = await apiService.get<Announcement[]>({
+                url: `/ad`
+            })
+            return response.data
+        }
+    })
+}

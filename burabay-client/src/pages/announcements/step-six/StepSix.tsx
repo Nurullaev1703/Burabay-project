@@ -16,9 +16,11 @@ import { Controller, useForm } from "react-hook-form";
 import PlusIcon from "../../../app/icons/plus.svg";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
+import { useNavigate } from "@tanstack/react-router";
 
 export const StepSix: FC = function StepSix() {
   const { t } = useTranslation();
+  const navigate = useNavigate()
 
   const { handleSubmit, watch, setValue, control } = useForm({
     defaultValues: {
@@ -315,7 +317,9 @@ export const StepSix: FC = function StepSix() {
         )}
       </div>
 
-      <Button className="fixed bottom-4 left-4 w-header">
+      <Button onClick={() => navigate({
+          to: `/announcements/bookingBan`,
+        })} className="fixed bottom-4 left-4 w-header">
         {t("continue")}
       </Button>
     </section>

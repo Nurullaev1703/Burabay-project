@@ -12,9 +12,11 @@ import { DefaultForm } from "../../auth/ui/DefaultForm";
 import { Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
+import { useNavigate } from "@tanstack/react-router";
 
 export const StepFive: FC = function StepFive() {
   const { t } = useTranslation();
+  const navigate = useNavigate()
 
   // Проверка на наличие данных schedule перед форматированием времени
   const formatTime = (time: string | undefined) => {
@@ -345,8 +347,10 @@ export const StepFive: FC = function StepFive() {
           </div>
         )}
       </div>
+      <Button onClick={() => navigate({
+          to: `/announcements/addAnnouncements/step-six`,
+        })} className="fixed bottom-4 left-4 w-header">{t("Продолжить")}</Button>
 
-      <Button className="fixed bottom-4 left-4 w-header">{t("save")}</Button>
     </section>
   );
 };

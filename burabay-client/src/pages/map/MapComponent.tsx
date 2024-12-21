@@ -30,51 +30,57 @@ const initialCenter = [70.310, 53.080]; // Координаты для Боро�
 
 export const MapComponent: FC = () => {
   const navigate = useNavigate();
-  const [markers, setMarkers] = useState<Feature[]>([]); // храним маркеры
-  const [address, setAddress] = useState<string>(''); // храним адресс 
+  const [marker, setMarker] = useState<Feature | null>(null); // Храним только одну метку
+  const [address, setAddress] = useState<string>(''); // Храним адрес
   const [houseNumber, setHouseNumber] = useState<string | null>(null); // Храним номер дома
-
-  useEffect(() => {  // Создание карты
-    const vectorSource = new VectorSource({
-      features: markers,
-    });
-
+  const vectorSource = new VectorSource(); // Источник для слоя маркеров
+  useEffect(() => {  
+    let currentMarker: Feature | null = null; // Переменная для хранения текущего маркера
+  
+    const vectorSource = new VectorSource();
+  
     const vectorLayer = new VectorLayer({
       source: vectorSource,
     });
-
+  
     const map = new Map({
-      target: 'map', // Контейнер, куда будет вставляться карта
+      target: 'map',
       layers: [
         new TileLayer({
-          source: new OSM(), // Источник для OpenStreetMap
+          source: new OSM(),
         }),
-        vectorLayer, // Добавляем слой с маркерами  
+        vectorLayer,
       ],
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 14,
       }),
     });
-
-    map.on('click', async (e) => {  // Обработчик клика на карту
-      const coordinates = toLonLat(e.coordinate); // Получаем координаты клика
-      const newMarker = new Feature({ 
-        geometry: new Point(e.coordinate), // Геометрия маркера как в математике)
-      });
-      newMarker.setStyle(
-        new Style({
-          image: new Icon({
-            src: location, // сама иконка маркера
-            scale: 0.5, // ее размерчик
-          }),
-        })
-      );
-
-      vectorSource.addFeature(newMarker);  // Добавляем маркер в источник
-      setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
-      
-      const [lng, lat] = coordinates;   // Получение адреса через Geocoding API
+  
+    map.on('click', async (e) => {
+      const coordinates = e.coordinate; // Получаем координаты клика
+      const [lng, lat] = toLonLat(coordinates); // Переводим координаты в долготу и широту
+  
+      if (!currentMarker) {
+        // Если маркер отсутствует, создаем новый
+        currentMarker = new Feature({
+          geometry: new Point(coordinates),
+        });
+        currentMarker.setStyle(
+          new Style({
+            image: new Icon({
+              src: location,
+              scale: 0.5,
+            }),
+          })
+        );
+        vectorSource.addFeature(currentMarker); // Добавляем новый маркер в источник
+      } else {
+        // Если маркер уже существует, обновляем его координаты
+        currentMarker.setGeometry(new Point(coordinates));
+      }
+  
+      // Обновляем адрес
       try {
         const response = await apiService.get<any>({
           url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
@@ -86,9 +92,10 @@ export const MapComponent: FC = () => {
         console.error('Ошибка при получении адреса:', error);
       }
     });
-
+  
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
-  }, [markers]);
+  }, []);
+  
 
   return (
     <main className="min-h-screen">
@@ -134,7 +141,7 @@ export const MapComponent: FC = () => {
         <Button
           onClick={() =>
             navigate({
-              to: `/map`,
+              to: `/announcements/addAnnouncements/step-five`,
             })
           }
           mode="default"
