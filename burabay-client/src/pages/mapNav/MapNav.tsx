@@ -35,10 +35,9 @@ export const MapNav: FC<Props> = ({ announcements }) => {
   const [map, setMap] = useState<Map | null>(null);
   const [markers, setMarkers] = useState<Feature[]>([]);
   const [address, setAddress] = useState<string>("");
-  const [houseNumber, setHouseNumber] = useState<string | null>(null);
   const [announcementsName, setAnnouncementsName] = useState<string>("");
   const [isSearchMode, setIsSearchMode] = useState<boolean>(false); // состояние для отображения карты или списка
-  console.log("Объявления:", announcements);
+
 
   useEffect(() => {
     // Источник данных для маркеров
@@ -177,12 +176,16 @@ export const MapNav: FC<Props> = ({ announcements }) => {
           ) : // Показать результаты поиска, если они есть
           filteredAnnouncements.length > 0 ? (
             filteredAnnouncements.map((announcement) => (
+              
               <div
                 key={announcement.id}
                 className="flex items-center mb-2 border-b pb-2"
               >
                 <Typography>{announcement.title}</Typography>
-              </div>
+                <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
+                {announcement.subcategory?.category?.name}  {announcement.subcategory?.name}           
+              </Typography>
+              </div>         
             ))
           ) : (
             <Typography className="flex items-center justify-center" size={16} weight={400} color={COLORS_TEXT.gray100}>Ничего не найдено</Typography>
