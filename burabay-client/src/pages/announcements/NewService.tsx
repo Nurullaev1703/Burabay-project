@@ -9,18 +9,40 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Switch } from '@mui/material';
 import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
+import { DefaultForm } from '../auth/ui/DefaultForm';
+import { apiService } from '../../services/api/ApiService';
 
 interface Props {
-
+  adId: string;
 }
 
-export const NewService: FC<Props> = function NewService() {
+export const NewService: FC<Props> = function NewService(props) {
     const [unlimitedClients, setUnlimitedClients] = useState(false);
-    const [adultsCount, setAdultsCount] = useState(2);
-    const [childrenCount, setChildrenCount] = useState(2);
-    const [ageLimit, setAgeLimit] = useState(14);
+    const [adultsCount, setAdultsCount] = useState(0);
+    const [childrenCount, setChildrenCount] = useState(0);
+    const [ageLimit, setAgeLimit] = useState(0);
     const [petsAllowed, setPetsAllowed] = useState(false);
     const navigate = useNavigate()
+    const handleSubmit = async () =>{
+      const response  = await apiService.patch({
+        url: `/ad/${props.adId}`,
+        dto: {
+          adId: props.adId,
+          unlimitedClients: unlimitedClients,
+          adultsNumber: adultsCount,
+          kidsNumber: childrenCount,
+          kidsMinAge: ageLimit,
+          petsAllowed: petsAllowed
+
+        }
+        
+      })
+      if(response.data){
+        navigate({
+          to: "/announcements/priceService",
+        })
+      }
+    }
   return (
     <main className='min-h-screen'>
       <Header>
@@ -40,6 +62,7 @@ export const NewService: FC<Props> = function NewService() {
         <ProgressSteps currentStep={8} totalSteps={9} />
       </Header>
       <div className="p-4 space-y-6 ">
+
       {/* блок c клиентами */}
       <div className='flex justify-between items-center'>
         <div className="flex flex-col">
@@ -146,9 +169,7 @@ export const NewService: FC<Props> = function NewService() {
       </div>
     </div>
     <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button onClick={() => navigate({
-          to: `/announcements/priceService`,
-        })} mode='default'>{"Продолжить"}</Button>
+        <Button onClick={handleSubmit} mode='default'>{"Продолжить"}</Button>
       </div>
 
     </main>

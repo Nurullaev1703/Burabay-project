@@ -113,7 +113,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                       subcategoryId: subcategory.id,
                       phoneNumber: "+7" + form.phoneNumber.replace(/[ -]/g, ""),
                       images: [],
-                      details: toggles
+                      details: toggles,
+                      
                     },
                   });
                   if(response.data.id){
