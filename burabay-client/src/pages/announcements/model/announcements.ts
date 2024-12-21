@@ -1,3 +1,5 @@
+
+
 export interface Category {
   id: string;
   name: string;
@@ -5,6 +7,14 @@ export interface Category {
   description: string;
   imgPath: string;
   details: string[];
+}
+
+export interface Subcategory {
+    name: string;
+    id: string;
+    category: Category;
+    ads: string[];
+    
 }
 
 export interface Subcategories {
@@ -54,6 +64,7 @@ interface AnnouncementOrganization {
   siteUrl: string;
 }
 export interface Announcement {
+  subcategory: Subcategory
   address: location;
   id: string;
   title: string;
