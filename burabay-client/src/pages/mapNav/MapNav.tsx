@@ -185,7 +185,7 @@ export const MapNav: FC<Props> = ({ announcements }) => {
               </div>
             ))
           ) : (
-            <Typography>Ничего не найдено</Typography>
+            <Typography className="flex items-center justify-center" size={16} weight={400} color={COLORS_TEXT.gray100}>Ничего не найдено</Typography>
           )}
         </div>
       )}
