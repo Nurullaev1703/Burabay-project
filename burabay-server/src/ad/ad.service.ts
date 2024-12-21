@@ -105,6 +105,7 @@ export class AdService {
       const ad = await this.adRepository.findOne({
         where: { id: id },
         relations: {
+          subcategory: { category: true },
           organization: true,
           schedule: true,
           breaks: true,

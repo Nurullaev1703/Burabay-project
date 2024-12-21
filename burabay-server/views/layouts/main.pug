@@ -1,0 +1,33 @@
+doctype html
+html(lang="en")
+  head
+    title #{title}
+    link(rel="stylesheet", href="/public/admin/css/style.min.css")
+    body
+        nav 
+            img(src="/public/admin/assets/logo.png", alt="logo", width="200px") 
+            ul(class="groups")
+                li Пользователи
+                ul(class="pages")  
+                    li 
+                        a(href="#") Активность
+                    li 
+                        a(href="#") Туристы
+                    li 
+                        a(href="#") Организации
+                li Публикации
+                ul(class="pages")  
+                    li 
+                        a(href="#") Объявления
+                    li 
+                        a(href="#") Отзывы
+                    li 
+                        a(href="#") Обращения
+
+    main
+        .title 
+            p <
+            h1 #{topTitle}
+            p
+        block content
+      

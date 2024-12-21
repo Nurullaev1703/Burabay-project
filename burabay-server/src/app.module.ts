@@ -22,9 +22,14 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ReviewModule } from './review/review.module';
+import { AdminPanelModule } from './admin-panel/admin-panel.module';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public',
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public', 'images'),
       serveRoot: '/images',
@@ -58,6 +63,7 @@ import { ReviewModule } from './review/review.module';
     BookingBanDateModule,
     FeedbackModule,
     ReviewModule,
+    AdminPanelModule,
   ],
   controllers: [],
   providers: [
