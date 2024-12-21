@@ -20,19 +20,28 @@ import { ProgressSteps } from '../announcements/ui/ProgressSteps';
 import { apiService } from '../../services/api/ApiService';
 import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
+import { useAuth } from '../../features/auth';
+import { use } from 'i18next';
+import { HTTP_STATUS } from '../../services/api/ServerData';
 
 const containerStyle = {
   width: '100%',
   height: '90vh',
 };
 
+interface Props {
+  adId: string;
+}
+
 const initialCenter = [70.310, 53.080]; // Координаты для Борового
 
-export const MapComponent: FC = () => {
+export const MapComponent: FC<Props> = (props) => {
   const navigate = useNavigate();
+  const {user} = useAuth();
   const [marker, setMarker] = useState<Feature | null>(null); // Храним только одну метку
   const [address, setAddress] = useState<string>(''); // Храним адрес
   const [houseNumber, setHouseNumber] = useState<string | null>(null); // Храним номер дома
+  const [coords, setCoords] = useState<number[]>([])
   const vectorSource = new VectorSource(); // Источник для слоя маркеров
   useEffect(() => {  
     let currentMarker: Feature | null = null; // Переменная для хранения текущего маркера
@@ -42,6 +51,8 @@ export const MapComponent: FC = () => {
     const vectorLayer = new VectorLayer({
       source: vectorSource,
     });
+
+
   
     const map = new Map({
       target: 'map',
@@ -60,6 +71,7 @@ export const MapComponent: FC = () => {
     map.on('click', async (e) => {
       const coordinates = e.coordinate; // Получаем координаты клика
       const [lng, lat] = toLonLat(coordinates); // Переводим координаты в долготу и широту
+      setCoords(toLonLat(coordinates))
   
       if (!currentMarker) {
         // Если маркер отсутствует, создаем новый
@@ -95,7 +107,34 @@ export const MapComponent: FC = () => {
   
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
   }, []);
+
+
+
+  const handleSubmit = async () =>{
+    const arrayAdress = address.split(",")
+    const adress = arrayAdress[0].includes("улица") ? arrayAdress[0] : arrayAdress[1];
   
+    console.log(adress)
+    const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : ""
+    const response = await apiService.post({
+      url: "/address",
+      dto:{
+        organizationId: user?.organization.id,
+        adId: props.adId,
+        address: address,
+        latitude: coords[0],
+        longitude: coords[1],
+        specialName  
+      }
+      
+      
+    })
+    if(response.data == HTTP_STATUS.CREATED){
+      navigate({
+        to: "/announcements/addAnnouncements/step-five"
+      })
+    }
+  }
 
   return (
     <main className="min-h-screen">
@@ -130,20 +169,12 @@ export const MapComponent: FC = () => {
           }}
         >
           <Typography>Адрес:</Typography> {address}
-          {houseNumber && (
-            <div>
-              <Typography>Номер дома:</Typography> {houseNumber}
-            </div>
-          )}
+
         </div>
       )}
       <div className="fixed left-0 bottom-6 mb-2 mt-2 px-2 w-full">
         <Button
-          onClick={() =>
-            navigate({
-              to: `/announcements/addAnnouncements/step-five`,
-            })
-          }
+          onClick={handleSubmit}
           mode="default"
         >
           {"Продолжить"}
