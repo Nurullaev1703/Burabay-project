@@ -39,6 +39,7 @@ export class AdService {
 
       const newAd = this.adRepository.create({
         organization: organization,
+        subcategory: subcategory,
         ...otherFields,
       });
 
@@ -90,7 +91,7 @@ export class AdService {
     try {
       const user = await this.userRepository.findOne({
         where: { id: userId },
-        relations: { favorites: true },
+        relations: { favorites: { organization: true } },
       });
       Utils.checkEntity(user, 'Пользователь не найден');
       Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
