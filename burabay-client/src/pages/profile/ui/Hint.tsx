@@ -7,6 +7,7 @@ export type accountStatus =
   | "unconfirmed"
   | "waiting"
   | "notFilled"
+  | "done"
   | "confirmed";
 
 interface Props {

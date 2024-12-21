@@ -199,6 +199,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                 e.preventDefault();
                 handleSubmit(saveUser);
               }}
+              loading={isLoading}
             >
               {t("save")}
             </Button>

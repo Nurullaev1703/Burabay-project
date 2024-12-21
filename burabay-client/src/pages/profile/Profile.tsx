@@ -34,7 +34,8 @@ export const Profile: FC<Props> = function Profile({ user }) {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState<string>(
-    baseUrl + user?.organization?.imgUrl
+    baseUrl +
+      (user?.role === "бизнес" ? user?.organization.imgUrl : user?.picture)
   );
   const [accountStatus, setAccountStatus] =
     useState<accountStatus>("notFilled");
@@ -57,20 +58,36 @@ export const Profile: FC<Props> = function Profile({ user }) {
               filepath: user?.organization?.imgUrl,
             },
           });
+        } else if (user?.picture.includes("/image")) {
+          await apiService.delete({
+            url: "/image",
+            dto: {
+              filepath: user?.picture,
+            },
+          });
         }
         // сохранение картинки. В результате получаем ссылку на картинку
         const response = await imageService.post<string>({
           url: "/image/profile",
           dto: formData,
         });
-        await apiService.patch({
-          url: "/profile",
-          dto: {
-            organization: {
-              imgUrl: response.data,
+        if (user?.role === "бизнес") {
+          await apiService.patch({
+            url: "/profile",
+            dto: {
+              organization: {
+                imgUrl: response.data,
+              },
             },
-          },
-        });
+          });
+        } else if (user?.role === "турист") {
+          await apiService.patch({
+            url: "/profile",
+            dto: {
+              picture: response.data,
+            },
+          });
+        }
         setImgSrc(baseUrl + response.data);
         setIsLoading(false);
       } catch (error) {
@@ -92,11 +109,15 @@ export const Profile: FC<Props> = function Profile({ user }) {
 
   useEffect(() => {
     if (user?.role === "турист") {
-      setAccountStatus("notFilled");
+      if (!user?.fullName && !user?.phoneNumber) {
+        setAccountStatus("notFilled");
+      }
+      setAccountStatus("done");
     } else {
       setAccountStatus("unconfirmed");
     }
   }, []);
+
   return (
     <section className="px-4 mb-14">
       <div className="flex justify-center mb-4 py-2 items-center bg-white">
@@ -110,7 +131,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
             }}
             alt="Изображение"
             className={`rounded-full absolute
-             top-0 left-0 w-full h-full ${imgSrc.startsWith(baseUrl) ? "object-cover" : ""}`}
+              ${imgSrc.startsWith(baseUrl) ? "top-0 left-0 object-cover w-full h-full" : ""}`}
           />
           <label
             htmlFor="logo"
