@@ -27,7 +27,6 @@ export const NewService: FC<Props> = function NewService(props) {
       const response  = await apiService.patch({
         url: `/ad/${props.adId}`,
         dto: {
-          adId: props.adId,
           unlimitedClients: unlimitedClients,
           adultsNumber: adultsCount,
           kidsNumber: childrenCount,
@@ -39,7 +38,10 @@ export const NewService: FC<Props> = function NewService(props) {
       })
       if(response.data){
         navigate({
-          to: "/announcements/priceService",
+          to: "/announcements/priceService/$adId",
+          params: {
+            adId: props.adId,
+          }
         })
       }
     }

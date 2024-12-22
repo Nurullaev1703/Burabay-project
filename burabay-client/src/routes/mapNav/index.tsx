@@ -16,7 +16,7 @@ function RouteComponent() {
   }
 
   if (data) {
-    return <MapNav announcements={data} />;
+    return <MapNav announcements={data.announcement} categories={data.categories} />;
   }
 }
  
