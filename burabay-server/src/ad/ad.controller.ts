@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { Public } from 'src/constants';
 import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { AdFilter } from './types/ad.filter';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
@@ -19,8 +20,8 @@ export class AdController {
   }
 
   @Get()
-  findAll() {
-    return this.adService.findAll();
+  findAll(@Query() filter: AdFilter) {
+    return this.adService.findAll(filter);
   }
 
   @Get('by-org/:orgId')

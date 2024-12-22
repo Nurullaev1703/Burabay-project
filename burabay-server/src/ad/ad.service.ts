@@ -8,6 +8,8 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
+import { AdFilter } from './types/ad.filter';
+import stringSimilarity from 'string-similarity-js';
 
 @Injectable()
 export class AdService {
@@ -48,16 +50,37 @@ export class AdService {
 
   /* Метод для получения всех Объявлений. */
   @CatchErrors()
-  async findAll() {
-    return await this.adRepository.find({
-      relations: {
-        organization: true,
-        schedule: true,
-        breaks: true,
-        address: true,
-        subcategory: { category: true },
-      },
+  async findAll(filter?: AdFilter) {
+    let ads: Ad[];
+    if (filter.categoryName) {
+      ads = await this.adRepository.find({
+        where: { subcategory: { category: { name: filter.categoryName } } },
+        relations: {
+          organization: true,
+          schedule: true,
+          breaks: true,
+          address: true,
+          subcategory: { category: true },
+        },
+      });
+    } else {
+      ads = await this.adRepository.find({
+        relations: {
+          organization: true,
+          schedule: true,
+          breaks: true,
+          address: true,
+          subcategory: { category: true },
+        },
+      });
+    }
+    if (filter.adName) {
+      ads = this._searchAd(filter.adName, ads);
+    }
+    ads.forEach((ad) => {
+      console.log(ad.title);
     });
+    return ads;
   }
 
   /* Метод для получения всех Объявлений у Организации */
@@ -156,5 +179,19 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     await this.adRepository.remove(ad);
     return JSON.stringify(HttpStatus.OK);
+  }
+
+  private _searchAd(name: string, ads: Ad[]): Ad[] {
+    const searchedAds = [];
+    ads.forEach((ad) => {
+      const simValue = stringSimilarity(ad.title, name);
+      if (simValue > 0.2)
+        searchedAds.push({
+          prod: ad,
+          simValue: simValue,
+        });
+    });
+    searchedAds.sort((a, b) => b.simValue - a.simValue);
+    return searchedAds.map((ad) => ad.prod);
   }
 }
