@@ -13,23 +13,26 @@ import { useTranslation } from 'react-i18next';
 import { SmallHint } from '../../shared/ui/SmallHint';
 import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
+import { apiService } from '../../services/api/ApiService';
 
 interface Props {
-
+  adId: string;
 }
 
 interface FormType {
     price: number;
+    priceForChild: number;
 }
 
-export const PriceService: FC<Props> = function PriceService() {
+export const PriceService: FC<Props> = function PriceService(props) {
     const navigate = useNavigate();
     const [booking, setBooking] = useState(false);
     const [onSitePayment, setOnSitePayment] = useState(false);
     const [onlinePayment, setOnlinePayment] = useState(false);
     const {t} = useTranslation();
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const { control, handleSubmit } = useForm<FormType>({
+
+    const { control , handleSubmit  } = useForm<FormType>({
         defaultValues: {
             price: 0
         },
@@ -72,7 +75,30 @@ export const PriceService: FC<Props> = function PriceService() {
         <Typography size={16} weight={400}>{"Стоимость услуги"}</Typography>
         <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>{"Не указывайте, если услуга бесплатна"}</Typography>
       </div>
-      <DefaultForm className='mt-2'>
+      <DefaultForm className='mt-2'
+      onSubmit={handleSubmit(async (form) =>{
+        const response  = await apiService.patch({
+          url: `/ad/${props.adId}`,
+          dto: {
+            isBookable: booking,
+            onSitePayment: onSitePayment,
+            onlinePayment: onlinePayment,
+            price: Number(form.price) ,
+            priceForChild: Number(form.priceForChild) , 
+  
+          }
+          
+        })
+        if(response.data){
+          navigate({
+            to: "/announcements/$announcementId",
+            params: {
+              announcementId: props.adId
+            }
+          })
+        }
+      })}
+      >
       <Controller
         name="price"
             control={control}
@@ -85,24 +111,23 @@ export const PriceService: FC<Props> = function PriceService() {
             render={({ field, fieldState: { error } }) => (
             <div className=''>
               <TextField
-
+                className=''
                 {...field}
                 error={Boolean(error?.message)}
                 helperText={error?.message || errorMessage}
                 fullWidth={true}
                 type={"number"}
+                inputMode='numeric'
                 variant="outlined"
                 label={t("Стоимость услуги для взрослых клиентов")}
-                inputProps={{ maxLength: 40 }}
+                inputProps={{ maxLength: 40  }}
                 autoFocus={true}
                 placeholder={t("")}
               />
-              </div>
-              
-              
+              </div>       
     )}/>
           <Controller
-        name="price"
+        name="priceForChild"
             control={control}
             rules={{
                 maxLength: {
@@ -129,6 +154,9 @@ export const PriceService: FC<Props> = function PriceService() {
               
               
     )}/>
+        <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
+        <Button type="submit" mode='default'>{"Продолжить"}</Button>
+      </div>
       </DefaultForm>
       </div>
       <div className='px-4'>
@@ -166,11 +194,7 @@ export const PriceService: FC<Props> = function PriceService() {
           to: `/profile`,
         })} mode="transparent">{"Подтвердить аккаунт"}</Button>
       </div>
-      <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button onClick={() => navigate({
-          to: `/announcements`,
-        })} mode='default'>{"Продолжить"}</Button>
-      </div>
+
     </main>
 )
 };

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, Category, Subcategories } from "./model/announcements";
 
+
 export function useGetCategory(){
     return useQuery({
         queryKey: ["/categories"],
@@ -48,7 +49,10 @@ export function UseGetAnnouncements() {
             const response = await apiService.get<Announcement[]>({
                 url: `/ad`
             })
-            return response.data
+            const category = await apiService.get<Category[]>({
+                url: "/category"
+            })
+            return {announcement: response.data, categories: category.data}
         }
     })
 }
