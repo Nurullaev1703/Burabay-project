@@ -32,7 +32,7 @@ export class Utils {
     );
   }
 
-  // /* Метод для проверки существования объекта и вызова исключения в случае отсутствия. */
+  /* Метод для проверки существования объекта и вызова исключения в случае отсутствия. */
   static checkEntity(obj: object, msg: string) {
     if (!obj) throw new HttpException(msg, HttpStatus.NOT_FOUND);
   }
@@ -44,4 +44,24 @@ export class Utils {
     const instance = new classType();
     return Object.getOwnPropertyNames(instance) as (keyof T)[];
   }
+}
+
+export function CatchErrors() {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = async function (...args: any[]) {
+      try {
+        return await originalMethod.apply(this, args);
+      } catch (error) {
+        console.error(error);
+        throw new HttpException(
+          error.message,
+          error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    };
+
+    return descriptor;
+  };
 }
