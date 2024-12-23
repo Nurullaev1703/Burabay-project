@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Break } from './entities/break.entity';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 
 @Injectable()
 export class BreaksService {
@@ -15,20 +15,22 @@ export class BreaksService {
     @InjectRepository(Break)
     private readonly breakRepository: Repository<Break>,
   ) {}
-  async create(createBreakDto: CreateBreakDto) {
-    try {
-      const { adId, ...oF } = createBreakDto;
+
+  @CatchErrors()
+  async create(createBreakDto: CreateBreakDto[]) {
+    const newBreaks: Break[] = [];
+    for (const createBreak of createBreakDto) {
+      const { adId, ...oF } = createBreak;
       const ad = await this.adRepository.findOne({ where: { id: adId } });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newBreak = this.breakRepository.create({
         ad: ad,
         ...oF,
       });
-      await this.breakRepository.save(newBreak);
-      return JSON.stringify(HttpStatus.CREATED);
-    } catch (error) {
-      Utils.errorHandler(error);
+      newBreaks.push(newBreak);
     }
+    await this.breakRepository.save(newBreaks);
+    return JSON.stringify(HttpStatus.CREATED);
   }
 
   async findAllByAd(adId: string) {

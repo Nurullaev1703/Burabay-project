@@ -1,4 +1,4 @@
 export interface AdFilter {
-  categoryName?: string;
+  categoryNames?: string;
   adName?: string;
 }

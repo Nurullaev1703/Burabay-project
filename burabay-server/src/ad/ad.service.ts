@@ -3,7 +3,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
@@ -52,9 +52,10 @@ export class AdService {
   @CatchErrors()
   async findAll(filter?: AdFilter) {
     let ads: Ad[];
-    if (filter.categoryName) {
+    if (filter.categoryNames) {
+      const categoryNamesArr = filter.categoryNames.split(',');
       ads = await this.adRepository.find({
-        where: { subcategory: { category: { name: filter.categoryName } } },
+        where: { subcategory: { category: { name: In(categoryNamesArr) } } },
         relations: {
           organization: true,
           schedule: true,
@@ -77,9 +78,6 @@ export class AdService {
     if (filter.adName) {
       ads = this._searchAd(filter.adName, ads);
     }
-    ads.forEach((ad) => {
-      console.log(ad.title);
-    });
     return ads;
   }
 

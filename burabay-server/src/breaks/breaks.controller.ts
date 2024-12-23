@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { BreaksService } from './breaks.service';
 import { CreateBreakDto } from './dto/create-break.dto';
 import { UpdateBreakDto } from './dto/update-break.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/constants';
 
 @Controller('breaks')
@@ -13,7 +13,8 @@ export class BreaksController {
   constructor(private readonly breaksService: BreaksService) {}
 
   @Post()
-  create(@Body() createBreakDto: CreateBreakDto) {
+  @ApiBody({ schema: { example: BreaksController.exampleCreateAd } })
+  create(@Body() createBreakDto: CreateBreakDto[]) {
     return this.breaksService.create(createBreakDto);
   }
 
@@ -31,4 +32,17 @@ export class BreaksController {
   remove(@Param('id') id: string) {
     return this.breaksService.remove(id);
   }
+
+  private static exampleCreateAd = [
+    {
+      'adId': 'string',
+      'start': '13:00',
+      'end': '14:00',
+    },
+    {
+      'adId': 'string',
+      'start': '16:00',
+      'end': '16:30',
+    },
+  ];
 }
