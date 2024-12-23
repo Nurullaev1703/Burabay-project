@@ -84,7 +84,7 @@ export interface Announcement {
   kidsMinAge: number;
   petsAllowed: boolean;
   isBookable: boolean;
-  price: boolean;
+  price: number;
   priceForChild: number;
   onSitePayment: null;
   onlinePayment: null;
@@ -96,6 +96,8 @@ export interface Announcement {
   schedule: string;
   views: number;
   favCount: number;
+  avgRating: number;
+  reviewCount:number
 }
 
 export interface location {

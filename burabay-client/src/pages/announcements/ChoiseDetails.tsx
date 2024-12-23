@@ -1,4 +1,4 @@
-import { FC, useRef, useState } from "react";
+import { FC, useState } from "react";
 import { Announcement, Category, Subcategories } from "./model/announcements";
 import { Header } from "../../components/Header";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
@@ -6,8 +6,6 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Typography } from "../../shared/ui/Typography";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
-import { baseUrl } from "../../services/api/ServerData";
-import defaultImage from "../../app/icons/main/health.svg";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { DefaultForm } from "../auth/ui/DefaultForm";
@@ -16,10 +14,18 @@ import { Switch, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useMask } from "@react-input/mask";
 import { ProgressSteps } from "./ui/ProgressSteps";
-import imageSvg from "../../app/icons/announcements/image.svg";
 import { apiService } from "../../services/api/ApiService";
-import { imageService } from "../../services/api/ImageService";
 import { useAuth } from "../../features/auth";
+import update from "immutability-helper";
+import { DndProvider } from "react-dnd";
+import { TouchBackend } from "react-dnd-touch-backend";
+import ImageCard from "./ui/ImageCard";
+import { imageService } from "../../services/api/ImageService";
+
+interface ImageData {
+  file: File | null; // Файл для выгрузки
+  preview: string; // Превью для отображения
+}
 
 interface Props {
   category: Category;
@@ -50,26 +56,81 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
   const { t } = useTranslation();
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [imgSource, setImgSource] = useState<string>(
-    baseUrl + category.imgPath
-  );
-  const navigate = useNavigate();
-  const {user} = useAuth();
   const [isError, setIsError] = useState<boolean>(false);
-  const handleFocus = () => {
-    if (inputRef.current) {
-      setIsError(false);
-      inputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [images, setImages] = useState<ImageData[]>([]);
+  const MAX_IMAGES = 10;
+
+  const handleImageUpload = (index: number, files: FileList) => {
+    const newFiles = Array.from(files).slice(0, MAX_IMAGES - images.length);
+
+    const newImages = newFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setImages((prevImages) => {
+      const updatedImages = [...prevImages];
+      updatedImages.splice(index, 1, ...newImages);
+
+      // Добавляем пустую карточку, если есть место
+      if (updatedImages.length < MAX_IMAGES) {
+        updatedImages.push({ file: null, preview: "" });
+      }
+
+      return updatedImages.slice(0, MAX_IMAGES); // Обрезаем массив до максимального размера
+    });
+  };
+
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    setImages((prevImages) =>
+      update(prevImages, {
+        $splice: [
+          [dragIndex, 1],
+          [hoverIndex, 0, prevImages[dragIndex]],
+        ],
+      })
+    );
+  };
+
+  const handleUpload = async () => {
+    const formData = new FormData();
+
+    images.forEach((image, index) => {
+      if (image.file) {
+        formData.append(`image_${index}`, image.file);
+      }
+    });
+
+    try {
+      const response = await imageService.post<string[]>({
+        url:"/images/ads",
+        dto: formData
+      })
+      if (response.data && response.status) {
+        return response.data
+      } else {
+        throw new Error("Ошибка при загрузке файлов.");
+      }
+    } catch{
+      throw new Error("Ошибка при загрузке файлов.");
     }
   };
-  const { control, handleSubmit , formState: { isValid, isSubmitting } } = useForm<FormType>({
+
+  if (images.length === 0) {
+    setImages([{ file: null, preview: "" }]);
+  }
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid, isSubmitting },
+  } = useForm<FormType>({
     defaultValues: {
       description: "",
     },
     mode: "onSubmit",
   });
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [imgSrc, setImgSrc] = useState<string>(baseUrl + category.imgPath);
   return (
     <section className="min-h-screen bg-[#F1F2F6]">
       <Header>
@@ -103,31 +164,32 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       </Header>
       <div className="px-4">
         <DefaultForm
-                onSubmit={handleSubmit(async (form) => {
-                  setIsLoading(true);
-                  const response = await apiService.post<Announcement>({
-                    url: "/ad",
-                    dto: {
-                      ...form,
-                      organizationId: user?.organization.id,
-                      subcategoryId: subcategory.id,
-                      phoneNumber: "+7" + form.phoneNumber.replace(/[ -]/g, ""),
-                      images: [],
-                      details: toggles,
-                      
-                    },
-                  });
-                  if(response.data.id){
-                    navigate({
-                      to: `/map/$adId`,
-                      params:{
-                        adId: response.data.id
-                      }
-                    })
-                  }
-                  setIsLoading(false);
-                })}
-        className="mt-2">
+          onSubmit={handleSubmit(async (form) => {
+            setIsLoading(true);
+            const newImages = await handleUpload();
+            const response = await apiService.post<Announcement>({
+              url: "/ad",
+              dto: {
+                ...form,
+                organizationId: user?.organization.id,
+                subcategoryId: subcategory.id,
+                phoneNumber: "+7" + form.phoneNumber.replace(/[ -]/g, ""),
+                images: newImages,
+                details: toggles,
+              },
+            });
+            if (response.data.id) {
+              navigate({
+                to: `/map/$adId`,
+                params: {
+                  adId: response.data.id,
+                },
+              });
+            }
+            setIsLoading(false);
+          })}
+          className="mt-2"
+        >
           <div>
             <Controller
               name="title"
@@ -208,25 +270,32 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               >
                 {"Фото"}
               </Typography>
-              <div className="w-24 h-24  border-[1px] border-[#0A7D9E] rounded-lg">
-                <div className="flex flex-col justify-center items-center w-full h-[100%]">
-                  <img src={imageSvg} alt="" />
-                  <Typography
-                    size={12}
-                    weight={400}
-                    color={COLORS_TEXT.blue200}
-                  >
-                    {"Добавить"}
-                  </Typography>
-                  <Typography
-                    size={12}
-                    weight={400}
-                    color={COLORS_TEXT.blue200}
-                  >
-                    {"фото"}
-                  </Typography>
+              <DndProvider
+                backend={TouchBackend}
+                options={{
+                  enableMouseEvents: true,
+                  enableTouchEvents: true, // Включить/отключить touch-события
+                  ignoreContextMenu: true,
+                }}
+              >
+                <div
+                  id="images"
+                  className="flex gap-2 items-center w-full overflow-x-auto scrollbar-blue pb-2"
+                >
+                  {images.map((image, index) => (
+                    <ImageCard
+                      key={index}
+                      id={index}
+                      index={index}
+                      src={image.preview}
+                      isMain={index == 0}
+                      moveCard={moveCard}
+                      isLast={index == images.length - 1}
+                      onImageUpload={(files) => handleImageUpload(index, files)}
+                    />
+                  ))}
                 </div>
-              </div>
+              </DndProvider>
               <Typography className="mt-2" size={14} weight={400}>
                 {
                   "Добавьте до десяти фотографий Перетащите что бы изменить порядок"
@@ -322,9 +391,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           </div>
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
             <Button
-            type="submit"
-            disabled = {!isValid}
-
+              type="submit"
+              disabled={!isValid || isLoading}
+              loading={isLoading || isSubmitting}
               mode="default"
             >
               {"Продолжить"}

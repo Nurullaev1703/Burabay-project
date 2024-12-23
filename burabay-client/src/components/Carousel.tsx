@@ -1,62 +1,71 @@
 import { FC, useState } from "react";
 import Slider from "react-slick";
 import { COLORS_BACKGROUND } from "../shared/ui/colors";
-import DefaultImage from "../app/img/default-image.png";
+import DefaultImage from "../app/icons/abstract-bg.svg";
+import { baseUrl } from "../services/api/ServerData";
 
-// данные, которые потребуются для формирования карусели
 export interface CarouselItem {
   index: number;
   imgUrl: string;
 }
-// требуемая высота для карусели (желательно vh)
+
 interface Props {
   height?: string;
   items: CarouselItem[];
 }
 
-export const Carousel: FC<Props> = function Carousel(props) {
+export const Carousel: FC<Props> = ({ height = "h-60", items }) => {
+  // Если нет изображений, добавляем заглушку
+  const displayedItems =
+    items.length > 0
+      ? items.map((item) => ({
+          ...item,
+          imgUrl: item.imgUrl.startsWith("http")
+            ? item.imgUrl
+            : baseUrl + item.imgUrl,
+        }))
+      : [{ index: 0, imgUrl: DefaultImage }];
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const height = props.height || "h-96";
-  const { items } = props;
+  // Отключаем бесконечную прокрутку, если изображение только одно
   const settings = {
-    dots: true,
-    infinite: true,
+    dots: displayedItems.length > 1,
+    infinite: displayedItems.length > 1, // Только если больше одной картинки
     speed: 600,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: false,
-    beforeChange: (previous: number, current: number) =>
-      setActiveIndex(current),
     pauseOnFocus: true,
+    beforeChange: (_: number, current: number) => setActiveIndex(current),
     customPaging: (i: number) => (
       <div
-        className={`
-                ${i === activeIndex ? `w-5 ${COLORS_BACKGROUND.main100}` : `w-2 ${COLORS_BACKGROUND.blue300}`}
-                h-2 rounded-full transition-all duration-500`}
+        className={`${
+          i === activeIndex
+            ? `w-5 ${COLORS_BACKGROUND.blue200}`
+            : `w-2 ${COLORS_BACKGROUND.gray200}`
+        } h-2 rounded-full transition-all duration-500`}
       />
     ),
     dotsClass: "slick-dots custom-dots",
   };
+
   return (
-    <div className="container mx-auto">
+    <div className="mx-auto">
       <Slider {...settings}>
-        {items.map((item) => {
-          const [imageSrc, setImageSrc] = useState<string>(item.imgUrl);
-          return (
-            <div key={item.index} className="px-2">
-              <div
-                className={`${height} rounded-button flex items-center justify-center relative`}
-              >
-                <img
-                  src={imageSrc}
-                  alt={`Slide ${item.index}`}
-                  className="absolute top-o left-0 object-cover w-full h-full rounded-button"
-                  onError={() => setImageSrc(DefaultImage)}
-                />
-              </div>
+        {displayedItems.map((item) => (
+          <div key={item.index}>
+            <div
+              className={`${height} rounded-button flex items-center justify-center relative`}
+            >
+              <img
+                src={item.imgUrl}
+                className="absolute top-0 left-0 object-cover w-full h-full rounded-button"
+                onError={(e) => {
+                  e.currentTarget.src = DefaultImage; // Устанавливаем заглушку при ошибке загрузки
+                }}
+              />
             </div>
-          );
-        })}
+          </div>
+        ))}
       </Slider>
     </div>
   );

@@ -33,10 +33,8 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         const isAuthPath = AUTH_PATH.some((path) =>
           options.location.pathname.startsWith(path)
         );
-        const isAuthAcceptPath = options.location.pathname.startsWith('/auth');
         if(
             !isAuthPath &&
-            !isAuthAcceptPath &&
             !tokenService.hasValue()
         ){
             throw redirect({to:"/welcome"})
