@@ -143,63 +143,63 @@ export class SeederService {
   }
   // TODO Потом удалить.
   async seedAds() {
-    try {
-      let org: Organization;
-      if (!(await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } }))) {
-        org = await this.orgRepository.create({
-          imgUrl: 'img_link',
-          name: 'Тестовая организация',
-          // address: 'Pavlodar',
-          isConfirmed: true,
-          description: 'Мы занимаемся всем подряд и не только',
-          siteUrl: 'https://wikipedia.org',
-        });
-        await this.orgRepository.save(org);
-      } else {
-        org = await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } });
-      }
+    // try {
+    //   let org: Organization;
+    //   if (!(await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } }))) {
+    //     org = await this.orgRepository.create({
+    //       imgUrl: 'img_link',
+    //       name: 'Тестовая организация',
+    //       // address: 'Pavlodar',
+    //       isConfirmed: true,
+    //       description: 'Мы занимаемся всем подряд и не только',
+    //       siteUrl: 'https://wikipedia.org',
+    //     });
+    //     await this.orgRepository.save(org);
+    //   } else {
+    //     org = await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } });
+    //   }
 
-      const subcategories = [
-        'Туристические тропы',
-        'Грибные места',
-        'Игровые площади',
-        'Гостиницы',
-        'Квартиры',
-        'Комнаты',
-        'Кафе',
-        'Рестораны',
-        'Столовые',
-      ];
+    //   const subcategories = [
+    //     'Туристические тропы',
+    //     'Грибные места',
+    //     'Игровые площади',
+    //     'Гостиницы',
+    //     'Квартиры',
+    //     'Комнаты',
+    //     'Кафе',
+    //     'Рестораны',
+    //     'Столовые',
+    //   ];
 
-      for (let i = 0; i < 9; i++) {
-        const subcategory = await this.subcategoryRepository.findOne({
-          where: { name: subcategories[i] },
-        });
-        if (!(await this.adRepository.findOne({ where: { title: 'Объявление №' + i } }))) {
-          const ad = this.adRepository.create({
-            title: 'Объявление №' + i,
-            description: 'Описание объявления №' + i,
-            price: Math.floor(Math.random() * 1000),
-            images: ['images_path'],
-            youtubeLink: 'youtube_link',
-            // address: 'Pavlodar',
-            phoneNumber: '+77077045632',
-            subcategory: subcategory,
-            details: {
-              type: 'rent',
-              bicycles: true,
-              electricScooters: true,
-              campingEquipment: true,
-              carRentalWithDriver: true,
-            },
-            organization: org,
-          });
-          await this.adRepository.save(ad);
-        }
-      }
-    } catch (error) {
-      Utils.errorHandler(error);
-    }
+    //   for (let i = 0; i < 9; i++) {
+    //     const subcategory = await this.subcategoryRepository.findOne({
+    //       where: { name: subcategories[i] },
+    //     });
+    //     if (!(await this.adRepository.findOne({ where: { title: 'Объявление №' + i } }))) {
+    //       const ad = this.adRepository.create({
+    //         title: 'Объявление №' + i,
+    //         description: 'Описание объявления №' + i,
+    //         price: Math.floor(Math.random() * 1000),
+    //         images: ['images_path'],
+    //         youtubeLink: 'youtube_link',
+    //         // address: 'Pavlodar',
+    //         phoneNumber: '+77077045632',
+    //         subcategory: subcategory,
+    //         details: {
+    //           type: 'rent',
+    //           bicycles: true,
+    //           electricScooters: true,
+    //           campingEquipment: true,
+    //           carRentalWithDriver: true,
+    //         },
+    //         organization: org,
+    //       });
+    //       await this.adRepository.save(ad);
+    //     }
+    //   }
+    // } catch (error) {
+    //   Utils.errorHandler(error);
+    // }
   }
   async seed() {
     await this.seedCategoryAndSubcategory();
