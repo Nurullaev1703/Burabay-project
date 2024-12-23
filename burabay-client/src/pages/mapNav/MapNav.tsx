@@ -8,7 +8,7 @@ import { Point } from "ol/geom";
 import { Feature } from "ol";
 import { Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource } from "ol/source";
-import { Fill, Icon, Style } from "ol/style";
+import { Fill, Icon, Stroke, Style } from "ol/style";
 import locationIcon from "../../app/icons/main/markerMap.png";
 import { Typography } from "../../shared/ui/Typography";
 import { Header } from "../../components/Header";
@@ -31,6 +31,8 @@ import { Button } from "../../shared/ui/Button";
 import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../shared/ui/CoveredImage";
 import { useNavigate } from "@tanstack/react-router";
+import { MapFilter } from "../announcements/announcements-utils";
+import CircleStyle from "ol/style/Circle";
 
 const containerStyle = {
   width: "100%",
@@ -40,11 +42,10 @@ const containerStyle = {
 interface Props {
   announcements: Announcement[];
   categories: Category[];
+  filters: MapFilter;
 }
 
-const initialCenter = [70.31, 53.08];
-
-export const MapNav: FC<Props> = ({ announcements, categories }) => {
+export const MapNav: FC<Props> = ({ announcements, categories , filters }) => {
   const categoryColors: Record<string, string> = {
     Отдых: "bg-[#39B598]",
     Жилье: "bg-[#5EBAE1]",
@@ -56,13 +57,22 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
     Прокат: "bg-[#A16ACD]",
     Безопасность: "bg-[#777CEF]",
   };
+  const colors: Record<string, string> = {
+    Отдых: "#39B598",
+    Жилье: "#5EBAE1",
+    Здоровье: "#DC53AD",
+    Экстрим: "#EF5C7F",
+    Достопримечательности: "#B49081",
+    Питание: "#F4A261",
+    Развлечения: "#E5C82F",
+    Прокат: "#A16ACD",
+    Безопасность: "#777CEF",
+  };
 
-  // const [map, setMap] = useState<Map | null>(null);
-  // const [markers, setMarkers] = useState<Feature[]>([]);
-  // const [address, setAddress] = useState<string>("");
+
   const [announcementsName, setAnnouncementsName] = useState<string>("");
   const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
-  const [activeCategory, _setActiveCategory] = useState<string >("");
+  const [activeCategory, setActiveCategory] = useState<string >("");
   const [showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
@@ -72,13 +82,11 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
     null
   ); // Храним информацию о выбранном объявлении
 
-  // const categories = Array.from(
-  //   new Set(
-  //     announcements
-  //       .map((item) => item.subcategory?.category.name)
-  //       .filter(Boolean)
-  //   )
-  // );
+
+
+  useEffect(() => {
+    setActiveCategory(filters?.categoryName || "")
+  } , [])
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -124,6 +132,7 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
       addresses: { latitude: number; longitude: number }[],
       categories: string
     ) => {
+      vectorSource.clear(); // Очистка предыдущих маркеров
       addresses.forEach(({ latitude, longitude }, index) => {
         if (latitude === undefined || longitude === undefined) {
           console.warn("Некорректные координаты:", { latitude, longitude });
@@ -140,31 +149,54 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
         const category = announcements[index].subcategory?.category;
         const imagePath = category?.imgPath || locationIcon; // Если картинка категории есть, используем её
 
+
         const iconStyle = new Style({
           image: new Icon({
             src: locationIcon, // Стандартная иконка маркера
-            scale: 0.7,
+            scale: 1,
             anchor: [0.5, 1], // Центрируем иконку маркера
           }),
+          zIndex: 0
+          
         });
 
         // Создаем кастомный маркер с изображением категории внутри
-        const customIcon = new Style({
-          image: new Icon({
-          
-            src: loadImage(imagePath),
-            scale: 0.5,
-            anchor: [0.5, 1.5], // Центрируем изображение категории в маркере
-            anchorXUnits: "fraction",
-            anchorYUnits: "fraction",
-            color: "white"
+
+          console.log(categoryColors[category.name].replace("bg-" , ""))
+        // Создание стиля для фона
+        const backgroundStyle = new Style({
+          image: new CircleStyle({
+            radius: 10, // Радиус круга (фон)
+            
+            fill: new Fill({
+              color: colors[category.name] // Цвет фона
+            }),
             
           }),
-
+          zIndex: 1
         });
+        
+        // Создание стиля для изображения
+        const markerIconStyle = new Style({
+          image: new Icon({
+            color: "Black",
+            src: loadImage(imagePath), // Путь к изображению
+            scale: 0.5, // Масштаб изображения
+            anchor: [0.5, 2], // Центрируем изображение
+            anchorXUnits: "fraction",
+            anchorYUnits: "fraction",
+          }),
+          zIndex: 2
+        });
+        
+        // Применение стилей к маркеру
+        marker.setStyle([backgroundStyle, markerIconStyle , iconStyle]);
+        backgroundStyle.getImage()?.setDisplacement([0, 25])
+        
+        // Устанавливаем ID маркера с помощью ID объявления
+        marker.setId(announcements[index].id.toString());  
 
-        marker.setStyle([iconStyle, customIcon]);
-
+        // Устанавливаем id фичи для связи с данными
         marker.setId(announcements[index].id); // Устанавливаем id фичи для связи с данными
 
         vectorSource.addFeature(marker);
@@ -201,21 +233,7 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
     setIsSearchMode(false);
   };
 
-  // const handleSearchClick = () => {
-  //   setIsSearchMode(true);
-  // };
 
-  // const handleCategoryClick = (categoryName: string) => {
-  //   setActiveCategory(activeCategory === categoryName ? null : categoryName);
-  //   setShowCategoryModal(true);
-  //   const categoryAnnouncements = announcements.filter(
-  //     (announcement) => announcement.subcategory?.category.name === categoryName
-  //   );
-  //   setCategoryInfo(
-  //     categoryAnnouncements[0]?.subcategory?.category.description ||
-  //       "Информация отсутствует"
-  //   );
-  // };
 
   const handleCloseModal = () => {
     setShowCategoryModal(false);
@@ -228,7 +246,6 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
 
 
   // Создаем переменную для отслеживания уже отображенных категорий
-  // const displayedCategories = new Set<string>();
   const openGoogleMaps = (latitude: number, longitude: number) => {
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
     window.open(url, "_blank"); // Открывает ссылку в новой вкладке
@@ -300,19 +317,28 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
       )}
 
       {!isSearchMode && (
-        <div className="relative top-[-80px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
+        <div className="relative px-4 top-[-80px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
           {categories.map((item) => {
             return (
               <button
               type="button"
-                onClick={() => _setActiveCategory(item.name)}
+              onClick={() => navigate({
+                to: "/mapNav" , 
+                search: {
+                  categoryName: filters.categoryName == item.name ? "" : item.name,
+                  adName: filters.adName
+                }
+              })}
+              
+                
                 key={item.id}
                 className={`
                      w-fit
-                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${activeCategory === item.name ? categoryColors[item.name]: "bg-white"} `}
+                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryName === item.name ? categoryColors[filters.categoryName]: "bg-white"} `}
               >
                 
                 <div
+
                   className={`relative min-w-7 min-h-7 rounded-full ${categoryColors[item.name]}  `}
                 >
                   
@@ -324,7 +350,7 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
                 <Typography
                   size={16}
                   weight={400}
-                  color={activeCategory === item.name ? COLORS_TEXT.white : ""}
+                  color={filters.categoryName === item.name ? COLORS_TEXT.white : ""}
                   className={`text-center line-clamp-1`}
                 >
                   {item.name}
@@ -336,7 +362,13 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
                     src={cancel}
                     alt="Close"
                     className=""
-                    onClick={() => _setActiveCategory("")}
+                    onClick={() => navigate({
+                      to: "/mapNav" , 
+                      search: {
+                        categoryName: "",
+                        adName: filters.adName
+                      }
+                    })}
                   />
                   </div>
                 )}
@@ -384,10 +416,15 @@ export const MapNav: FC<Props> = ({ announcements, categories }) => {
                   height="h-40"
                   imageSrc={defaultAnnoun}
                 >
+                  <div className="flex items-center">
+                  <div className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}>
                   <img
-                    className="absolute top-2 w-7 h-7 left-2"
+                    className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
                     src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                   />
+
+                  </div>
+                  </div>
                 </CoveredImage>
                 <div>
                   <div className="flex flex-row justify-between">

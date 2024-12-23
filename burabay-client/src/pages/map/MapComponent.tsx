@@ -115,7 +115,7 @@ export const MapComponent: FC<Props> = (props) => {
     const adress = arrayAdress[0].includes("улица") ? arrayAdress[0] : arrayAdress[1];
   
     console.log(adress)
-    const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : ""
+    const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : "Бурабай"
     const response = await apiService.post({
       url: "/address",
       dto:{
@@ -124,7 +124,7 @@ export const MapComponent: FC<Props> = (props) => {
         address: address,
         latitude: coords[0],
         longitude: coords[1],
-        specialName  
+        specialName 
       }
       
       
