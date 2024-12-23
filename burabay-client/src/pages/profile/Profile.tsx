@@ -43,7 +43,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
 
   // Смена лого
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  console.log(accountStatus)
   const imageChange = async (data: File) => {
     if (data) {
       setIsLoading(true);
@@ -109,10 +109,11 @@ export const Profile: FC<Props> = function Profile({ user }) {
 
   useEffect(() => {
     if (user?.role === "турист") {
-      if (!user?.fullName && !user?.phoneNumber) {
+      if (!user?.fullName || !user?.phoneNumber) {
         setAccountStatus("notFilled");
+      } else {
+        setAccountStatus("done");
       }
-      setAccountStatus("done");
     } else {
       setAccountStatus("unconfirmed");
     }

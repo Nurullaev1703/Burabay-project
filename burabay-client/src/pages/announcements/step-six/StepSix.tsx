@@ -17,15 +17,28 @@ import PlusIcon from "../../../app/icons/plus.svg";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { apiService } from "../../../services/api/ApiService";
+import { HTTP_STATUS } from "../../../services/api/ServerData";
 
-export const StepSix: FC = function StepSix() {
+interface Props {
+  id: string;
+}
+
+interface FormType {
+  fullDay: boolean;
+  serviceTime: string[];
+  isDuration: boolean;
+  duration: string;
+}
+
+export const StepSix: FC<Props> = function StepSix({ id }) {
   const { t } = useTranslation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { handleSubmit, watch, setValue, control } = useForm({
     defaultValues: {
       fullDay: false,
-      serviceTime: ["12:13"],
+      serviceTime: [],
       isDuration: false,
       duration: "",
     },
@@ -38,6 +51,9 @@ export const StepSix: FC = function StepSix() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [tempTime, setTempTime] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [errorText, setErrorText] = useState<string>("");
 
   // Добавление времени
   const addServiceTime = () => {
@@ -63,15 +79,16 @@ export const StepSix: FC = function StepSix() {
   // При отвода фокуса от поля
   const handleBlur = () => {
     if (isCreating && tempTime) {
-      setServicesTime([...servicesTime, tempTime]); // Добавляем в список только после завершения ввода
-      setValue(`serviceTime.${servicesTime.length}`, tempTime); // Сохраняем в useForm
+      const updatedServices = [...servicesTime, tempTime];
+      setServicesTime(updatedServices); // Обновляем список
+      setValue("serviceTime", updatedServices); // Сохраняем весь массив
       setIsCreating(false); // Завершаем создание
       setTempTime(""); // Сбрасываем временное значение
     }
-    if (editingIndex !== null && servicesTime[editingIndex]) {
-      setValue(`serviceTime.${editingIndex}`, servicesTime[editingIndex]); // Сохраняем в useForm
+    if (editingIndex !== null) {
+      const updatedServices = [...servicesTime];
+      setValue("serviceTime", updatedServices); // Сохраняем весь массив
       setEditingIndex(null); // Завершаем редактирование
-      setIsCreating(false);
     }
   };
 
@@ -82,6 +99,35 @@ export const StepSix: FC = function StepSix() {
     setValue("serviceTime", updatedServices);
   };
 
+  const handleError = (errorText: string) => {
+    setErrorText(errorText);
+    setError(true);
+  };
+
+  const saveSchedule = async (form: FormType) => {
+    try {
+      const response = await apiService.patch<string>({
+        url: `/ad/${id}`,
+        dto: form,
+      });
+
+      if (response.data == HTTP_STATUS.OK) {
+        // navigate({ to: "/profile" });
+        window.location.href = "/profile";
+      }
+
+      if (response.data == HTTP_STATUS.CONFLICT) {
+        handleError(t("invalidCode"));
+      }
+      if (response.data == HTTP_STATUS.SERVER_ERROR) {
+        handleError(t("tooManyRequest"));
+      }
+
+      setIsLoading(false);
+    } catch (e) {
+      console.error("Ошибка при сохранении графика:", error);
+    }
+  };
   return (
     <section>
       <Header>
@@ -153,9 +199,9 @@ export const StepSix: FC = function StepSix() {
                   className={`border-2 ${COLORS_BORDER.blue200} border-solid flex items-center gap-2 w-28 h-10 rounded-3xl`}
                 >
                   <Controller
-                    name={`serviceTime.${editingIndex ?? 0}`}
+                    name="tempServiceTime"
                     control={control}
-                    render={({ field }) => {
+                    render={() => {
                       const timeMask = useMask({
                         mask: "hH:mM",
                         replacement: {
@@ -170,10 +216,10 @@ export const StepSix: FC = function StepSix() {
                           className={`py-3 cursor-pointer w-28 h-10 rounded-3xl flex justify-center items-center`}
                         >
                           <input
-                            {...field}
                             type="text"
                             ref={timeMask}
                             className={`w-16 h-8 text-center focus:outline-none`}
+                            value={tempTime} // Используем tempTime
                             onChange={(e) =>
                               handleTempTimeChange(e.target.value)
                             }
@@ -317,11 +363,22 @@ export const StepSix: FC = function StepSix() {
         )}
       </div>
 
-      <Button onClick={() => navigate({
-          to: `/announcements/bookingBan`,
-        })} className="fixed bottom-4 left-4 w-header">
-        {t("continue")}
-      </Button>
+      {!error ? (
+        <Button
+          className="fixed bottom-4 left-4 w-header"
+          onClick={(e) => {
+            e.preventDefault();
+            handleSubmit(saveSchedule)();
+          }}
+          loading={isLoading}
+        >
+          {t("continue")}
+        </Button>
+      ) : (
+        <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8">
+          {errorText}
+        </Button>
+      )}
     </section>
   );
 };
