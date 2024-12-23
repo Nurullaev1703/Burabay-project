@@ -23,6 +23,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../../features/auth';
 import { use } from 'i18next';
 import { HTTP_STATUS } from '../../services/api/ServerData';
+import { TextField } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const containerStyle = {
   width: '100%',
@@ -36,13 +38,12 @@ interface Props {
 const initialCenter = [70.310, 53.080]; // Координаты для Борового
 
 export const MapComponent: FC<Props> = (props) => {
+  const {t} = useTranslation()
   const navigate = useNavigate();
   const {user} = useAuth();
-  const [marker, setMarker] = useState<Feature | null>(null); // Храним только одну метку
   const [address, setAddress] = useState<string>(''); // Храним адрес
-  const [houseNumber, setHouseNumber] = useState<string | null>(null); // Храним номер дома
+
   const [coords, setCoords] = useState<number[]>([])
-  const vectorSource = new VectorSource(); // Источник для слоя маркеров
   useEffect(() => {  
     let currentMarker: Feature | null = null; // Переменная для хранения текущего маркера
   
@@ -99,7 +100,6 @@ export const MapComponent: FC<Props> = (props) => {
         });
         const { display_name, address } = response.data;
         setAddress(display_name); // Устанавливаем полный адрес
-        setHouseNumber(address?.house_number || null); // Устанавливаем номер дома (если доступен)
       } catch (error) {
         console.error('Ошибка при получении адреса:', error);
       }
@@ -113,8 +113,6 @@ export const MapComponent: FC<Props> = (props) => {
   const handleSubmit = async () =>{
     const arrayAdress = address.split(",")
     const adress = arrayAdress[0].includes("улица") ? arrayAdress[0] : arrayAdress[1];
-  
-    console.log(adress)
     const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : "Бурабай"
     const response = await apiService.post({
       url: "/address",
@@ -145,10 +143,10 @@ export const MapComponent: FC<Props> = (props) => {
           </IconContainer>
           <div>
             <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align="center">
-              {"Новое объявление"}
+              {t("addNewAd")}
             </Typography>
             <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align="center">
-              {"Укажите место"}
+              {t("choisePlace")}
             </Typography>
           </div>
           <IconContainer align="end" action={async () => history.back()}>
@@ -159,16 +157,20 @@ export const MapComponent: FC<Props> = (props) => {
       </Header>
       <div id="map" style={containerStyle}></div>
       {address && (
-        <div
+        <div>
+        <TextField
+        variant='outlined'
+        placeholder={t("addressPlace")}
           style={{
+            width: "80%",
             position: 'absolute',
-            top: 100,
-            left: 45,
-            background: 'white',
-            padding: '10px',
+            top: 105,
+            left: 55,
+
           }}
-        >
+        />
           <Typography>Адрес:</Typography> {address}
+
 
         </div>
       )}
@@ -177,7 +179,7 @@ export const MapComponent: FC<Props> = (props) => {
           onClick={handleSubmit}
           mode="default"
         >
-          {"Продолжить"}
+          {t("continueBtn")}
         </Button>
       </div>
     </main>

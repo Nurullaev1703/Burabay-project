@@ -6,7 +6,7 @@ import { COLORS_TEXT } from '../../shared/ui/colors';
 import { ProgressSteps } from './ui/ProgressSteps';
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
-import { Switch, TextField } from '@mui/material';
+import { InputAdornment, OutlinedInput, Switch, TextField } from '@mui/material';
 import { DefaultForm } from '../auth/ui/DefaultForm';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,8 @@ export const PriceService: FC<Props> = function PriceService(props) {
 
     const { control , handleSubmit  } = useForm<FormType>({
         defaultValues: {
-            price: 0
+            price: 0,
+            priceForChild: 0,
         },
         mode: "onSubmit",
       });
@@ -47,9 +48,9 @@ export const PriceService: FC<Props> = function PriceService(props) {
           </IconContainer>
           <div>
             <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align="center">
-              {"Новая слуга"}
+              {t("newService")}
             </Typography>
-            <Typography size={14} weight={400} color={COLORS_TEXT.blue200}>{"Стоимость услуги"}</Typography>
+            <Typography size={14} weight={400} color={COLORS_TEXT.blue200}>{t("priceService")}</Typography>
           </div>
           <IconContainer align="end" action={() => history.back()}>
             <img src={XIcon} alt="" />
@@ -60,9 +61,9 @@ export const PriceService: FC<Props> = function PriceService(props) {
       <div className=''>
       <div className='flex justify-between items-center px-4'>
         <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">Бронирование</Typography>
+          <Typography size={16} weight={400} className="">{t("booking")}</Typography>
           <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          Укажжите, если у услугу нужно бронировать
+          {t("bookingBoolean")}
         </Typography>
         </div>
         <Switch
@@ -72,8 +73,8 @@ export const PriceService: FC<Props> = function PriceService(props) {
             />
       </div>
       <div className='mt-5 px-4'>
-        <Typography size={16} weight={400}>{"Стоимость услуги"}</Typography>
-        <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>{"Не указывайте, если услуга бесплатна"}</Typography>
+        <Typography size={16} weight={400}>{t("priceService")}</Typography>
+        <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>{t("ifFree")}</Typography>
       </div>
       <DefaultForm className='mt-2'
       onSubmit={handleSubmit(async (form) =>{
@@ -109,20 +110,18 @@ export const PriceService: FC<Props> = function PriceService(props) {
                   },
             }}
             render={({ field, fieldState: { error } }) => (
-            <div className=''>
-              <TextField
-                className=''
+            <div className='min-w-3 max-w-fit'>
+              <TextField  
                 {...field}
+              variant='outlined'    
                 error={Boolean(error?.message)}
-                helperText={error?.message || errorMessage}
                 fullWidth={true}
                 type={"number"}
                 inputMode='numeric'
-                variant="outlined"
-                label={t("Стоимость услуги для взрослых клиентов")}
-                inputProps={{ maxLength: 40  }}
+                label={t("priceForAdult")}
                 autoFocus={true}
                 placeholder={t("")}
+
               />
               </div>       
     )}/>
@@ -145,7 +144,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                 fullWidth={true}
                 type={"number"}
                 variant="outlined"
-                label={t("Доплата за детей (при необходимости)")}
+                label={t("priceForChild")}
                 inputProps={{ maxLength: 40 }}
                 autoFocus={true}
                 placeholder={t("")}
@@ -155,18 +154,18 @@ export const PriceService: FC<Props> = function PriceService(props) {
               
     )}/>
         <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button type="submit" mode='default'>{"Продолжить"}</Button>
+        <Button type="submit" mode='default'>{t("continueBtn")}</Button>
       </div>
       </DefaultForm>
       </div>
       <div className='px-4'>
-      <SmallHint background='white' text='Способ оплаты'/>
+      <SmallHint background='white' text={t('paymentMethod')}/>
       </div>
       <div className='flex justify-between items-center px-4 mb-10'>
         <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">{"Оплата на месте"}</Typography>
+          <Typography size={16} weight={400} className="">{t("payOnPlace")}</Typography>
           <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          {"Оплата услуги производится на месте наличными или по карте"}
+          {t("payOnPlaceOrOnline")}
         </Typography>
         </div>
         <Switch
@@ -177,9 +176,9 @@ export const PriceService: FC<Props> = function PriceService(props) {
       </div>
       <div className='flex justify-between items-center px-4'>
         <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">{"Онлайн оплата"}</Typography>
+          <Typography size={16} weight={400} className="">{t("onlinePayment")}</Typography>
           <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          {"Оплата производиться онлайн, через приложение"}
+          {t("payIsMadeOnline")}
         </Typography>
         </div>
         <Switch
@@ -189,10 +188,10 @@ export const PriceService: FC<Props> = function PriceService(props) {
             />
       </div>
       <div className='px-4 mt-2'>
-      <Typography size={12} weight={700} color={COLORS_TEXT.red}>{"Подтвердите аккаунт,"} <span style={{ fontWeight: 400}}>{"что бы иметь возможность принимать онлайн предоплату"}</span></Typography>
+      <Typography size={12} weight={700} color={COLORS_TEXT.red}>{t("accessAcount")} <span style={{ fontWeight: 400}}>{t("accountOnlinePay")}</span></Typography>
       <Button onClick={() => navigate({
           to: `/profile`,
-        })} mode="transparent">{"Подтвердить аккаунт"}</Button>
+        })} mode="transparent">{t("accessAccountBtn")}</Button>
       </div>
 
     </main>

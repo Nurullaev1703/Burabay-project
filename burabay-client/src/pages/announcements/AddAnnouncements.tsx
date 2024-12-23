@@ -22,6 +22,7 @@ import rest from "../../app/icons/main/rest.svg"
 import security from "../../app/icons/main/security.svg"
 import { useNavigate } from '@tanstack/react-router';
 import { ProgressSteps } from './ui/ProgressSteps';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -30,6 +31,7 @@ category: Category[]
 }
 
 export const AddAnnouncements: FC<Props> = function AddAnnouncements({category}) {
+  const {t} = useTranslation()
   const navigate = useNavigate();
   const icons = [
     rest,
@@ -50,8 +52,8 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
       <img src={BackIcon} alt="" />
       </IconContainer>
       <div>
-      <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>{"Новое обьявление"}</Typography>
-      <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>{"Выберите категорию"}</Typography>
+      <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>{t("addNewAd")}</Typography>
+      <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>{t("choiseCat")}</Typography>
       </div>
       <IconContainer align='end' action={async() =>  history.back()}>
       <img src={XIcon} alt="" />
@@ -75,9 +77,9 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
             className='w-[34px] h-[34px]' alt="" />
           </div>
           <div className='gap-1'>
-            <Typography size={16} weight={400} className="text-black">{item.name}</Typography>
+            <Typography size={16} weight={400} className="text-black">{t(item.name)}</Typography>
             <Typography size={14} weight={400} color={COLORS_TEXT.gray100} className="mb-4">
-              {item.description}
+              {t(item.description)}
             </Typography>
           </div>
         </div>
@@ -89,7 +91,7 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
     })}
     </div>
     <div className='mb-2 mt-2 px-2'>
-    <Button mode='border' onClick={async() =>  history.back()}>{"Отменить"}</Button>
+    <Button mode='border' onClick={async() =>  history.back()}>{t("cancelBtn")}</Button>
     </div>
     </section>
   )
