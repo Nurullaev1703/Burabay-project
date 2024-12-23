@@ -42,7 +42,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Главная")}
+              {t("mainPage")}
             </span>
           </div>
         </li>
@@ -62,7 +62,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Карта")}
+              {t("mapNav")}
             </span>
           </div>
         </li>
@@ -81,7 +81,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Брони")}
+              {t("book")}
             </span>
           </div>
         </li>
@@ -100,7 +100,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Уведомления")}
+              {t("notific")}
             </span>
           </div>
         </li>
@@ -119,7 +119,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Профиль")}
+              {t("profile")}
             </span>
           </div>
         </li>
