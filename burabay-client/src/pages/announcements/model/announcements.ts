@@ -1,5 +1,3 @@
-
-
 export interface Category {
   id: string;
   name: string;
@@ -10,11 +8,10 @@ export interface Category {
 }
 
 export interface Subcategory {
-    name: string;
-    id: string;
-    category: Category;
-    ads: string[];
-    
+  name: string;
+  id: string;
+  category: Category;
+  ads: string[];
 }
 
 export interface Subcategories {
@@ -22,7 +19,7 @@ export interface Subcategories {
   name: string;
 }
 export interface AnnouncementSchedule {
-  id:string;
+  id: string;
   monStart: string;
   monEnd: string;
   tueStart: string;
@@ -64,7 +61,7 @@ interface AnnouncementOrganization {
   siteUrl: string;
 }
 export interface Announcement {
-  subcategory: Subcategory
+  subcategory: Subcategory;
   address: location;
   id: string;
   title: string;
@@ -102,7 +99,31 @@ export interface location {
   organizationId: string;
   adId: string;
   address: string;
-  specialName: string
+  specialName: string;
   latitude: number;
   longitude: number;
+}
+
+export interface Schedule {
+  adId: string;
+  monStart: string;
+  monEnd: string;
+  tueStart: string;
+  tueEnd: string;
+  wenStart: string;
+  wenEnd: string;
+  thuStart: string;
+  thuEnd: string;
+  friStart: string;
+  friEnd: string;
+  satStart: string;
+  satEnd: string;
+  sunStart: string;
+  sunEnd: string;
+}
+
+export interface Breaks {
+  adId: string;
+  start: string;
+  end: string;
 }
