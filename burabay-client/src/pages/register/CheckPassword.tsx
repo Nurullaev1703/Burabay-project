@@ -90,10 +90,10 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           });
           if (response.data != HTTP_STATUS.CONFLICT) {
             setToken(response.data);
-            // navigate({
-            //   to: "/profile",
-            // });
-            window.location.href = "/profile"
+            navigate({
+              to: "/profile",
+            });
+            // window.location.href = "/profile"
           } else {
             setErrorMessage(t("wrongPassword"));
             setPasswordError(true);
