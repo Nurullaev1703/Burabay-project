@@ -100,30 +100,31 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
   };
 
   const handleSubmit = async () => {
-    for (let i = 0; i < dates.length; i++) {
-      const date = dates[i];
-      const dateSetting = dateSettings[date];
-      const response = await apiService.post<string>({
-        url: `/booking-ban-date`,
-        dto: {
+    // Массив, который содержит все данные для отправки
+    const datesToSend = dates.map((date) => ({
+      adId: adId,
+      date: date,
+      allDay: dateSettings[date].allDay,
+      serviceTime: dateSettings[date].allDay ? [] : dateSettings[date].times.length > 0 ? dateSettings[date].times : serviceTime,
+    }));
+  
+    // Отправляем один запрос с массивом всех дат
+    const response = await apiService.post<string>({
+      url: `/booking-ban-date`,
+      dto: datesToSend,  // отправляем массив с датами
+    });
+  
+    // После успешного ответа редиректим пользователя
+    if (response.data) {
+      navigate({
+        to: "/announcements/newService/$adId",
+        params: {
           adId: adId,
-          date: date,
-          allDay: dateSettings[date].allDay,
-          serviceTime: dateSetting.allDay ? [] : dateSetting.times.length > 0 ? dateSetting.times : serviceTime,
-
         }
       });
-
-      if (response.data) {
-        navigate({
-          to: "/announcements/newService/$adId",
-          params: {
-            adId: adId,
-          }
-        });
-      }
     }
   };
+  
 
   return (
     <main className="min-h-screen bg-[#F1F2F6]">
