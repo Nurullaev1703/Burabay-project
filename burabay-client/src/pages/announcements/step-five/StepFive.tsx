@@ -12,12 +12,22 @@ import { DefaultForm } from "../../auth/ui/DefaultForm";
 import { Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
-import { useNavigate } from "@tanstack/react-router";
+import { Breaks, Schedule } from "../model/announcements";
+import { apiService } from "../../../services/api/ApiService";
+import { HTTP_STATUS } from "../../../services/api/ServerData";
 
-export const StepFive: FC = function StepFive() {
+interface Props {
+  id: string;
+}
+
+interface FormType {
+  isRoundTheClock: boolean;
+  workingDays: Schedule;
+  breaks: Breaks[];
+}
+
+export const StepFive: FC<Props> = function StepFive({ id }) {
   const { t } = useTranslation();
-  const navigate = useNavigate()
-
   // Проверка на наличие данных schedule перед форматированием времени
   const formatTime = (time: string | undefined) => {
     if (!time) return "00:00"; // Если данных нет, возвращаем "00:00"
@@ -25,64 +35,56 @@ export const StepFive: FC = function StepFive() {
     return `${hours}:${minutes}`;
   };
 
-  const { handleSubmit, control, setValue, watch } = useForm({
+  const { handleSubmit, control, setValue, watch } = useForm<FormType>({
     defaultValues: {
-      aroundClock: false,
+      isRoundTheClock: false,
       workingDays: {
-        mondayStartTime: formatTime(undefined), // Проверяем наличие schedule
-        mondayEndTime: formatTime(undefined),
-        tuesdayStartTime: formatTime(undefined),
-        tuesdayEndTime: formatTime(undefined),
-        wednesdayStartTime: formatTime(undefined),
-        wednesdayEndTime: formatTime(undefined),
-        thursdayStartTime: formatTime(undefined),
-        thursdayEndTime: formatTime(undefined),
-        fridayStartTime: formatTime(undefined),
-        fridayEndTime: formatTime(undefined),
-        saturdayStartTime: formatTime(undefined),
-        saturdayEndTime: formatTime(undefined),
-        sundayStartTime: formatTime(undefined),
-        sundayEndTime: formatTime(undefined),
+        adId: id || "",
+        monStart: formatTime(undefined), // Проверяем наличие schedule
+        monEnd: formatTime(undefined),
+        tueStart: formatTime(undefined),
+        tueEnd: formatTime(undefined),
+        wenStart: formatTime(undefined),
+        wenEnd: formatTime(undefined),
+        thuStart: formatTime(undefined),
+        thuEnd: formatTime(undefined),
+        friStart: formatTime(undefined),
+        friEnd: formatTime(undefined),
+        satStart: formatTime(undefined),
+        satEnd: formatTime(undefined),
+        sunStart: formatTime(undefined),
+        sunEnd: formatTime(undefined),
       },
-      breaks: [
-        {
-          startTime: "12:12",
-          endTime: "13:12",
-        },
-      ],
+      breaks: [],
     },
     mode: "onBlur",
   });
-  const [breaks, setBreaks] = useState<string[]>(watch("breaks"));
-  const currentAroundClock = watch("aroundClock", false);
+  const [breaks, setBreaks] = useState<Breaks[]>(watch("breaks"));
+  const currentAroundClock = watch("isRoundTheClock", false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [errorText, setErrorText] = useState<string>("");
+
   // -------------- Дни недели
 
-  const daysOfWeek = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-  ] as const;
+  const daysOfWeek = ["mon", "tue", "wen", "thu", "fri", "sat", "sun"] as const;
 
   type Day = (typeof daysOfWeek)[number];
 
   const isDayActive = (day: Day) => {
-    const startTime = watch(`workingDays.${day}StartTime`);
-    const endTime = watch(`workingDays.${day}EndTime`);
+    const startTime = watch(`workingDays.${day}Start`);
+    const endTime = watch(`workingDays.${day}End`);
     return startTime !== "00:00" || endTime !== "00:00";
   };
 
   const addBreak = () => {
     if (breaks.length < 2) {
       // Добавляем новый объект с пустыми значениями времени
-      const newBreak = { startTime: "", endTime: "" };
+      const newBreak = { adId: id, start: "", end: "" };
       setBreaks([...breaks, newBreak]);
-  
+
       // Синхронизируем с React Hook Form
-      setValue(`breaks.${breaks.length}`, newBreak);  // устанавливаем новый break
+      setValue(`breaks.${breaks.length}`, newBreak); // устанавливаем новый break
     }
   };
 
@@ -91,7 +93,7 @@ export const StepFive: FC = function StepFive() {
     const updatedBreaks = [...breaks];
     updatedBreaks[index] = { ...updatedBreaks[index], [field]: value };
     setBreaks(updatedBreaks);
-  
+
     // Обновляем значение в форме через setValue
     setValue(`breaks.${index}.${field}`, value);
   };
@@ -100,9 +102,61 @@ export const StepFive: FC = function StepFive() {
     // Удаляем перерыв по индексу
     const updatedBreaks = breaks.filter((_, i) => i !== index);
     setBreaks(updatedBreaks);
-  
+
     // Синхронизируем с React Hook Form
-    setValue('breaks', updatedBreaks);  // обновляем breaks в форме
+    setValue("breaks", updatedBreaks); // обновляем breaks в форме
+  };
+
+  const handleError = (errorText: string) => {
+    setErrorText(errorText);
+    setError(true);
+  };
+
+  const saveSchedule = async (form: FormType) => {
+    try {
+      setIsLoading(true);
+      const responseSchedule = await apiService.post<string>({
+        url: "/schedule",
+        dto: form.workingDays,
+      });
+      const responseBreaks = await apiService.post<string>({
+        url: "/breaks",
+        dto: form.breaks,
+      });
+      const responseAd = await apiService.patch<string>({
+        url: `/ad/${id}`,
+        dto: {
+          isRoundTheClock: form.isRoundTheClock,
+        },
+      });
+
+      if (
+        responseAd.data == HTTP_STATUS.OK &&
+        responseSchedule.data == HTTP_STATUS.OK &&
+        responseBreaks.data == HTTP_STATUS.OK
+      ) {
+        window.location.href = `/announcements/addAnnouncements/step-six/${id}`;
+      }
+
+      if (
+        responseAd.data == HTTP_STATUS.CONFLICT &&
+        responseSchedule.data == HTTP_STATUS.CONFLICT &&
+        responseBreaks.data == HTTP_STATUS.CONFLICT
+      ) {
+        handleError(t("invalidCode"));
+      }
+      if (
+        responseAd.data == HTTP_STATUS.SERVER_ERROR &&
+        responseSchedule.data == HTTP_STATUS.SERVER_ERROR &&
+        responseBreaks.data == HTTP_STATUS.SERVER_ERROR
+      ) {
+        handleError(t("tooManyRequest"));
+      }
+
+      setIsLoading(false);
+    } catch (e) {
+      console.error("Ошибка при сохранении графика:", e);
+    }
   };
 
   return (
@@ -145,12 +199,14 @@ export const StepFive: FC = function StepFive() {
           >
             <span>{t("aroundClock")}</span>
             <Controller
-              name={"aroundClock"}
+              name={"isRoundTheClock"}
               control={control}
               render={({ field }) => (
                 <Switch
                   checked={currentAroundClock}
-                  onChange={() => setValue("aroundClock", !currentAroundClock)}
+                  onChange={() =>
+                    setValue("isRoundTheClock", !currentAroundClock)
+                  }
                 />
               )}
             />
@@ -164,17 +220,17 @@ export const StepFive: FC = function StepFive() {
                   <div className="flex justify-between items-center">
                     <span>{t(day)}</span>
                     <Controller
-                      name={`workingDays.${day}StartTime`}
+                      name={`workingDays.${day}Start`}
                       control={control}
                       render={({ field }) => (
                         <Switch
                           checked={isDayActive(day)}
                           onChange={() => {
                             const currentStartTime = watch(
-                              `workingDays.${day}StartTime`
+                              `workingDays.${day}Start`
                             );
                             const currentEndTime = watch(
-                              `workingDays.${day}EndTime`
+                              `workingDays.${day}End`
                             );
 
                             if (
@@ -182,12 +238,12 @@ export const StepFive: FC = function StepFive() {
                               currentEndTime === "00:00"
                             ) {
                               // Если активируем
-                              setValue(`workingDays.${day}StartTime`, "09:00");
-                              setValue(`workingDays.${day}EndTime`, "18:00");
+                              setValue(`workingDays.${day}Start`, "09:00");
+                              setValue(`workingDays.${day}End`, "18:00");
                             } else {
                               // Если деактивируем
-                              setValue(`workingDays.${day}StartTime`, "00:00");
-                              setValue(`workingDays.${day}EndTime`, "00:00");
+                              setValue(`workingDays.${day}Start`, "00:00");
+                              setValue(`workingDays.${day}End`, "00:00");
                             }
                           }}
                         />
@@ -199,7 +255,7 @@ export const StepFive: FC = function StepFive() {
                     <div className="mb-2.5 items-center flex">
                       <span className="mr-4">{"с"}</span>
                       <Controller
-                        name={`workingDays.${day}StartTime`}
+                        name={`workingDays.${day}Start`}
                         control={control}
                         rules={{ required: t("requiredField") }}
                         render={({ field, fieldState: { error } }) => {
@@ -226,7 +282,7 @@ export const StepFive: FC = function StepFive() {
                       />
                       <span className="mr-4">{"до"}</span>
                       <Controller
-                        name={`workingDays.${day}EndTime`}
+                        name={`workingDays.${day}End`}
                         control={control}
                         rules={{ required: t("requiredField") }}
                         render={({ field, fieldState: { error } }) => {
@@ -274,7 +330,7 @@ export const StepFive: FC = function StepFive() {
               <div className="flex items-center">
                 <span className="mr-4">{"с"}</span>
                 <Controller
-                  name={`breaks.${index}.startTime`}
+                  name={`breaks.${index}.start`}
                   control={control}
                   rules={{ required: t("requiredField") }}
                   render={({ field, fieldState: { error } }) => {
@@ -292,7 +348,10 @@ export const StepFive: FC = function StepFive() {
                         {...field}
                         inputRef={timeMask}
                         error={Boolean(error?.message)}
-                        onChange={(e) => handleBreakChange(index, 'startTime', e.target.value)}
+                        placeholder="00:00"
+                        onChange={(e) =>
+                          handleBreakChange(index, "start", e.target.value)
+                        }
                         helperText={error?.message}
                         variant="standard"
                         style={{ width: "80px", marginRight: "16px" }}
@@ -302,7 +361,7 @@ export const StepFive: FC = function StepFive() {
                 />
                 <span className="mr-4">{"до"}</span>
                 <Controller
-                  name={`breaks.${index}.endTime`}
+                  name={`breaks.${index}.end`}
                   control={control}
                   rules={{ required: t("requiredField") }}
                   render={({ field, fieldState: { error } }) => {
@@ -322,7 +381,10 @@ export const StepFive: FC = function StepFive() {
                         error={Boolean(error?.message)}
                         helperText={error?.message}
                         variant="standard"
-                        onChange={(e) => handleBreakChange(index, 'endTime', e.target.value)}
+                        placeholder="00:00"
+                        onChange={(e) =>
+                          handleBreakChange(index, "end", e.target.value)
+                        }
                         style={{ width: "80px", marginLeft: "16px" }}
                       />
                     );
@@ -347,10 +409,22 @@ export const StepFive: FC = function StepFive() {
           </div>
         )}
       </div>
-      <Button onClick={() => navigate({
-          to: `/announcements/addAnnouncements/step-six`,
-        })} className="fixed bottom-4 left-4 w-header">{t("Продолжить")}</Button>
-
+      {!error ? (
+        <Button
+          className="fixed bottom-4 left-4 w-header"
+          onClick={(e) => {
+            e.preventDefault();
+            handleSubmit(saveSchedule)();
+          }}
+          loading={isLoading}
+        >
+          {t("continue")}
+        </Button>
+      ) : (
+        <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8">
+          {errorText}
+        </Button>
+      )}
     </section>
   );
 };

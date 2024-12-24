@@ -13,7 +13,8 @@ import { Switch } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Подключите стили
-import { remove } from "ol/array";
+import { useTranslation } from "react-i18next";
+
 
 interface DateSettings {
   allDay: boolean;
@@ -21,6 +22,7 @@ interface DateSettings {
 }
 
 export const BookingBan: FC = function BookingBan() {
+  const {t} = useTranslation()
   const defaultTimes = [
     "09:00",
     "11:00",
@@ -131,7 +133,7 @@ export const BookingBan: FC = function BookingBan() {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {"Запрет бронирования"}
+              {t("bookingban")}
             </Typography>
             <Typography
               size={14}
@@ -139,7 +141,7 @@ export const BookingBan: FC = function BookingBan() {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {"Необязательно"}
+              {t("optional")}
             </Typography>
           </div>
           <IconContainer align="end" action={() => history.back()}>
@@ -171,7 +173,7 @@ export const BookingBan: FC = function BookingBan() {
             color={COLORS_TEXT.blue200}
             className="w-[calc(100% - 84px)] absolute top-1/2 -translate-y-1/2 left-[52px]"
           >
-            {"Добавить дату, недоступную для бронирования"}
+            {t("addDateToBan")}
           </Typography>
         </label>
 
@@ -197,7 +199,7 @@ export const BookingBan: FC = function BookingBan() {
               {/* Логика для отображения доступности */}
               {dateSettings[date]?.allDay ? (
                 <Typography size={16} weight={400} className="mt-3">
-                  Недоступно весь день
+                  {t("unavailableAllDay")}
                 </Typography>
               ) : (
                 <div className="flex overflow-x-scroll gap-1 mt-1">
@@ -226,12 +228,12 @@ export const BookingBan: FC = function BookingBan() {
           >
             <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">
               <Typography size={18} weight={500} className="mb-3">
-                Запрет бронирования на {date}
+                {t("banTo")} {date}
               </Typography>
 
               {/* Переключатель "Недоступно весь день" */}
               <label className="flex items-center justify-between mb-4">
-                Недоступно весь день
+                {t("unavailableAllDay")}
                 <Switch
                   type="checkbox"
                   checked={dateSettings[date]?.allDay || false}
@@ -265,10 +267,10 @@ export const BookingBan: FC = function BookingBan() {
 
               <div className="flex justify-between mt-4 flex-col gap-2">
                 <Button onClick={saveDateSettings} className="text-white">
-                  Сохранить
+                  {t("saveBtn")}
                 </Button>
                 <Button onClick={() => setDates(prev => prev.filter(item => item != date))} mode="border">
-                  Удалить
+                  {t("deleteBtn")}
                 </Button>
               </div>
             </div>
@@ -277,7 +279,7 @@ export const BookingBan: FC = function BookingBan() {
       )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
-        <Button mode="default">{"Продолжить"}</Button>
+        <Button mode="default">{t("continueBtn")}</Button>
       </div>
     </main>
   );

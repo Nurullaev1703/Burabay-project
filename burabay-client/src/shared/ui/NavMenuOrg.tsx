@@ -42,7 +42,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Объявления")}
+              {t("addNav")}
             </span>
           </div>
         </li>
@@ -61,7 +61,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {"Отзывы"}
+              {t("reviews")}
             </span>
           </div>
         </li>
@@ -80,7 +80,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Брони")}
+              {t("book")}
             </span>
           </div>
         </li>
@@ -99,7 +99,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Уведомления")}
+              {t("notific")}
             </span>
           </div>
         </li>
@@ -118,7 +118,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
                   : COLORS_TEXT.gray100
               } text-[10px]`}
             >
-              {t("Профиль")}
+              {t("profile")}
             </span>
           </div>
         </li>

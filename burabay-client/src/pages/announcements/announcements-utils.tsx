@@ -42,12 +42,20 @@ export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: 
     })
 }
 
-export function UseGetAnnouncements() {
+export interface MapFilter {
+    categoryNames?: string;
+    adName?: string;
+}
+
+export function UseGetAnnouncements(filters?: MapFilter) {
+    const categoryFilter = filters?.categoryNames || ""
+    const adNameFilter = filters?.adName || ""
     return useQuery({
-        queryKey: [`/map`],
+
+        queryKey: [`/map` , filters],
         queryFn: async() => {
             const response = await apiService.get<Announcement[]>({
-                url: `/ad`
+                url: `/ad?categoryNames=${categoryFilter}&adName=${adNameFilter}`
             })
             const category = await apiService.get<Category[]>({
                 url: "/category"
@@ -56,3 +64,4 @@ export function UseGetAnnouncements() {
         }
     })
 }
+

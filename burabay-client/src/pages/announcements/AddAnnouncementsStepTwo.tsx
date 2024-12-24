@@ -12,12 +12,14 @@ import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
 import { ProgressSteps } from './ui/ProgressSteps';
 import { Radio, RadioGroup } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   category: Category;
 }
 
 export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepTwo({ category }) {
+  const {t} = useTranslation()
   const [imgSource, setImgSource] = useState<string>(baseUrl + category.imgPath);
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -31,8 +33,6 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
       navigate({
         to: `/announcements/choiseDetails/${category.id}/${selectedSubcategoryId}`,
       });
-    } else {
-      alert("Выберите подкатегорию перед продолжением!");
     }
   };
 
@@ -45,10 +45,10 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
           </IconContainer>
           <div>
             <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>
-              {"Новое обьявление"}
+              {t("addNewAd")}
             </Typography>
             <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>
-              {"Выберите подкатегорию"}
+              {t("choiseSubcategory")}
             </Typography>
           </div>
           <IconContainer align='end' action={() => history.back()}>
@@ -66,7 +66,7 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
             onError={() => setImgSource(defaultImage)}
             alt=""
           />
-          <Typography size={22} weight={500}>{category.name}</Typography>
+          <Typography size={22} weight={500}>{t(category.name)}</Typography>
         </div>
         <ul  className="space-y-4">
           {category.subcategories.map((subcategory) => (
@@ -92,14 +92,14 @@ export const AddAnnouncementsStepTwo: FC<Props> = function AddAnnouncementsStepT
                 weight={400}
                 className="ml-3 text-lg text-black"
               >
-                {subcategory.name}
+                {t(subcategory.name)}
               </Typography>
             </li>
           ))}
         </ul>
       </div>
       <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button onClick={handleContinue} mode='default'>{"Продолжить"}</Button>
+        <Button onClick={handleContinue} mode='default'>{t("continueBtn")}</Button>
       </div>
     </section>
   );

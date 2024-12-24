@@ -1,22 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MapNav } from '../../pages/mapNav/MapNav'
 import { Loader } from '../../components/Loader';
-import { UseGetAnnouncement } from '../../pages/announcements/announcement/announcement-util';
-import { UseGetAnnouncements } from '../../pages/announcements/announcements-utils';
+import { MapFilter, UseGetAnnouncements } from '../../pages/announcements/announcements-utils';
 
 export const Route = createFileRoute('/mapNav/')({
   component: RouteComponent,
+  validateSearch: () => ({}) as MapFilter
 })
 
 
 function RouteComponent() {
-  const { data, isLoading } = UseGetAnnouncements();
+  const filters = Route.useSearch();
+  const { data, isLoading } = UseGetAnnouncements(filters);
   if (isLoading) {
     return <Loader />;
   }
-
   if (data) {
-    return <MapNav announcements={data.announcement} categories={data.categories} />;
+    return <MapNav announcements={data.announcement} categories={data.categories} filters={filters} />;
   }
 }
  

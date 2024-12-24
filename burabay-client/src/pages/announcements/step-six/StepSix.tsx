@@ -106,6 +106,7 @@ export const StepSix: FC<Props> = function StepSix({ id }) {
 
   const saveSchedule = async (form: FormType) => {
     try {
+      setIsLoading(true);
       const response = await apiService.patch<string>({
         url: `/ad/${id}`,
         dto: form,
