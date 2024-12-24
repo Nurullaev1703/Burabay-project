@@ -10,23 +10,14 @@ import { Button } from "../../shared/ui/Button";
 import PlusIcon from "../../app/icons/announcements/bluePlus.svg";
 import editIcon from "../../app/icons/announcements/edit.svg";
 import { Switch } from "@mui/material";
-import { useNavigate } from "@tanstack/react-router";
+import { useMatch, useNavigate } from "@tanstack/react-router";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // Подключите стили
+import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { apiService } from "../../services/api/ApiService";
-import { useForm } from "react-hook-form";
 
 interface Props {
   adId: string;
-  
-}
-
-interface FormType {
-  serviceTime: string[];
-  allDay: boolean;
-  date: string
-
 }
 
 interface DateSettings {
@@ -34,134 +25,104 @@ interface DateSettings {
   times: string[];
 }
 
-export const BookingBan: FC<Props> = function BookingBan({adId}) {
-  const {t} = useTranslation()
-  const defaultTimes = [
-    "09:00",
-    "11:00",
-    "13:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "19:00",
-  ];
+export const BookingBan: FC<Props> = function BookingBan({ adId }) {
+  const match = useMatch({
+    from: "/announcements/bookingBan/$adId",
+  });
+  const searchParams = new URLSearchParams(match.search);
+  const serviceTimeParam = searchParams.get("serviceTime");
+  const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
+  const { t } = useTranslation();
+
   const [dates, setDates] = useState<string[]>([]);
-  const [dateSettings, setDateSettings] = useState<
-    Record<string, DateSettings>
-  >({});
+  const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [showModals, setShowModals] = useState<Record<string, boolean>>({}); // Обновленное состояние
+  const [showModals, setShowModals] = useState<Record<string, boolean>>({});
   const [selectedDateTwo, setSelectedDateTwo] = useState<Date | null>(null);
-  const [selectedTimes, setSelectedTimes] = useState<string[]>([]); // Состояние для выбранных времен
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  // Добавить новую дату
   const addDate = (newDate: string) => {
     if (!dates.includes(newDate)) {
       setDates([...dates, newDate]);
       setDateSettings({
         ...dateSettings,
-        [newDate]: { allDay: false, times: [...defaultTimes] },
+        [newDate]: { allDay: false, times: [...serviceTime] },
       });
     }
   };
 
-  // Функция для переключения выбора времени
   const toggleTimeSelection = (time: string) => {
     if (selectedDate) {
       setSelectedTimes((prevSelectedTimes) => {
         if (prevSelectedTimes.includes(time)) {
-          return prevSelectedTimes.filter((t) => t !== time); // Убираем время из выбранных
+          return prevSelectedTimes.filter((t) => t !== time);
         } else {
-          return [...prevSelectedTimes, time]; // Добавляем время в выбранные
+          return [...prevSelectedTimes, time];
         }
       });
     }
   };
 
-  // Обновить настройки "Недоступно весь день"
   const toggleAllDay = () => {
     if (selectedDate) {
       setDateSettings({
         ...dateSettings,
         [selectedDate]: {
-          ...dateSettings[selectedDate],
-          allDay: !dateSettings[selectedDate].allDay,
-          times: !dateSettings[selectedDate].allDay ? [] : [...defaultTimes],
+          allDay: !dateSettings[selectedDate]?.allDay,
+          times: !dateSettings[selectedDate]?.allDay ? [] : [...serviceTime],
         },
       });
     }
   };
 
-  // Удалить конкретное время
-  // const deleteTime = (time: string) => {
-  //   if (selectedDate) {
-  //     setDateSettings({
-  //       ...dateSettings,
-  //       [selectedDate]: {
-  //         ...dateSettings[selectedDate],
-  //         times: dateSettings[selectedDate].times.filter((t) => t !== time),
-  //       },
-  //     });
-  //   }
-  // };
-
-  // Сохранить настройки и закрыть модалку
   const saveDateSettings = () => {
     if (selectedDate) {
-      // Обновляем список времени для выбранной даты
       setDateSettings({
         ...dateSettings,
         [selectedDate]: {
           ...dateSettings[selectedDate],
           times: dateSettings[selectedDate].times.filter(
             (time) => !selectedTimes.includes(time)
-          ), // Убираем выбранные
+          ),
         },
       });
     }
-    setShowModals((prev) => ({ ...prev, [selectedDate!]: false })); // Закрытие модалки для конкретной даты
+    setShowModals((prev) => ({ ...prev, [selectedDate!]: false }));
     setSelectedDate(null);
-    setSelectedTimes([]); // Сбрасываем выбранные времена
+    setSelectedTimes([]);
   };
 
-  // Открыть модалку для конкретной даты
   const openModalForDate = (date: string) => {
     setSelectedDate(date);
-    setShowModals((prev) => ({ ...prev, [date]: true })); // Открыть модалку для выбранной даты
-    setSelectedTimes([]); // Сбрасываем выбранные времена при открытии модалки
+    setShowModals((prev) => ({ ...prev, [date]: true }));
+    setSelectedTimes([]);
   };
-  const { handleSubmit } = useForm<FormType>({
-    defaultValues: {
-      allDay: false,
-      date: "",
-      serviceTime: [],
-    },
-    mode: "onSubmit",
-  });
 
-    const saveTimes = async () => {
-
+  const handleSubmit = async () => {
+    for (let i = 0; i < dates.length; i++) {
+      const date = dates[i];
+      const dateSetting = dateSettings[date];
       const response = await apiService.post<string>({
-        url: `/booking-to-date`,
+        url: `/booking-ban-date`,
         dto: {
           adId: adId,
-          date: dates,
-          allDay: dateSettings,
-          serviceTime: defaultTimes,
+          date: date,
+          allDay: dateSettings[date].allDay,
+          serviceTime: dateSetting.allDay ? [] : dateSetting.times.length > 0 ? dateSetting.times : serviceTime,
 
         }
       });
 
       if (response.data) {
-
         navigate({
-          to: "/announcements/bookingBan/$adId",
+          to: "/announcements/newService/$adId",
           params: {
             adId: adId,
           }
-        })
+        });
       }
+    }
   };
 
   return (
@@ -197,14 +158,13 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
       </Header>
       <div className="p-4 cursor-none">
         <label className="w-full relative flex items-center border bg-white rounded-lg p-4 h-20 mb-4 cursor-none">
-          {/* Компонент выбора даты */}
           <img src={PlusIcon} alt="Добавить" />
           <DatePicker
             selected={selectedDateTwo}
             onChange={(date: Date | null) => {
               if (date) {
                 const formattedDate = date.toLocaleDateString();
-                addDate(formattedDate); // Добавляем выбранную дату
+                addDate(formattedDate);
                 setSelectedDateTwo(date);
               }
             }}
@@ -222,7 +182,6 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
           </Typography>
         </label>
 
-        {/* Список дат */}
         {dates.map((date) => (
           <div
             key={date}
@@ -234,14 +193,12 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
                   {date}
                 </Typography>
                 <IconContainer
-                  action={() => openModalForDate(date)} // Используем новую функцию для открытия модалки
+                  action={() => openModalForDate(date)}
                   align="center"
                 >
                   <img src={editIcon} alt="" />
                 </IconContainer>
               </div>
-
-              {/* Логика для отображения доступности */}
               {dateSettings[date]?.allDay ? (
                 <Typography size={16} weight={400} className="mt-3">
                   {t("unavailableAllDay")}
@@ -264,7 +221,6 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
         ))}
       </div>
 
-      {/* Модальные окна для каждой даты */}
       {dates.map((date) =>
         showModals[date] && dateSettings[date] ? (
           <div
@@ -276,7 +232,6 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
                 {t("banTo")} {date}
               </Typography>
 
-              {/* Переключатель "Недоступно весь день" */}
               <label className="flex items-center justify-between mb-4">
                 {t("unavailableAllDay")}
                 <Switch
@@ -287,16 +242,15 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
                 />
               </label>
 
-              {/* Список времени */}
               {!dateSettings[date]?.allDay && (
                 <div className="flex flex-wrap gap-2">
                   {dateSettings[date]?.times.map((time) => {
-                    const isTimeSelected = selectedTimes.includes(time); // Проверка, выбрано ли время
+                    const isTimeSelected = selectedTimes.includes(time);
 
                     return (
                       <button
                         key={time}
-                        onClick={() => toggleTimeSelection(time)} // Меняем выбор времени
+                        onClick={() => toggleTimeSelection(time)}
                         className={`border rounded-2xl px-7 py-2 ${
                           isTimeSelected
                             ? "border-red text-red-500"
@@ -324,8 +278,9 @@ export const BookingBan: FC<Props> = function BookingBan({adId}) {
       )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
-        <Button onClick={saveTimes} mode="default">{t("continueBtn")}</Button>
+        <Button onClick={handleSubmit} mode="default">{t("continueBtn")}</Button>
       </div>
     </main>
   );
 };
+
