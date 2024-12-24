@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Repository } from 'typeorm';
 import { BookingBanDate } from './entities/booking-ban-date.entity';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 
 @Injectable()
 export class BookingBanDateService {
@@ -15,20 +15,22 @@ export class BookingBanDateService {
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
   ) {}
-  async create(createBookingBanDateDto: CreateBookingBanDateDto) {
-    try {
-      const { adId, ...oF } = createBookingBanDateDto;
+
+  @CatchErrors()
+  async create(createBookingBanDateDto: CreateBookingBanDateDto[]) {
+    const newBookingBanDates = [];
+    for (const createBookingBanDate of createBookingBanDateDto) {
+      const { adId, ...oF } = createBookingBanDate;
       const ad = await this.adRepository.findOneBy({ id: adId });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newBookingBanDate = this.bookingBanDateRepository.create({
         ad: ad,
         ...oF,
       });
-      await this.bookingBanDateRepository.save(newBookingBanDate);
-      return JSON.stringify(HttpStatus.CREATED);
-    } catch (error) {
-      Utils.errorHandler(error);
+      newBookingBanDates.push(newBookingBanDate);
     }
+    await this.bookingBanDateRepository.save(newBookingBanDates);
+    return JSON.stringify(HttpStatus.CREATED);
   }
 
   async findAllByAd(adId: string) {

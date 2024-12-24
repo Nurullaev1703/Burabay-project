@@ -2,9 +2,9 @@ import { FC } from "react";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
-
 import BackIcon from "../../app/icons/back-icon-white.svg"
 import { COLORS_TEXT } from "../../shared/ui/colors";
+import { useTranslation } from "react-i18next";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 
@@ -13,6 +13,7 @@ interface Props {
 }
 
 export const ServiceHelp: FC<Props> = function ServiceHelp() {
+  const {t} = useTranslation()
   return (
   <main>
           <AlternativeHeader>
@@ -21,7 +22,7 @@ export const ServiceHelp: FC<Props> = function ServiceHelp() {
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={20} weight={700} color={COLORS_TEXT.white}>
-            {"О сервисе"}
+            {t("aboutServiceHelp")}
           </Typography>
           <LanguageButton />
         </div>

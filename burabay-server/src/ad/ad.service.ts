@@ -48,7 +48,8 @@ export class AdService {
     return this.adRepository.save(newAd);
   }
 
-  /* Метод для получения всех Объявлений. */
+  /* Метод для получения всех Объявлений.
+     Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
   async findAll(filter?: AdFilter) {
     let ads: Ad[];
@@ -57,6 +58,7 @@ export class AdService {
       ads = await this.adRepository.find({
         where: { subcategory: { category: { name: In(categoryNamesArr) } } },
         relations: {
+          bookingBanDate: true,
           organization: true,
           schedule: true,
           breaks: true,
@@ -67,6 +69,7 @@ export class AdService {
     } else {
       ads = await this.adRepository.find({
         relations: {
+          bookingBanDate: true,
           organization: true,
           schedule: true,
           breaks: true,
@@ -89,6 +92,7 @@ export class AdService {
         organization: { id: orgId },
       },
       relations: {
+        bookingBanDate: true,
         organization: true,
         schedule: true,
         breaks: true,

@@ -1,56 +1,120 @@
-import  { FC, useState } from 'react';
-import { Header } from '../../components/Header';
-import { IconContainer } from '../../shared/ui/IconContainer';
-import { Typography } from '../../shared/ui/Typography';
-import { COLORS_TEXT } from '../../shared/ui/colors';
-import { ProgressSteps } from './ui/ProgressSteps';
+import { FC, useEffect, useRef, useState } from "react";
+import { Header } from "../../components/Header";
+import { IconContainer } from "../../shared/ui/IconContainer";
+import { Typography } from "../../shared/ui/Typography";
+import { COLORS_TEXT } from "../../shared/ui/colors";
+import { ProgressSteps } from "./ui/ProgressSteps";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
-import { InputAdornment, OutlinedInput, Switch, TextField } from '@mui/material';
-import { DefaultForm } from '../auth/ui/DefaultForm';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { SmallHint } from '../../shared/ui/SmallHint';
-import { Button } from '../../shared/ui/Button';
-import { useNavigate } from '@tanstack/react-router';
-import { apiService } from '../../services/api/ApiService';
+import { Switch } from "@mui/material";
+import { DefaultForm } from "../auth/ui/DefaultForm";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { SmallHint } from "../../shared/ui/SmallHint";
+import { Button } from "../../shared/ui/Button";
+import { useNavigate } from "@tanstack/react-router";
+import { apiService } from "../../services/api/ApiService";
 
 interface Props {
   adId: string;
 }
 
 interface FormType {
-    price: number;
-    priceForChild: number;
+  price: number;
+  priceForChild: number;
 }
 
 export const PriceService: FC<Props> = function PriceService(props) {
-    const navigate = useNavigate();
-    const [booking, setBooking] = useState(false);
-    const [onSitePayment, setOnSitePayment] = useState(false);
-    const [onlinePayment, setOnlinePayment] = useState(false);
-    const {t} = useTranslation();
-    const [errorMessage, setErrorMessage] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const symbolRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState<string>("0");
+  const [inputValueChild, setInputValueChild] = useState<string>("0");
+  const navigate = useNavigate();
+  const [booking, setBooking] = useState(false);
+  const [onSitePayment, setOnSitePayment] = useState(false);
+  const [onlinePayment, setOnlinePayment] = useState(false);
+  const { t } = useTranslation();
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isFocusedChild, setIsFocusedChild] = useState<boolean>(false);
+  const inputRefChild = useRef<HTMLInputElement>(null);
+  const symbolRefChild = useRef<HTMLDivElement>(null);
 
-    const { control , handleSubmit  } = useForm<FormType>({
-        defaultValues: {
-            price: 0,
-            priceForChild: 0,
-        },
-        mode: "onSubmit",
-      });
+  const calculateTextWidth = (number: string, font: string): number => {
+    const span = document.createElement("span");
+    span.style.visibility = "hidden";
+    span.style.position = "absolute";
+    span.style.font = font;
+    span.textContent = number || "0"; // Учитываем значение "0" как дефолтное
+    document.body.appendChild(span);
+    const width = span.offsetWidth + 10; // Добавляем небольшой отступ
+    document.body.removeChild(span);
+    return width;
+  };
+
+  const formatNumberWithSpaces = (value: string): string => {
+    const sanitizedValue = value.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    return sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, " "); // Добавляем пробелы
+  };
+  const updateTengePosition = (
+    inputRef: React.RefObject<HTMLInputElement>,
+    symbolRef: React.RefObject<HTMLDivElement>,
+    inputValue: string
+  ) => {
+    if (inputRef.current && symbolRef.current) {
+      const font = getComputedStyle(inputRef.current).font;
+      const formattedValue = formatNumberWithSpaces(
+        inputValue.replace(/\s/g, "")
+      );
+      const textWidth = calculateTextWidth(formattedValue, font);
+      symbolRef.current.style.left = `${textWidth + 10}px`;
+    }
+  };
+
+  const handleInputChange = (rawValue: string) => {
+    const sanitizedValue = rawValue.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    const formattedValue = formatNumberWithSpaces(sanitizedValue); // Форматируем с пробелами
+    setInputValue(formattedValue); // Устанавливаем форматированное значение
+  };
+  const handleInputChangeChild = (rawValue: string) => {
+    const sanitizedValue = rawValue.replace(/\D/g, "");
+    const formattedValue = formatNumberWithSpaces(sanitizedValue);
+    setInputValueChild(formattedValue);
+  };
+
+  useEffect(() => {
+    updateTengePosition(inputRef, symbolRef, inputValue);
+  }, [inputValue]);
+
+  useEffect(() => {
+    updateTengePosition(inputRefChild, symbolRefChild, inputValueChild);
+  }, [inputValueChild]);
+
+  const { control, handleSubmit } = useForm<FormType>({
+    defaultValues: {
+      price: 0,
+      priceForChild: 0,
+    },
+    mode: "onSubmit",
+  });
   return (
-    <main className='min-h-screen'>
-        <Header>
+    <main className="min-h-screen">
+      <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
-            <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align="center">
+            <Typography
+              size={18}
+              weight={500}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
               {t("newService")}
             </Typography>
-            <Typography size={14} weight={400} color={COLORS_TEXT.blue200}>{t("priceService")}</Typography>
+            <Typography size={14} weight={400} color={COLORS_TEXT.blue200}>
+              {t("priceService")}
+            </Typography>
           </div>
           <IconContainer align="end" action={() => history.back()}>
             <img src={XIcon} alt="" />
@@ -58,142 +122,215 @@ export const PriceService: FC<Props> = function PriceService(props) {
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
-      <div className=''>
-      <div className='flex justify-between items-center px-4'>
-        <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">{t("booking")}</Typography>
-          <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          {t("bookingBoolean")}
-        </Typography>
+      <div className="">
+        <div className="flex justify-between items-center px-4">
+          <div className="flex flex-col">
+            <Typography size={16} weight={400} className="">
+              {t("booking")}
+            </Typography>
+            <Typography
+              size={12}
+              weight={400}
+              color={COLORS_TEXT.gray100}
+              className=""
+            >
+              {t("bookingBoolean")}
+            </Typography>
+          </div>
+          <Switch
+            checked={booking}
+            onChange={() => setBooking(!booking)}
+            className="sr-only"
+          />
         </div>
-        <Switch
-              checked={booking}
-              onChange={() => setBooking(!booking)}
-              className="sr-only"
-            />
-      </div>
-      <div className='mt-5 px-4'>
-        <Typography size={16} weight={400}>{t("priceService")}</Typography>
-        <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>{t("ifFree")}</Typography>
-      </div>
-      <DefaultForm className='mt-2'
-      onSubmit={handleSubmit(async (form) =>{
-        const response  = await apiService.patch({
-          url: `/ad/${props.adId}`,
-          dto: {
-            isBookable: booking,
-            onSitePayment: onSitePayment,
-            onlinePayment: onlinePayment,
-            price: Number(form.price) ,
-            priceForChild: Number(form.priceForChild) , 
-  
-          }
-          
-        })
-        if(response.data){
-          navigate({
-            to: "/announcements/$announcementId",
-            params: {
-              announcementId: props.adId
+        <div className="mt-5 px-4">
+          <Typography size={16} weight={400}>
+            {t("priceService")}
+          </Typography>
+          <Typography
+            size={12}
+            weight={400}
+            className="mb-4"
+            color={COLORS_TEXT.gray100}
+          >
+            {t("ifFree")}
+          </Typography>
+        </div>
+        <DefaultForm
+          className="mt-2"
+          onSubmit={handleSubmit(async () => {
+            const sanitizedPrice = inputValue.replace(/\s/g, ''); // Убираем все пробелы
+            const sanitizedPriceForChild = inputValueChild.replace(/\s/g, ''); // Убираем все пробелы
+            const response = await apiService.patch({
+              url: `/ad/${props.adId}`,
+              dto: {
+                isBookable: booking,
+                onSitePayment: onSitePayment,
+                onlinePayment: onlinePayment,
+                price: Number(sanitizedPrice),
+                priceForChild: Number(sanitizedPriceForChild),
+              },
+            });
+            if (response.data) {
+              navigate({
+                to: "/announcements/$announcementId",
+                params: {
+                  announcementId: props.adId,
+                },
+              });
             }
-          })
-        }
-      })}
-      >
-      <Controller
-        name="price"
-            control={control}
-            rules={{
-                maxLength: {
-                    value: 40,
-                    message: t("maxLengthExceeded", { count: 40 }),
-                  },
-            }}
-            render={({ field, fieldState: { error } }) => (
-            <div className='min-w-3 max-w-fit'>
-              <TextField  
-                {...field}
-              variant='outlined'    
-                error={Boolean(error?.message)}
-                fullWidth={true}
-                type={"number"}
-                inputMode='numeric'
-                label={t("priceForAdult")}
-                autoFocus={true}
-                placeholder={t("")}
-
-              />
-              </div>       
-    )}/>
+          })}
+        >
           <Controller
-        name="priceForChild"
+            name="price"
             control={control}
             rules={{
-                maxLength: {
-                    value: 40,
-                    message: t("maxLengthExceeded", { count: 40 }),
-                  },
+              maxLength: {
+                value: 40,
+                message: t("maxLengthExceeded", { count: 40 }),
+              },
             }}
-            render={({ field, fieldState: { error } }) => (
-            <div className=''>
-              <TextField
-
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message || errorMessage}
-                fullWidth={true}
-                type={"number"}
-                variant="outlined"
-                label={t("priceForChild")}
-                inputProps={{ maxLength: 40 }}
-                autoFocus={true}
-                placeholder={t("")}
-              />
+            render={({ field }) => (
+              <div className=" relative px-4">
+                <label
+                  htmlFor="amount"
+                  className={`block text-[12px] font-normal ${
+                    isFocused ? "text-blue200" : "text-[#999999]"
+                  }`}
+                >
+                 {t("priceForAdult")}
+                </label>
+                <input
+                  {...field}
+                  defaultValue={0}
+                  ref={inputRef}
+                  id="amount"
+                  type="text"
+                  maxLength={10}
+                  value={inputValue}
+                  onFocus={() => setIsFocused(true)} // Ставим фокус
+                  onBlur={() => setIsFocused(false)} // Убираем фокус
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  className=" rounded-lg pb-2 w-full bg-white focus:outline-none focus:ring-0"
+                />
+                <div
+                  ref={symbolRef}
+                  id="tenge"
+                  className="absolute top-[30px] transform -translate-y-1/2 text-black"
+                  style={{ left: "0px" }}
+                >
+                  ₸
+                </div>
               </div>
-              
-              
-    )}/>
-        <div className='fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full'>
-        <Button type="submit" mode='default'>{t("continueBtn")}</Button>
+            )}
+          />
+          <Controller
+            name="priceForChild"
+            control={control}
+            rules={{
+              maxLength: {
+                value: 40,
+                message: t("maxLengthExceeded", { count: 40 }),
+              },
+            }}
+            render={({ field }) => (
+              <div className="relative px-4">
+                <label
+                  htmlFor="amountChild"
+                  className={`block text-[12px] font-normal ${
+                    isFocusedChild ? "text-blue200" : "text-[#999999]"
+                  }`}
+                >
+                  {t("priceForChild")}
+                </label>
+                <input
+                  {...field}
+                  ref={inputRefChild}
+                  id="amountChild"
+                  type="text"
+                  maxLength={10}
+                  value={inputValueChild}
+                  onFocus={() => setIsFocusedChild(true)}
+                  onBlur={() => setIsFocusedChild(false)}
+                  onChange={(e) => handleInputChangeChild(e.target.value)}
+                  className="rounded-lg pb-2 w-full bg-white focus:outline-none focus:ring-0"
+                />
+                <div
+                  ref={symbolRefChild}
+                  className="absolute top-[30px] transform -translate-y-1/2 text-black"
+                  style={{ left: "0px" }}
+                >
+                  ₸
+                </div>
+              </div>
+            )}
+          />
+          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+            <Button type="submit" mode="default">
+              {t("continueBtn")}
+            </Button>
+          </div>
+        </DefaultForm>
       </div>
-      </DefaultForm>
+      <div className="px-4">
+        <SmallHint background="white" text={t("paymentMethod")} />
       </div>
-      <div className='px-4'>
-      <SmallHint background='white' text={t('paymentMethod')}/>
-      </div>
-      <div className='flex justify-between items-center px-4 mb-10'>
+      <div className="flex justify-between items-center px-4 mb-10">
         <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">{t("payOnPlace")}</Typography>
-          <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          {t("payOnPlaceOrOnline")}
-        </Typography>
+          <Typography size={16} weight={400} className="">
+            {t("payOnPlace")}
+          </Typography>
+          <Typography
+            size={12}
+            weight={400}
+            color={COLORS_TEXT.gray100}
+            className=""
+          >
+            {t("payOnPlaceOrOnline")}
+          </Typography>
         </div>
         <Switch
-              checked={onSitePayment}
-              onChange={() => setOnSitePayment(!onSitePayment)}
-              className="sr-only"
-            />
+          checked={onSitePayment}
+          onChange={() => setOnSitePayment(!onSitePayment)}
+          className="sr-only"
+        />
       </div>
-      <div className='flex justify-between items-center px-4'>
+      <div className="flex justify-between items-center px-4">
         <div className="flex flex-col">
-          <Typography size={16} weight={400} className="">{t("onlinePayment")}</Typography>
-          <Typography size={12} weight={400} color={COLORS_TEXT.gray100} className="">
-          {t("payIsMadeOnline")}
-        </Typography>
+          <Typography size={16} weight={400} className="">
+            {t("onlinePayment")}
+          </Typography>
+          <Typography
+            size={12}
+            weight={400}
+            color={COLORS_TEXT.gray100}
+            className=""
+          >
+            {t("payIsMadeOnline")}
+          </Typography>
         </div>
         <Switch
-              checked={onlinePayment}
-              onChange={() => setOnlinePayment(!onlinePayment)}
-              className="sr-only"
-            />
+          checked={onlinePayment}
+          onChange={() => setOnlinePayment(!onlinePayment)}
+          className="sr-only"
+        />
       </div>
-      <div className='px-4 mt-2'>
-      <Typography size={12} weight={700} color={COLORS_TEXT.red}>{t("accessAcount")} <span style={{ fontWeight: 400}}>{t("accountOnlinePay")}</span></Typography>
-      <Button onClick={() => navigate({
-          to: `/profile`,
-        })} mode="transparent">{t("accessAccountBtn")}</Button>
+      <div className="px-4 mt-2">
+        <Typography size={12} weight={700} color={COLORS_TEXT.red}>
+          {t("accessAcount")}{" "}
+          <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>
+        </Typography>
+        <Button
+          onClick={() =>
+            navigate({
+              to: `/profile`,
+            })
+          }
+          mode="transparent"
+        >
+          {t("accessAccountBtn")}
+        </Button>
       </div>
-
     </main>
-)
+  );
 };

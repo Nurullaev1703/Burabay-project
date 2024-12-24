@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { BookingBanDateService } from './booking-ban-date.service';
 import { CreateBookingBanDateDto } from './dto/create-booking-ban-date.dto';
 import { UpdateBookingBanDateDto } from './dto/update-booking-ban-date.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/constants';
 
 @ApiBearerAuth()
@@ -13,7 +13,8 @@ export class BookingBanDateController {
   constructor(private readonly bookingBanDateService: BookingBanDateService) {}
 
   @Post()
-  create(@Body() createBookingBanDateDto: CreateBookingBanDateDto) {
+  @ApiBody({ schema: { example: BookingBanDateController.createExample } })
+  create(@Body() createBookingBanDateDto: CreateBookingBanDateDto[]) {
     return this.bookingBanDateService.create(createBookingBanDateDto);
   }
 
@@ -31,4 +32,18 @@ export class BookingBanDateController {
   remove(@Param('id') id: string) {
     return this.bookingBanDateService.remove(id);
   }
+
+  private static createExample = [
+    {
+      'adId': 'string',
+      'date': '25.12.24',
+      'allDay': false,
+      'times': ['9:00', '11:00', '13:00'],
+    },
+    {
+      'adId': 'string',
+      'date': '26.12.24',
+      'allDay': true,
+    },
+  ];
 }
