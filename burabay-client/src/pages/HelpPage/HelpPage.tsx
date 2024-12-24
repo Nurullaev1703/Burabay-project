@@ -8,22 +8,24 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import WhatsAppIcon from "../../app/icons/whatsapp.svg"
 import { Button } from '../../shared/ui/Button';
 import { SmallHint } from '../../shared/ui/SmallHint';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
 
 }
 
 export const HelpPage: FC<Props> = function HelpPage() {
+  const {t} = useTranslation()
   return (
     <section className='min-h-screen'>
-                <Header>
+          <Header>
           <div className='flex justify-between items-center text-center'>
             <IconContainer align='start' action={() => history.back()}>
               <img src={BackIcon} alt="" />
             </IconContainer>
             <div>
               <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>
-                {"Помощь"}
+                {t("help")}
               </Typography>
             </div>
             <IconContainer align='end' action={() => history.back()}>
@@ -32,12 +34,12 @@ export const HelpPage: FC<Props> = function HelpPage() {
           </div>
         </Header>
         <div className='px-4'>
-            <Typography className='mb-4' size={18} weight={500}>{"Связаться с нами"}</Typography>
-            <Typography size={16} weight={400}>{"Не нашли ответ на свой вопрос? Свяжитесь с нами!"}</Typography>
+            <Typography className='mb-4' size={18} weight={500}>{t("contactUs")}</Typography>
+            <Typography size={16} weight={400}>{t("dontFindAnswer")}</Typography>
             <Button className='mt-4' mode='border' >
                 <img src={WhatsAppIcon} className='mr-3' alt="" />
-                {"Написать в Whats App"}</Button>
-            <SmallHint text='Или напишите на почту' background='white'></SmallHint>
+                {t("whatsApp")}</Button>
+            <SmallHint text={t('writeMail')} background='white'></SmallHint>
             <Button className='text-base font-semibold mb-4' mode="transparent">{"burabay_travel@gmail.com"}</Button>
 
         </div>
@@ -46,20 +48,20 @@ export const HelpPage: FC<Props> = function HelpPage() {
         </div>
         <div className='px-4'>
             <div className='border-b py-4'>
-                <Typography className='mb-4' size={18} weight={500}>{"Как отменить бронирование?"}</Typography>
-                <Typography size={16} weight={400}>{"Отмена доступна за 6 часов до начала бронирования"}</Typography>
+                <Typography className='mb-4' size={18} weight={500}>{t("howCancelBook")}</Typography>
+                <Typography size={16} weight={400}>{t("cancelSixHour")}</Typography>
             </div>
             <div className='border-b py-4'>
-                <Typography className='mb-4' size={18} weight={500}>{"Возврат средств"}</Typography>
-                <Typography size={16} weight={400}>{"Предоплата будет возвращена на счёт в течении трёх часов. Если этого не произошло, обратитесь в свой банк"}</Typography>
+                <Typography className='mb-4' size={18} weight={500}>{t("cashBack")}</Typography>
+                <Typography size={16} weight={400}>{t("cashBackThreeHours")}</Typography>
             </div>
             <div className='border-b py-4'>
-                <Typography className='mb-4' size={18} weight={500}>{"Как зарегестрировать организацию?"}</Typography>
-                <Typography size={16} weight={400}>{"При входе в приложение нажмите на кнопку «Зарегестрировать организацию» и заполните представленные поля. В дальнейшем при входе по указанной почте вы будете попадать в созданный аккаунт организации. Если почта привязанна к туристическому аккаунту, укажите другой адрес при регистрации измените адрес в туристическом аккаунте."}</Typography>
+                <Typography className='mb-4' size={18} weight={500}>{t("howRegOrg")}</Typography>
+                <Typography size={16} weight={400}>{t("entrance")}</Typography>
             </div>
             <div className=' py-4'>
-                <Typography className='mb-4' size={18} weight={500}>{"Как удалить аккаунт?"}</Typography>
-                <Typography size={16} weight={400}>{"Во владке «безопасность» перейдите во вкладку «Удаление аккаунта» и следуйте инструкциям"}</Typography>
+                <Typography className='mb-4' size={18} weight={500}>{t("howDelAcc")}</Typography>
+                <Typography size={16} weight={400}>{t("security")}</Typography>
             </div>
         </div>
     </section>
