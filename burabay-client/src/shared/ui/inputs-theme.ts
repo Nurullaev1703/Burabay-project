@@ -50,7 +50,7 @@ export const theme = createTheme({
           textarea: {
             padding: "16.5px 14px",
             paddingTop: "44px",
-            lineHeight: "20px"
+            lineHeight: "20px",
           },
         },
       },
@@ -69,17 +69,17 @@ export const theme = createTheme({
     MuiInput: {
       styleOverrides: {
         root: {
-          caretColor: "#FF891C",
+          caretColor: "#0A7D9E",
           padding: "0",
           height: "fit-content",
           "&::before": {
             borderBottom: "1px solid #edecea",
           },
           "&:hover:not(.Mui-disabled, .Mui-error):before": {
-            borderBottom: "2px solid #FF7B1C",
+            borderBottom: "2px solid #0A7D9E",
           },
           "&.Mui-focused:after": {
-            borderBottom: "2px solid #FF7B1C",
+            borderBottom: "2px solid #0A7D9EC",
           },
         },
       },

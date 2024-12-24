@@ -11,7 +11,7 @@ import { TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { useAuth } from "../../../features/auth";
-// import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 
@@ -34,7 +34,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
     mode: "onBlur",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
 
@@ -63,7 +63,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
       });
 
       if (response.data == HTTP_STATUS.OK) {
-        window.location.href = "/profile";
+        navigate({to:"/profile"})
       }
 
       if (response.data == HTTP_STATUS.CONFLICT) {
@@ -195,10 +195,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
           {!error ? (
             <Button
               className="fixed bottom-4 left-3 w-header"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(saveUser);
-              }}
+              type="submit"
               loading={isLoading}
             >
               {t("save")}

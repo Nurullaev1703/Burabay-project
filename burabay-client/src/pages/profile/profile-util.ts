@@ -4,12 +4,12 @@ import { Profile } from "./model/profile"
 
 export function useGetProfile(){
     return useQuery({
-        queryKey:['profile'],
-        queryFn:async()=>{
-            const response = await apiService.get<Profile>({
-                url:"/profile"
-            })
-            return response.data
-        }
-    })
+      queryKey: ['profile'],
+      queryFn: async () => {
+        const response = await apiService.get<Profile>({
+          url: "/profile",
+        });
+        return response.data;
+      },
+    });
 }
