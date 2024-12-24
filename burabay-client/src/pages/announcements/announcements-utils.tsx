@@ -51,7 +51,6 @@ export function UseGetAnnouncements(filters?: MapFilter) {
     const categoryFilter = filters?.categoryNames || ""
     const adNameFilter = filters?.adName || ""
     return useQuery({
-
         queryKey: [`/map` , filters],
         queryFn: async() => {
             const response = await apiService.get<Announcement[]>({
@@ -65,3 +64,14 @@ export function UseGetAnnouncements(filters?: MapFilter) {
     })
 }
 
+export function UseGetOrganizationAnnouncements(orgId: string) {
+  return useQuery({
+    queryKey: [`ad-organization`, orgId],
+    queryFn: async () => {
+      const response = await apiService.get<Announcement[]>({
+        url: `/ad/by-org/${orgId}`,
+      });
+      return response.data;
+    },
+  });
+}

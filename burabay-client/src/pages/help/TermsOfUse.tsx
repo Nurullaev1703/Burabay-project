@@ -23,7 +23,7 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
       <Typography size={20} weight={700} color={COLORS_TEXT.white}>
         {t("termsUse")}
       </Typography>
-      <LanguageButton />
+     <LanguageButton/>
     </div>
   </AlternativeHeader>
   <div className="p-6 bg-white rounded-md shadow-md max-w-xl mx-auto">

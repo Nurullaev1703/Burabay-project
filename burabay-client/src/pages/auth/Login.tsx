@@ -73,6 +73,7 @@ export const Login: FC = function Login() {
   const handleFacebookCallback = async (response: FacebookAuthData) => {
     setIsLoading(true);
     if (response?.status === "unknown") {
+      setIsLoading(false)
       return;
     }
     const handleResponse = await apiService.post<string>({
@@ -107,7 +108,9 @@ export const Login: FC = function Login() {
     <div className="bg-almostWhite h-screen">
       <AlternativeHeader>
         <div className="flex justify-between items-center mb-2">
-          <IconContainer align="start">
+          <IconContainer align="start" action={() => navigate({
+            to:"/help"
+          })}>
             <img src={InfoIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
@@ -205,7 +208,7 @@ export const Login: FC = function Login() {
               containerStyle={{
                 width: "48%",
               }}
-              appId="939844554734638"
+              appId={import.meta.env.VITE_FACEBOOK_ID}
               autoLoad={false}
               textButton="Facebook"
               fields="name,email,picture"
