@@ -181,9 +181,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
           zIndex: 0,
         });
-
-        // Создаем кастомный маркер с изображением категории внутри
-
         // Создание стиля для фона
         const backgroundStyle = new Style({
           image: new CircleStyle({
@@ -274,7 +271,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       <div
         id="map"
-        style={{
+
+        style={
+          {
           ...containerStyle,
           transition: "opacity 0.3s ease-in-out",
         }}
@@ -313,7 +312,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
               >
                 <img
                   src={baseUrl + item.imgPath}
-                  className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
+                  className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
                 />
               </div>
               <Typography
@@ -326,7 +325,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 }
                 className={`text-center line-clamp-1`}
               >
-               {t(item.name)}
+                {t(item.name)}
               </Typography>
 
               {filters.categoryNames?.split(",").includes(item.name) && (
@@ -382,7 +381,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
-                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
+                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
                         src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                       />
                     </div>
@@ -411,11 +410,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {(`12 ${t("grades")}`)}
+                      {`12 ${t("grades")}`}
                     </Typography>
                   </div>
                   <Typography size={14} weight={400}>
-                    {`${t('todayWith')} 9:00 ${t('to')} 19:00`}
+                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
                   </Typography>
                   <Typography
                     size={14}
@@ -433,7 +432,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     }
                     mode="transparent"
                   >
-                    {`${t("BuildTheRoad")}` }
+                    {`${t("BuildTheRoad")}`}
                   </Button>
                 </div>
               </div>

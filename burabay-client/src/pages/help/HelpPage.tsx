@@ -1,20 +1,18 @@
 
-import { FC, useState } from "react";
+import { FC } from "react";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Loader } from "../../components/Loader";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../app/icons/back-icon-white.svg"
-import language from "../../app/icons/language.svg"
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import RightArrow from "../../app/icons/announcements/arrowRight.svg"
 import Union from "../../app/icons/Union.svg"
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 export const HelpPage: FC = function HelpPage() {
   const { history } = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -29,9 +27,7 @@ export const HelpPage: FC = function HelpPage() {
           <Typography size={20} weight={700} color={COLORS_TEXT.white}>
             {"О сервисе"}
           </Typography>
-          <IconContainer align="end">
-            <img src={language} alt="" />
-          </IconContainer>
+          <LanguageButton />
         </div>
       </AlternativeHeader>
       <main className="p-4">
@@ -58,9 +54,7 @@ export const HelpPage: FC = function HelpPage() {
         })} className="flex gap-2 items-center border-b pb-3 mb-4">
           <img src={Union} alt="" />
           <Typography size={16} weight={400}>{"Помощь"}</Typography>
-        </div>
-        
-        {isLoading && <Loader />}
+        </div>        
       </main>
     </div>
   );

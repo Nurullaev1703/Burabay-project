@@ -10,7 +10,7 @@ import { InitPage } from "../pages/init/InitPage";
 import { tokenService } from "../services/storage/Factory";
 
 export const AUTH_PATH = [
-    "/auth", "/register", "/help","/welcome"
+    "/auth", "/register", "/help","/welcome","/HelpPage"
 ]
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({

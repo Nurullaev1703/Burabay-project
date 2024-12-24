@@ -3,8 +3,8 @@ import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import BackIcon from "../../app/icons/back-icon-white.svg"
-import language from "../../app/icons/language.svg"
 import { COLORS_TEXT } from "../../shared/ui/colors";
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 interface Props {
 
@@ -21,9 +21,7 @@ export const PolitikHelp: FC<Props> = function PolitikHelp() {
       <Typography size={20} weight={700} color={COLORS_TEXT.white}>
         {"Конфеденциальность"}
       </Typography>
-      <IconContainer align="end">
-        <img src={language} alt="" />
-      </IconContainer>
+      <LanguageButton />
     </div>
   </AlternativeHeader>
 

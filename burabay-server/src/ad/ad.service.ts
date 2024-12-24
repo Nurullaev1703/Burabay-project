@@ -93,6 +93,9 @@ export class AdService {
         schedule: true,
         breaks: true,
         address: true,
+        subcategory:{
+          category: true
+        }
       },
     });
     Utils.checkEntity(ads, 'Объявления не найдены');

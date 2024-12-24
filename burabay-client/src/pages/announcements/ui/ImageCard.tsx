@@ -95,7 +95,7 @@ const ImageCard: FC<ImageCardProps> = ({
       <img
         src={imageSrc}
         alt="Preview"
-        className="absolute top-0 left-0 w-full h-full rounded-lg object-cover"
+        className={`absolute top-0 left-0 w-full h-full rounded-lg ${imageSrc == DefaultImage ? "object-contain scale-75" : "object-cover"}`}
       />
       {isMain && imageSrc !== DefaultImage && (
         <div className="absolute bottom-2 left-0 bg-blue200 rounded-r-[4px] px-[8px] py-[2px]">
