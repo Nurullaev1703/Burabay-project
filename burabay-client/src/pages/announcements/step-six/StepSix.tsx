@@ -112,9 +112,14 @@ export const StepSix: FC<Props> = function StepSix({ id }) {
         dto: form,
       });
 
-      if (response.data == HTTP_STATUS.OK) {
+      if (response.data) {
         // navigate({ to: "/profile" });
-        window.location.href = "/profile";
+        navigate({
+          to: "/announcements/bookingBan/$adId",
+          params: {
+            adId: id
+          }
+        })
       }
 
       if (response.data == HTTP_STATUS.CONFLICT) {

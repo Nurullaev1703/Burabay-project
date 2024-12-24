@@ -64,7 +64,7 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
 
     <div className="space-y-4 px-4 ">
     {category.map((item , index) =>{
-      const [imgSource , setImgSource] = useState<string>(baseUrl + item.imgPath)
+      const [_imgSource , setImgSource] = useState<string>(baseUrl + item.imgPath)
       const icon = icons[index %  icons.length];
       return (
         <div key={item.id} onClick={() => navigate({

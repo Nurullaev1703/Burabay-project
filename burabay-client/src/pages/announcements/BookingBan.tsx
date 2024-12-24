@@ -14,14 +14,27 @@ import { useNavigate } from "@tanstack/react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Подключите стили
 import { useTranslation } from "react-i18next";
+import { apiService } from "../../services/api/ApiService";
+import { useForm } from "react-hook-form";
 
+interface Props {
+  adId: string;
+  
+}
+
+interface FormType {
+  serviceTime: string[];
+  allDay: boolean;
+  date: string
+
+}
 
 interface DateSettings {
   allDay: boolean;
   times: string[];
 }
 
-export const BookingBan: FC = function BookingBan() {
+export const BookingBan: FC<Props> = function BookingBan({adId}) {
   const {t} = useTranslation()
   const defaultTimes = [
     "09:00",
@@ -81,17 +94,17 @@ export const BookingBan: FC = function BookingBan() {
   };
 
   // Удалить конкретное время
-  const deleteTime = (time: string) => {
-    if (selectedDate) {
-      setDateSettings({
-        ...dateSettings,
-        [selectedDate]: {
-          ...dateSettings[selectedDate],
-          times: dateSettings[selectedDate].times.filter((t) => t !== time),
-        },
-      });
-    }
-  };
+  // const deleteTime = (time: string) => {
+  //   if (selectedDate) {
+  //     setDateSettings({
+  //       ...dateSettings,
+  //       [selectedDate]: {
+  //         ...dateSettings[selectedDate],
+  //         times: dateSettings[selectedDate].times.filter((t) => t !== time),
+  //       },
+  //     });
+  //   }
+  // };
 
   // Сохранить настройки и закрыть модалку
   const saveDateSettings = () => {
@@ -117,6 +130,38 @@ export const BookingBan: FC = function BookingBan() {
     setSelectedDate(date);
     setShowModals((prev) => ({ ...prev, [date]: true })); // Открыть модалку для выбранной даты
     setSelectedTimes([]); // Сбрасываем выбранные времена при открытии модалки
+  };
+  const { handleSubmit } = useForm<FormType>({
+    defaultValues: {
+      allDay: false,
+      date: "",
+      serviceTime: [],
+    },
+    mode: "onSubmit",
+  });
+
+    const saveTimes = async () => {
+
+      const response = await apiService.post<string>({
+        url: `/booking-to-date`,
+        dto: {
+          adId: adId,
+          date: dates,
+          allDay: dateSettings,
+          serviceTime: defaultTimes,
+
+        }
+      });
+
+      if (response.data) {
+
+        navigate({
+          to: "/announcements/bookingBan/$adId",
+          params: {
+            adId: adId,
+          }
+        })
+      }
   };
 
   return (
@@ -279,7 +324,7 @@ export const BookingBan: FC = function BookingBan() {
       )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
-        <Button mode="default">{t("continueBtn")}</Button>
+        <Button onClick={saveTimes} mode="default">{t("continueBtn")}</Button>
       </div>
     </main>
   );

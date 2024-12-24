@@ -15,6 +15,7 @@ import { Button } from "../../../shared/ui/Button";
 import { Breaks, Schedule } from "../model/announcements";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   id: string;
@@ -27,6 +28,7 @@ interface FormType {
 }
 
 export const StepFive: FC<Props> = function StepFive({ id }) {
+  const navigate = useNavigate()
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
   const formatTime = (time: string | undefined) => {
@@ -131,11 +133,16 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
       });
 
       if (
-        responseAd.data == HTTP_STATUS.OK &&
-        responseSchedule.data == HTTP_STATUS.OK &&
-        responseBreaks.data == HTTP_STATUS.OK
+        responseAd.data &&
+        responseSchedule.data == HTTP_STATUS.CREATED &&
+        responseBreaks.data == HTTP_STATUS.CREATED
       ) {
-        window.location.href = `/announcements/addAnnouncements/step-six/${id}`;
+        navigate({
+          to: "/announcements/addAnnouncements/step-six/$id",
+          params: {
+            id: id
+          }
+        })
       }
 
       if (
