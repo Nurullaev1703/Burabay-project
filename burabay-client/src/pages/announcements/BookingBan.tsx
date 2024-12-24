@@ -81,17 +81,17 @@ export const BookingBan: FC = function BookingBan() {
   };
 
   // Удалить конкретное время
-  const deleteTime = (time: string) => {
-    if (selectedDate) {
-      setDateSettings({
-        ...dateSettings,
-        [selectedDate]: {
-          ...dateSettings[selectedDate],
-          times: dateSettings[selectedDate].times.filter((t) => t !== time),
-        },
-      });
-    }
-  };
+  // const deleteTime = (time: string) => {
+  //   if (selectedDate) {
+  //     setDateSettings({
+  //       ...dateSettings,
+  //       [selectedDate]: {
+  //         ...dateSettings[selectedDate],
+  //         times: dateSettings[selectedDate].times.filter((t) => t !== time),
+  //       },
+  //     });
+  //   }
+  // };
 
   // Сохранить настройки и закрыть модалку
   const saveDateSettings = () => {
