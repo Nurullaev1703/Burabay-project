@@ -27,7 +27,7 @@ export const UserInfoList: FC<Props> = function UserInfoList({
   const { user } = useAuth();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [params, setParams] = useState<string[]>(
+  const [params, _setParams] = useState<string[]>(
     user?.role === "бизнес" ? paramsOrganizator : paramsTourist
   );
 

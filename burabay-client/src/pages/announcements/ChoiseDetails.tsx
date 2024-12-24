@@ -55,8 +55,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
   const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
   const { t } = useTranslation();
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, _setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
   const { user } = useAuth();
   const [images, setImages] = useState<ImageData[]>([]);

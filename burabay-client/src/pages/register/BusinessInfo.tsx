@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";

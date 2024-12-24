@@ -13,7 +13,6 @@ import { useAuth } from "../../../features/auth";
 import { Organization } from "../model/profile";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
-import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface FormType {
@@ -26,7 +25,6 @@ export const EditProfile: FC = function EditProfile() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { handleSubmit, control } = useForm<FormType>({
     defaultValues: {
       organization: {

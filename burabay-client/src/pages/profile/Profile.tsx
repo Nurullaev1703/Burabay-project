@@ -23,12 +23,12 @@ import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 import { ROLE_TYPE } from "../auth/model/auth-model";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
+import { Loader } from "../../components/Loader";
 
 interface Props {
   user: ProfileType;
 }
 
-type Language = "RU" | "KZ" | "EN";
 
 export const Profile: FC<Props> = function Profile({ user }) {
   const { t } = useTranslation();
@@ -39,11 +39,8 @@ export const Profile: FC<Props> = function Profile({ user }) {
   );
   const [accountStatus, setAccountStatus] =
     useState<accountStatus>("notFilled");
-  const [language, setLanguage] = useState<Language>("RU");
-
   // Смена лого
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  console.log(accountStatus)
   const imageChange = async (data: File) => {
     if (data) {
       setIsLoading(true);
@@ -218,6 +215,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
         )}
       </ul>
       {user.role == ROLE_TYPE.TOURIST ? <NavMenuClient /> : <NavMenuOrg />}
+      {isLoading && <Loader />}
     </section>
   );
 };

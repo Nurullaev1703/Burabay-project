@@ -24,14 +24,13 @@ interface Props {
 export const RatingModal: FC<Props> = function RatingModal({
   open,
   onClose,
-  user,
 }) {
-  const [currentRating, setCurrentRating] = useState<FormType>({
+  const [currentRating, _setCurrentRating] = useState<FormType>({
     stars: 0,
     text: "",
   });
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, _setIsLoading] = useState<boolean>(false);
   const [appreciated, setAppreciated] = useState<boolean>(false);
   const { t } = useTranslation();
 
@@ -105,7 +104,7 @@ export const RatingModal: FC<Props> = function RatingModal({
         {!appreciated && (
           <>
             <Box display="flex" justifyContent="center">
-              {[...Array(5)].map((star, index) => {
+              {[...Array(5)].map((_star, index) => {
                 const starIndex = index + 1;
                 const isFilled = starIndex <= stars;
                 return (

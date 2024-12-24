@@ -13,7 +13,6 @@ import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 export const HelpPage: FC = function HelpPage() {
   const { history } = useRouter();
-  const [isLoading, _setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
