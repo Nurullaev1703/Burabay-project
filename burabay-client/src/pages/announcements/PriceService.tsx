@@ -198,7 +198,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                     isFocused ? "text-blue200" : "text-[#999999]"
                   }`}
                 >
-                  Стоимость услуги для взрослых клиентов
+                 {t("priceForAdult")}
                 </label>
                 <input
                   {...field}
@@ -241,7 +241,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                     isFocusedChild ? "text-blue200" : "text-[#999999]"
                   }`}
                 >
-                  Стоимость услуги для детей
+                  {t("priceForChild")}
                 </label>
                 <input
                   {...field}

@@ -667,6 +667,7 @@ i18n.use(initReactI18next).init({
           accessAcount: "Подтвердите аккаунт,",
           accountOnlinePay: "что бы иметь возможность принимать онлайн предоплату",
           accessAccountBtn: "Подтвердить аккаунт",
+          adressService: "Адрес оказания услуги",
 
 
 
