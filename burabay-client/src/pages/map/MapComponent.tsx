@@ -21,11 +21,10 @@ import { apiService } from '../../services/api/ApiService';
 import { Button } from '../../shared/ui/Button';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../../features/auth';
-import { use } from 'i18next';
 import { HTTP_STATUS } from '../../services/api/ServerData';
 import { TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import zIndex from '@mui/material/styles/zIndex';
+
 
 const containerStyle = {
   width: '100%',
@@ -99,7 +98,7 @@ export const MapComponent: FC<Props> = (props) => {
         const response = await apiService.get<any>({
           url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
         });
-        const { display_name, address } = response.data;
+        const { display_name } = response.data;
         setAddress(display_name); // Устанавливаем полный адрес
       } catch (error) {
         console.error('Ошибка при получении адреса:', error);
@@ -113,7 +112,6 @@ export const MapComponent: FC<Props> = (props) => {
 
   const handleSubmit = async () =>{
     const arrayAdress = address.split(",")
-    const adress = arrayAdress[0].includes("улица") ? arrayAdress[0] : arrayAdress[1];
     const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : "Бурабай"
     const response = await apiService.post({
       url: "/address",

@@ -7,14 +7,14 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Loader } from "../../components/Loader";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../app/icons/back-icon-white.svg"
-import language from "../../app/icons/language.svg"
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import RightArrow from "../../app/icons/announcements/arrowRight.svg"
 import Union from "../../app/icons/Union.svg"
+import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 export const HelpPage: FC = function HelpPage() {
   const { history } = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, _setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -27,37 +27,35 @@ export const HelpPage: FC = function HelpPage() {
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={20} weight={700} color={COLORS_TEXT.white}>
-            {"О сервисе"}
+            {t("aboutServiceHelp")}
           </Typography>
-          <IconContainer align="end">
-            <img src={language} alt="" />
-          </IconContainer>
+          <LanguageButton />
         </div>
       </AlternativeHeader>
       <main className="p-4">
         <div onClick={() => navigate({
           to: `/help/ServiceHelp`,
         })} className="flex justify-between items-center border-b pb-3 mb-4">
-          <Typography size={16} weight={400}>{"О сервисе"}</Typography>
+          <Typography size={16} weight={400}>{t("aboutServiceHelp")}</Typography>
           <img src={RightArrow} className="w-4 h-4" alt="" />
         </div>
         <div onClick={() => navigate({
           to: `/help/PolitikHelp`,
         })} className="flex justify-between items-center border-b pb-3 mb-4">
-          <Typography size={16} weight={400}>{"Политика конфеденциальности"}</Typography>
+          <Typography size={16} weight={400}>{t("confidecialtonst")}</Typography>
           <img src={RightArrow} className="w-4 h-4" alt="" />
         </div>
         <div onClick={() => navigate({
           to: `/help/TermsOfUse`,
         })} className="flex justify-between items-center border-b pb-3 mb-4">
-          <Typography size={16} weight={400}>{"Условия использования"}</Typography>
+          <Typography size={16} weight={400}>{t("termsUse")}</Typography>
           <img src={RightArrow} className="w-4 h-4" alt="" />
         </div>
         <div onClick={() => navigate({
           to: "/HelpPage"
         })} className="flex gap-2 items-center border-b pb-3 mb-4">
           <img src={Union} alt="" />
-          <Typography size={16} weight={400}>{"Помощь"}</Typography>
+          <Typography size={16} weight={400}>{t("helpPage")}</Typography>
         </div>
         
         {isLoading && <Loader />}
