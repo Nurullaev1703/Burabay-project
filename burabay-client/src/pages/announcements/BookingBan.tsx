@@ -105,7 +105,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
       adId: adId,
       date: date,
       allDay: dateSettings[date].allDay,
-      serviceTime: dateSettings[date].allDay ? [] : dateSettings[date].times.length > 0 ? dateSettings[date].times : serviceTime,
+      times: dateSettings[date].allDay ? [] : dateSettings[date].times.length > 0 ? dateSettings[date].times : serviceTime,
     }));
   
     // Отправляем один запрос с массивом всех дат

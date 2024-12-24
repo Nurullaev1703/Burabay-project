@@ -7,6 +7,7 @@ import { COLORS_TEXT } from "../../../shared/ui/colors";
 import maptracker from "../../../app/icons/main/maptracker.svg";
 import StarIcon from "../../../app/icons/main/star.svg";
 import FavouriteIcon from "../../../app/icons/favourite.svg";
+import { Link } from "@tanstack/react-router";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
@@ -37,7 +38,9 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
   );
   return (
     <li className="rounded-2xl relative overflow-hidden min-w-[160px] max-w-[200px]">
-      <Carousel items={carouselItems} />
+      <Link to="/announcements/$announcementId" params={{announcementId: ad.id}}>
+        <Carousel items={carouselItems} />
+      </Link>
       <div className={`absolute top-2 right-2 ${categoryColors[ad?.subcategory?.category?.name] || "bg-white"} rounded-full p-1 z-20`}>
         <img
           src={iconSrc}
@@ -65,7 +68,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
         <Typography size={14} weight={400}>
           {ad.title}
         </Typography>
-        <Typography size={12} weight={400} className="h-7 line-clamp-2">
+        <Typography size={12} weight={400} className="h-7 line-clamp-2 leading-none">
           {ad.description}
         </Typography>
         {!isOrganization && (
