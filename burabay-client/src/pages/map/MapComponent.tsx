@@ -25,6 +25,7 @@ import { use } from 'i18next';
 import { HTTP_STATUS } from '../../services/api/ServerData';
 import { TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import zIndex from '@mui/material/styles/zIndex';
 
 const containerStyle = {
   width: '100%',
@@ -129,7 +130,10 @@ export const MapComponent: FC<Props> = (props) => {
     })
     if(response.data == HTTP_STATUS.CREATED){
       navigate({
-        to: "/announcements/addAnnouncements/step-five"
+        to: "/announcements/addAnnouncements/step-five/$id",
+        params: {
+          id: props.adId
+        }
       })
     }
   }
@@ -155,21 +159,24 @@ export const MapComponent: FC<Props> = (props) => {
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
-      <div id="map" style={containerStyle}></div>
+      <div className='z-10' id="map" style={containerStyle}></div>
       {address && (
         <div>
         <TextField
+        value={address}
+        label={t("adressService")}
         variant='outlined'
         placeholder={t("addressPlace")}
           style={{
             width: "80%",
+            height: "69px",
             position: 'absolute',
             top: 105,
             left: 55,
-
+            zIndex: 2
           }}
         />
-          <Typography>Адрес:</Typography> {address}
+
 
 
         </div>
