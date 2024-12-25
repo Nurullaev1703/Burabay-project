@@ -93,7 +93,6 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
             navigate({
               to: "/profile",
             });
-            // window.location.href = "/profile"
           } else {
             setErrorMessage(t("wrongPassword"));
             setPasswordError(true);

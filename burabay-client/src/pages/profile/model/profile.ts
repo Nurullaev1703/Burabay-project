@@ -13,11 +13,10 @@ export interface Organization {
 }
 
 export interface Profile {
-  id: string;
   fullName: string;
   email: string;
   isEmailConfirmed: boolean;
-  organization: Organization;
+  organization: Organization | null;
   phoneNumber: string;
   picture: string;
   role: ROLE_TYPE;
