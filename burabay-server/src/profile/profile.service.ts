@@ -56,7 +56,7 @@ export class ProfileService {
         siteUrl: updateProfileDto.organization.siteUrl || user.organization.siteUrl,
       });
     }
-    return JSON.stringify(HttpStatus.OK);
+    return this.getProfile({id: user.id});
   }
 
   async getUsers() {

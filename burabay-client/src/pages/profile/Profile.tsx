@@ -24,14 +24,11 @@ import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 import { ROLE_TYPE } from "../auth/model/auth-model";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import { Loader } from "../../components/Loader";
+import { useAuth } from "../../features/auth";
 
-interface Props {
-  user: ProfileType;
-}
-
-
-export const Profile: FC<Props> = function Profile({ user }) {
+export const Profile: FC = function Profile() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState<string>(
     baseUrl +
@@ -39,8 +36,10 @@ export const Profile: FC<Props> = function Profile({ user }) {
   );
   const [accountStatus, setAccountStatus] =
     useState<accountStatus>("notFilled");
+
   // Смена лого
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const imageChange = async (data: File) => {
     if (data) {
       setIsLoading(true);
@@ -104,10 +103,17 @@ export const Profile: FC<Props> = function Profile({ user }) {
     }
   };
 
+  // Установка статуса аккаунта
   useEffect(() => {
     if (user?.role === "турист") {
       if (!user?.fullName || !user?.phoneNumber) {
         setAccountStatus("notFilled");
+      } else {
+        setAccountStatus("done");
+      }
+    } else if (user?.role === "бизнес") {
+      if (!user?.organization?.isConfirmed) {
+        setAccountStatus("unconfirmed");
       } else {
         setAccountStatus("done");
       }
@@ -210,11 +216,11 @@ export const Profile: FC<Props> = function Profile({ user }) {
           <RatingModal
             open={showModal}
             onClose={() => setShowModal(false)}
-            user={user}
+            user={user as ProfileType}
           />
         )}
       </ul>
-      {user.role == ROLE_TYPE.TOURIST ? <NavMenuClient /> : <NavMenuOrg />}
+      {user?.role == ROLE_TYPE.TOURIST ? <NavMenuClient /> : <NavMenuOrg />}
       {isLoading && <Loader />}
     </section>
   );

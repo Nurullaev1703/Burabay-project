@@ -10,7 +10,7 @@ import { DefaultForm } from "../../auth/ui/DefaultForm";
 import { TextField } from "@mui/material";
 import { Button } from "../../../shared/ui/Button";
 import { useAuth } from "../../../features/auth";
-import { Organization } from "../model/profile";
+import { Organization, Profile } from "../model/profile";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ interface FormType {
 }
 
 export const EditProfile: FC = function EditProfile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate()
   const {history} = useRouter();
@@ -51,22 +51,22 @@ export const EditProfile: FC = function EditProfile() {
   const saveUser = async (form: FormType) => {
     try {
       setIsLoading(true);
-      const response = await apiService.patch<string>({
+      const response = await apiService.patch<Profile>({
         url: "/profile",
         dto: form,
       });
 
-      if (response.data == HTTP_STATUS.OK) {
-        queryClient.invalidateQueries({ queryKey: ["profile"] });
+      if (response.data) {
+        setUser(response.data)
         navigate({to:"/profile"})
       }
 
-      if (response.data == HTTP_STATUS.CONFLICT) {
-        handleError(t("invalidCode"));
-      }
-      if (response.data == HTTP_STATUS.SERVER_ERROR) {
-        handleError(t("tooManyRequest"));
-      }
+      // if (response.data == HTTP_STATUS.CONFLICT) {
+      //   handleError(t("invalidCode"));
+      // }
+      // if (response.data == HTTP_STATUS.SERVER_ERROR) {
+      //   handleError(t("tooManyRequest"));
+      // }
 
       setIsLoading(false);
     } catch (error) {

@@ -14,6 +14,7 @@ import { useAuth } from "../../../features/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
+import { Profile } from "../model/profile";
 
 interface FormType {
   fullName: string;
@@ -22,7 +23,7 @@ interface FormType {
 }
 
 export const EditProfileUser: FC = function EditProfileUser() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { t } = useTranslation();
   const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
   const { handleSubmit, control } = useForm<FormType>({
@@ -57,21 +58,23 @@ export const EditProfileUser: FC = function EditProfileUser() {
         phoneNumber: formatPhoneNumber(form.phoneNumber),
       };
 
-      const response = await apiService.patch<string>({
-        url: "/profile/",
+      const response = await apiService.patch<Profile>({
+        url: "/profile",
         dto: updatedForm,
       });
 
-      if (response.data == HTTP_STATUS.OK) {
-        navigate({to:"/profile"})
+
+      if (response.data) {
+        setUser(response.data);
+        navigate({to:"/profile"});
       }
 
-      if (response.data == HTTP_STATUS.CONFLICT) {
-        handleError(t("invalidCode"));
-      }
-      if (response.data == HTTP_STATUS.SERVER_ERROR) {
-        handleError(t("tooManyRequest"));
-      }
+      // if (response.data == HTTP_STATUS.CONFLICT) {
+      //   handleError(t("invalidCode"));
+      // }
+      // if (response.data == HTTP_STATUS.SERVER_ERROR) {
+      //   handleError(t("tooManyRequest"));
+      // }
 
       setIsLoading(false);
     } catch (error) {
