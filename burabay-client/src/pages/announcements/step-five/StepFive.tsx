@@ -90,15 +90,16 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
     }
   };
 
-  const handleBreakChange = (index: number, field: string, value: string) => {
-    // Обновляем перерыв в массиве
+  const handleBreakChange = (index: number, field: keyof Breaks, value: string) => {
+    // Update the break in the state
     const updatedBreaks = [...breaks];
     updatedBreaks[index] = { ...updatedBreaks[index], [field]: value };
     setBreaks(updatedBreaks);
-
-    // Обновляем значение в форме через setValue
-    setValue(`breaks.${index}.${field}`, value);
+  
+    // Update the value in the form through setValue
+    setValue(`breaks.${index}.${field}` as const, value);
   };
+  
 
   const removeBreak = (index: number) => {
     // Удаляем перерыв по индексу

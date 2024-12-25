@@ -45,18 +45,18 @@ interface Props {
   filters: MapFilter;
 }
 
+export const categoryColors: Record<string, string> = {
+  Отдых: "bg-[#39B598]",
+  Жилье: "bg-[#5EBAE1]",
+  Здоровье: "bg-[#DC53AD]",
+  Экстрим: "bg-[#EF5C7F]",
+  Достопримечательности: "bg-[#B49081]",
+  Питание: "bg-[#F4A261]",
+  Развлечения: "bg-[#E5C82F]",
+  Прокат: "bg-[#A16ACD]",
+  Безопасность: "bg-[#777CEF]",
+};
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const categoryColors: Record<string, string> = {
-    Отдых: "bg-[#39B598]",
-    Жилье: "bg-[#5EBAE1]",
-    Здоровье: "bg-[#DC53AD]",
-    Экстрим: "bg-[#EF5C7F]",
-    Достопримечательности: "bg-[#B49081]",
-    Питание: "bg-[#F4A261]",
-    Развлечения: "bg-[#E5C82F]",
-    Прокат: "bg-[#A16ACD]",
-    Безопасность: "bg-[#777CEF]",
-  };
   const colors: Record<string, string> = {
     Отдых: "#39B598",
     Жилье: "#5EBAE1",

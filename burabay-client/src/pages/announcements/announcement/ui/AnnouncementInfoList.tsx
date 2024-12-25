@@ -7,11 +7,13 @@ import { Link } from "@tanstack/react-router";
 interface Props {
   phoneNumber: string;
   schedule: AnnouncementSchedule | null | string;
+  id: string;
 }
 
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   phoneNumber,
   schedule,
+  id,
 }) {
   const { t } = useTranslation();
 
@@ -31,6 +33,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       sun: "Вс",
     };
 
+    // Возврат Пн, Вт и тд
     const workingDays = Object.entries(daysMap)
       .filter(([key]) => {
         const startKey = `${key}Start`;
@@ -61,7 +64,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         </span>
       </li>
       <li className="border-b border-[#999999] py-3">
-        <Link className="flex justify-between">
+        <Link to={`/announcements/schedule`} className="flex justify-between">
           <div className="flex flex-col">
             <span>{renderSchedule()}</span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>

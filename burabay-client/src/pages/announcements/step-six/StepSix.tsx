@@ -29,13 +29,14 @@
     serviceTime: string[];
     isDuration: boolean;
     duration: string;
+    tempServiceTime?: string;
   }
 
   export const StepSix: FC<Props> = function StepSix({ id }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const { handleSubmit, watch, setValue, control } = useForm({
+    const { handleSubmit, watch, setValue, control } = useForm<FormType>({
       defaultValues: {
         fullDay: false,
         serviceTime: [],
@@ -65,7 +66,7 @@
 
     // Редактирование времени
     const handleServiceChange = (index: number, value: string) => {
-      const updatedServices = [...servicesTime];
+      const updatedServices: string[] = [...servicesTime];
       updatedServices[index] = value;
       setServicesTime(updatedServices);
       setValue("serviceTime", updatedServices);

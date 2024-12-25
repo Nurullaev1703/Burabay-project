@@ -43,7 +43,6 @@ export const Profile: FC<Props> = function Profile({ user }) {
 
   // Смена лого
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  console.log(accountStatus)
   const imageChange = async (data: File) => {
     if (data) {
       setIsLoading(true);

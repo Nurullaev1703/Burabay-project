@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Announcement as AnnouncementType } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -12,14 +12,23 @@ import EditIcon from "../../../app/icons/edit.svg";
 import { baseUrl } from "../../../services/api/ServerData";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
-import tropa from "../../../app/img/tropa.jpeg"
+import { Carousel, CarouselItem } from "../../../components/Carousel";
+import { categoryColors } from "../../mapNav/MapNav";
 interface Props {
   announcement: AnnouncementType;
 }
 
 export const Announcement: FC<Props> = function Announcement({ announcement }) {
   const { t } = useTranslation();
-  console.log(announcement);
+  const [carouselImages, setCarouselImages] = useState<CarouselItem[]>(
+    announcement.images.map((image, index) => {
+      return {
+        imgUrl: baseUrl + image,
+        index,
+      };
+    })
+  );
+  console.log(announcement)
   return (
     <section className="bg-background">
       <Header>
@@ -38,17 +47,24 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
             </Typography>
           </div>
           <IconContainer align="end" action={() => history.back()}>
-            <img src={EditIcon} alt="" />
+            {/* <img src={EditIcon} alt="" /> */}
           </IconContainer>
         </div>
       </Header>
 
       <div className="px-4 bg-white pb-4 mb-2">
-        <img
-          src={tropa}
-          alt={announcement.title}
-          className="h-96 mb-4"
-        />
+        <div className="relative">
+          <div
+            className={`absolute w-7 h-7 rounded-full ${categoryColors[announcement.subcategory.category.name]} z-10 right-2.5 top-2.5`}
+          >
+            <img
+              src={baseUrl + announcement.subcategory.category.imgPath}
+              alt="Категория"
+              className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-100"
+            />
+          </div>
+          <Carousel items={carouselImages} height="h-96" />
+        </div>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 
         <div className="flex justify-between mb-4">
@@ -78,6 +94,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <p className="mb-4 leading-5">{announcement.description}</p>
 
         <AnnouncementInfoList
+          id={announcement.id}
           phoneNumber={announcement.phoneNumber}
           schedule={announcement.schedule}
         />
