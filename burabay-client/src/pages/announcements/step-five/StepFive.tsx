@@ -209,7 +209,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
             <Controller
               name={"isRoundTheClock"}
               control={control}
-              render={({ field }) => (
+              render={() => (
                 <Switch
                   checked={currentAroundClock}
                   onChange={() =>
@@ -230,7 +230,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                     <Controller
                       name={`workingDays.${day}Start`}
                       control={control}
-                      render={({ field }) => (
+                      render={() => (
                         <Switch
                           checked={isDayActive(day)}
                           onChange={() => {
@@ -333,7 +333,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
         </p>
 
         <ul>
-          {breaks.map((breakItem, index) => (
+          {breaks.map((_, index) => (
             <li key={index} className="mt-4 flex items-center justify-between">
               <div className="flex items-center">
                 <span className="mr-4">{"с"}</span>
@@ -349,7 +349,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         H: /[0-9]/,
                         m: /[0-5]/,
                         M: /[0-9]/,
-                      },
+                      },  
                     });
                     return (
                       <TextField

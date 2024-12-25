@@ -7,13 +7,11 @@ import { Link } from "@tanstack/react-router";
 interface Props {
   phoneNumber: string;
   schedule: AnnouncementSchedule | null | string;
-  id: string;
 }
 
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   phoneNumber,
   schedule,
-  id,
 }) {
   const { t } = useTranslation();
 

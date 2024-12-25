@@ -173,7 +173,7 @@
             <Controller
               name="fullDay"
               control={control}
-              render={({ field }) => (
+              render={() => (
                 <Switch
                   checked={fullDay}
                   onChange={() => setValue("fullDay", !fullDay)}
@@ -323,7 +323,7 @@
             <Controller
               name="isDuration"
               control={control}
-              render={({ field }) => (
+              render={() => (
                 <Switch
                   checked={isDuration}
                   onChange={() => setValue("isDuration", !isDuration)}

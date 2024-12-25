@@ -8,18 +8,20 @@ import { COLORS_TEXT } from "../../../shared/ui/colors";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
-import EditIcon from "../../../app/icons/edit.svg";
+// import EditIcon from "../../../app/icons/edit.svg";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
 import { categoryColors } from "../../mapNav/MapNav";
+import { baseUrl } from "../../../services/api/ServerData";
+
 interface Props {
   announcement: AnnouncementType;
 }
 
 export const Announcement: FC<Props> = function Announcement({ announcement }) {
   const { t } = useTranslation();
-  const [carouselImages, setCarouselImages] = useState<CarouselItem[]>(
+  const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
       return {
         imgUrl: baseUrl + image,
@@ -27,7 +29,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       };
     })
   );
-  console.log(announcement)
+
   return (
     <section className="bg-background">
       <Header>
@@ -93,7 +95,6 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <p className="mb-4 leading-5">{announcement.description}</p>
 
         <AnnouncementInfoList
-          id={announcement.id}
           phoneNumber={announcement.phoneNumber}
           schedule={announcement.schedule}
         />
