@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { Announcement } from "./model/announcements";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import { AdCard } from "../main/ui/AdCard";
+import { IconContainer } from "../../shared/ui/IconContainer";
+import marker from "../../app/icons/announcements/markerMapBlue.svg"
 
 interface Props {
   announcements: Announcement[];
@@ -35,7 +37,7 @@ export const Announcements: FC<Props> = function Announcements({
       )}
       {announcements.length && (
         <>
-          <div className="flex justify-between items-center text-center gap-3">
+          <div className="flex justify-between items-center text-center ">
             <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
               <img src={SearchIcon} alt="" />
               <input
@@ -43,8 +45,15 @@ export const Announcements: FC<Props> = function Announcements({
                 placeholder="Поиск"
                 className="flex-grow bg-transparent outline-none text-gray-700"
               />
+
             </div>
-            {/* <img src={FilterIcon} className="mt-4" alt="" /> */}
+            <IconContainer  className="mt-4" align="end">
+                <img onClick={() =>
+              navigate({
+                to: "/announcements/mapForAnnoun"
+              })
+            } src={marker} alt="" />
+              </IconContainer>
           </div>
           <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-10">
             {announcements.map((item) => {
