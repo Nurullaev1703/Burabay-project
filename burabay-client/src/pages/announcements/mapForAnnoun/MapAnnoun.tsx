@@ -13,7 +13,7 @@ import locationIcon from "../../../app/icons/announcements/markerSvg.svg";
 import { Typography } from "../../../shared/ui/Typography";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
-import { Announcement, Category } from "../model/announcements";
+import { Announcement } from "../model/announcements";
 import BackIcon from "../../../app/icons/back-icon.svg";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -27,7 +27,6 @@ import { Button } from "../../../shared/ui/Button";
 import cancelBlack from "../../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { useNavigate } from "@tanstack/react-router";
-import { MapFilter } from "../announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 
@@ -38,11 +37,9 @@ const containerStyle = {
 
 interface Props {
   announcements: Announcement[];
-  categories: Category[];
-  filters: MapFilter;
 }
 
-export const MapAnnoun: FC<Props> = ({ announcements,  filters }) => {
+export const MapAnnoun: FC<Props> = ({ announcements, }) => {
   const categoryColors: Record<string, string> = {
     Отдых: "bg-[#39B598]",
     Жилье: "bg-[#5EBAE1]",
@@ -67,7 +64,7 @@ export const MapAnnoun: FC<Props> = ({ announcements,  filters }) => {
   };
 
   const {t}= useTranslation()
-  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [activeCategory, _setActiveCategory] = useState<string>("");
   const [_showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
@@ -78,10 +75,6 @@ export const MapAnnoun: FC<Props> = ({ announcements,  filters }) => {
   ); // Храним информацию о выбранном объявлении
 
 
-
-  useEffect(() => {
-    setActiveCategory(filters?.categoryNames || "");
-  }, []);
 
   useEffect(() => {
     const vectorSource = new VectorSource();
