@@ -14,6 +14,7 @@ import { apiService } from "../../services/api/ApiService";
 import { HTTP_STATUS } from "../../services/api/ServerData";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import { useAuth } from "../../features/auth";
+import { Profile } from "../profile/model/profile";
 
 interface Props {
   email: string;
@@ -31,7 +32,7 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
-  const { setToken } = useAuth();
+  const { setToken, setUser } = useAuth();
 
   const {
     handleSubmit,
@@ -85,9 +86,17 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
             }, 3000);
           } else {
             setToken(response.data);
-            navigate({
-              to: "/profile",
+            const userResponse = await apiService.get<Profile>({
+              url: "/profile",
             });
+            if (userResponse.data) {
+              setUser(userResponse.data);
+              navigate({
+                to: "/profile",
+              });
+            } else {
+              console.error("Ошибка при регистрации");
+            }
           }
           setIsLoading(false);
         })}

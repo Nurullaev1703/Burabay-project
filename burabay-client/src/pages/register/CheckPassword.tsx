@@ -12,10 +12,11 @@ import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import ClosedEye from "../../app/icons/close-eye.svg"
-import OpenedEye from "../../app/icons/open-eye.svg"
+import ClosedEye from "../../app/icons/close-eye.svg";
+import OpenedEye from "../../app/icons/open-eye.svg";
 import { useAuth } from "../../features/auth";
 import { HTTP_STATUS } from "../../services/api/ServerData";
+import { Profile } from "../profile/model/profile";
 
 interface Props {
   email: string;
@@ -31,7 +32,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
-  const { setToken } = useAuth();
+  const { setToken, setUser } = useAuth();
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const {
@@ -90,9 +91,18 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
           });
           if (response.data != HTTP_STATUS.CONFLICT) {
             setToken(response.data);
-            navigate({
-              to: "/profile",
+
+            const userResponse = await apiService.get<Profile>({
+              url: "/profile",
             });
+            if (userResponse.data) {
+              setUser(userResponse.data);
+              navigate({
+                to: "/profile",
+              });
+            } else {
+              setErrorMessage(t("wrongPassword"));
+            }
           } else {
             setErrorMessage(t("wrongPassword"));
             setPasswordError(true);
