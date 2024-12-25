@@ -92,7 +92,7 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
       ],
       view: new View({
         center: fromLonLat([70.30456742278163, 53.08271195503471]),
-        zoom: 14,
+        zoom: 15,
       }),
     });
 
