@@ -12,8 +12,6 @@ import { Button } from "../../../shared/ui/Button";
 import { useAuth } from "../../../features/auth";
 import { Organization, Profile } from "../model/profile";
 import { apiService } from "../../../services/api/ApiService";
-import { HTTP_STATUS } from "../../../services/api/ServerData";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 
 interface FormType {
@@ -27,7 +25,6 @@ export const EditProfile: FC = function EditProfile() {
   const navigate = useNavigate()
   const {history} = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const queryClient = useQueryClient();
   const { handleSubmit, control } = useForm<FormType>({
     defaultValues: {
       organization: {
@@ -59,14 +56,9 @@ export const EditProfile: FC = function EditProfile() {
       if (response.data) {
         setUser(response.data)
         navigate({to:"/profile"})
+      } else {
+        handleError(t("invalidCode"));
       }
-
-      // if (response.data == HTTP_STATUS.CONFLICT) {
-      //   handleError(t("invalidCode"));
-      // }
-      // if (response.data == HTTP_STATUS.SERVER_ERROR) {
-      //   handleError(t("tooManyRequest"));
-      // }
 
       setIsLoading(false);
     } catch (error) {

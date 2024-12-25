@@ -13,7 +13,6 @@ import { Button } from "../../../shared/ui/Button";
 import { useAuth } from "../../../features/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
-import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { Profile } from "../model/profile";
 
 interface FormType {
@@ -67,14 +66,9 @@ export const EditProfileUser: FC = function EditProfileUser() {
       if (response.data) {
         setUser(response.data);
         navigate({to:"/profile"});
+      } else {
+        handleError(t("invalidCode"))
       }
-
-      // if (response.data == HTTP_STATUS.CONFLICT) {
-      //   handleError(t("invalidCode"));
-      // }
-      // if (response.data == HTTP_STATUS.SERVER_ERROR) {
-      //   handleError(t("tooManyRequest"));
-      // }
 
       setIsLoading(false);
     } catch (error) {
