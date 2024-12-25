@@ -63,7 +63,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
       });
 
       if (response.data == HTTP_STATUS.OK) {
-        window.location.href = "/profile";
+        navigate({to:"/profile"})
       }
 
       if (response.data == HTTP_STATUS.CONFLICT) {
@@ -165,7 +165,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
             }}
             render={({ field, fieldState: { error } }) => (
               <div className="relative p-2 rounded-md bg-white mb-2">
-                <div className="absolute top-[10px] left-3 flex h-full items-center pointer-events-none z-10">
+                <div className="absolute top-[9.5px] left-5 flex h-[90px] items-center pointer-events-none z-10">
                   {"+7"}
                 </div>
                 <TextField
@@ -195,10 +195,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
           {!error ? (
             <Button
               className="fixed bottom-4 left-3 w-header"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(saveUser);
-              }}
+              type="submit"
               loading={isLoading}
             >
               {t("save")}

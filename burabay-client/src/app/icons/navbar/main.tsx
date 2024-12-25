@@ -9,7 +9,6 @@ interface SVGIconProps {
 export const Main: FC<SVGIconProps> = function Main({
   strokeColor = "#999999",
   fillColor = "#FFFFFF",
-  fillColorMask = "#999999",
 }) {
     return (
         <svg width="25" height="24" viewBox="0 0 25 24" fill={fillColor} xmlns="http://www.w3.org/2000/svg">

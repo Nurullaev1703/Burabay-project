@@ -9,28 +9,24 @@ import { Feature } from "ol";
 import { Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource } from "ol/source";
 import { Fill, Icon, Style } from "ol/style";
-import locationIcon from "../../app/icons/announcements/markerSvg.svg";
-import { Typography } from "../../shared/ui/Typography";
-import { Header } from "../../components/Header";
-import { IconContainer } from "../../shared/ui/IconContainer";
-import { NavMenuClient } from "../../shared/ui/NavMenuClient";
-import SearchIcon from "../../app/icons/search-icon.svg";
-import { Announcement, Category } from "../announcements/model/announcements";
-import BackIcon from "../../app/icons/back-icon.svg";
-import { COLORS_TEXT } from "../../shared/ui/colors";
-import cancel from "../../app/icons/announcements/xCancel.svg";
-import { baseUrl } from "../../services/api/ServerData";
+import locationIcon from "../../../app/icons/announcements/markerSvg.svg";
+import { Typography } from "../../../shared/ui/Typography";
+import { Header } from "../../../components/Header";
+import { IconContainer } from "../../../shared/ui/IconContainer";
+import { Announcement } from "../model/announcements";
+import BackIcon from "../../../app/icons/back-icon.svg";
+import { COLORS_TEXT } from "../../../shared/ui/colors";
+import { baseUrl } from "../../../services/api/ServerData";
 import { Select } from "ol/interaction";
-import defaultImage from "../../app/icons/main/health.svg";
-import defaultAnnoun from "../../app/img/ploshadka.jpeg";
-import ellipse from "../../app/icons/announcements/ellipseMalenkiy.svg";
-import star from "../../app/icons/announcements/StarYellow.svg";
-import flag from "../../app/icons/announcements/falg.svg";
-import { Button } from "../../shared/ui/Button";
-import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
-import { CoveredImage } from "../../shared/ui/CoveredImage";
+import defaultImage from "../../../app/icons/main/health.svg";
+import defaultAnnoun from "../../../app/img/ploshadka.jpeg";
+import ellipse from "../../../app/icons/announcements/ellipseMalenkiy.svg";
+import star from "../../../app/icons/announcements/StarYellow.svg";
+import flag from "../../../app/icons/announcements/falg.svg";
+import { Button } from "../../../shared/ui/Button";
+import cancelBlack from "../../../app/icons/announcements/xCancel-Black.svg";
+import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { useNavigate } from "@tanstack/react-router";
-import { MapFilter } from "../announcements/announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 
@@ -41,22 +37,20 @@ const containerStyle = {
 
 interface Props {
   announcements: Announcement[];
-  categories: Category[];
-  filters: MapFilter;
 }
 
-export const categoryColors: Record<string, string> = {
-  Отдых: "bg-[#39B598]",
-  Жилье: "bg-[#5EBAE1]",
-  Здоровье: "bg-[#DC53AD]",
-  Экстрим: "bg-[#EF5C7F]",
-  Достопримечательности: "bg-[#B49081]",
-  Питание: "bg-[#F4A261]",
-  Развлечения: "bg-[#E5C82F]",
-  Прокат: "bg-[#A16ACD]",
-  Безопасность: "bg-[#777CEF]",
-};
-export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+export const MapAnnoun: FC<Props> = ({ announcements, }) => {
+  const categoryColors: Record<string, string> = {
+    Отдых: "bg-[#39B598]",
+    Жилье: "bg-[#5EBAE1]",
+    Здоровье: "bg-[#DC53AD]",
+    Экстрим: "bg-[#EF5C7F]",
+    Достопримечательности: "bg-[#B49081]",
+    Питание: "bg-[#F4A261]",
+    Развлечения: "bg-[#E5C82F]",
+    Прокат: "bg-[#A16ACD]",
+    Безопасность: "bg-[#777CEF]",
+  };
   const colors: Record<string, string> = {
     Отдых: "#39B598",
     Жилье: "#5EBAE1",
@@ -70,12 +64,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   };
 
   const {t}= useTranslation()
-
-  const [announcementsName, setAnnouncementsName] = useState<string>(
-    filters.adName || ""
-  );
-  const [activeCategory, setActiveCategory] = useState<string>("");
-  const [showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
+  const [activeCategory, _setActiveCategory] = useState<string>("");
+  const [_showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
   const [showAnnouncementModal, setShowAnnouncementModal] =
@@ -84,32 +74,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     null
   ); // Храним информацию о выбранном объявлении
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
-      if(announcementsName.length > 0){
-        navigate({
-          to: "/mapNav/search/$value",
-          params: {
-            value: announcementsName
-          }
-        });
-      }
-      else{
-        navigate({
-          to: "/mapNav",
-          search: {
-            categoryNames: "",
-            adName: ""
-          }
-        })
-      }
-    }
-  };
 
-  useEffect(() => {
-    setActiveCategory(filters?.categoryNames || "");
-  }, []);
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -127,7 +92,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       ],
       view: new View({
         center: fromLonLat([70.30456742278163, 53.08271195503471]),
-        zoom: 14,
+        zoom: 15,
       }),
     });
 
@@ -181,6 +146,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
           zIndex: 0,
         });
+
+        // Создаем кастомный маркер с изображением категории внутри
+
         // Создание стиля для фона
         const backgroundStyle = new Style({
           image: new CircleStyle({
@@ -250,113 +218,31 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
   return (
     <main className="min-h-screen">
-      <Header pb="0" className="">
-        <div className="flex justify-between items-center text-center">
+      <Header pb="0">
+        <div className="flex items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} />
+            <img src={BackIcon} alt="" />
           </IconContainer>
-          <div className="w-full flex items-center  gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
-            <img src={SearchIcon} />
-            <input
-              onKeyDown={handleKeyDown}
-              type="search"
-              placeholder={t("adSearch")}
-              onChange={(e) => setAnnouncementsName(e.target.value)}
-              value={announcementsName}
-              className="flex-grow bg-transparent outline-none "
-            />
+          <div className="flex justify-center w-[75%] ">
+            <Typography
+              size={18}
+              weight={500}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
+              {t("mapAnnoun")}
+            </Typography>
           </div>
         </div>
       </Header>
 
       <div
         id="map"
-
-        style={
-          {
+        style={{
           ...containerStyle,
           transition: "opacity 0.3s ease-in-out",
         }}
       ></div>
-
-      <div className="relative px-4 top-[-80px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
-        {categories.map((item) => {
-          return (
-            <button
-              type="button"
-              onClick={() =>
-                navigate({
-                  to: "/mapNav",
-                  search: {
-                    categoryNames: filters.categoryNames
-                      ?.split(",")
-                      .includes(item.name)
-                      ? (filters?.categoryNames
-                          ?.split(",")
-                          .filter((cat) => cat != item.name)
-                          .join(",") ?? "")
-                      : filters.categoryNames
-                        ? filters.categoryNames + "," + item.name
-                        : item.name,
-                    adName: filters.adName,
-                  },
-                })
-              }
-              key={item.id}
-              className={`
-                     w-fit
-                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryColors[item.name] : "bg-white"} `}
-            >
-              <div
-                className={`relative min-w-7 min-h-7 rounded-full ${categoryColors[item.name]}  `}
-              >
-                <img
-                  src={baseUrl + item.imgPath}
-                  className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
-                />
-              </div>
-              <Typography
-                size={16}
-                weight={400}
-                color={
-                  filters.categoryNames?.split(",").includes(item.name)
-                    ? COLORS_TEXT.white
-                    : ""
-                }
-                className={`text-center line-clamp-1`}
-              >
-                {t(item.name)}
-              </Typography>
-
-              {filters.categoryNames?.split(",").includes(item.name) && (
-                <div className="w-3">
-                  <img src={cancel} alt="Close" className="" />
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Модальное окно для категории */}
-      {showCategoryModal && announcementInfo && (
-        <div className="fixed bottom-40 left-0 right-0 bg-white p-4 shadow-lg rounded-t-lg">
-          <Typography size={18} weight={600}>
-            {activeCategory}
-          </Typography>
-          <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
-            {announcementInfo.duration}
-          </Typography>
-
-          <button
-            onClick={handleCloseModal}
-            className="text-xl text-gray-500 absolute top-2 right-2"
-          >
-            &times;
-          </button>
-        </div>
-      )}
-
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
         <div className="fixed bottom-0 left-0 flex w-full z-[9999]">
@@ -381,7 +267,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
-                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
                         src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                       />
                     </div>
@@ -410,11 +296,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {`12 ${t("grades")}`}
+                      {(`12 ${t("grades")}`)}
                     </Typography>
                   </div>
                   <Typography size={14} weight={400}>
-                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
+                    {`${t('todayWith')} 9:00 ${t('to')} 19:00`}
                   </Typography>
                   <Typography
                     size={14}
@@ -432,7 +318,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     }
                     mode="transparent"
                   >
-                    {`${t("BuildTheRoad")}`}
+                    {`${t("BuildTheRoad")}` }
                   </Button>
                 </div>
               </div>
@@ -462,7 +348,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           </div>
         </div>
       )}
-      <NavMenuClient />
+            <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+        <Button onClick={() => history.back()} mode="default">{t("backMap")}</Button>
+      </div>
+
     </main>
   );
 };

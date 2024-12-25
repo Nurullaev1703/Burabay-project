@@ -29,7 +29,7 @@ export const InitializeApp: FC = function InitializeApp() {
       <LanguageProvider>
         <ThemeProvider theme={theme}>
           <ModalProvider>
-            <GoogleOAuthProvider clientId="212408784108-o7ca4g27il4qqkd0fg3kvdfblccu8376.apps.googleusercontent.com">
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
               <AuthProvider>
                 <InnerApp />
               </AuthProvider>

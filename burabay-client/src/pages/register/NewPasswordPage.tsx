@@ -79,10 +79,9 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
           });
           if (response.data !== HTTP_STATUS.CONFLICT) {
             setToken(response.data);
-            // navigate({
-            //   to: "/profile",
-            // });
-            window.location.href = "/profile"
+            navigate({
+              to: "/profile",
+            });
           } else {
             setErrorMessage(t('defaultError'))
             setPasswordError(true)

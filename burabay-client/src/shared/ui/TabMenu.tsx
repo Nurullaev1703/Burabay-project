@@ -32,7 +32,7 @@ export const TabMenu: FC<Props> = function TabMenu(props) {
             ? COLORS_TEXT.white
             : COLORS_TEXT.totalBlack
         }
-        className={`${props.activeIndex === item.index ? COLORS_BACKGROUND.main100 : "bg-transparent"}
+        className={`${props.activeIndex === item.index ? COLORS_BACKGROUND.blue200 : "bg-transparent"}
                 p-3 cursor-pointer w-full rounded-tab-item transition-colors text-center leading-none`}
         onClick={() => props.onChangeIndex(item.index)}
       >

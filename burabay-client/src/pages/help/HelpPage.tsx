@@ -1,10 +1,9 @@
 
-import { FC, useState } from "react";
+import { FC } from "react";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Loader } from "../../components/Loader";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../app/icons/back-icon-white.svg"
 import { COLORS_TEXT } from "../../shared/ui/colors";
@@ -14,7 +13,6 @@ import { LanguageButton } from "../../shared/ui/LanguageButton";
 
 export const HelpPage: FC = function HelpPage() {
   const { history } = useRouter();
-  const [isLoading, _setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -57,8 +55,6 @@ export const HelpPage: FC = function HelpPage() {
           <img src={Union} alt="" />
           <Typography size={16} weight={400}>{t("helpPage")}</Typography>
         </div>
-        
-        {isLoading && <Loader />}
       </main>
     </div>
   );

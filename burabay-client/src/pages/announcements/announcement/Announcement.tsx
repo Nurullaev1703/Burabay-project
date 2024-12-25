@@ -9,7 +9,6 @@ import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
 import EditIcon from "../../../app/icons/edit.svg";
-import { baseUrl } from "../../../services/api/ServerData";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";

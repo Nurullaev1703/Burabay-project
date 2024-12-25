@@ -42,10 +42,10 @@ export const Carousel: FC<Props> = ({ height = "h-60", items }) => {
           i === activeIndex
             ? `w-5 ${COLORS_BACKGROUND.blue200}`
             : `w-2 ${COLORS_BACKGROUND.gray200}`
-        } h-2 rounded-full transition-all duration-500`}
+        } h-2 rounded-full transition-all duration-500 `}
       />
     ),
-    dotsClass: "slick-dots custom-dots",
+    dotsClass: "slick-dots custom-dots absolute bottom-0 left-0",
   };
 
   return (
@@ -54,7 +54,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items }) => {
         {displayedItems.map((item) => (
           <div key={item.index}>
             <div
-              className={`${height} rounded-button flex items-center justify-center relative`}
+              className={`${height} rounded-2xl flex items-center justify-center relative`}
             >
               <img
                 src={item.imgUrl}

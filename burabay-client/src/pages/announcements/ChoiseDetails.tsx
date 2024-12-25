@@ -55,8 +55,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
   const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
   const { t } = useTranslation();
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, _setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
   const { user } = useAuth();
   const [images, setImages] = useState<ImageData[]>([]);
@@ -171,7 +170,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               url: "/ad",
               dto: {
                 ...form,
-                organizationId: user?.organization.id,
+                organizationId: user?.organization?.id,
                 subcategoryId: subcategory.id,
                 phoneNumber: "+7" + form.phoneNumber.replace(/[ -]/g, ""),
                 images: newImages,
@@ -341,7 +340,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               }}
               render={({ field, fieldState: { error } }) => (
                 <div className="relative rounded-lg bg-white mb-2">
-                  <div className="absolute left-2 top-[9.5px] flex h-full items-center pointer-events-none z-10">
+                  <div className="absolute left-3 top-[9.5px] flex h-full items-center pointer-events-none z-10">
                     {"+7"}
                   </div>
                   <TextField

@@ -8,8 +8,7 @@ interface SVGIconProps {
 
 export const Booking: FC<SVGIconProps> = function Booking({
   strokeColor = "#999999",
-  fillColor = "#FFFFFF",
-  fillColorMask = "#999999",
+  fillColor = "#FFFFFF"
 }) {
   return (
     <svg

@@ -13,8 +13,8 @@ import { useAuth } from "../../../features/auth";
 import { Organization } from "../model/profile";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
-import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 interface FormType {
   organization: Organization;
@@ -24,9 +24,10 @@ interface FormType {
 export const EditProfile: FC = function EditProfile() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate()
+  const {history} = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { handleSubmit, control } = useForm<FormType>({
     defaultValues: {
       organization: {
@@ -56,9 +57,8 @@ export const EditProfile: FC = function EditProfile() {
       });
 
       if (response.data == HTTP_STATUS.OK) {
-        await queryClient.invalidateQueries({ queryKey: ["profile"] });
-        // navigate({ to: "/profile" });
-        window.location.href = "/profile";
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+        navigate({to:"/profile"})
       }
 
       if (response.data == HTTP_STATUS.CONFLICT) {
@@ -201,10 +201,7 @@ export const EditProfile: FC = function EditProfile() {
           {!error ? (
             <Button
               className="fixed bottom-4 left-3 w-header"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSubmit(saveUser);
-              }}
+              type="submit"
               loading={isLoading}
             >
               {t("save")}
