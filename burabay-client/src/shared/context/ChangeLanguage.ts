@@ -589,6 +589,7 @@ i18n.use(initReactI18next).init({
           // Announcement
           ad: "Обьявление",
           duration: "Длительность",
+          back: "Назад",
           notSpecified: "не указано",
           locationOnMap: "Местоположение на карте",
           cost: "Стоимость",

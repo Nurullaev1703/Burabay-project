@@ -11,6 +11,7 @@ import {
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import { TextField } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+import { Button } from "../../../../shared/ui/Button";
 
 interface Props {
   announcement: Announcement;
@@ -235,6 +236,13 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
           ))}
         </ul>
       </div>
+
+      <Button
+        className="fixed bottom-4 left-4 w-header"
+        onClick={() => history.back()}
+      >
+        {t("back")}
+      </Button>
     </section>
   );
 };
