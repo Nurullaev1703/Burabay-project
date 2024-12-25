@@ -35,7 +35,7 @@ export const Profile: FC<Props> = function Profile({ user }) {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState<string>(
     baseUrl +
-      (user?.role === "бизнес" ? user?.organization.imgUrl : user?.picture)
+      (user?.role === "бизнес" ? user?.organization?.imgUrl : user?.picture)
   );
   const [accountStatus, setAccountStatus] =
     useState<accountStatus>("notFilled");

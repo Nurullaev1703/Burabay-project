@@ -52,7 +52,6 @@ export class ProfileService {
         imgUrl: updateProfileDto.organization.imgUrl || user.organization.imgUrl,
         name: updateProfileDto.organization.name || user.organization.name,
         description: updateProfileDto.organization.description || user.organization.description,
-        // address: updateProfileDto.organization.address || user.organization.address, // FIXME ИЛЬЯ ПАМЕНЯЙ.
         isConfirmed: updateProfileDto.organization.isConfirmed || user.organization.isConfirmed,
         siteUrl: updateProfileDto.organization.siteUrl || user.organization.siteUrl,
       });
