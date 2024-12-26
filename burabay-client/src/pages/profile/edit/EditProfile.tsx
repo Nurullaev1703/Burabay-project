@@ -25,7 +25,7 @@ export const EditProfile: FC = function EditProfile() {
   const navigate = useNavigate()
   const {history} = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleSubmit, control } = useForm<FormType>({
+  const { handleSubmit, control, formState:{isValid} } = useForm<FormType>({
     defaultValues: {
       organization: {
         name: user?.organization?.name || "",
@@ -34,7 +34,7 @@ export const EditProfile: FC = function EditProfile() {
       },
       email: user?.email || "",
     },
-    mode: "onBlur",
+    mode: "onChange",
   });
 
   const [error, setError] = useState<boolean>(false);
@@ -88,7 +88,7 @@ export const EditProfile: FC = function EditProfile() {
       </Header>
 
       <div className="pt-4 px-4">
-        <DefaultForm onSubmit={handleSubmit(saveUser)}>
+        <DefaultForm onSubmit={handleSubmit(saveUser)} className="flex flex-col gap-2">
           <Controller
             name="organization.name"
             control={control}
@@ -100,7 +100,7 @@ export const EditProfile: FC = function EditProfile() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="relative p-2 rounded-md bg-white mb-2">
+              <div className="relative w-full">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
@@ -129,7 +129,7 @@ export const EditProfile: FC = function EditProfile() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="relative p-2 rounded-md bg-white mb-2">
+              <div className="relative w-full">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
@@ -159,7 +159,6 @@ export const EditProfile: FC = function EditProfile() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="p-2 rounded-md bg-white mb-2">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
@@ -168,7 +167,6 @@ export const EditProfile: FC = function EditProfile() {
                   fullWidth={true}
                   variant="outlined"
                 />
-              </div>
             )}
           />
 
@@ -176,7 +174,6 @@ export const EditProfile: FC = function EditProfile() {
             name="organization.siteUrl"
             control={control}
             render={({ field, fieldState: { error } }) => (
-              <div className="p-2 rounded-md bg-white mb-24">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
@@ -186,7 +183,6 @@ export const EditProfile: FC = function EditProfile() {
                   variant="outlined"
                   placeholder="burabay.kz"
                 />
-              </div>
             )}
           />
 
@@ -195,6 +191,7 @@ export const EditProfile: FC = function EditProfile() {
               className="fixed bottom-4 left-3 w-header"
               type="submit"
               loading={isLoading}
+              disabled={!isValid}
             >
               {t("save")}
             </Button>
