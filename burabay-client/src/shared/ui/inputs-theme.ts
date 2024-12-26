@@ -47,6 +47,9 @@ export const theme = createTheme({
           ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
             paddingTop: "36px",
           },
+          ".css-1pog434":{
+            paddingTop:"36px"
+          },
           textarea: {
             padding: "16.5px 14px",
             paddingTop: "44px",
