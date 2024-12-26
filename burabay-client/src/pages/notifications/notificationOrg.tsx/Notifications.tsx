@@ -1,16 +1,16 @@
 import  { FC } from 'react';
-import { Typography } from '../../shared/ui/Typography';
-import { NavMenuOrg } from '../../shared/ui/NavMenuOrg';
+import { Typography } from '../../../shared/ui/Typography';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../shared/ui/Button';
-import Intersect from "../../app/icons/Intersect.png";
+import Intersect from "../../../app/icons/Intersect.png";
+import { Button } from '../../../shared/ui/Button';
+import { NavMenuOrg } from '../../../shared/ui/NavMenuOrg';
 
 interface Props {
 
 }
 
 export const Notifications: FC<Props> = function Notifications() {
-  const {t} = useTranslation()
+    const {t} = useTranslation()
   return (
 <div className='min-h-screen'>
 <div className="flex justify-center flex-col items-center flex-grow p-4 w-full min-h-screen">
