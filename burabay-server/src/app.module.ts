@@ -23,7 +23,6 @@ import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ReviewModule } from './review/review.module';
 import { AdminPanelModule } from './admin-panel/admin-panel.module';
-import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -66,7 +65,7 @@ import { AppController } from './app.controller';
     ReviewModule,
     AdminPanelModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
     {
       provide: APP_GUARD,
