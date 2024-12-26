@@ -116,7 +116,7 @@ export const MapComponent: FC<Props> = (props) => {
     const response = await apiService.post({
       url: "/address",
       dto:{
-        organizationId: user?.organization.id,
+        organizationId: user?.organization?.id,
         adId: props.adId,
         address: address,
         latitude: coords[0],

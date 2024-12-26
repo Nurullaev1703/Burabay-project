@@ -6,7 +6,6 @@ import { ThemeProvider } from "@mui/material";
 import { AuthProvider, useAuth } from "../features/auth";
 import { LanguageProvider } from "../shared/context/LanguageProvider";
 import { theme } from "../shared/ui/inputs-theme";
-import { ModalProvider } from "../shared/context/ModalProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const router = createRouter({
@@ -28,13 +27,11 @@ export const InitializeApp: FC = function InitializeApp() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <ThemeProvider theme={theme}>
-          <ModalProvider>
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
               <AuthProvider>
                 <InnerApp />
               </AuthProvider>
             </GoogleOAuthProvider>
-          </ModalProvider>
         </ThemeProvider>
       </LanguageProvider>
     </QueryClientProvider>
