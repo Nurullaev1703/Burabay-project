@@ -348,7 +348,8 @@ i18n.use(initReactI18next).init({
         preview: "Просмотр",
         serviceFullDay: "Услуга длится полные сутки",
         serviceTime: "Время начала услуги",
-        serviceTimeDescription: "Во сколько начинается услуга? Добавьте несколько вариантов при необходимости",
+        serviceTimeDescription:
+          "Во сколько начинается услуга? Добавьте несколько вариантов при необходимости",
         standardDuration: "Стандартная длительность услуги",
         infoForClients: "Эта информация будет видна клиентам",
         continue: "Продолжить",
@@ -693,12 +694,12 @@ i18n.use(initReactI18next).init({
           notificationNAvText: "Здесь будут отображаться уведомления",
           reviewsNav: "Отзывов пока нет",
           reviewsNavText: "Здесь будут отображаться отзывы",
-
-
-
-
-          main: "Главное"
-
+           noBooking: "Бронирований пока нет",
+        bookingAlertTourist:
+          "Выберите услугу, после бронирования здесь появится запись",
+        bookingAlertBusiness:
+          "После бронирования объявления туристом, брони появятся здесь",
+        main: "Главное",
       },
     },
     en: {

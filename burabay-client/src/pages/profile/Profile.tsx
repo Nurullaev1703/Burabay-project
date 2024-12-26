@@ -183,7 +183,7 @@ export const Profile: FC = function Profile() {
           </li>
         )}
         <li className={`border-t  ${COLORS_BORDER.gray300}`}>
-          <Link className="flex py-3" to={"/"}>
+          <Link className="flex py-3" to={"/help/ServiceHelp"}>
             <img src={AttentionIcon} alt={t("aboutService")} className="mr-2" />
             <span>{t("aboutService")}</span>
           </Link>
