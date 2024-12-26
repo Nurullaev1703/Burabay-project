@@ -46,4 +46,7 @@ export class User extends AbstractEntity<User> {
 
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
+
+  @Column({ name: 'is_banned', default: false })
+  isBanned: boolean;
 }

@@ -41,4 +41,7 @@ export class Organization extends AbstractEntity<Organization> {
 
   @OneToMany(() => Ad, (ad) => ad.organization)
   ads: Ad[];
+
+  @Column({ name: 'is_banned', default: false })
+  isBanned: boolean;
 }
