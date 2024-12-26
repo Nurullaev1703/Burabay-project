@@ -1,9 +1,9 @@
 import  { FC } from 'react';
-import { Typography } from '../../shared/ui/Typography';
+import { Typography } from '../../../shared/ui/Typography';
 import { useTranslation } from 'react-i18next';
-import bacground from "../../app/icons/announcements/bacground.png"
-import reviews from "../../app/icons/announcements/reviews.svg"
-import { NavMenuClient } from '../../shared/ui/NavMenuClient';
+import { NavMenuOrg } from '../../../shared/ui/NavMenuOrg';
+import bacground from "../../../app/icons/announcements/bacground.png"
+import reviews from "../../../app/icons/announcements/reviews.svg"
 
 interface Props {
 
@@ -26,7 +26,7 @@ export const Notifications: FC<Props> = function Notifications() {
     </div>
   </div>
   
-  <NavMenuClient />
+  <NavMenuOrg />
 </div>
 
 

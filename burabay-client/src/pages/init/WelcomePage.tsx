@@ -22,7 +22,7 @@ export const WelcomePage: FC = function WelcomePage() {
           alt=""
           className="absolute top-o left-0 w-full h-full object-cover bg-blue200 -z-10"
         />
-        <img src={BurabayLogo} alt="" className='mb-16'/>
+        <img src={BurabayLogo} alt="" className='mb-[10%]'/>
         <RotatingLines strokeColor={COLORS.white} width="48px"/>
       </div>
     </div>

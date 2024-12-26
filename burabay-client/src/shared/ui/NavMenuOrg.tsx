@@ -47,7 +47,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           </div>
         </li>
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/reviews"
+          to: "/reviews/reviewsOrg"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Star 
@@ -66,7 +66,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           </div>
         </li>
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/booking"
+          to: "/booking/business"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Booking 
@@ -85,7 +85,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           </div>
         </li>
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/notifications"
+          to: "/notifications/notificationsOrg"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Notifications 
