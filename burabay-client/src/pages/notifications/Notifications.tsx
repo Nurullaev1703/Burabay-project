@@ -23,7 +23,7 @@ export const Notifications: FC<Props> = function Notifications() {
               {t("notificationNAvText")}
             </Typography>
           </div>
-          <Button onClick={() => history.back()}>{"Вернуться"}</Button>
+          <Button onClick={() => history.back()}>{t("backMap")}</Button>
         </div>
         <NavMenuOrg/>
 </div>  

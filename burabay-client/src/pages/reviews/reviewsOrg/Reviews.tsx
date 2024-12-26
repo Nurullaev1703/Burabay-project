@@ -23,7 +23,7 @@ export const Reviews: FC<Props> = function Reviews() {
               {t("reviewsNavText")}
             </Typography>
           </div>
-          <Button onClick={() => history.back()}>{"Вернуться"}</Button>
+          <Button onClick={() => history.back()}>{t("backMap")}</Button>
         </div>
         <NavMenuOrg/>
 </div>  
