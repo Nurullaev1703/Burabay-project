@@ -53,7 +53,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
+  const mask = useMask({ mask: "+7 ___ ___-__-__", replacement: { _: /\d/ }, showMask:true });
   const { t } = useTranslation();
   const [errorMessage, _setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {"Новое обьявление"}
+              {t("newAnnouncemet")}
             </Typography>
             <Typography
               size={14}
@@ -152,7 +152,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {"Оформите объявление"}
+              {t("placeAd")}
             </Typography>
           </div>
           <IconContainer align="end" action={() => history.back()}>
@@ -172,7 +172,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 ...form,
                 organizationId: user?.organization?.id,
                 subcategoryId: subcategory.id,
-                phoneNumber: "+7" + form.phoneNumber.replace(/[ -]/g, ""),
+                phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
                 images: newImages,
                 details: toggles,
               },
@@ -189,7 +189,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           })}
           className="mt-2"
         >
-          <div>
+          <div className="mb-2">
             <Controller
               name="title"
               control={control}
@@ -209,10 +209,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     fullWidth={true}
                     type={"text"}
                     variant="outlined"
-                    label={t("Заголовок")}
+                    label={t("title")}
                     inputProps={{ maxLength: 40 }}
                     autoFocus={true}
-                    placeholder={t("Название")}
+                    placeholder={t("adName")}
                   />
                   <Typography
                     size={12}
@@ -244,10 +244,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     fullWidth={true}
                     type={"text"}
                     variant="outlined"
-                    label={t("Описание")}
+                    label={t("description")}
                     inputProps={{ maxLength: 300 }}
                     autoFocus={true}
-                    placeholder={t("Введите описание")}
+                    placeholder={t("inputDescription")}
                   />
                   <Typography
                     size={12}
@@ -267,7 +267,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 weight={400}
                 color={COLORS_TEXT.gray100}
               >
-                {"Фото"}
+                {t("picture")}
               </Typography>
               <DndProvider
                 backend={TouchBackend}
@@ -295,10 +295,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   ))}
                 </div>
               </DndProvider>
-              <Typography className="mt-2" size={14} weight={400}>
-                {
-                  "Добавьте до десяти фотографий Перетащите что бы изменить порядок"
-                }
+              <Typography
+                className="mt-2"
+                size={14}
+                weight={400}
+                color={COLORS_TEXT.gray100}
+              >
+                {t("addPicture")}
               </Typography>
             </div>
             <Controller
@@ -314,17 +317,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     fullWidth={true}
                     type={"text"}
                     variant="outlined"
-                    label={t("Видео из Youtube")}
+                    label={t("youtubeVideo")}
                     inputProps={{ maxLength: 300 }}
                     autoFocus={true}
-                    placeholder={t("Вставьте ссылку на видео из YouTube")}
+                    placeholder={t("inputLink")}
                   />
-                  <Typography
-                    size={12}
-                    weight={400}
-                    color={COLORS_TEXT.gray100}
-                    className="absolute top-[192px] right-5"
-                  ></Typography>
                 </div>
               )}
             />
@@ -334,41 +331,32 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               rules={{
                 required: t("requiredField"),
                 validate: (value: string) => {
-                  const phoneRegex = /^\d{3} \d{3}-\d{2}-\d{2}$/;
+                  const phoneRegex = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
                   return phoneRegex.test(value) || t("invalidNumber");
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="relative rounded-lg bg-white mb-2">
-                  <div className="absolute left-3 top-[9.5px] flex h-full items-center pointer-events-none z-10">
-                    {"+7"}
-                  </div>
-                  <TextField
-                    {...field}
-                    error={Boolean(error?.message)}
-                    helperText={error?.message}
-                    fullWidth
-                    type="tel"
-                    label={t("Телефон для связи")}
-                    variant="outlined"
-                    inputRef={mask}
-                    placeholder="700 000-00-00"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    inputProps={{
-                      style: {
-                        paddingLeft: "30px",
-                      },
-                    }}
-                  />
-                </div>
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
+                  fullWidth
+                  type="text"
+                  inputMode="tel"
+                  label={t("phoneV2")}
+                  variant="outlined"
+                  inputRef={mask}
+                  placeholder="+7 700 000-00-00"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
               )}
             />
           </div>
           <div className="bg-white rounded-lg p-4 mb-24">
             <Typography size={16} weight={400} color={COLORS_TEXT.gray100}>
-              {"Подробности"}
+              {t("detailsTitle")}
             </Typography>
             {category.details.map((item) => {
               return (
@@ -395,7 +383,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               loading={isLoading || isSubmitting}
               mode="default"
             >
-              {"Продолжить"}
+              {t("continue")}
             </Button>
           </div>
         </DefaultForm>
