@@ -24,7 +24,18 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   // Включение CORS
   app.enableCors({
-    origin: 'http://localhost:5173', // Укажите адрес фронтенда
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://frontend:5173',
+        'http://91.215.139.89:5173',
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origin not allowed by CORS'));
+      }
+    },
     methods: 'GET,POST,PATCH,DELETE,OPTIONS',
     credentials: true, // Для передачи cookie или авторизационных данных
   });
