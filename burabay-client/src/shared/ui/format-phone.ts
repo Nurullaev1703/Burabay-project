@@ -4,7 +4,7 @@ export const formatToDisplayPhoneNumber = (rawPhone: string): string => {
 
   // Проверяем, что номер состоит из 11 цифр и начинается с 7
   if (cleaned.length !== 11 || cleaned[0] !== "7") {
-    throw new Error("Неверный формат номера телефона");
+    return "+7"
   }
 
   // Применяем регулярное выражение для форматирования
