@@ -173,10 +173,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
             });
             if (response.data) {
               navigate({
-                to: "/announcements/$announcementId",
-                params: {
-                  announcementId: props.adId,
-                },
+                to: "/announcements"
               });
             }
           })}

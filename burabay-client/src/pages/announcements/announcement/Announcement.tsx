@@ -64,7 +64,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-100"
             />
           </div>
-          <Carousel items={carouselImages} height="h-96" />
+          <Carousel items={carouselImages} height="pt-[105%]" />
         </div>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 

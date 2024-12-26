@@ -66,7 +66,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           </div>
         </li>
         <li className="w-[68px]" onClick={() => navigate({
-          to: "/booking"
+          to: "/booking/business"
         })}>
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Booking 
