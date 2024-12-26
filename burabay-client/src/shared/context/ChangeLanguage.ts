@@ -693,15 +693,7 @@ i18n.use(initReactI18next).init({
           notificationsNav: "Уведомлений пока нет",
           notificationNAvText: "Здесь будут отображаться уведомления",
           reviewsNav: "Отзывов пока нет",
-
           reviewsNavText: "Добавьте обьявление, и ожидайте когда туристы оценят ваши активности",
-
-
-
-
-          main: "Главное"
-
-
            noBooking: "Бронирований пока нет",
         bookingAlertTourist:
           "Выберите услугу, после бронирования здесь появится запись",
