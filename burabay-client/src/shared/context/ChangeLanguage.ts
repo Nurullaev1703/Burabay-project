@@ -339,6 +339,7 @@ i18n.use(initReactI18next).init({
         sat: "Суббота",
         sun: "Воскресенье",
         breakTime: "Перерыв",
+        dayOff: "Выходной",
         breakDescription:
           "Ежедневно время, на которое запрещено бронирование. Данная информация будет учтена при бронировании услуги клиентом",
         add: "Добавить",
@@ -588,6 +589,7 @@ i18n.use(initReactI18next).init({
           // Announcement
           ad: "Обьявление",
           duration: "Длительность",
+          back: "Назад",
           notSpecified: "не указано",
           locationOnMap: "Местоположение на карте",
           cost: "Стоимость",

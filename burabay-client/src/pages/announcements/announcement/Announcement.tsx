@@ -95,6 +95,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <p className="mb-4 leading-5">{announcement.description}</p>
 
         <AnnouncementInfoList
+          id={announcement.id}
           phoneNumber={announcement.phoneNumber}
           schedule={announcement.schedule}
         />

@@ -90,7 +90,7 @@ export interface Announcement {
   createdAt: Date;
   organization: AnnouncementOrganization;
   breaks: string[];
-  schedule: string;
+  schedule: Schedule;
   views: number;
   favCount: number;
   avgRating: number;
