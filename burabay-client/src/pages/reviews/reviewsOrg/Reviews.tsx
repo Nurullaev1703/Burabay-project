@@ -1,9 +1,8 @@
 import  { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Typography } from '../../../shared/ui/Typography';
-import { Button } from '../../../shared/ui/Button';
 import { NavMenuOrg } from '../../../shared/ui/NavMenuOrg';
-import Intersect from "../../../app/icons/Intersect.png";
+import Intersect from "../../../app/icons/announcements/bigStar.svg";
 
 interface Props {
 
@@ -23,7 +22,6 @@ export const Reviews: FC<Props> = function Reviews() {
               {t("reviewsNavText")}
             </Typography>
           </div>
-          <Button onClick={() => history.back()}>{t("backMap")}</Button>
         </div>
         <NavMenuOrg/>
 </div>  
