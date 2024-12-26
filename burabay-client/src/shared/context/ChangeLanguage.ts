@@ -426,6 +426,11 @@ i18n.use(initReactI18next).init({
         forgotPassword: "Құпиясөзді ұмыттыңыз ба?",
         repeatMail: "Хатты қайта жіберу",
         repeatMailAfter: "Қайта жіберу мүмкін",
+        thanks: "Рахмет!",
+        questionConvenient: "Бұл қаншалықты ыңғайлы қолданба?",
+        describeСonvenient: "Қолданбаны не ыңғайлырақ ете алады?",
+        describeInconvenient: "Қолданбаның не ыңғайсыз екенін сипаттаңыз?",
+        answer: "Жауап",
       },
     },
     ru: {
@@ -878,14 +883,19 @@ i18n.use(initReactI18next).init({
         notificationsNav: "Уведомлений пока нет",
         notificationNAvText: "Здесь будут отображаться уведомления",
         reviewsNav: "Отзывов пока нет",
-        reviewsNavText: "Добавьте обьявление, и ожидайте когда туристы оценят ваши активности",
+        reviewsNavText:
+          "Добавьте обьявление, и ожидайте когда туристы оценят ваши активности",
         noBooking: "Бронирований пока нет",
         bookingAlertTourist:
           "Выберите услугу, после бронирования здесь появится запись",
         bookingAlertBusiness:
           "После бронирования объявления туристом, брони появятся здесь",
         main: "Главное",
-
+        thanks: "Спасибо!",
+        questionConvenient: "Насколько удобно приложение?",
+        describeСonvenient: "Что может сделать приложение удобнее?",
+        describeInconvenient: "Опишите, что неудобно в приложении?",
+        answer: "Ответить",
       },
     },
     en: {
@@ -1304,6 +1314,12 @@ i18n.use(initReactI18next).init({
         forgotPassword: "Forgot password?",
         repeatMail: "Resend email",
         repeatMailAfter: "You can resend in",
+        thanks: "Thanks!",
+        questionConvenient: "How convenient is the application?",
+        describeСonvenient: "What can make the application more convenient?",
+        describeInconvenient:
+          "Describe what is inconvenient about the application?",
+        answer: "Answer",
       },
     },
   },
