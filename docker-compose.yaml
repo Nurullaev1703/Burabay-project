@@ -21,6 +21,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.frontend
+        env_file:
+            - burabay-client/.env.docker
         ports:
             - "5173:5173"
         depends_on:
