@@ -23,7 +23,7 @@ export const Announcements: FC<Props> = function Announcements({
   return (
     <div className="min-h-screen px-4">
       {!announcements.length && (
-        <div className="flex justify-center flex-col items-center flex-grow">
+        <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
           <img src={Intersect} className="w-40 h-40 mb-8" alt="" />
           <div className="flex flex-col justify-center items-center gap-2">
             <Typography size={18} weight={500}>
@@ -35,7 +35,7 @@ export const Announcements: FC<Props> = function Announcements({
           </div>
         </div>
       )}
-      {announcements.length && (
+      {announcements.length > 0 && (
         <>
           <div className="flex justify-between items-center text-center ">
             <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">

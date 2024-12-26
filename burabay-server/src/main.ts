@@ -22,6 +22,19 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('pug');
   app.useGlobalPipes(new ValidationPipe());
+  // Включение CORS
+  app.enableCors({
+    origin: 'http://localhost:5173', // Укажите адрес фронтенда
+    methods: 'GET,POST,PATCH,DELETE,OPTIONS',
+    credentials: true, // Для передачи cookie или авторизационных данных
+  });
+
+  // Установка заголовков COOP/COEP
+  app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    next();
+  });
 
   await app.listen(3000);
 }

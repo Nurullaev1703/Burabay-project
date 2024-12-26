@@ -38,32 +38,42 @@ export const Login: FC = function Login() {
   }, []);
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
-      const userInfo: GoogleAuthType = await fetch(
-        "https://www.googleapis.com/oauth2/v3/userinfo",
-        {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
+      try{
+        setIsLoading(true);
+        const userInfo: GoogleAuthType = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          }
+        ).then((res) => res.json());
+        const response = await apiService.post({
+          url: "/auth/google-login",
+          dto: userInfo,
+        });
+        if (response.data == HTTP_STATUS.CREATED) {
+          navigate({
+            to: "/register/password/new/$email",
+            params: { email: userInfo.email },
+          });
         }
-      ).then((res) => res.json());
-      const response = await apiService.post({
-        url: "/auth/google-login",
-        dto: userInfo,
-      });
-      if (response.data == HTTP_STATUS.CREATED) {
-        navigate({
-          to: "/register/password/new/$email",
-          params: { email: userInfo.email },
-        });
+        if (response.data == HTTP_STATUS.OK) {
+          navigate({
+            to: "/register/password/check/$email",
+            params: { email: userInfo.email },
+          });
+        }
       }
-      if (response.data == HTTP_STATUS.OK) {
-        navigate({
-          to: "/register/password/check/$email",
-          params: { email: userInfo.email },
-        });
+      catch{
+        setErrorMessage(t("defaultError"));
+        setEmailError(true);
       }
-      setIsLoading(false);
+      finally{
+        setIsLoading(false);
+      }
     },
     onError: () => {
       setErrorMessage(t('defaultError'))
