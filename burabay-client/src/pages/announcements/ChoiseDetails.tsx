@@ -276,23 +276,24 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   ignoreContextMenu: true,
                 }}
               >
-                <div
+                <ul
                   id="images"
                   className="flex gap-2 items-center w-full overflow-x-auto scrollbar-blue pb-2"
                 >
                   {images.map((image, index) => (
-                    <ImageCard
-                      key={index}
-                      id={index}
-                      index={index}
-                      src={image.preview}
-                      isMain={index == 0}
-                      moveCard={moveCard}
-                      isLast={index == images.length - 1}
-                      onImageUpload={(files) => handleImageUpload(index, files)}
-                    />
+                    <li key={index}>
+                      <ImageCard
+                        id={index}
+                        index={index}
+                        src={image.preview}
+                        isMain={index == 0}
+                        moveCard={moveCard}
+                        isLast={index == images.length - 1}
+                        onImageUpload={(files) => handleImageUpload(index, files)}
+                      />
+                    </li>
                   ))}
-                </div>
+                </ul>
               </DndProvider>
               <Typography
                 className="mt-2"
