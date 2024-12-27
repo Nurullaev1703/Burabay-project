@@ -224,6 +224,7 @@
                           >
                             <input
                               type="text"
+                              inputMode="numeric"
                               ref={timeMask}
                               className={`w-16 h-8 text-center focus:outline-none`}
                               value={tempTime} // Используем tempTime

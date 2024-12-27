@@ -246,7 +246,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     variant="outlined"
                     label={t("description")}
                     inputProps={{ maxLength: 300 }}
-                    autoFocus={true}
                     placeholder={t("inputDescription")}
                   />
                   <Typography
@@ -319,7 +318,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     variant="outlined"
                     label={t("youtubeVideo")}
                     inputProps={{ maxLength: 300 }}
-                    autoFocus={true}
                     placeholder={t("inputLink")}
                   />
                 </div>
@@ -341,7 +339,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   fullWidth
-                  type="text"
+                  type="tel"
                   inputMode="tel"
                   label={t("phoneV2")}
                   variant="outlined"
