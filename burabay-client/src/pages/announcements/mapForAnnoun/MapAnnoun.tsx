@@ -98,7 +98,7 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
 
     // Добавляем обработчик на выбор фич
     const selectInteraction = new Select({
-      condition: (event) => event.type === "click", // Условие для клика
+      condition: (event) => event.type === "click" || event.type === "touch", // Условие для клика
     });
 
     selectInteraction.on("select", (e) => {

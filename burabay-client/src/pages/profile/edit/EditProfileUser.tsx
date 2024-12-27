@@ -177,7 +177,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   fullWidth
-                  type="text"
+                  type="tel"
                   inputMode="tel"
                   label={t("phoneV2")}
                   variant="outlined"
