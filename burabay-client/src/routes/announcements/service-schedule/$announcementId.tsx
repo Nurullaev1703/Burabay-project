@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { UseGetServiceSchedule } from '../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util'
 import { Loader } from '../../../components/Loader'
-import { ServiceSchedule } from 'pages/announcements/announcement/serviceSchedule/ServiceSchedule'
+import { ServiceSchedule } from '../../../pages/announcements/announcement/serviceSchedule/ServiceSchedule'
 
 export const Route = createFileRoute(
   '/announcements/service-schedule/$announcementId',
