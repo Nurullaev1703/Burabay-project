@@ -7,11 +7,14 @@ export default defineConfig({
     plugins: [react(), TanStackRouterVite()],
     server: {
         host: true,
-        port: 5173,
+        port: 80,
         open: true,
         hmr: true,
         proxy: {
             "/api": "http://localhost:3000", // Прокси для API-запросов
         },
     },
+    preview:{
+        port:80
+    }
 });
