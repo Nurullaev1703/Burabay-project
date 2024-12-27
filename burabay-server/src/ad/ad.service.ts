@@ -120,7 +120,7 @@ export class AdService {
 
   /* Метод для получения одного Объявления по id. */
   @CatchErrors()
-  async findOne(id: string, touristId?: string) {
+  async findOne(id: string, tokenData?: TokenData) {
     const ad = await this.adRepository.findOne({
       where: { id: id },
       relations: {
@@ -135,9 +135,9 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     const favCount = ad.usersFavorited.length;
     delete ad.usersFavorited;
-    if (touristId) {
+    if (tokenData) {
       const user = await this.userRepository.findOne({
-        where: { id: touristId },
+        where: { id: tokenData.id },
         relations: { favorites: true },
       });
       Utils.checkEntity(user, 'Пользователь не найден');

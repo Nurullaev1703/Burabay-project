@@ -16,7 +16,7 @@ export class MainPageService {
     const result = await Promise.all([
       this.categoryRepository.find(),
       this.adRepository.find({
-        relations: { organization: true, subcategory: {category: true} },
+        relations: { organization: true, subcategory: { category: true } },
         // take: 10, //TODO Поменять кол-во объявлений на Главной старнице
       }),
     ]);
