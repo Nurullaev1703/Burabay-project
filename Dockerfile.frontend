@@ -2,7 +2,7 @@
 FROM node:22-alpine AS development
 
 # Устанавливаем рабочую директорию
-WORKDIR /app
+WORKDIR /burabay-client
 
 # Копируем package.json и package-lock.json
 COPY burabay-client/package.json burabay-client/yarn.lock ./
@@ -18,12 +18,16 @@ RUN yarn dev & sleep 5 || true
 
 # frontend
 FROM node:22-alpine AS build
+# Устанавливаем рабочую директорию
+WORKDIR /burabay-client
 
 # билдим Фронт
 RUN yarn build
 
 # frontend
 FROM node:22-alpine AS production
+# Устанавливаем рабочую директорию
+WORKDIR /burabay-client
 
 COPY --from=build burabay-client/dist ./dist
 COPY --from=build burabay-client/package.json ./package.json
