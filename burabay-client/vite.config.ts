@@ -14,7 +14,4 @@ export default defineConfig({
             "/api": "http://91.215.139.89:3000", // Прокси для API-запросов
         },
     },
-    preview:{
-        port:80
-    }
 });
