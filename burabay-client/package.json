@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.15.18",
-    "@mui/material": "^5.15.12",
+    "@mui/material": "^6.3.0",
     "@mui/x-date-pickers": "^7.23.3",
     "@react-input/mask": "^1.2.5",
     "@react-oauth/google": "latest",
@@ -24,6 +24,7 @@
     "axios": "^1.7.9",
     "current-device": "^0.10.2",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "effector": "^23.2.0",
     "effector-react": "^23.2.0",
     "i18next": "^23.11.5",

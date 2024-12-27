@@ -10,6 +10,7 @@ interface Props {
   adultNumbers: number;
   kidsNumber: number;
   petsAllowed: boolean;
+  id: string;
 }
 
 export const CostInfoList: FC<Props> = function CostInfoList({
@@ -18,6 +19,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
   adultNumbers,
   kidsNumber,
   petsAllowed,
+  id
 }) {
   const { t } = useTranslation();
   const formatPrice = (value: number) => {
@@ -74,8 +76,8 @@ export const CostInfoList: FC<Props> = function CostInfoList({
             <span>{t("permissionWithAnimals")}</span>
           </li>
         )}
-          <li className="py-4">
-            <Link className="flex justify-between">
+          <li className="py-4"> 
+            <Link to={`/announcements/service-schedule/${id}`} className="flex justify-between">
             <span>{t("serviceSchedule")}</span>
             <img src={ArrowRight} alt="Стрелка" />
             </Link>

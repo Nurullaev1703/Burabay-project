@@ -24,7 +24,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   // Включение CORS
   app.enableCors({
-    origin: 'http://localhost:5173', // Укажите адрес фронтенда
+    origin: 'http://localhost:5174', // Укажите адрес фронтенда
     methods: 'GET,POST,PATCH,DELETE,OPTIONS',
     credentials: true, // Для передачи cookie или авторизационных данных
   });

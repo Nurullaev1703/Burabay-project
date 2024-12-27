@@ -348,6 +348,7 @@ i18n.use(initReactI18next).init({
         preview: "Просмотр",
         serviceFullDay: "Услуга длится полные сутки",
         serviceTime: "Время начала услуги",
+        serviceDuration: "Время проведения услуги",
         serviceTimeDescription:
           "Во сколько начинается услуга? Добавьте несколько вариантов при необходимости",
         standardDuration: "Стандартная длительность услуги",

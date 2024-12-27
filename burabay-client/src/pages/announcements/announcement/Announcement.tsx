@@ -102,6 +102,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       </div>
       {/* FIXME цена в виде boolean */}
       <CostInfoList
+        id={announcement.id}
         price={0}
         priceForChild={announcement.priceForChild}
         adultNumbers={announcement.adultsNumber}

@@ -94,7 +94,7 @@ export interface Announcement {
   views: number;
   favCount: number;
   avgRating: number;
-  reviewCount:number
+  reviewCount: number;
 }
 
 export interface location {
@@ -128,4 +128,11 @@ export interface Breaks {
   adId: string;
   start: string;
   end: string;
+}
+
+export interface Booking {
+  id: string;
+  date: string;
+  allDay: boolean;
+  times: string[];
 }
