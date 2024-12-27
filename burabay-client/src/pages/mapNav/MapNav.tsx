@@ -245,7 +245,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   // Создаем переменную для отслеживания уже отображенных категорий
   const openGoogleMaps = (latitude: number, longitude: number) => {
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    window.open(url, "_blank"); // Открывает ссылку в новой вкладке
+    window.location.href = (url); // Открывает ссылку в новой вкладке
   };
 
   return (
