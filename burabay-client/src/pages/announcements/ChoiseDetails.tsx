@@ -155,9 +155,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("placeAd")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
       </Header>
