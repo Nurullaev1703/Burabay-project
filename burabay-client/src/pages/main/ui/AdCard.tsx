@@ -68,7 +68,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
         <Typography size={14} weight={400}>
           {ad.title}
         </Typography>
-        <Typography size={12} weight={400} className="h-7 line-clamp-2 leading-none">
+        <Typography size={12} weight={400} className="line-clamp-2 h-[25px] text-ellipsis leading-none">
           {ad.description}
         </Typography>
         {!isOrganization && (

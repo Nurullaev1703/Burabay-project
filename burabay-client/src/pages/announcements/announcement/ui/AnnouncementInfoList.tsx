@@ -1,25 +1,21 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Schedule } from "../../model/announcements";
+import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import ArrowRight from "../../../../app/icons/arrow-right.svg";
 import { Link } from "@tanstack/react-router";
 interface Props {
-  phoneNumber: string;
-  schedule: Schedule | null | string;
-  id: string;
+  ad:Announcement
 }
 
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
-  phoneNumber,
-  schedule,
-  id
+  ad
 }) {
   const { t } = useTranslation();
 
   // Обработка обьекта с расписанием работы
   const renderSchedule = () => {
-    if (!schedule || typeof schedule === "string") {
+    if (!ad.schedule || typeof ad.schedule === "string") {
       return "Нет расписания";
     }
   
@@ -39,8 +35,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         const startKey = `${key}Start`;
         const endKey = `${key}End`;
         return (
-          schedule[startKey as keyof Schedule] !== "00:00" &&
-          schedule[endKey as keyof Schedule] !== "00:00"
+          ad.schedule[startKey as keyof Schedule] !== "00:00" &&
+          ad.schedule[endKey as keyof Schedule] !== "00:00"
         );
       })
       .map(([, value]) => value);
@@ -59,13 +55,13 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   return (
     <ul>
       <li className="flex flex-col border-b border-[#999999] py-3">
-        <span>{formatPhoneNumber(phoneNumber)}</span>
+        <span>{formatPhoneNumber(ad.phoneNumber)}</span>
         <span className={`${COLORS_TEXT.gray100} text-sm`}>
           {t("contactPhone")}
         </span>
       </li>
       <li className="border-b border-[#999999] py-3">
-        <Link to={`/announcements/schedule/${id}`} className="flex justify-between">
+        <Link to={`/announcements/schedule/${ad.id}`} className="flex justify-between">
           <div className="flex flex-col">
             <span>{renderSchedule()}</span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>
@@ -76,17 +72,17 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         </Link>
       </li>
       <li className="border-b border-[#999999] py-3">
-        <Link className="flex justify-between">
+        <Link className="flex justify-between" to="/mapNav" search={{adName: ad.title}}>
           <span>{t("locationOnMap")}</span>
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      <li className="py-3">
+      {/* <li className="py-3">
         <Link className="flex justify-between">
           <span>{t("details")}</span>
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
-      </li>
+      </li> */}
     </ul>
   );
 };

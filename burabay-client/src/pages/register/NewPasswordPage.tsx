@@ -145,7 +145,7 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
           <span className={`${COLORS_TEXT.totalBlack}`}>
             {t("termsOfUseText")}
           </span>
-          <Link to={"/"}>
+          <Link to={"/help"}>
             <span className={`${COLORS_TEXT.blue200} font-semibold`}>
               {t("termsOfUseLink")}
             </span>

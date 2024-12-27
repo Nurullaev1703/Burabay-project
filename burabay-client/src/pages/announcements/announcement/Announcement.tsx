@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Announcement as AnnouncementType } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -29,7 +29,12 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       };
     })
   );
-
+  useEffect(() => {
+    window.scrollTo(0,0)
+  },[])
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
+  };
   return (
     <section className="bg-background">
       <Header>
@@ -64,8 +69,11 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-100"
             />
           </div>
-          <Carousel items={carouselImages} height="pt-[105%]" />
+          <Carousel items={carouselImages} ratio="aspect-[1/1.1]" height="h-full" />
         </div>
+        <h1 className="font-medium text-[28px] uppercase text-blue200">
+          {announcement.price || announcement.priceForChild ? formatPrice(announcement.price || announcement.priceForChild) : t('free')}
+        </h1>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 
         <div className="flex justify-between mb-4">
@@ -81,33 +89,22 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               <span className="mr-1 text-sm">
                 {announcement.views ? announcement.views : 0}
               </span>
-              <img src={EyeIcon} alt="Просмотренных" className="w-[18px]" />
+              <img src={EyeIcon} className="w-[18px]" />
             </div>
             <div className="flex items-center">
               <span className="mr-1 text-sm">
                 {announcement.favCount ? announcement.favCount : 0}
               </span>
-              <img src={FavouriteIcon} alt="Избранных" className="w-[14px]" />
+              <img src={FavouriteIcon} className="w-[14px]" />
             </div>
           </div>
         </div>
 
         <p className="mb-4 leading-5">{announcement.description}</p>
 
-        <AnnouncementInfoList
-          id={announcement.id}
-          phoneNumber={announcement.phoneNumber}
-          schedule={announcement.schedule}
-        />
+        <AnnouncementInfoList ad={announcement} />
       </div>
-      {/* FIXME цена в виде boolean */}
-      <CostInfoList
-        price={0}
-        priceForChild={announcement.priceForChild}
-        adultNumbers={announcement.adultsNumber}
-        kidsNumber={announcement.kidsNumber}
-        petsAllowed={announcement.petsAllowed}
-      />
+      <CostInfoList ad={announcement} />
     </section>
   );
 };

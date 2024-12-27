@@ -85,7 +85,6 @@ const ImageCard: FC<ImageCardProps> = ({
       className={`relative w-[32%]  pt-[32%] aspect-square rounded-lg border`}
       style={{
         opacity: isDragging ? 0.75 : 1,
-        rotate: isDragging ? "5deg" : "0deg",
         transform: isDragging ? "scale(0.8)" : "scale(1)",
         transition: "transform 0.2s ease, opacity 0.2s ease",
       }}

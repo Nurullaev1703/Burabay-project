@@ -135,6 +135,7 @@ export const RegisterBusiness: FC = function RegisterBusiness() {
                   type={isShowPassword ? "text" : "password"}
                   variant="outlined"
                   label={t("password")}
+                  autoComplete={""}
                   placeholder={t("inputPassword")}
                 />
                 {field.value && (
@@ -165,7 +166,7 @@ export const RegisterBusiness: FC = function RegisterBusiness() {
           <span className={`${COLORS_TEXT.totalBlack}`}>
             {t("termsOfUseText")}
           </span>
-          <Link to={"/"}>
+          <Link to={"/help"}>
             <span className={`${COLORS_TEXT.blue200} font-semibold`}>
               {t("termsOfUseLink")}
             </span>

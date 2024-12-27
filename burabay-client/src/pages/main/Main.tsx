@@ -59,7 +59,7 @@ export const Main: FC<Props> = function Main({ announcements, categories }) {
 
         {/* ANNOUNCEMENTS */}
 
-      <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-10">
+      <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-16">
         {announcements.map((item) => {
           return <AdCard ad={item} key={item.id} />;
         })}

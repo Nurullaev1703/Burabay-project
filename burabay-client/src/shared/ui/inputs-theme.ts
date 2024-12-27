@@ -21,16 +21,19 @@ export const theme = createTheme({
           fontSize: "16px",
           caretColor: COLORS.blue200,
           lineHeight: "16px",
-
           ".MuiOutlinedInput-notchedOutline": {
             display: "none",
             borderColor: "transparent",
             transition: "border-color 0.3s, top 0.3s",
             width: "100%",
-            top: "-5px", // Оставить фиксированную позицию
+            top: "0", // Оставить фиксированную позицию
           },
           // убирает верхнюю подсказку
           ".css-14lo706>span, .css-yjsfm1>span": {
+            display: "none",
+          },
+          // // убирает верхнюю подсказку
+          "legend": {
             display: "none",
           },
           "&.Mui-error .MuiOutlinedInput-notchedOutline": {
@@ -44,11 +47,12 @@ export const theme = createTheme({
             borderColor: COLORS.red,
             transform: "none",
           },
-          ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {
+          ".css-24rejj-MuiInputBase-input-MuiOutlinedInput-input": {},
+          ".MuiInputBase-input-MuiOutlinedInput-input": {
             paddingTop: "36px",
           },
-          ".css-1pog434":{
-            paddingTop:"36px"
+          ".css-1pog434": {
+            paddingTop: "36px",
           },
           textarea: {
             padding: "16.5px 14px",
@@ -56,6 +60,10 @@ export const theme = createTheme({
             lineHeight: "20px",
           },
         },
+        input: {
+          paddingTop: "36px",
+        },
+        
       },
     },
 

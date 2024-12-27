@@ -45,7 +45,7 @@ export const ModalExit: FC<Props> = function ModalExit({ open, onClose }) {
         <span className="text-center font-medium w-3/4">{t("areYouSure")}</span>
         <Button mode="red" className="mb-2" onClick={() => {  tokenService.deleteValue();
           navigate({ to: "/auth" });}}>{t("exit")}</Button>
-        <Button>{t("cancel")}</Button>
+        <Button onClick={onClose}>{t("cancel")}</Button>
       </Box>
     </Modal>
   );

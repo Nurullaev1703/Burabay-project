@@ -88,7 +88,10 @@ export const EditProfile: FC = function EditProfile() {
       </Header>
 
       <div className="pt-4 px-4">
-        <DefaultForm onSubmit={handleSubmit(saveUser)} className="flex flex-col gap-2">
+        <DefaultForm
+          onSubmit={handleSubmit(saveUser)}
+          className="flex flex-col gap-2"
+        >
           <Controller
             name="organization.name"
             control={control}
@@ -109,7 +112,7 @@ export const EditProfile: FC = function EditProfile() {
                   fullWidth={true}
                   variant="outlined"
                   inputProps={{ maxLength: 40 }}
-                  placeholder="Burabay Travel"
+                  placeholder={t("inputOrgName")}
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/40
@@ -159,14 +162,14 @@ export const EditProfile: FC = function EditProfile() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
-                  label={t("email")}
-                  fullWidth={true}
-                  variant="outlined"
-                />
+              <TextField
+                {...field}
+                error={Boolean(error?.message)}
+                helperText={error?.message}
+                label={t("email")}
+                fullWidth={true}
+                variant="outlined"
+              />
             )}
           />
 
@@ -174,15 +177,15 @@ export const EditProfile: FC = function EditProfile() {
             name="organization.siteUrl"
             control={control}
             render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
-                  label={t("site")}
-                  fullWidth={true}
-                  variant="outlined"
-                  placeholder="burabay.kz"
-                />
+              <TextField
+                {...field}
+                error={Boolean(error?.message)}
+                helperText={error?.message}
+                label={t("site")}
+                fullWidth={true}
+                variant="outlined"
+                placeholder="burabay.kz"
+              />
             )}
           />
 

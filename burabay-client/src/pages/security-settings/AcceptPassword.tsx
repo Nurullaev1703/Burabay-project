@@ -69,25 +69,23 @@ export const AcceptPassword: FC<Props> = function AcceptPassword(props) {
           if (response.data == HTTP_STATUS.CONFLICT) {
             setErrorMessage(t("incorrectPassword"));
             setPasswordError(true);
-          } 
-          else if(response.data !== HTTP_STATUS.SERVER_ERROR){
+          } else if (response.data !== HTTP_STATUS.SERVER_ERROR) {
             const response = await apiService.post<string>({
               url: "/auth/verification",
               dto: {
                 email: props.email,
               },
             });
-            if(response.data == HTTP_STATUS.OK){
+            if (response.data == HTTP_STATUS.OK) {
               navigate({
-                  to:"/profile/security/accept-email/$email",
-                  params:{
-                    email: props.email
-                  }
-              })
-            }
-            else{
+                to: "/profile/security/accept-email/$email",
+                params: {
+                  email: props.email,
+                },
+              });
+            } else {
               setErrorMessage(t("defaultError"));
-              setPasswordError(true)
+              setPasswordError(true);
             }
           }
           setIsLoading(false);
@@ -95,7 +93,7 @@ export const AcceptPassword: FC<Props> = function AcceptPassword(props) {
         className="flex flex-col h-[60vh]"
       >
         <div className="flex flex-col items-center gap-2 py-6 px-4">
-          <Typography>{`${t('passwordFor')} ${props.currentEmail}`}</Typography>
+          <Typography>{`${t("passwordFor")} ${props.currentEmail}`}</Typography>
           <Controller
             name="password"
             control={control}
@@ -115,6 +113,7 @@ export const AcceptPassword: FC<Props> = function AcceptPassword(props) {
                   type={isShowPassword ? "text" : "password"}
                   variant="outlined"
                   label={t("password")}
+                  autoComplete={""}
                   placeholder={t("inputPassword")}
                   onChange={(e) => {
                     field.onChange(e);
