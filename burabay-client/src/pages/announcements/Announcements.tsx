@@ -29,7 +29,7 @@ export const Announcements: FC<Props> = function Announcements({
             <Typography size={18} weight={500}>
               {t("emptyAd")}
             </Typography>
-            <Typography size={16} weight={400} align="center">
+            <Typography size={16} weight={400} align="center" className="w-4/5">
               {t("addAd")}
             </Typography>
           </div>
@@ -45,15 +45,18 @@ export const Announcements: FC<Props> = function Announcements({
                 placeholder="Поиск"
                 className="flex-grow bg-transparent outline-none text-gray-700"
               />
-
             </div>
-            <IconContainer  className="mt-4" align="end">
-                <img onClick={() =>
-              navigate({
-                to: "/announcements/mapForAnnoun"
-              })
-            } src={marker} alt="" />
-              </IconContainer>
+            <IconContainer className="mt-4" align="end">
+              <img
+                onClick={() =>
+                  navigate({
+                    to: "/announcements/mapForAnnoun",
+                  })
+                }
+                src={marker}
+                alt=""
+              />
+            </IconContainer>
           </div>
           <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-10">
             {announcements.map((item) => {

@@ -16,7 +16,7 @@ export const BookingTourist: FC<Props> = function BookingTourist() {
           <Typography size={18} weight={500}>
             {t("noBooking")}
           </Typography>
-          <Typography size={16} weight={400} align="center">
+          <Typography size={16} weight={400} align="center" className="w-4/5">
             {t("bookingAlertTourist")}
           </Typography>
         </div>

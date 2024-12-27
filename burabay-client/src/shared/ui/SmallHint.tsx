@@ -17,6 +17,7 @@ export const SmallHint: FC<Props> = function SmallHint({text , background}) {
       <Typography
         size={12}
         color={COLORS_TEXT.gray100}
+        align="center"
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  px-4"
         style={{ backgroundColor: background || "#F1F2F6"}}
       >
