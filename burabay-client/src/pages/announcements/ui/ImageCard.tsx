@@ -82,7 +82,7 @@ const ImageCard: FC<ImageCardProps> = ({
   return (
     <div
       ref={ref}
-      className={`relative w-[32%]  pt-[32%] aspect-square rounded-lg border`}
+      className={`relative w-[90px] pt-[90px] rounded-lg border`}
       style={{
         opacity: isDragging ? 0.75 : 1,
         transform: isDragging ? "scale(0.8)" : "scale(1)",
