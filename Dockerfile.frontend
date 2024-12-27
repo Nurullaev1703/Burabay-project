@@ -32,6 +32,7 @@ WORKDIR /app
 
 COPY --from=build /app /app
 
+RUN yarn global add serve
 RUN yarn install --production
 
 EXPOSE 80
