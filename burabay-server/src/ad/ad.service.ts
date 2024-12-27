@@ -10,6 +10,7 @@ import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad.filter';
 import stringSimilarity from 'string-similarity-js';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 
 @Injectable()
 export class AdService {
@@ -97,9 +98,9 @@ export class AdService {
         schedule: true,
         breaks: true,
         address: true,
-        subcategory:{
-          category: true
-        }
+        subcategory: {
+          category: true,
+        },
       },
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
@@ -119,7 +120,7 @@ export class AdService {
 
   /* Метод для получения одного Объявления по id. */
   @CatchErrors()
-  async findOne(id: string) {
+  async findOne(id: string, touristId?: string) {
     const ad = await this.adRepository.findOne({
       where: { id: id },
       relations: {
@@ -134,8 +135,18 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     const favCount = ad.usersFavorited.length;
     delete ad.usersFavorited;
-    ad.views++;
-    await this.adRepository.save(ad);
+    if (touristId) {
+      const user = await this.userRepository.findOne({
+        where: { id: touristId },
+        relations: { favorites: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      if (user.role === ROLE_TYPE.TOURIST) {
+        ad.views++;
+        await this.adRepository.save(ad);
+      }
+    }
+
     return { ...ad, favCount };
   }
 

@@ -30,8 +30,8 @@ export class AdController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adService.findOne(id);
+  findOne(@Param('id') id: string, @Query('userId') userId: string) {
+    return this.adService.findOne(id, userId);
   }
 
   @Get('favorite/list/:userId')
