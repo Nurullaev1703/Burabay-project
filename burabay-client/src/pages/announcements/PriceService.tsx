@@ -71,15 +71,23 @@ export const PriceService: FC<Props> = function PriceService(props) {
   };
 
   const handleInputChange = (rawValue: string) => {
-    const sanitizedValue = rawValue.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    let sanitizedValue = rawValue.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    if (sanitizedValue.startsWith("0")) {
+      sanitizedValue = sanitizedValue.substring(1); // Удаляем начальный ноль
+    }
     const formattedValue = formatNumberWithSpaces(sanitizedValue); // Форматируем с пробелами
-    setInputValue(formattedValue); // Устанавливаем форматированное значение
+    setInputValue(formattedValue || "0"); // Если значение пустое, показываем "0"
   };
+  
   const handleInputChangeChild = (rawValue: string) => {
-    const sanitizedValue = rawValue.replace(/\D/g, "");
+    let sanitizedValue = rawValue.replace(/\D/g, "");
+    if (sanitizedValue.startsWith("0")) {
+      sanitizedValue = sanitizedValue.substring(1);
+    }
     const formattedValue = formatNumberWithSpaces(sanitizedValue);
-    setInputValueChild(formattedValue);
+    setInputValueChild(formattedValue || "0");
   };
+  
 
   useEffect(() => {
     updateTengePosition(inputRef, symbolRef, inputValue);
@@ -116,9 +124,11 @@ export const PriceService: FC<Props> = function PriceService(props) {
               {t("priceService")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
