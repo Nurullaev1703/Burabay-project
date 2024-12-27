@@ -10,7 +10,7 @@ export const Route = createFileRoute("/announcements/")({
 
 function AdRoute(){
   const {user} = useAuth()
-  if(user?.organization.id){
+  if(user?.organization?.id){
     const {data, isLoading} = UseGetOrganizationAnnouncements(user?.organization?.id)
     if(data){
       return <Announcements announcements={data}/>

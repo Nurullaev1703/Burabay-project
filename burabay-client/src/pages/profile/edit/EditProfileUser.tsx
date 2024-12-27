@@ -14,6 +14,7 @@ import { useAuth } from "../../../features/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { Profile } from "../model/profile";
+import { formatToDisplayPhoneNumber } from "../../../shared/ui/format-phone";
 
 interface FormType {
   fullName: string;
@@ -24,14 +25,22 @@ interface FormType {
 export const EditProfileUser: FC = function EditProfileUser() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
-  const mask = useMask({ mask: "___ ___-__-__", replacement: { _: /\d/ } });
-  const { handleSubmit, control } = useForm<FormType>({
+  const mask = useMask({
+    mask: "+7 ___ ___-__-__",
+    replacement: { _: /\d/ },
+    showMask: true,
+  });
+  const {
+    handleSubmit,
+    control,
+    formState: { isValid },
+  } = useForm<FormType>({
     defaultValues: {
       fullName: user?.fullName || "",
       email: user?.email || "",
-      phoneNumber: user?.phoneNumber?.replace(/^(\+7)/, "") || "",
+      phoneNumber: formatToDisplayPhoneNumber(user?.phoneNumber || "+7"),
     },
-    mode: "onBlur",
+    mode: "onChange",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -45,7 +54,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
 
   const formatPhoneNumber = (phone: string) => {
     const cleaned = phone.replace(/[^0-9]/g, "");
-    return cleaned.startsWith("7") ? `+7${cleaned}` : `+${cleaned}`;
+    return `+${cleaned}`;
   };
 
   const saveUser = async (form: FormType) => {
@@ -99,7 +108,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
       </Header>
 
       <div className="pt-4 px-4">
-        <DefaultForm onSubmit={handleSubmit(saveUser)}>
+        <DefaultForm onSubmit={handleSubmit(saveUser)} className="flex flex-col gap-2">
           <Controller
             name="fullName"
             control={control}
@@ -111,12 +120,13 @@ export const EditProfileUser: FC = function EditProfileUser() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="relative p-2 rounded-md bg-white mb-2">
+              <div className="relative w-full">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   label={t("name")}
+                  multiline
                   placeholder={"Максим"}
                   fullWidth={true}
                   variant="outlined"
@@ -140,7 +150,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="p-2 rounded-md bg-white mb-2">
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
@@ -149,7 +158,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   fullWidth={true}
                   variant="outlined"
                 />
-              </div>
             )}
           />
 
@@ -158,34 +166,24 @@ export const EditProfileUser: FC = function EditProfileUser() {
             control={control}
             rules={{
               required: t("requiredField"),
-              
+              validate: (value: string) => {
+                const phoneRegex = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
+                return phoneRegex.test(value) || t("invalidNumber");
+              },
             }}
             render={({ field, fieldState: { error } }) => (
-              <div className="relative p-2 rounded-md bg-white mb-2">
-                <div className="absolute top-[9.5px] left-5 flex h-[90px] items-center pointer-events-none z-10">
-                  {"+7"}
-                </div>
                 <TextField
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   fullWidth
                   type="tel"
+                  inputMode="tel"
                   label={t("phoneV2")}
                   variant="outlined"
                   inputRef={mask}
-                  placeholder="700 000-00-00"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    style: {
-                      paddingLeft: "30px",
-                      backgroundColor: error ? "#fff0f0" : "transparent",
-                    },
-                  }}
+                  placeholder="+7 700 000-00-00"
                 />
-              </div>
             )}
           />
 
@@ -194,6 +192,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
               className="fixed bottom-4 left-3 w-header"
               type="submit"
               loading={isLoading}
+              disabled={!isValid}
             >
               {t("save")}
             </Button>

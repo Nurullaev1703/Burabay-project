@@ -203,6 +203,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                   ref={inputRef}
                   id="amount"
                   type="text"
+                  inputMode="numeric"
                   maxLength={10}
                   value={inputValue}
                   onFocus={() => setIsFocused(true)} // Ставим фокус
@@ -245,6 +246,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                   ref={inputRefChild}
                   id="amountChild"
                   type="text"
+                  inputMode="numeric"
                   maxLength={10}
                   value={inputValueChild}
                   onFocus={() => setIsFocusedChild(true)}
