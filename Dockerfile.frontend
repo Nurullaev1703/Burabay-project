@@ -32,11 +32,8 @@ WORKDIR /app
 
 COPY --from=build /app /app
 
-# COPY --from=build burabay-client/dist ./dist
-# COPY --from=build burabay-client/package.json ./package.json
-
 RUN yarn install --production
 
 EXPOSE 80
 
-CMD ["node", "dist/index.js"]
+CMD ["yarn", "serve"]
