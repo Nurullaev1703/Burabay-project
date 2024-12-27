@@ -246,7 +246,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     variant="outlined"
                     label={t("description")}
                     inputProps={{ maxLength: 300 }}
-                    placeholder={t("inputDescription")}
+                    placeholder={t("adDescription")}
                   />
                   <Typography
                     size={12}
@@ -357,7 +357,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("detailsTitle")}
             </Typography>
             {category.details.map((item) => {
-              return (
+              // FIXME что за type
+              return item !== "type" ? (
                 <div
                   key={item}
                   className="flex items-center justify-between  border-b py-2 "
@@ -371,6 +372,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     } relative inline-flex h-6 w-11 items-center rounded-full`}
                   ></Switch>
                 </div>
+              ) : (
+                <></>
               );
             })}
           </div>

@@ -80,8 +80,8 @@ export const EditProfileUser: FC = function EditProfileUser() {
       }
 
       setIsLoading(false);
-    } catch (error) {
-      console.error("Ошибка при сохранении пользователя:", error);
+    } catch {
+      handleError(t('defaultError'))
     }
   };
 
@@ -127,7 +127,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   helperText={error?.message}
                   label={t("name")}
                   multiline
-                  placeholder={"Максим"}
+                  placeholder={t("name")}
                   fullWidth={true}
                   variant="outlined"
                   inputProps={{ maxLength: 40 }}

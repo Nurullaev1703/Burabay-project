@@ -110,6 +110,7 @@ export const ResetPasswordPage: FC<Props> = function ResetPasswordPage(props) {
                   type={isShowPassword ? "text" : "password"}
                   variant="outlined"
                   label={t("password")}
+                  autoComplete={""}
                   placeholder={t("inputPassword")}
                   onChange={(e) => {
                     field.onChange(e);

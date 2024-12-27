@@ -439,6 +439,7 @@ i18n.use(initReactI18next).init({
         youtubeVideo: "YouTube-тен видео",
         inputLink: "YouTube-тен видео сілтемесін енгізіңіз",
         detailsTitle: "Толығырақ",
+        free: "тегін",
       },
     },
     ru: {
@@ -482,6 +483,7 @@ i18n.use(initReactI18next).init({
         saved: "Сохраненное",
         save: "Сохранить",
         description: "Описание",
+        adDescription:"Введите описание",
         // auth accept
         confirmEmail: "Подтверждение email",
         inputCode: "Введите код из письма",
@@ -535,6 +537,7 @@ i18n.use(initReactI18next).init({
         preview: "Просмотр",
         serviceFullDay: "Услуга длится полные сутки",
         serviceTime: "Время начала услуги",
+        serviceDuration: "Время проведения услуги",
         serviceTimeDescription:
           "Во сколько начинается услуга? Добавьте несколько вариантов при необходимости",
         standardDuration: "Стандартная длительность услуги",
@@ -912,6 +915,7 @@ i18n.use(initReactI18next).init({
         youtubeVideo: "Видео из Youtube",
         inputLink: "Вставьте ссылку на видео из YouTube",
         detailsTitle: "Подробности",
+        free: "Бесплатно",
       },
     },
     en: {
@@ -1344,6 +1348,7 @@ i18n.use(initReactI18next).init({
         youtubeVideo: "YouTube Video",
         inputLink: "Insert the link to the YouTube video",
         detailsTitle: "Details",
+        free: "Free"
       },
     },
   },
