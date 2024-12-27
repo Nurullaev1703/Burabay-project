@@ -131,6 +131,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
                   type={isShowPassword ? "text" : "password"}
                   variant="outlined"
                   autoComplete={""}
+                  label={t('password')}
                   placeholder={t("inputPassword")}
                   onChange={(e) => {
                     field.onChange(e);

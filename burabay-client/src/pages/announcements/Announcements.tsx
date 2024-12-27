@@ -21,7 +21,7 @@ export const Announcements: FC<Props> = function Announcements({
   const { t } = useTranslation();
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen px-4">
+    <div className="min-h-screen px-4  mb-32">
       {!announcements.length && (
         <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
           <img src={Intersect} className="w-40 h-40 mb-8" alt="" />
@@ -58,7 +58,7 @@ export const Announcements: FC<Props> = function Announcements({
               />
             </IconContainer>
           </div>
-          <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-10">
+          <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4">
             {announcements.map((item) => {
               return <AdCard ad={item} key={item.id} isOrganization />;
             })}
@@ -67,7 +67,7 @@ export const Announcements: FC<Props> = function Announcements({
       )}
 
       <Button
-        className="fixed bottom-20 left-4 w-header"
+        className="fixed bottom-16 left-4 w-header"
         onClick={() =>
           navigate({
             to: "/announcements/addAnnouncements",
