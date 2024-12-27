@@ -3,7 +3,7 @@ import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { Public } from 'src/constants';
-import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { AdFilter } from './types/ad.filter';
 
 @ApiTags('Объявления')
@@ -30,6 +30,8 @@ export class AdController {
   }
 
   @Get(':id')
+  @ApiQuery({ name: 'userId', required: false, description: 'ID of the tourist user (optional)' })
+  @ApiParam({ name: 'id', description: 'ID of the ad' })
   findOne(@Param('id') id: string, @Query('userId') userId: string) {
     return this.adService.findOne(id, userId);
   }
