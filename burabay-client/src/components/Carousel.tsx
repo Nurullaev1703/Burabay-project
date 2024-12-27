@@ -50,6 +50,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items }) => {
 
   return (
     <div className="mx-auto">
+      {/* @ts-ignore */}
       <Slider {...settings}>
         {displayedItems.map((item) => (
           <div key={item.index}>
