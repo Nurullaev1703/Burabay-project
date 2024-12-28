@@ -14,15 +14,17 @@ export class MainPageService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
   async getMainPage(filter?: AdFilter) {
-    let whereOptions = {}
-    if(filter.adName){
-      whereOptions = {...whereOptions,title: filter.adName}
+    let whereOptions = {};
+    if (filter.adName) {
+      whereOptions = { ...whereOptions, title: filter.adName };
     }
-    if(filter.category){
-      whereOptions = {...whereOptions,
-        subcategory:{
-          category: {name:filter.category}}
-        }
+    if (filter.category) {
+      whereOptions = {
+        ...whereOptions,
+        subcategory: {
+          category: { name: filter.category },
+        },
+      };
     }
     const result = await Promise.all([
       this.categoryRepository.find(),
