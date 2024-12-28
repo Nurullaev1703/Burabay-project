@@ -24,7 +24,7 @@ const ImageCard: FC<ImageCardProps> = ({
   moveCard,
   onImageUpload,
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLLabelElement>(null);
   const [imageSrc, setImageSrc] = useState<string>(src || DefaultImage);
   const [isDragAllowed, setIsDragAllowed] = useState(false); // Управляет активацией перетаскивания
   const holdTimeout = useRef<NodeJS.Timeout | null>(null); // Таймер для удержания
@@ -80,8 +80,9 @@ const ImageCard: FC<ImageCardProps> = ({
   };
 
   return (
-    <div
+    <label
       ref={ref}
+      htmlFor={id.toString()}
       className={`relative w-[90px] pt-[90px] rounded-lg border`}
       style={{
         opacity: isDragging ? 0.75 : 1,
@@ -107,11 +108,12 @@ const ImageCard: FC<ImageCardProps> = ({
           type="file"
           accept="image/*"
           multiple={true}
-          className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+          hidden
+          id={id.toString()}
           onChange={handleFileChange}
           style={{ zIndex: 10 }}
         />
-    </div>
+    </label>
   );
 };
 
