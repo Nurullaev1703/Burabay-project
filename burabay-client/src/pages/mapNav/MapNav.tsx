@@ -249,7 +249,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}` // Для маршрутов
     : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`; // Для десктопа и мобильных
   
-    window.location.href = url;
+    window.open(url , "_blank")
   };
   
 
