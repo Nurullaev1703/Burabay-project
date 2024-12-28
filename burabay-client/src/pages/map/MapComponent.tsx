@@ -151,9 +151,11 @@ export const MapComponent: FC<Props> = (props) => {
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer align="end" action={async () => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>

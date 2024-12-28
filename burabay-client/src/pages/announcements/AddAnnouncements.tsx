@@ -55,7 +55,9 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({category})
       <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align='center'>{t("addNewAd")}</Typography>
       <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align='center'>{t("choiseCat")}</Typography>
       </div>
-      <IconContainer align='end' action={async() =>  history.back()}>
+      <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
       <img src={XIcon} alt="" />
       </IconContainer>
       </div>
