@@ -45,6 +45,7 @@ export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: 
 export interface MapFilter {
     categoryNames?: string;
     adName?: string;
+    category?:string
 }
 
 export function UseGetAnnouncements(filters?: MapFilter) {

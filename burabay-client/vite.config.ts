@@ -11,7 +11,7 @@ export default defineConfig({
     open: true,
     hmr: true,
     proxy: {
-      "/api": "http://localhost:3000", // Прокси для API-запросов
+      "/api": "http://192.168.100.222:3000", // Прокси для API-запросов
     },
   },
   preview: {
