@@ -17,7 +17,11 @@ import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import { Announcement, Category } from "../announcements/model/announcements";
 import BackIcon from "../../app/icons/back-icon.svg";
-import { COLORS_TEXT } from "../../shared/ui/colors";
+import {
+  categoryBgColors,
+  categoryColors,
+  COLORS_TEXT,
+} from "../../shared/ui/colors";
 import cancel from "../../app/icons/announcements/xCancel.svg";
 import { baseUrl } from "../../services/api/ServerData";
 import { Select } from "ol/interaction";
@@ -45,31 +49,8 @@ interface Props {
   filters: MapFilter;
 }
 
-export const categoryColors: Record<string, string> = {
-  Отдых: "bg-[#39B598]",
-  Жилье: "bg-[#5EBAE1]",
-  Здоровье: "bg-[#DC53AD]",
-  Экстрим: "bg-[#EF5C7F]",
-  Достопримечательности: "bg-[#B49081]",
-  Питание: "bg-[#F4A261]",
-  Развлечения: "bg-[#E5C82F]",
-  Прокат: "bg-[#A16ACD]",
-  Безопасность: "bg-[#777CEF]",
-};
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const colors: Record<string, string> = {
-    Отдых: "#39B598",
-    Жилье: "#5EBAE1",
-    Здоровье: "#DC53AD",
-    Экстрим: "#EF5C7F",
-    Достопримечательности: "#B49081",
-    Питание: "#F4A261",
-    Развлечения: "#E5C82F",
-    Прокат: "#A16ACD",
-    Безопасность: "#777CEF",
-  };
-
-  const {t}= useTranslation()
+  const { t } = useTranslation();
 
   const [announcementsName, setAnnouncementsName] = useState<string>(
     filters.adName || ""
@@ -87,22 +68,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
-      if(announcementsName.length > 0){
+      if (announcementsName.length > 0) {
         navigate({
           to: "/mapNav/search/$value",
           params: {
-            value: announcementsName
-          }
+            value: announcementsName,
+          },
         });
-      }
-      else{
+      } else {
         navigate({
           to: "/mapNav",
           search: {
             categoryNames: "",
-            adName: ""
-          }
-        })
+            adName: "",
+          },
+        });
       }
     }
   };
@@ -173,7 +153,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
         const iconStyle = new Style({
           image: new Icon({
-            color: colors[category.name],
+            color: categoryColors[category.name],
             src: locationIcon, // Стандартная иконка маркера
             scale: 1,
             anchor: [0.5, 1], // Центрируем иконку маркера
@@ -246,12 +226,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const openGoogleMaps = (latitude: number, longitude: number) => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); // Проверка устройства
     const url = isMobile
-    ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}` // Для маршрутов
-    : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`; // Для десктопа и мобильных
-  
-    window.open(url , "_blank")
+      ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}` // Для маршрутов
+      : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`; // Для десктопа и мобильных
+
+    window.open(url, "_blank");
   };
-  
 
   return (
     <main className="min-h-screen">
@@ -276,9 +255,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       <div
         id="map"
-
-        style={
-          {
+        style={{
           ...containerStyle,
           transition: "opacity 0.3s ease-in-out",
         }}
@@ -310,10 +287,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
               key={item.id}
               className={`
                      w-fit
-                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryColors[item.name] : "bg-white"} `}
+                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"} `}
             >
               <div
-                className={`relative min-w-7 min-h-7 rounded-full ${categoryColors[item.name]}  `}
+                className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
               >
                 <img
                   src={baseUrl + item.imgPath}
@@ -383,7 +360,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 >
                   <div className="flex items-center">
                     <div
-                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}
+                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
                         className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"

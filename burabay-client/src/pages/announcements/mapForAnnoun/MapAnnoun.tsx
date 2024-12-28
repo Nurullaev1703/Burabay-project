@@ -15,7 +15,7 @@ import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Announcement } from "../model/announcements";
 import BackIcon from "../../../app/icons/back-icon.svg";
-import { COLORS_TEXT } from "../../../shared/ui/colors";
+import { categoryBgColors, categoryColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
 import { Select } from "ol/interaction";
 import defaultImage from "../../../app/icons/main/health.svg";
@@ -39,31 +39,8 @@ interface Props {
   announcements: Announcement[];
 }
 
-export const MapAnnoun: FC<Props> = ({ announcements, }) => {
-  const categoryColors: Record<string, string> = {
-    Отдых: "bg-[#39B598]",
-    Жилье: "bg-[#5EBAE1]",
-    Здоровье: "bg-[#DC53AD]",
-    Экстрим: "bg-[#EF5C7F]",
-    Достопримечательности: "bg-[#B49081]",
-    Питание: "bg-[#F4A261]",
-    Развлечения: "bg-[#E5C82F]",
-    Прокат: "bg-[#A16ACD]",
-    Безопасность: "bg-[#777CEF]",
-  };
-  const colors: Record<string, string> = {
-    Отдых: "#39B598",
-    Жилье: "#5EBAE1",
-    Здоровье: "#DC53AD",
-    Экстрим: "#EF5C7F",
-    Достопримечательности: "#B49081",
-    Питание: "#F4A261",
-    Развлечения: "#E5C82F",
-    Прокат: "#A16ACD",
-    Безопасность: "#777CEF",
-  };
-
-  const {t}= useTranslation()
+export const MapAnnoun: FC<Props> = ({ announcements }) => {
+  const { t } = useTranslation();
   const [activeCategory, _setActiveCategory] = useState<string>("");
   const [_showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
@@ -73,8 +50,6 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
   const [announcementInfo, setAnnouncementInfo] = useState<Announcement | null>(
     null
   ); // Храним информацию о выбранном объявлении
-
-
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -138,7 +113,7 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
 
         const iconStyle = new Style({
           image: new Icon({
-            color: colors[category.name],
+            color: categoryColors[category.name],
             src: locationIcon, // Стандартная иконка маркера
             scale: 1,
             anchor: [0.5, 1], // Центрируем иконку маркера
@@ -264,7 +239,7 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
                 >
                   <div className="flex items-center">
                     <div
-                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}
+                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
                         className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
@@ -296,11 +271,11 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {(`12 ${t("grades")}`)}
+                      {`12 ${t("grades")}`}
                     </Typography>
                   </div>
                   <Typography size={14} weight={400}>
-                    {`${t('todayWith')} 9:00 ${t('to')} 19:00`}
+                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
                   </Typography>
                   <Typography
                     size={14}
@@ -318,7 +293,7 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
                     }
                     mode="transparent"
                   >
-                    {`${t("BuildTheRoad")}` }
+                    {`${t("BuildTheRoad")}`}
                   </Button>
                 </div>
               </div>
@@ -348,10 +323,11 @@ export const MapAnnoun: FC<Props> = ({ announcements, }) => {
           </div>
         </div>
       )}
-            <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-        <Button onClick={() => history.back()} mode="default">{t("backMap")}</Button>
+      <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
+        <Button onClick={() => history.back()} mode="default">
+          {t("backMap")}
+        </Button>
       </div>
-
     </main>
   );
 };

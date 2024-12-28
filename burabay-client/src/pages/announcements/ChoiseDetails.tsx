@@ -53,32 +53,44 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const mask = useMask({ mask: "+7 ___ ___-__-__", replacement: { _: /\d/ }, showMask:true });
+  const mask = useMask({
+    mask: "+7 ___ ___-__-__",
+    replacement: { _: /\d/ },
+    showMask: true,
+  });
   const { t } = useTranslation();
   const [errorMessage, _setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [images, setImages] = useState<ImageData[]>([]);
+  const [images, setImages] = useState<ImageData[]>([
+    { file: null, preview: "" },
+  ]);
   const MAX_IMAGES = 10;
 
   const handleImageUpload = (index: number, files: FileList) => {
     const newFiles = Array.from(files).slice(0, MAX_IMAGES - images.length);
 
-    const newImages = newFiles.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    const newImages = newFiles.map((file) => {
+      const preview = URL.createObjectURL(file);
+      return { file, preview };
+    });
 
     setImages((prevImages) => {
+      // Очищаем старые preview
+      prevImages.forEach((image) => {
+        if (image.preview) {
+          URL.revokeObjectURL(image.preview);
+        }
+      });
+
       const updatedImages = [...prevImages];
       updatedImages.splice(index, 1, ...newImages);
 
-      // Добавляем пустую карточку, если есть место
       if (updatedImages.length < MAX_IMAGES) {
         updatedImages.push({ file: null, preview: "" });
       }
 
-      return updatedImages.slice(0, MAX_IMAGES); // Обрезаем массив до максимального размера
+      return updatedImages.slice(0, MAX_IMAGES);
     });
   };
 
@@ -101,18 +113,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         formData.append(`image_${index}`, image.file);
       }
     });
-
     try {
       const response = await imageService.post<string[]>({
-        url:"/images/ads",
-        dto: formData
-      })
+        url: "/images/ads",
+        dto: formData,
+      });
       if (response.data && response.status) {
-        return response.data
+        return response.data;
       } else {
         throw new Error("Ошибка при загрузке файлов.");
       }
-    } catch{
+    } catch {
       throw new Error("Ошибка при загрузке файлов.");
     }
   };
@@ -155,11 +166,16 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("placeAd")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={async () =>
+              navigate({
+                to: "/announcements",
+              })
+            }
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
       </Header>
@@ -291,7 +307,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                         isMain={index == 0}
                         moveCard={moveCard}
                         isLast={index == images.length - 1}
-                        onImageUpload={(files) => handleImageUpload(index, files)}
+                        onImageUpload={(files) =>
+                          handleImageUpload(index, files)
+                        }
                       />
                     </li>
                   ))}
@@ -361,7 +379,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             </Typography>
             {category.details.map((item) => {
               // FIXME что за type
-              return item !== "type" ? (
+              return item !== "type" && (
                 <div
                   key={item}
                   className="flex items-center justify-between  border-b py-2 "
@@ -375,9 +393,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     } relative inline-flex h-6 w-11 items-center rounded-full`}
                   ></Switch>
                 </div>
-              ) : (
-                <></>
-              );
+              ) 
             })}
           </div>
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">

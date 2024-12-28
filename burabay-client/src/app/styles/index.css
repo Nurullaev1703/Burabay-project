@@ -99,3 +99,6 @@ li{
   border-radius: 4px; /* Округлённые углы */
 
 }
+input::-webkit-file-upload-button{
+  height: 100%;
+}

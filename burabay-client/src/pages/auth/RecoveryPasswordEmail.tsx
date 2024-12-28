@@ -109,7 +109,7 @@ export const RecoveryPasswordEmail: FC<Props> = function RecoveryPasswordEmail(p
       </AlternativeHeader>
       <DefaultForm
         onSubmit={handleSubmit(() => onSubmit(otp))}
-        className="flex flex-col items-center justify-center h-[60vh] px-4"
+        className="flex flex-col items-center justify-center mt-16 px-4"
       >
         <div className="text-center">
           <Typography align="center" size={22} weight={500} className="mb-4">
@@ -156,23 +156,23 @@ export const RecoveryPasswordEmail: FC<Props> = function RecoveryPasswordEmail(p
             {t("defaultError")}
           </Button>
         )}
-          <TimerButton
-            initialTime={time}
-            type="button"
-            onClick={async () => {
-              setTime(60);
-              const response = await apiService.post<string>({
-                url: "/auth/verification",
-                dto: {
-                  email: props.email,
-                },
-              });
-              if (response.data == HTTP_STATUS.SERVER_ERROR) {
-                handleError(t("tooManyRequest"));
-              }
-            }}
-            className="my-4"
-          />
+        <TimerButton
+          initialTime={time}
+          type="button"
+          onClick={async () => {
+            setTime(60);
+            const response = await apiService.post<string>({
+              url: "/auth/verification",
+              dto: {
+                email: props.email,
+              },
+            });
+            if (response.data == HTTP_STATUS.SERVER_ERROR) {
+              handleError(t("tooManyRequest"));
+            }
+          }}
+          className="my-4"
+        />
       </DefaultForm>
       {isSubmitting && <Loader />}
     </div>

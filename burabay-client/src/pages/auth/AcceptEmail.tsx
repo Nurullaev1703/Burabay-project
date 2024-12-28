@@ -119,7 +119,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
       </AlternativeHeader>
       <DefaultForm
         onSubmit={handleSubmit(() => onSubmit(otp))}
-        className="flex flex-col items-center justify-center h-[60vh] px-4"
+        className="flex flex-col items-center justify-center mt-16 px-4"
       >
         <div className="text-center">
           <Typography align="center" size={22} weight={500} className="mb-4">

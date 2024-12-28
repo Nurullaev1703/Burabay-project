@@ -117,7 +117,7 @@ export const AcceptNewEmail: FC<Props> = function AcceptNewEmail(props) {
       </AlternativeHeader>
       <DefaultForm
         onSubmit={handleSubmit(() => onSubmit(otp))}
-        className="flex flex-col items-center justify-center h-[60vh] px-4"
+        className="flex flex-col items-center justify-center mt-16 px-4"
       >
         <div className="text-center">
           <Typography align="center" size={22} weight={500} className="mb-4">
@@ -161,7 +161,7 @@ export const AcceptNewEmail: FC<Props> = function AcceptNewEmail(props) {
           </Button>
         ) : (
           <Button mode="hidden" className="mt-8">
-            {t('defaultError')}
+            {t("defaultError")}
           </Button>
         )}
         {errorText !== t("tooManyRequest") ? (
