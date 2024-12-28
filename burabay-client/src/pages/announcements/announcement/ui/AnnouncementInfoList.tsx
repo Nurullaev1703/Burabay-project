@@ -41,7 +41,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       })
       .map(([, value]) => value);
 
-    return workingDays.length > 0 ? workingDays.join(", ") : "Нет рабочих дней";
+    return workingDays.length > 0 ? workingDays.join(", ") : t("aroundClockDays");
   };
 
   const formatPhoneNumber = (number: number | string) => {

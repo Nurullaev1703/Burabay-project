@@ -24,7 +24,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
   //   Установка даты
   const handleDateChange = (date: any) => {
     serviceSchedule.forEach((currDate) => {
-      if (currDate.date === date?.format("MM/DD/YYYY")) {
+      if (currDate.date === date?.format("DD.MM.YYYY")) {
         setTimes(currDate.times);
       } else {
         setTimes([]);

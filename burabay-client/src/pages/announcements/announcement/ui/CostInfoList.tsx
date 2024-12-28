@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
-// import { Link } from "@tanstack/react-router";
-// import ArrowRight from "../../../../app/icons/arrow-right.svg";
+import { Link } from "@tanstack/react-router";
+import ArrowRight from "../../../../app/icons/arrow-right.svg";
 import { Announcement } from "pages/announcements/model/announcements";
 
 interface Props {
@@ -65,11 +65,11 @@ export const CostInfoList: FC<Props> = function CostInfoList({
           </p>
         </li>
         {ad.petsAllowed && (
-          <li>
+          <li className="mb-4">
             <span>{t("permissionWithAnimals")}</span>
           </li>
         )}
-        {/* <li className="py-4">
+        <li>
           <Link
             to={`/announcements/service-schedule/${ad.id}`}
             className="flex justify-between"
@@ -77,7 +77,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
             <span>{t("serviceSchedule")}</span>
             <img src={ArrowRight} alt="Стрелка" />
           </Link>
-        </li> */}
+        </li>
       </ul>
     </div>
   );

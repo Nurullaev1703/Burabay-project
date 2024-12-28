@@ -129,7 +129,9 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
                             startField.value === "00:00" &&
                             endField.value === "00:00";
 
-                          return isDayOff ? (
+                          return announcement.isRoundTheClock ? (
+                            <span>{t("aroundClockDays")}</span>
+                          ) : isDayOff ? (
                             <span>{t("dayOff")}</span>
                           ) : (
                             <>

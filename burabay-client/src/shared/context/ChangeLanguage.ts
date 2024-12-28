@@ -520,6 +520,7 @@ i18n.use(initReactI18next).init({
         newAnnouncemet: "Новое обьявление",
         workingDays: "Режим работы",
         aroundClock: "Круглосуточно, без ограничений",
+        aroundClockDays: "Круглосуточно",
         mon: "Понедельник",
         tue: "Вторник",
         wen: "Среда",
