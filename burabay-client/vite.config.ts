@@ -11,7 +11,7 @@ export default defineConfig({
         open: true,
         hmr: true,
         proxy: {
-            "/api": "http://burabay-damu.kz:3000", // Прокси для API-запросов
+            "/api": "http://burabay-damu.kz/api", // Прокси для API-запросов
         },
     },
 });
