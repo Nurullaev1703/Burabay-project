@@ -43,9 +43,9 @@ services:
         image: nginx:latest
         container_name: nginx
         volumes:
-            - ./nginx.conf:/etc/nginx/nginx.conf # Монтирование основной конфигурации Nginx
-            - ./conf.d:/etc/nginx/conf.d # Монтирование конфигурации серверов
-            - ./certs:/etc/nginx/certs # Монтирование каталога с сертификатами
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf # Монтируем nginx.conf
+            - ./nginx/certs:/etc/nginx/certs # Монтируем каталог сертификатов
+            - ./nginx/conf.d:/etc/nginx/conf.d # Монтируем каталог конфигураций
         ports:
             - "80:80" # HTTP
             - "443:443" # HTTPS
