@@ -244,9 +244,14 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
   // Создаем переменную для отслеживания уже отображенных категорий
   const openGoogleMaps = (latitude: number, longitude: number) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    window.location.href = (url); // Открывает ссылку в новой вкладке
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); // Проверка устройства
+    const url = isMobile
+    ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}` // Для маршрутов
+    : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`; // Для десктопа и мобильных
+  
+    window.location.href = url;
   };
+  
 
   return (
     <main className="min-h-screen">
