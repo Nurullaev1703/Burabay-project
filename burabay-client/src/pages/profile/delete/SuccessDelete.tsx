@@ -46,7 +46,7 @@ export const SuccessDelete: FC = function SuccessDelete() {
             {t("successDelete")}
           </Typography>
         </div>
-        <div className="fixed bottom-0 left-0 px-4 py-2 w-full">
+        <div className="fixed bottom-0 left-0 px-4 py-2 w-full z-10">
           <Button onClick={() => navigate({
             to:"/auth"
           })}>{t("goToAuth")}</Button>

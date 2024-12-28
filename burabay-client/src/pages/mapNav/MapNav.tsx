@@ -340,7 +340,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {/* Модальное окно для категории */}
       {showCategoryModal && announcementInfo && (
-        <div className="fixed bottom-40 left-0 right-0 bg-white p-4 shadow-lg rounded-t-lg">
+        <div className="fixed bottom-40 left-0 right-0 bg-white p-4 shadow-lg rounded-t-lg z-20">
           <Typography size={18} weight={600}>
             {activeCategory}
           </Typography>

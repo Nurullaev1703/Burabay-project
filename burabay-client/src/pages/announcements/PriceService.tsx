@@ -32,7 +32,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(false);
   const [onSitePayment, setOnSitePayment] = useState(false);
-  const [onlinePayment, setOnlinePayment] = useState(false);
+  const [onlinePayment, _setOnlinePayment] = useState(false);
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isFocusedChild, setIsFocusedChild] = useState<boolean>(false);
@@ -274,7 +274,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
               </div>
             )}
           />
-          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
             <Button type="submit" mode="default">
               {t("continueBtn")}
             </Button>
@@ -320,7 +320,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
         </div>
         <Switch
           checked={onlinePayment}
-          onChange={() => setOnlinePayment(!onlinePayment)}
+          // onChange={() => setOnlinePayment(!onlinePayment)}
           className="sr-only"
         />
       </div>

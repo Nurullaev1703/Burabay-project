@@ -376,7 +376,7 @@
 
         {!error ? (
           <Button
-            className="fixed bottom-4 left-4 w-header"
+            className="fixed bottom-4 left-4 w-header z-10"
             onClick={(e) => {
               e.preventDefault();
               handleSubmit(saveSchedule)();
@@ -386,7 +386,7 @@
             {t("continue")}
           </Button>
         ) : (
-          <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8">
+          <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
             {errorText}
           </Button>
         )}

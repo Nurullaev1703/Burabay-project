@@ -123,7 +123,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
             ))}
           </ul>
         </div>
-        <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+        <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
           <Button onClick={handleContinue} mode="default">
             {t("continueBtn")}
           </Button>

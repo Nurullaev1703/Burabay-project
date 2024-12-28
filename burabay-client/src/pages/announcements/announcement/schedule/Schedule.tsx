@@ -238,7 +238,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
       </div>
 
       <Button
-        className="fixed bottom-4 left-4 w-header"
+        className="fixed bottom-4 left-4 w-header z-10"
         onClick={() => history.back()}
       >
         {t("back")}

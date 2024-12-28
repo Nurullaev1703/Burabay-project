@@ -67,7 +67,7 @@ export const Announcements: FC<Props> = function Announcements({
       )}
 
       <Button
-        className="fixed bottom-16 left-4 w-header"
+        className="fixed bottom-16 left-4 w-header z-10"
         onClick={() =>
           navigate({
             to: "/announcements/addAnnouncements",
