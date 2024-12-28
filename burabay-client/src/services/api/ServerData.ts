@@ -1,4 +1,4 @@
-export const baseUrl = "http://burabay-damu.kz/api";
+export const baseUrl = "https://burabay-damu.kz/back";
 
 export enum HTTP_STATUS {
     CONFLICT = "409",
