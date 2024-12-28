@@ -1,4 +1,4 @@
-export const baseUrl = "http://192.168.100.222:3000";
+export const baseUrl = "http://localhost:3000";
 
 export enum HTTP_STATUS {
     CONFLICT = "409",
