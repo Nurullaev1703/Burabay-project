@@ -106,8 +106,9 @@ const ImageCard: FC<ImageCardProps> = ({
         <input
           type="file"
           accept="image/*"
+          capture="environment"
           multiple={true}
-          className="absolute top-0 left-0 w-full h-full cursor-pointer"
+          className="absolute top-0 left-0 w-full h-full cursor-pointer opacity-0"
           onChange={handleFileChange}
           style={{ zIndex: 10 }}
         />
