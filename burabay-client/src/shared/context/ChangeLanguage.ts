@@ -920,8 +920,13 @@ i18n.use(initReactI18next).init({
         inputLink: "Вставьте ссылку на видео из YouTube",
         detailsTitle: "Подробности",
         free: "Бесплатно",
+
+        allDay: "Длительность услуги - сутки",
+        closed: "Закрыто",
+
         deleteAd: "Вы уверены, что хотите удалить объявление?",
         delete: "Удалить"
+
       },
     },
     en: {
