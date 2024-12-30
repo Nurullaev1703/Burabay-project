@@ -100,6 +100,16 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
     setValue(`breaks.${index}.${field}` as const, value);
   };
   
+    // Логика для определения, валидна ли кнопка
+    const isButtonValid = () => {
+      const currentAroundClock = watch("isRoundTheClock", false);
+  
+      // Если круглосуточно, кнопка всегда валидна
+      if (currentAroundClock) return true;
+  
+      // Если не круглосуточно, кнопка валидна только если хотя бы один день имеет рабочее время
+      return ["mon", "tue", "wen", "thu", "fri", "sat", "sun"].some((day: any) => isDayActive(day));
+    };
 
   const removeBreak = (index: number) => {
     // Удаляем перерыв по индексу
@@ -267,7 +277,13 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                       <Controller
                         name={`workingDays.${day}Start`}
                         control={control}
-                        rules={{ required: t("requiredField") }}
+                        rules={{
+                          required: t("requiredField"),
+                          validate: (value) => {
+                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                            return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                          },
+                        }}
                         render={({ field, fieldState: { error } }) => {
                           const timeMask = useMask({
                             mask: "hH:mM",
@@ -283,7 +299,6 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                               {...field}
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
-                              helperText={error?.message}
                               variant="standard"
                               style={{ width: "80px", marginRight: "16px" }}
                             />
@@ -294,7 +309,13 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                       <Controller
                         name={`workingDays.${day}End`}
                         control={control}
-                        rules={{ required: t("requiredField") }}
+                        rules={{
+                          required: t("requiredField"),
+                          validate: (value) => {
+                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                            return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                          },
+                        }}
                         render={({ field, fieldState: { error } }) => {
                           const timeMask = useMask({
                             mask: "hH:mM",
@@ -310,7 +331,6 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                               {...field}
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
-                              helperText={error?.message}
                               variant="standard"
                               style={{ width: "80px", marginLeft: "16px" }}
                             />
@@ -342,7 +362,13 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                 <Controller
                   name={`breaks.${index}.start`}
                   control={control}
-                  rules={{ required: t("requiredField") }}
+                  rules={{
+                    required: t("requiredField"),
+                    validate: (value) => {
+                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                    },
+                  }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
                       mask: "hH:mM",
@@ -362,7 +388,6 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         onChange={(e) =>
                           handleBreakChange(index, "start", e.target.value)
                         }
-                        helperText={error?.message}
                         variant="standard"
                         style={{ width: "80px", marginRight: "16px" }}
                       />
@@ -373,7 +398,13 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                 <Controller
                   name={`breaks.${index}.end`}
                   control={control}
-                  rules={{ required: t("requiredField") }}
+                  rules={{
+                    required: t("requiredField"),
+                    validate: (value) => {
+                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                    },
+                  }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
                       mask: "hH:mM",
@@ -389,7 +420,6 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         {...field}
                         inputRef={timeMask}
                         error={Boolean(error?.message)}
-                        helperText={error?.message}
                         variant="standard"
                         placeholder="00:00"
                         onChange={(e) =>
@@ -427,6 +457,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
             handleSubmit(saveSchedule)();
           }}
           loading={isLoading}
+          disabled={!isButtonValid()}
         >
           {t("continue")}
         </Button>

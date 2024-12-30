@@ -21,10 +21,7 @@ interface Props {
   user: ProfileType;
 }
 
-export const RatingModal: FC<Props> = function RatingModal({
-  open,
-  onClose,
-}) {
+export const RatingModal: FC<Props> = function RatingModal({ open, onClose }) {
   const [currentRating, _setCurrentRating] = useState<FormType>({
     stars: 0,
     text: "",
@@ -147,6 +144,8 @@ export const RatingModal: FC<Props> = function RatingModal({
                             ? t("describeСonvenient")
                             : t("describeInconvenient")
                         }
+                        className="placeholder:text-base sm:placeholder:text-sm" // Уменьшаем шрифт
+                        multiline
                       />
                     )}
                   />
