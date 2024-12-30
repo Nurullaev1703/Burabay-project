@@ -30,8 +30,8 @@ export class MainPageService {
         where: whereOptions,
         relations: { organization: true, subcategory: { category: true }, address: true },
         order: {
-          createdAt: "DESC"
-        }
+          createdAt: 'DESC',
+        },
         // take: 10, //TODO Поменять кол-во объявлений на Главной старнице
       }),
     ]);
