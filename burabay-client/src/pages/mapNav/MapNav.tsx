@@ -15,7 +15,11 @@ import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
-import { Announcement, Category } from "../announcements/model/announcements";
+import {
+  Announcement,
+  Category,
+  Schedule,
+} from "../announcements/model/announcements";
 import BackIcon from "../../app/icons/back-icon.svg";
 import {
   categoryBgColors,
@@ -40,7 +44,7 @@ import { useTranslation } from "react-i18next";
 
 const containerStyle = {
   width: "100%",
-  height: "90vh",
+  height: "86vh",
 };
 
 interface Props {
@@ -51,6 +55,29 @@ interface Props {
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const { t } = useTranslation();
+  const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
+    if (!announcementInfo?.schedule) {
+      return { start: null, end: null }; // Возвращаем null, если нет расписания
+    }
+
+    const days = [
+      { start: "sunStart", end: "sunEnd" },
+      { start: "monStart", end: "monEnd" },
+      { start: "tueStart", end: "tueEnd" },
+      { start: "wenStart", end: "wenEnd" },
+      { start: "thuStart", end: "thuEnd" },
+      { start: "friStart", end: "friEnd" },
+      { start: "satStart", end: "satEnd" },
+    ];
+
+    const currentDayIndex = new Date().getDay();
+    const currentDay = days[currentDayIndex];
+
+    const start = announcementInfo.schedule[currentDay.start as keyof Schedule];
+    const end = announcementInfo.schedule[currentDay.end as keyof Schedule];
+
+    return { start, end };
+  };
 
   const [announcementsName, setAnnouncementsName] = useState<string>(
     filters.adName || ""
@@ -231,7 +258,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
     window.open(url, "_blank");
   };
+  console.log(announcementInfo);
+  const { start, end } = getCurrentDaySchedule(announcementInfo);
+  // Получаем текущую дату и время
+const currentTime = new Date();
 
+// Извлекаем из строки времени end только часы и минуты
+const [hours, minutes] = end?.split(':').map(Number) || [0,0];
+
+// Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
+let closingTime = new Date();
+closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
+
+
+// Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
+const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime; 
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -261,7 +302,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         }}
       ></div>
 
-      <div className="relative px-4 top-[-80px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
+      <div className="relative px-4 top-[-65px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
         {categories.map((item) => {
           return (
             <button
@@ -341,22 +382,28 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
-        <div className="fixed bottom-0 left-0 flex w-full z-[9999]">
+        <div
+          key={announcementInfo.id}
+          className="fixed bottom-0 left-0 flex w-full z-[9999]"
+        >
           <div className="bg-white p-4 w-full rounded-lg shadow-lg">
             <Typography size={18} weight={500}>
               {announcementInfo.title}
             </Typography>
-
-            <Typography className="mb-4">
-              {t("DurationOfService") + " - "} {announcementInfo.startTime}
-            </Typography>
+            {announcementInfo.duration ? (
+              <Typography className="mb-4">
+                {`${t("DurationOfService")} - ${announcementInfo.duration}`}
+              </Typography>
+            ) : (
+              <Typography className="mb-2">{t("allDay")}</Typography>
+            )}
             <div className="">
               <div className="flex gap-4">
                 <CoveredImage
                   errorImage={defaultAnnoun}
                   width="w-40"
                   height="h-40"
-                  imageSrc={defaultAnnoun}
+                  imageSrc={announcementInfo.images[0]}
                 >
                   <div className="flex items-center">
                     <div
@@ -371,19 +418,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 </CoveredImage>
                 <div>
                   <div className="flex flex-row justify-between">
-                    <Typography
-                      size={28}
-                      weight={700}
-                      color={COLORS_TEXT.blue200}
-                    >
-                      {announcementInfo.price} ₸
-                    </Typography>
+                  <Typography
+                    size={28}
+                    weight={700}
+                    color={COLORS_TEXT.blue200}
+                  >
+                    {announcementInfo.price && announcementInfo.price > 0 
+                      ? `${announcementInfo.price} ₸` 
+                      : t("free")}
+                  </Typography>
                     <img src={flag} alt="" />
                   </div>
                   <div className="flex flex-row gap-2">
                     <img src={star} alt="" />
                     <Typography size={16} weight={400}>
-                      {"4.8"}
+                      {announcementInfo.avgRating}
                     </Typography>
                     <img src={ellipse} alt="" />
                     <Typography
@@ -392,19 +441,23 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {`12 ${t("grades")}`}
+                      {`${announcementInfo.reviewCount} ${t("grades")}`}
                     </Typography>
                   </div>
-                  <Typography size={14} weight={400}>
-                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
-                  </Typography>
-                  <Typography
-                    size={14}
-                    weight={400}
-                    color={COLORS_TEXT.gray100}
-                  >
-                    {`${t("open")}`}
-                  </Typography>
+                  {announcementInfo?.schedule && start && end && (
+                    <Typography size={14} weight={400}>
+                      {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                    </Typography>
+                  )}
+                  {announcementInfo?.schedule &&(
+                    <Typography
+                      size={14}
+                      weight={400}
+                      color={COLORS_TEXT.gray100}
+                    >
+                      {isClosed ? t("closed") : t("open")}
+                    </Typography>
+                  )}
                   <Button
                     onClick={() =>
                       openGoogleMaps(
