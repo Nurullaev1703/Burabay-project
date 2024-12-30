@@ -56,8 +56,8 @@ export default defineConfig({
   ],
   server: {
     https: {
-      key: fs.readFileSync("../../../etc/nginx/certs/burabay-damu_kz.key"),
-      cert: fs.readFileSync("../../../etc/nginx/certs/burabay-damu_kz.crt"),
+      key: fs.readFileSync("../../../../etc/nginx/certs/burabay-damu_kz.key"),
+      cert: fs.readFileSync("../../../../etc/nginx/certs/burabay-damu_kz.crt"),
     },
   },
 });
