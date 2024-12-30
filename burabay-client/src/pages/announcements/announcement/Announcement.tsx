@@ -9,10 +9,12 @@ import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
 // import EditIcon from "../../../app/icons/edit.svg";
+import DeleteIcon from "../../../app/icons/delete.svg";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
 import { baseUrl } from "../../../services/api/ServerData";
+import { ModalDelete } from "./ui/ModalDelete";
 
 interface Props {
   announcement: AnnouncementType;
@@ -28,6 +30,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       };
     })
   );
+    const [showModal, setShowModal] = useState<boolean>(false);
   useEffect(() => {
     window.scrollTo(0,0)
   },[])
@@ -51,8 +54,9 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               {t("ad")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
+          <IconContainer align="end" action={() => setShowModal(true)}>
             {/* <img src={EditIcon} alt="" /> */}
+            <img src={DeleteIcon} alt="" />
           </IconContainer>
         </div>
       </Header>
@@ -110,6 +114,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
+      {showModal && <ModalDelete open={showModal} onClose={() => setShowModal(false)} adId={ announcement.id} />}
     </section>
   );
 };
