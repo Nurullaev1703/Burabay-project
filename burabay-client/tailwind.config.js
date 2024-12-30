@@ -32,13 +32,16 @@ export default {
         header: "url('../app/icons/backgroundHeader.png')"
       },
       width:{
-        fullWidth: "800px"
+        fullWidth: "800px",
+        adWidth: "calc(48vw - 16px)"
       },
       maxWidth:{
-        fullWidth: "800px"
+        fullWidth: "800px",
+        adWidth: "calc(48vw - 16px)"
       },
       minWidth:{
-        fullWidth: "800px"
+        fullWidth: "800px",
+        adWidth: "calc(48vw - 16px)"
       },
 
       borderRadius: {

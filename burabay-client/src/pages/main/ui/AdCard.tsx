@@ -23,7 +23,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
     })
   );
   return (
-    <li className="rounded-2xl relative overflow-hidden min-w-[175px] max-w-[266px]">
+    <li className="rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px]">
       <Link
         to="/announcements/$announcementId"
         params={{ announcementId: ad.id }}
@@ -36,7 +36,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
         <img
           src={baseUrl + ad?.subcategory?.category?.imgPath}
           alt="category"
-          className="w-8 h-8 object-contain scale-75 brightness-200"
+          className="w-8 h-8 object-contain scale-75 brightness-200 z-10"
         />
       </div>
       <div className="p-1">

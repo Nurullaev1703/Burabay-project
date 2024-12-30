@@ -439,7 +439,9 @@ i18n.use(initReactI18next).init({
         youtubeVideo: "YouTube-тен видео",
         inputLink: "YouTube-тен видео сілтемесін енгізіңіз",
         detailsTitle: "Толығырақ",
-        free: "тегін",
+        free: "Тегін",
+        deleteAd: "Жарнаманы шынымен жойғыңыз келе ме?",
+        delete: "Жою",
       },
     },
     ru: {
@@ -483,7 +485,7 @@ i18n.use(initReactI18next).init({
         saved: "Сохраненное",
         save: "Сохранить",
         description: "Описание",
-        adDescription:"Введите описание",
+        adDescription: "Введите описание",
         // auth accept
         confirmEmail: "Подтверждение email",
         inputCode: "Введите код из письма",
@@ -918,6 +920,8 @@ i18n.use(initReactI18next).init({
         inputLink: "Вставьте ссылку на видео из YouTube",
         detailsTitle: "Подробности",
         free: "Бесплатно",
+        deleteAd: "Вы уверены, что хотите удалить объявление?",
+        delete: "Удалить"
       },
     },
     en: {
@@ -1350,7 +1354,9 @@ i18n.use(initReactI18next).init({
         youtubeVideo: "YouTube Video",
         inputLink: "Insert the link to the YouTube video",
         detailsTitle: "Details",
-        free: "Free"
+        free: "Free",
+        deleteAd: "Are you sure you want to remove the ad?",
+        delete: "Delete"
       },
     },
   },
