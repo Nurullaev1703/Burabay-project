@@ -26,10 +26,10 @@ export const Carousel: FC<Props> = ({ height = "h-60", items,  ratio = "" }) => 
 
       if (firstSlide) {
         // Устанавливаем высоту slick-list в зависимости от высоты первого слайда
-        if(height){
+        if (height) {
           slickList.classList.add(height);
         }
-        if(ratio){
+        if (ratio) {
           slickList.classList.add(ratio);
         }
       }
@@ -67,7 +67,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items,  ratio = "" }) => 
     ),
     dotsClass: "slick-dots custom-dots absolute bottom-0 left-0 h-fit",
   };
-
+  // @ts-ignore
   return (
     <Slider
       {...settings}
