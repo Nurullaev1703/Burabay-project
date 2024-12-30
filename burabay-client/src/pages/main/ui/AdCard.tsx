@@ -6,7 +6,7 @@ import { Typography } from "../../../shared/ui/Typography";
 import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import maptracker from "../../../app/icons/main/maptracker.svg";
 import StarIcon from "../../../app/icons/main/star.svg";
-import FavouriteIcon from "../../../app/icons/favourite.svg";
+// import FavouriteIcon from "../../../app/icons/favourite.svg";
 import { Link } from "@tanstack/react-router";
 interface Props {
   ad: Announcement;
