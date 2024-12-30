@@ -25,8 +25,8 @@ export class AdController {
   }
 
   @Get('by-org/:orgId')
-  findAllByOrg(@Param('orgId') orgId: string) {
-    return this.adService.findAllByOrg(orgId);
+  findAllByOrg(@Param('orgId') orgId: string, @Query() filters: AdFilter) {
+    return this.adService.findAllByOrg(orgId, filters);
   }
 
   @Get(':id')

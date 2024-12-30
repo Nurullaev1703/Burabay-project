@@ -146,7 +146,7 @@ export const Profile: FC = function Profile() {
           <input
             type="file"
             id="logo"
-            accept="image/*"
+            accept=".jpg, .jpeg, .png, .webp"
             className="hidden"
             onChange={handleFileChange}
           />
