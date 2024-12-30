@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import fs from "fs"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -54,10 +53,4 @@ export default defineConfig({
       },
     }),
   ],
-  server: {
-    https: {
-      key: fs.readFileSync("../../../../etc/nginx/certs/burabay-damu_kz.key"),
-      cert: fs.readFileSync("../../../../etc/nginx/certs/burabay-damu_kz.crt"),
-    },
-  },
 });
