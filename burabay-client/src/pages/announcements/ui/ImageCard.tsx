@@ -99,18 +99,18 @@ const ImageCard: FC<ImageCardProps> = ({
       {isMain && imageSrc !== DefaultImage && (
         <div className="absolute bottom-2 left-0 bg-blue200 rounded-r-[4px] px-[8px] py-[2px]">
           <Typography size={10} color={COLORS_TEXT.white}>
-            {t('main')}
+            {t("main")}
           </Typography>
         </div>
       )}
-        <input
-          type="file"
-          accept="image/*"
-          multiple={true}
-          className="absolute top-0 left-0 w-full h-full cursor-pointer opacity-0"
-          onChange={handleFileChange}
-          style={{ zIndex: 10 }}
-        />
+      <input
+        type="file"
+        accept=".jpg, .jpeg, .png, .webp"
+        multiple={true}
+        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+        onChange={handleFileChange}
+        style={{ zIndex: 10 }}
+      />
     </div>
   );
 };

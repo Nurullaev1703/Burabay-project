@@ -41,7 +41,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       })
       .map(([, value]) => value);
 
-    return workingDays.length > 0 ? workingDays.join(", ") : "Нет рабочих дней";
+    return workingDays.length > 0 ? workingDays.join(", ") : t("aroundClockDays");
   };
 
   const formatPhoneNumber = (number: number | string) => {
@@ -81,12 +81,12 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      {/* <li className="py-3">
-        <Link className="flex justify-between">
+      <li className="py-3">
+        <Link to={`/announcements/details/${ad.id}`} className="flex justify-between">
           <span>{t("details")}</span>
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
-      </li> */}
+      </li>
     </ul>
   );
 };

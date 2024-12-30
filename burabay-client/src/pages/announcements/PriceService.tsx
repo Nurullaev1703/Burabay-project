@@ -105,7 +105,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
     mode: "onSubmit",
   });
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-auto">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -275,7 +275,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
             )}
           />
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-            <Button type="submit" mode="default">
+            <Button className="" type="submit" mode="default">
               {t("continueBtn")}
             </Button>
           </div>
@@ -324,7 +324,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
           className="sr-only"
         />
       </div>
-      <div className="px-4 mt-2">
+      <div className="px-4 mt-2 mb-32">
         <Typography size={12} weight={700} color={COLORS_TEXT.red}>
           {t("accessAcount")}{" "}
           <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>

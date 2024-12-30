@@ -42,12 +42,16 @@ export interface AnnouncementBreaks {
   end: string;
 }
 
-interface AnnouncementDetails {
-  type: string;
-  bicycles: boolean;
-  electricScooters: boolean;
-  campingEquipment: boolean;
-  carRentalWithDriver: boolean;
+export interface AnnouncementDetails {
+  type?: string;
+  bicycles?: boolean;
+  electricScooters?: boolean;
+  campingEquipment?: boolean;
+  carRentalWithDriver?: boolean;
+  barbecueArea?: boolean;
+  equippedBeach?: boolean;
+  restingCanopy?: boolean;
+  wildBeach?: boolean;
 }
 
 interface AnnouncementOrganization {

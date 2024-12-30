@@ -13,7 +13,7 @@ import locationIcon from "../../../app/icons/announcements/markerSvg.svg";
 import { Typography } from "../../../shared/ui/Typography";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
-import { Announcement } from "../model/announcements";
+import { Announcement, Schedule } from "../model/announcements";
 import BackIcon from "../../../app/icons/back-icon.svg";
 import { categoryBgColors, categoryColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -46,7 +46,30 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
   const [showAnnouncementModal, setShowAnnouncementModal] =
-    useState<boolean>(false); // Для отображения модального окна с объявлением
+  useState<boolean>(false); // Для отображения модального окна с объявлением
+  const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
+    if (!announcementInfo?.schedule) {
+      return { start: null, end: null }; // Возвращаем null, если нет расписания
+    }
+
+    const days = [
+      { start: "sunStart", end: "sunEnd" },
+      { start: "monStart", end: "monEnd" },
+      { start: "tueStart", end: "tueEnd" },
+      { start: "wenStart", end: "wenEnd" },
+      { start: "thuStart", end: "thuEnd" },
+      { start: "friStart", end: "friEnd" },
+      { start: "satStart", end: "satEnd" },
+    ];
+
+    const currentDayIndex = new Date().getDay();
+    const currentDay = days[currentDayIndex];
+
+    const start = announcementInfo.schedule[currentDay.start as keyof Schedule];
+    const end = announcementInfo.schedule[currentDay.end as keyof Schedule];
+
+    return { start, end };
+  };
   const [announcementInfo, setAnnouncementInfo] = useState<Announcement | null>(
     null
   ); // Храним информацию о выбранном объявлении
@@ -191,6 +214,21 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     window.open(url, "_blank"); // Открывает ссылку в новой вкладке
   };
 
+  const { start, end } = getCurrentDaySchedule(announcementInfo);
+    // Получаем текущую дату и время
+const currentTime = new Date();
+
+// Извлекаем из строки времени end только часы и минуты
+const [hours, minutes] = end?.split(':').map(Number) || [0,0];
+
+// Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
+let closingTime = new Date();
+closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
+
+
+// Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
+const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime; 
+
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -220,29 +258,35 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       ></div>
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
-        <div className="fixed bottom-0 left-0 flex w-full z-[9999]">
+        <div
+          key={announcementInfo.id}
+          className="fixed bottom-0 left-0 flex w-full z-[9999]"
+        >
           <div className="bg-white p-4 w-full rounded-lg shadow-lg">
             <Typography size={18} weight={500}>
               {announcementInfo.title}
             </Typography>
-
-            <Typography className="mb-4">
-              {t("DurationOfService") + " - "} {announcementInfo.startTime}
-            </Typography>
+            {announcementInfo.duration ? (
+              <Typography className="mb-4">
+                {`${t("DurationOfService")} - ${announcementInfo.duration}`}
+              </Typography>
+            ) : (
+              <Typography className="mb-2">{t("allDay")}</Typography>
+            )}
             <div className="">
               <div className="flex gap-4">
                 <CoveredImage
                   errorImage={defaultAnnoun}
                   width="w-40"
                   height="h-40"
-                  imageSrc={defaultAnnoun}
+                  imageSrc={announcementInfo.images[0]}
                 >
                   <div className="flex items-center">
                     <div
                       className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
-                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-10"
+                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
                         src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                       />
                     </div>
@@ -250,19 +294,21 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                 </CoveredImage>
                 <div>
                   <div className="flex flex-row justify-between">
-                    <Typography
-                      size={28}
-                      weight={700}
-                      color={COLORS_TEXT.blue200}
-                    >
-                      {announcementInfo.price} ₸
-                    </Typography>
+                  <Typography
+                    size={28}
+                    weight={700}
+                    color={COLORS_TEXT.blue200}
+                  >
+                    {announcementInfo.price && announcementInfo.price > 0 
+                      ? `${announcementInfo.price} ₸` 
+                      : t("free")}
+                  </Typography>
                     <img src={flag} alt="" />
                   </div>
                   <div className="flex flex-row gap-2">
                     <img src={star} alt="" />
                     <Typography size={16} weight={400}>
-                      {"4.8"}
+                      {announcementInfo.avgRating}
                     </Typography>
                     <img src={ellipse} alt="" />
                     <Typography
@@ -271,19 +317,23 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {`12 ${t("grades")}`}
+                      {`${announcementInfo.reviewCount} ${t("grades")}`}
                     </Typography>
                   </div>
-                  <Typography size={14} weight={400}>
-                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
-                  </Typography>
-                  <Typography
-                    size={14}
-                    weight={400}
-                    color={COLORS_TEXT.gray100}
-                  >
-                    {`${t("open")}`}
-                  </Typography>
+                  {announcementInfo?.schedule && start && end && (
+                    <Typography size={14} weight={400}>
+                      {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                    </Typography>
+                  )}
+                  {announcementInfo?.schedule &&(
+                    <Typography
+                      size={14}
+                      weight={400}
+                      color={COLORS_TEXT.gray100}
+                    >
+                      {isClosed ? t("closed") : t("open")}
+                    </Typography>
+                  )}
                   <Button
                     onClick={() =>
                       openGoogleMaps(

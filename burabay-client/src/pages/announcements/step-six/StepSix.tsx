@@ -36,7 +36,7 @@
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const { handleSubmit, watch, setValue, control } = useForm<FormType>({
+    const { handleSubmit, watch, setValue, control} = useForm<FormType>({
       defaultValues: {
         fullDay: false,
         serviceTime: [],
@@ -45,9 +45,10 @@
       },
     });
 
-    const isDuration = watch("isDuration");
     const fullDay = watch("fullDay");
+    const isDuration = watch("isDuration");
     const serviceTime = watch("serviceTime");
+    const duration = watch("duration");
     const [servicesTime, setServicesTime] = useState<string[]>(serviceTime);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [isCreating, setIsCreating] = useState<boolean>(false);
@@ -56,6 +57,19 @@
     const [error, setError] = useState<boolean>(false);
     const [errorText, setErrorText] = useState<string>("");
 
+    // Логика валидации
+    const isButtonValid = () => {
+      if (fullDay) {
+        // Кнопка всегда валидна, если первый свитч активен
+        return true;
+      }
+      if (isDuration) {
+        // Если второй свитч активен, кнопка невалидна, если duration пустое
+        return !!duration; // duration должно быть заполнено
+      }
+      return serviceTime.length > 0;
+    };
+    
     // Добавление времени
     const addServiceTime = () => {
       if (servicesTime.length < 8) {
@@ -210,6 +224,12 @@
                     <Controller
                       name="tempServiceTime"
                       control={control}
+                      rules={{
+                        validate: (value: any) => {
+                          const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                          return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                        },
+                      }}
                       render={() => {
                         const timeMask = useMask({
                           mask: "hH:mM",
@@ -336,11 +356,17 @@
             />
           </div>
 
-          {!isDuration && (
+          {isDuration && (
             <Controller
               name={`duration`}
               control={control}
-              rules={{ required: t("requiredField") }}
+              rules={{
+                required: t("requiredField"),
+                validate: (value) => {
+                  const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                  return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                },
+              }}
               render={({ field, fieldState: { error } }) => {
                 const timeMask = useMask({
                   mask: "hH:mM",
@@ -357,7 +383,6 @@
                       {...field}
                       inputRef={timeMask}
                       error={Boolean(error?.message)}
-                      helperText={error?.message}
                       variant="standard"
                       style={{
                         width: "50px",
@@ -382,6 +407,7 @@
               handleSubmit(saveSchedule)();
             }}
             loading={isLoading}
+            disabled={!isButtonValid()} 
           >
             {t("continue")}
           </Button>

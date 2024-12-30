@@ -75,7 +75,7 @@ export const Main: FC<Props> = function Main({
         {categories.map(({ name, imgPath, id }) => (
           <div
             key={id}
-            className={`flex flex-col w-1/3 py-4 rounded-xl items-center select-none ${name == filters.category && `${categoryBgColors[name]}`}`}
+            className={`flex flex-col w-1/3 py-2 rounded-xl items-center select-none ${name == filters.category && `${categoryBgColors[name]}`}`}
             onClick={() =>
               navigate({
                 to: "/main",
@@ -92,7 +92,7 @@ export const Main: FC<Props> = function Main({
               <img src={baseUrl + imgPath} className="w-8 h-8" />
             </div>
             <span
-              className={`text-sm mt-2 text-ellipsis overflow-hidden whitespace-nowrap w-20 ${name == filters.category && `text-white`}`}
+              className={`text-sm text-ellipsis overflow-hidden whitespace-nowrap w-20 ${name == filters.category && `text-white`}`}
             >
               {name}
             </span>
@@ -102,7 +102,7 @@ export const Main: FC<Props> = function Main({
 
       {/* ANNOUNCEMENTS */}
       {announcements.length > 0 && (
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(175px,_1fr))] gap-4 mb-16 bg-white p-4">
+        <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-18 bg-white p-4">
           {announcements.map((item) => {
             return <AdCard ad={item} key={item.id} />;
           })}
@@ -110,7 +110,7 @@ export const Main: FC<Props> = function Main({
       )}
       {announcements.length < 1 && (
         <div
-          className={`rounded-xl ${filters.category ? categoryBgColors[filters.category]: "bg-blue200"} p-4 mx-2 mt-4`}
+          className={`rounded-xl mb-18 ${filters.category ? categoryBgColors[filters.category] : "bg-blue200"} p-4 mx-2 mt-4`}
         >
           <Typography color={COLORS_TEXT.white} align="center">
             {"Объявлений не найдено"}

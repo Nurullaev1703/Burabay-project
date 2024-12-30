@@ -174,6 +174,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
             wrapperClassName="w-full h-full"
             className="w-0 bg-transparent outline-none cursor-none select-none h-full"
             dateFormat="yyyy-MM-dd"
+            minDate={new Date()}
           />
           <Typography
             size={16}
