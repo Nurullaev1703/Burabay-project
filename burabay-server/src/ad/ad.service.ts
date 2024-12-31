@@ -3,7 +3,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
@@ -23,6 +23,7 @@ export class AdService {
     private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    private readonly entityManager: EntityManager,
   ) {}
 
   /* Метод для создания Объявления. Принимает айти Категории (Подкатегории) и Организации. */
@@ -206,7 +207,7 @@ export class AdService {
   async remove(id: string) {
     const ad = await this.adRepository.findOne({ where: { id: id } });
     Utils.checkEntity(ad, 'Объявление не найдено');
-    await this.adRepository.remove(ad);
+    await this.entityManager.remove(ad);
     return JSON.stringify(HttpStatus.OK);
   }
 
