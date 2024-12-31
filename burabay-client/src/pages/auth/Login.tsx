@@ -10,16 +10,16 @@ import { Typography } from "../../shared/ui/Typography";
 import { TextField } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import InfoIcon from "../../app/icons/info.svg";
-import { useGoogleLogin } from "@react-oauth/google";
-import FacebookLogin from "react-facebook-login";
-import GoogleLogo from "../../app/icons/google-logo.svg";
-import FacebookLogo from "../../app/icons/facebook-logo.svg";
+// import { useGoogleLogin } from "@react-oauth/google";
+// import FacebookLogin from "react-facebook-login";
+// import GoogleLogo from "../../app/icons/google-logo.svg";
+// import FacebookLogo from "../../app/icons/facebook-logo.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { FacebookAuthData, GoogleAuthType } from "./model/auth-model";
+// import { FacebookAuthData, GoogleAuthType } from "./model/auth-model";
 import { roleService, tokenService } from "../../services/storage/Factory";
-import { SmallHint } from "../../shared/ui/SmallHint";
+// import { SmallHint } from "../../shared/ui/SmallHint";
 
 // форма отслеживает только email
 interface FormType {
@@ -29,81 +29,81 @@ interface FormType {
 export const Login: FC = function Login() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [emailError, setEmailError] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [emailError, _setEmailError] = useState<boolean>(false);
+  const [errorMessage, _setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
     roleService.deleteValue();
     tokenService.deleteValue();
   }, []);
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try{
-        setIsLoading(true);
-        const userInfo: GoogleAuthType = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          }
-        ).then((res) => res.json());
-        const response = await apiService.post({
-          url: "/auth/google-login",
-          dto: userInfo,
-        });
-        if (response.data == HTTP_STATUS.CREATED) {
-          navigate({
-            to: "/register/password/new/$email",
-            params: { email: userInfo.email },
-          });
-        }
-        if (response.data == HTTP_STATUS.OK) {
-          navigate({
-            to: "/register/password/check/$email",
-            params: { email: userInfo.email },
-          });
-        }
-      }
-      catch{
-        setErrorMessage(t("defaultError"));
-        setEmailError(true);
-      }
-      finally{
-        setIsLoading(false);
-      }
-    },
-    onError: () => {
-      setErrorMessage(t('defaultError'))
-      setEmailError(true)
-    }
-  });
-  const handleFacebookCallback = async (response: FacebookAuthData) => {
-    setIsLoading(true);
-    if (response?.status === "unknown") {
-      setIsLoading(false)
-      return;
-    }
-    const handleResponse = await apiService.post<string>({
-      url: "/auth/facebook-login",
-      dto: response,
-    });
-    if (handleResponse.data == HTTP_STATUS.CREATED) {
-      navigate({
-        to: "/register/password/new/$email",
-        params: { email: response.email },
-      });
-    }
-    if (handleResponse.data == HTTP_STATUS.OK) {
-      navigate({
-        to: "/register/password/check/$email",
-        params: { email: response.email },
-      });
-    }
-    setIsLoading(false);
-  };
+  // const handleGoogleLogin = useGoogleLogin({
+  //   onSuccess: async (tokenResponse) => {
+  //     try{
+  //       setIsLoading(true);
+  //       const userInfo: GoogleAuthType = await fetch(
+  //         "https://www.googleapis.com/oauth2/v3/userinfo",
+  //         {
+  //           method: "GET",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${tokenResponse.access_token}`,
+  //           },
+  //         }
+  //       ).then((res) => res.json());
+  //       const response = await apiService.post({
+  //         url: "/auth/google-login",
+  //         dto: userInfo,
+  //       });
+  //       if (response.data == HTTP_STATUS.CREATED) {
+  //         navigate({
+  //           to: "/register/password/new/$email",
+  //           params: { email: userInfo.email },
+  //         });
+  //       }
+  //       if (response.data == HTTP_STATUS.OK) {
+  //         navigate({
+  //           to: "/register/password/check/$email",
+  //           params: { email: userInfo.email },
+  //         });
+  //       }
+  //     }
+  //     catch{
+  //       setErrorMessage(t("defaultError"));
+  //       setEmailError(true);
+  //     }
+  //     finally{
+  //       setIsLoading(false);
+  //     }
+  //   },
+  //   onError: () => {
+  //     setErrorMessage(t('defaultError'))
+  //     setEmailError(true)
+  //   }
+  // });
+  // const handleFacebookCallback = async (response: FacebookAuthData) => {
+  //   setIsLoading(true);
+  //   if (response?.status === "unknown") {
+  //     setIsLoading(false)
+  //     return;
+  //   }
+  //   const handleResponse = await apiService.post<string>({
+  //     url: "/auth/facebook-login",
+  //     dto: response,
+  //   });
+  //   if (handleResponse.data == HTTP_STATUS.CREATED) {
+  //     navigate({
+  //       to: "/register/password/new/$email",
+  //       params: { email: response.email },
+  //     });
+  //   }
+  //   if (handleResponse.data == HTTP_STATUS.OK) {
+  //     navigate({
+  //       to: "/register/password/check/$email",
+  //       params: { email: response.email },
+  //     });
+  //   }
+  //   setIsLoading(false);
+  // };
   const {
     handleSubmit,
     control,
@@ -197,7 +197,7 @@ export const Login: FC = function Login() {
               />
             )}
           />
-          <SmallHint />
+          {/* <SmallHint />
           <div className="flex items-center justify-between w-full">
             <button
               type="button"
@@ -207,7 +207,6 @@ export const Login: FC = function Login() {
               <img src={GoogleLogo} alt="" />
               <Typography>Google</Typography>
             </button>
-            {/* @ts-ignore */}
             <FacebookLogin
               buttonStyle={{
                 padding: "16px",
@@ -231,7 +230,7 @@ export const Login: FC = function Login() {
               callback={handleFacebookCallback}
               icon={<img src={FacebookLogo} />}
             />
-          </div>
+          </div> */}
         </div>
         <Button
           disabled={!isValid || isSubmitting}
