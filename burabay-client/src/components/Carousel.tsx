@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { FC, useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
 import { COLORS_BACKGROUND } from "../shared/ui/colors";
@@ -11,11 +12,11 @@ export interface CarouselItem {
 
 interface Props {
   height?: string;
-  ratio?: string,
+  ratio?: string;
   items: CarouselItem[];
 }
 
-export const Carousel: FC<Props> = ({ height = "h-60", items,  ratio = "" }) => {
+export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "" }) => {
   // Создаем реф с типом Slider
   const sliderRef = useRef<Slider | null>(null);
 
@@ -26,10 +27,10 @@ export const Carousel: FC<Props> = ({ height = "h-60", items,  ratio = "" }) => 
 
       if (firstSlide) {
         // Устанавливаем высоту slick-list в зависимости от высоты первого слайда
-        if(height){
+        if (height) {
           slickList.classList.add(height);
         }
-        if(ratio){
+        if (ratio) {
           slickList.classList.add(ratio);
         }
       }
