@@ -17,6 +17,7 @@ import OpenedEye from "../../app/icons/open-eye.svg";
 import { useAuth } from "../../features/auth";
 import { HTTP_STATUS } from "../../services/api/ServerData";
 import { Profile } from "../profile/model/profile";
+import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
@@ -97,6 +98,7 @@ export const CheckPasswordPage: FC<Props> = function CheckPasswordPage(props) {
             });
             if (userResponse.data) {
               setUser(userResponse.data);
+              roleService.setValue(userResponse.data.role)
               navigate({
                 to: "/profile",
               });

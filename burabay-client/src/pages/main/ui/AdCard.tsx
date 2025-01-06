@@ -6,14 +6,15 @@ import { Typography } from "../../../shared/ui/Typography";
 import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import maptracker from "../../../app/icons/main/maptracker.svg";
 import StarIcon from "../../../app/icons/main/star.svg";
-import FavouriteIcon from "../../../app/icons/favourite.svg";
+// import FavouriteIcon from "../../../app/icons/favourite.svg";
 import { Link } from "@tanstack/react-router";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
+  width?: string
 }
 
-export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
+export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width }) {
   const [carouselItems, _] = useState(
     ad.images.map((image, index) => {
       return {
@@ -23,7 +24,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization }) {
     })
   );
   return (
-    <li className="rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px]">
+    <li className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`}>
       <Link
         to="/announcements/$announcementId"
         params={{ announcementId: ad.id }}

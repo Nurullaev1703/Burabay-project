@@ -36,7 +36,7 @@ export const Announcements: FC<Props> = function Announcements({
     }
   };
   return (
-    <div className="min-h-screen px-4  mb-32">
+    <div className="min-h-screen px-4 mb-32">
       {!announcements.length && (
         <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
           <img src={Intersect} className="w-40 h-40 mb-8" alt="" />
@@ -78,7 +78,7 @@ export const Announcements: FC<Props> = function Announcements({
           </div>
           <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2">
             {announcements.map((item) => {
-              return <AdCard ad={item} key={item.id} isOrganization />;
+              return <AdCard ad={item} key={item.id} isOrganization width={ announcements.length == 1 ? "w-[48%]" : ""} />;
             })}
           </ul>
         </>
