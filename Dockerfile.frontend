@@ -37,5 +37,5 @@ RUN yarn install --production
 
 EXPOSE 5173
 
-CMD ["serve", "-s", "build", "-l", "5173"]
+CMD ["serve", "-s", "build", "-l", "91.215.139.89:5173"]
 
