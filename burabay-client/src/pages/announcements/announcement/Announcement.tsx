@@ -15,6 +15,8 @@ import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
 import { baseUrl } from "../../../services/api/ServerData";
 import { ModalDelete } from "./ui/ModalDelete";
+import { roleService } from "../../../services/storage/Factory";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
 
 interface Props {
   announcement: AnnouncementType;
@@ -30,10 +32,10 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       };
     })
   );
-    const [showModal, setShowModal] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
   useEffect(() => {
-    window.scrollTo(0,0)
-  },[])
+    window.scrollTo(0, 0);
+  }, []);
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
   };
@@ -54,10 +56,14 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               {t("ad")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
-            {/* <img src={EditIcon} alt="" /> */}
-            <img src={DeleteIcon} alt="" />
-          </IconContainer>
+          {roleService.getValue() == ROLE_TYPE.BUSINESS ? (
+            <IconContainer align="end" action={() => setShowModal(true)}>
+              {/* <img src={EditIcon} alt="" /> */}
+              <img src={DeleteIcon} alt="" />
+            </IconContainer>
+          ) : (
+            <IconContainer align="center" />
+          )}
         </div>
       </Header>
 
@@ -114,7 +120,13 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
-      {showModal && <ModalDelete open={showModal} onClose={() => setShowModal(false)} adId={ announcement.id} />}
+      {showModal && (
+        <ModalDelete
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          adId={announcement.id}
+        />
+      )}
     </section>
   );
 };
