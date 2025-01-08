@@ -174,11 +174,16 @@
                 {t("serviceSchedule")}
               </Typography>
             </div>
-            <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+            <IconContainer
+              align="end"
+              action={async () =>
+                navigate({
+                  to: "/announcements",
+                })
+              }
+            >
+              <img src={XIcon} alt="" />
+            </IconContainer>
           </div>
           <ProgressSteps currentStep={6} totalSteps={9}></ProgressSteps>
         </Header>
@@ -335,27 +340,27 @@
             </div>
           )}
         </div>
-
         <div className="px-4">
-          <div className="flex justify-between items-center mb-1">
-            <div>
-              <span>{t("standardDuration")}</span>
-              <p className={`${COLORS_TEXT.gray100} text-xs`}>
-                {t("infoForClients")}
-              </p>
+          {!fullDay && (
+            <div className="flex justify-between items-center mb-1">
+              <div>
+                <span>{t("standardDuration")}</span>
+                <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                  {t("infoForClients")}
+                </p>
+              </div>
+              <Controller
+                name="isDuration"
+                control={control}
+                render={() => (
+                  <Switch
+                    checked={isDuration}
+                    onChange={() => setValue("isDuration", !isDuration)}
+                  />
+                )}
+              />
             </div>
-            <Controller
-              name="isDuration"
-              control={control}
-              render={() => (
-                <Switch
-                  checked={isDuration}
-                  onChange={() => setValue("isDuration", !isDuration)}
-                />
-              )}
-            />
-          </div>
-
+          )}
           {isDuration && (
             <Controller
               name={`duration`}
@@ -407,12 +412,15 @@
               handleSubmit(saveSchedule)();
             }}
             loading={isLoading}
-            disabled={!isButtonValid()} 
+            disabled={!isButtonValid()}
           >
             {t("continue")}
           </Button>
         ) : (
-          <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
+          <Button
+            mode="red"
+            className="fixed bottom-4 left-3 w-header mt-8 z-10"
+          >
             {errorText}
           </Button>
         )}

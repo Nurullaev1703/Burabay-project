@@ -36,7 +36,7 @@ export const Announcements: FC<Props> = function Announcements({
     }
   };
   return (
-    <div className="min-h-screen px-4 mb-32">
+    <div className="min-h-screen px-4 mb-36">
       {!announcements.length && (
         <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
           <img src={Intersect} className="w-40 h-40 mb-8" alt="" />
@@ -85,7 +85,7 @@ export const Announcements: FC<Props> = function Announcements({
       )}
 
       <Button
-        className="fixed bottom-16 left-4 w-header z-50"
+        className="fixed bottom-navbar left-4 w-header z-50"
         onClick={() =>
           navigate({
             to: "/announcements/addAnnouncements",
