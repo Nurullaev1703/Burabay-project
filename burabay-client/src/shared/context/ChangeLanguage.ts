@@ -442,6 +442,8 @@ i18n.use(initReactI18next).init({
         free: "Тегін",
         deleteAd: "Жарнаманы шынымен жойғыңыз келе ме?",
         delete: "Жою",
+        tourist: "Турист",
+        business: "Бизнес",
       },
     },
     ru: {
@@ -925,8 +927,9 @@ i18n.use(initReactI18next).init({
         closed: "Закрыто",
 
         deleteAd: "Вы уверены, что хотите удалить объявление?",
-        delete: "Удалить"
-
+        delete: "Удалить",
+        tourist: "Турист",
+        business: "Бизнес",
       },
     },
     en: {
@@ -1361,7 +1364,9 @@ i18n.use(initReactI18next).init({
         detailsTitle: "Details",
         free: "Free",
         deleteAd: "Are you sure you want to remove the ad?",
-        delete: "Delete"
+        delete: "Delete",
+        tourist: "Tourist",
+        business: "Business",
       },
     },
   },

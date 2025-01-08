@@ -82,7 +82,7 @@ const ImageCard: FC<ImageCardProps> = ({
   return (
     <div
       ref={ref}
-      className={`relative w-[90px] pt-[90px] rounded-lg border`}
+      className={`relative w-[90px] pt-[90px] rounded-lg border select-none`}
       style={{
         opacity: isDragging ? 0.75 : 1,
         transform: isDragging ? "scale(0.8)" : "scale(1)",
@@ -105,7 +105,7 @@ const ImageCard: FC<ImageCardProps> = ({
       )}
       <input
         type="file"
-        accept=".jpg, .jpeg, .png, .webp"
+        accept="image/*"
         multiple={true}
         className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
         onChange={handleFileChange}

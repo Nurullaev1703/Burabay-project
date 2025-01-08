@@ -112,7 +112,7 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
             align="center"
             className="w-3/5"
           >
-            {props.role ?  "Business" : "Tourist"}
+            {props.role ?  t("business") : t('tourist')}
           </Typography>
           <LanguageButton />
         </div>

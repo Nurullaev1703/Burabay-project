@@ -23,17 +23,22 @@ export const NavMenuClient: FC = function NavMenuClient() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.white}`}
+      className={`fixed bottom-0 left-0 z-50 w-full pb-1 flex justify-center ${COLORS_BACKGROUND.white}`}
     >
-      <ul className="flex justify-between w-full px-4">
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/main"
-        })}>
+      <ul className="flex justify-between w-full px-4 items-center">
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/main",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Main 
+            <Main
               strokeColor={getStrokeColor("main")}
-              fillColor={getFillColor("main")} 
-              fillColorMask = {getFillColorMask("main")}
+              fillColor={getFillColor("main")}
+              fillColorMask={getFillColorMask("main")}
             />
             <span
               className={`${
@@ -46,14 +51,18 @@ export const NavMenuClient: FC = function NavMenuClient() {
             </span>
           </div>
         </li>
-
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/mapNav"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/mapNav",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Map 
+            <Map
               strokeColor={getStrokeColor("map")}
-              fillColor={getFillColor("map")} 
+              fillColor={getFillColor("map")}
             />
             <span
               className={`${
@@ -66,13 +75,18 @@ export const NavMenuClient: FC = function NavMenuClient() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/booking/tourist"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/booking/tourist",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Booking 
+            <Booking
               strokeColor={getStrokeColor("booking")}
-              fillColor={getFillColor("booking")} 
+              fillColor={getFillColor("booking")}
             />
             <span
               className={`${
@@ -85,13 +99,18 @@ export const NavMenuClient: FC = function NavMenuClient() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/notifications"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/notifications",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Notifications 
+            <Notifications
               strokeColor={getStrokeColor("notifications")}
-              fillColor={getFillColor("notifications")} 
+              fillColor={getFillColor("notifications")}
             />
             <span
               className={`${
@@ -104,13 +123,18 @@ export const NavMenuClient: FC = function NavMenuClient() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/profile"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/profile",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Profile 
+            <Profile
               strokeColor={getStrokeColor("profile")}
-              fillColor={getFillColor("profile")} 
+              fillColor={getFillColor("profile")}
             />
             <span
               className={`${
