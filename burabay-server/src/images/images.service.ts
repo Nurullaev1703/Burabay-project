@@ -9,6 +9,7 @@ import { DeleteImageDto } from './dto/delete-image.dto';
 import { Utils } from 'src/utilities';
 import * as sharp from 'sharp';
 import { error } from 'console';
+import { extname } from 'path';
 
 @Injectable()
 export class ImagesService {
@@ -19,8 +20,8 @@ export class ImagesService {
 
   async saveImage(file: Express.Multer.File, directory: string): Promise<string> {
     try {
-      // const filename = `${uuidv4()}${extname(file.originalname)}`;
-      const filename = `${uuidv4()}.webp`;
+      const filename = `${uuidv4()}${extname(file.originalname)}`;
+      // const filename = `${uuidv4()}.webp`;
       const dirpath = `./public/images/${directory}`;
       const filepath = `${dirpath}/${filename}`;
       // Создает новую директорию, если ее не существовало
@@ -28,16 +29,10 @@ export class ImagesService {
       let compressedBuffer;
       if (directory === 'profile') {
         // Сжатие для изображения профиля.
-        compressedBuffer = await sharp(file.buffer)
-          .resize(512)
-          .toFormat('webp', { quality: 80 })
-          .toBuffer();
+        compressedBuffer = await sharp(file.buffer).resize(512).toBuffer();
       } else {
         // Сжатие для изображения объявления.
-        compressedBuffer = await sharp(file.buffer)
-          .resize(1280)
-          .toFormat('webp', { quality: 80 })
-          .toBuffer();
+        compressedBuffer = await sharp(file.buffer).resize(1280).toBuffer();
       }
 
       // Сохранение файла в полученную директорию
@@ -54,8 +49,8 @@ export class ImagesService {
     try {
       const results = await Promise.all(
         files.map(async (item) => {
-          // const filename = `${uuidv4()}${extname(item.originalname)}`;
-          const filename = `${uuidv4()}.webp`;
+          const filename = `${uuidv4()}${extname(item.originalname)}`;
+          // const filename = `${uuidv4()}.webp`;
           const dirpath = `./public/images/${directory}`;
           const filepath = `${dirpath}/${filename}`;
           // Создает новую директорию, если её не существовало
@@ -64,16 +59,10 @@ export class ImagesService {
           let compressedBuffer;
           if (directory === 'profile') {
             // Сжатие для изображения профиля.
-            compressedBuffer = await sharp(item.buffer)
-              .resize(512)
-              .toFormat('webp', { quality: 80 })
-              .toBuffer();
+            compressedBuffer = await sharp(item.buffer).resize(512).toBuffer();
           } else {
             // Сжатие для изображения объявления.
-            compressedBuffer = await sharp(item.buffer)
-              .resize(1280)
-              .toFormat('webp', { quality: 80 })
-              .toBuffer();
+            compressedBuffer = await sharp(item.buffer).resize(1280).toBuffer();
           }
 
           // Сохранение файла в полученную директорию
