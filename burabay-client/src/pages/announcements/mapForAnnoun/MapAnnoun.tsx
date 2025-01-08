@@ -32,7 +32,7 @@ import { useTranslation } from "react-i18next";
 
 const containerStyle = {
   width: "100%",
-  height: "90vh",
+  height: "100vh",
 };
 
 interface Props {
