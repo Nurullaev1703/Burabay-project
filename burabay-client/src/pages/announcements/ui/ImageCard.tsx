@@ -105,7 +105,7 @@ const ImageCard: FC<ImageCardProps> = ({
       )}
       <input
         type="file"
-        accept=".jpg, .jpeg, .png, .webp"
+        accept="image/*"
         multiple={true}
         className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
         onChange={handleFileChange}

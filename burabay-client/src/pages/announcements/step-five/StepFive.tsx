@@ -178,7 +178,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
   };
 
   return (
-    <section className="min-h-screen bg-background">
+    <section className="min-h-screen bg-background pb-2">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>

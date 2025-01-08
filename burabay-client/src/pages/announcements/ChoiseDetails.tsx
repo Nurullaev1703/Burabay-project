@@ -67,10 +67,80 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   ]);
   const MAX_IMAGES = 10;
 
-  const handleImageUpload = (index: number, files: FileList) => {
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    setImages((prevImages) =>
+      update(prevImages, {
+        $splice: [
+          [dragIndex, 1],
+          [hoverIndex, 0, prevImages[dragIndex]],
+        ],
+      })
+    );
+  };
+
+  const convertToJpg = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            reject(new Error("Canvas context is not available"));
+            return;
+          }
+
+          // Устанавливаем размеры canvas
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          // Рендерим изображение на canvas
+          ctx.drawImage(img, 0, 0);
+
+          // Конвертируем canvas в Blob в формате JPEG
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create blob from canvas"));
+                return;
+              }
+
+              // Создаём новый файл на основе Blob
+              const jpgFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, ".jpg"),
+                {
+                  type: "image/jpeg",
+                }
+              );
+              resolve(jpgFile);
+            },
+            "image/jpeg",
+            0.9 // Качество от 0 до 1
+          );
+        };
+
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = event.target?.result as string;
+      };
+
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (index: number, files: FileList) => {
     const newFiles = Array.from(files).slice(0, MAX_IMAGES - images.length);
 
-    const newImages = newFiles.map((file) => {
+    // Преобразуем файлы в формат JPEG
+    const convertedFiles = await Promise.all(
+      newFiles.map((file) => convertToJpg(file))
+    );
+
+    const newImages = convertedFiles.map((file) => {
       const preview = URL.createObjectURL(file);
       return { file, preview };
     });
@@ -94,17 +164,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     });
   };
 
-  const moveCard = (dragIndex: number, hoverIndex: number) => {
-    setImages((prevImages) =>
-      update(prevImages, {
-        $splice: [
-          [dragIndex, 1],
-          [hoverIndex, 0, prevImages[dragIndex]],
-        ],
-      })
-    );
-  };
-
   const handleUpload = async () => {
     const formData = new FormData();
 
@@ -113,6 +172,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         formData.append(`image_${index}`, image.file);
       }
     });
+
     try {
       const response = await imageService.post<string[]>({
         url: "/images/ads",
@@ -373,7 +433,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               )}
             />
           </div>
-          <div className="bg-white rounded-lg p-4 mb-24">
+          <div className="bg-white rounded-lg p-4 mb-navContent">
             <Typography size={16} weight={400} color={COLORS_TEXT.gray100}>
               {t("detailsTitle")}
             </Typography>
@@ -396,7 +456,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               ) 
             })}
           </div>
-          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
+          <div className="fixed left-0 bottom-2 px-2 w-full z-10">
             <Button
               type="submit"
               disabled={!isValid || isLoading}

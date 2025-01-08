@@ -102,7 +102,7 @@ export const Main: FC<Props> = function Main({
 
       {/* ANNOUNCEMENTS */}
       {announcements.length > 0 && (
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-18 bg-white p-4">
+        <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white p-4">
           {announcements.map((item) => {
             return <AdCard ad={item} key={item.id} />;
           })}
@@ -110,7 +110,7 @@ export const Main: FC<Props> = function Main({
       )}
       {announcements.length < 1 && (
         <div
-          className={`rounded-xl mb-18 ${filters.category ? categoryBgColors[filters.category] : "bg-blue200"} p-4 mx-2 mt-4`}
+          className={`rounded-xl mb-navContent ${filters.category ? categoryBgColors[filters.category] : "bg-blue200"} p-4 mx-2 mt-4`}
         >
           <Typography color={COLORS_TEXT.white} align="center">
             {"Объявлений не найдено"}

@@ -23,17 +23,22 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 z-50 pb-[8px] pt-[5px] w-full flex justify-center ${COLORS_BACKGROUND.white}`}
+      className={`fixed bottom-0 left-0 pb-1 z-50 w-full flex justify-center ${COLORS_BACKGROUND.white}`}
     >
-      <ul className="flex justify-between w-full px-4">
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/announcements"
-        })}>
+      <ul className="flex justify-between w-full px-4 items-center">
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/announcements",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Announcements 
+            <Announcements
               strokeColor={getStrokeColor("announcements")}
-              fillColor={getFillColor("announcements")} 
-              fillColorMask = {getFillColorMask("announcements")}
+              fillColor={getFillColor("announcements")}
+              fillColorMask={getFillColorMask("announcements")}
             />
             <span
               className={`${
@@ -46,13 +51,18 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/reviews/reviewsOrg"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/reviews/reviewsOrg",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Star 
+            <Star
               strokeColor={getStrokeColor("reviews")}
-              fillColor={getFillColor("reviews")} 
+              fillColor={getFillColor("reviews")}
             />
             <span
               className={`${
@@ -65,13 +75,18 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/booking/business"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/booking/business",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Booking 
+            <Booking
               strokeColor={getStrokeColor("booking")}
-              fillColor={getFillColor("booking")} 
+              fillColor={getFillColor("booking")}
             />
             <span
               className={`${
@@ -84,13 +99,18 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/notifications/notificationsOrg"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/notifications/notificationsOrg",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Notifications 
+            <Notifications
               strokeColor={getStrokeColor("notifications")}
-              fillColor={getFillColor("notifications")} 
+              fillColor={getFillColor("notifications")}
             />
             <span
               className={`${
@@ -103,13 +123,18 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
             </span>
           </div>
         </li>
-        <li className="w-[68px]" onClick={() => navigate({
-          to: "/profile"
-        })}>
+        <li
+          className="w-1/5 pb-4 pt-2"
+          onClick={() =>
+            navigate({
+              to: "/profile",
+            })
+          }
+        >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Profile 
+            <Profile
               strokeColor={getStrokeColor("profile")}
-              fillColor={getFillColor("profile")} 
+              fillColor={getFillColor("profile")}
             />
             <span
               className={`${
