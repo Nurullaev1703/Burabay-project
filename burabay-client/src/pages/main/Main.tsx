@@ -104,7 +104,13 @@ export const Main: FC<Props> = function Main({
       {announcements.length > 0 && (
         <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white p-4">
           {announcements.map((item) => {
-            return <AdCard ad={item} key={item.id} />;
+            return (
+              <AdCard
+                ad={item}
+                key={item.id}
+                width={announcements.length == 1 ? "w-[48%]" : ""}
+              />
+            );
           })}
         </ul>
       )}
