@@ -26,7 +26,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
     );
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
       string | null
-    >(null);
+    >(category.subcategories.length > 0 ? category.subcategories[0].id : null);
     const navigate = useNavigate();
 
     const handleRadioChange = (id: string) => {

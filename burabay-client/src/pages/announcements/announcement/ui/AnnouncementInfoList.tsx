@@ -63,7 +63,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           className="flex justify-between"
         >
           <div className="flex flex-col">
-            <span>{renderSchedule()}</span>
+            <span>{((ad.isRoundTheClock) ? t("aroundClockDays") : renderSchedule())}</span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>
               {t("workingDays")}
             </span>

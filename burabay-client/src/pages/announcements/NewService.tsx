@@ -23,6 +23,7 @@ export const NewService: FC<Props> = function NewService(props) {
   const [childrenCount, setChildrenCount] = useState(0);
   const [ageLimit, setAgeLimit] = useState(0);
   const [petsAllowed, setPetsAllowed] = useState(false);
+  const isButtonDisabled = !unlimitedClients && (adultsCount === 0 || childrenCount === 0  || ageLimit === 0);
   const navigate = useNavigate();
   const handleSubmit = async () => {
     const response = await apiService.patch({
@@ -236,7 +237,7 @@ export const NewService: FC<Props> = function NewService(props) {
         </div>
       </div>
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-        <Button onClick={handleSubmit} mode="default">
+        <Button onClick={handleSubmit} mode="default" disabled={isButtonDisabled}>
           {t("continueBtn")}
         </Button>
       </div>

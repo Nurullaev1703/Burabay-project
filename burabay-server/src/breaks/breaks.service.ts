@@ -35,24 +35,26 @@ export class BreaksService {
 
   async findAllByAd(adId: string) {
     try {
-      const ad = await this.adRepository.findOne({ where: { id: adId } });
-      Utils.checkEntity(ad, 'Объявление не найдено');
-      return await this.breakRepository.find({ where: { ad: ad } });
+      // const ad = await this.adRepository.findOne({ where: { id: adId } });
+      // Utils.checkEntity(ad, 'Объявление не найдено');
+      return await this.breakRepository.find({ where: { ad: { id: adId } } });
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
-  async update(id: string, updateBreakDto: UpdateBreakDto) {
-    try {
-      const findBreak = await this.breakRepository.findOne({ where: { id: id } });
-      Utils.checkEntity(findBreak, 'Перерыв не найден');
-      Object.assign(findBreak, updateBreakDto);
-      await this.breakRepository.save(findBreak);
-      return JSON.stringify(HttpStatus.OK);
-    } catch (error) {
-      Utils.errorHandler(error);
-    }
+  @CatchErrors()
+  async update(adId: string, updateBreakDto: UpdateBreakDto[]) {
+    const oldBreaks = await this.breakRepository.find({ where: { ad: { id: adId } } });
+    await this.breakRepository.remove(oldBreaks);
+
+    const newBreaks: CreateBreakDto[] = updateBreakDto.map((updateDto) => ({
+      adId,
+      ...updateDto,
+    }));
+
+    await this.create(newBreaks);
+    return JSON.stringify(HttpStatus.OK);
   }
 
   async remove(id: string) {

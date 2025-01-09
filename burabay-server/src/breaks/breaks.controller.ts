@@ -23,9 +23,10 @@ export class BreaksController {
     return this.breaksService.findAllByAd(adId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBreakDto: UpdateBreakDto) {
-    return this.breaksService.update(id, updateBreakDto);
+  @Patch(':adId')
+  @ApiBody({ schema: { example: BreaksController.exampleUpdate } })
+  update(@Param('adId') adId: string, @Body() updateBreakDto: UpdateBreakDto[]) {
+    return this.breaksService.update(adId, updateBreakDto);
   }
 
   @Delete(':id')
@@ -41,6 +42,17 @@ export class BreaksController {
     },
     {
       'adId': 'string',
+      'start': '16:00',
+      'end': '16:30',
+    },
+  ];
+
+  private static exampleUpdate = [
+    {
+      'start': '13:00',
+      'end': '14:00',
+    },
+    {
       'start': '16:00',
       'end': '16:30',
     },
