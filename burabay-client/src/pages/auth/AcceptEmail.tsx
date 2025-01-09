@@ -112,14 +112,14 @@ export const AcceptEmail: FC<Props> = function AcceptEmail(props) {
             align="center"
             className="w-3/5"
           >
-            {props.role ?  "Business" : "Tourist"}
+            {props.role ?  t("business") : t('tourist')}
           </Typography>
           <LanguageButton />
         </div>
       </AlternativeHeader>
       <DefaultForm
         onSubmit={handleSubmit(() => onSubmit(otp))}
-        className="flex flex-col items-center justify-center h-[60vh] px-4"
+        className="flex flex-col items-center justify-center mt-16 px-4"
       >
         <div className="text-center">
           <Typography align="center" size={22} weight={500} className="mb-4">

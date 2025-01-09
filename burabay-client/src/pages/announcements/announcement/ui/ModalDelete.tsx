@@ -1,19 +1,29 @@
 import { FC } from "react";
 import { Box, Modal } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../../shared/ui/Button";
-import { tokenService } from "../../../services/storage/Factory";
 import { useNavigate } from "@tanstack/react-router";
+import { Button } from "../../../../shared/ui/Button";
+import { apiService } from "../../../../services/api/ApiService";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  adId: string
 }
 
-export const ModalExit: FC<Props> = function ModalExit({ open, onClose }) {
+export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
+  const handleDeleteAd = async() => {
+    const response = await apiService.delete({
+      url: `/ad/${adId}`
+    })
+    if (response.data) {
+      navigate({
+        to:"/announcements"
+      })
+    }
+  }
   return (
     <Modal
       open={open}
@@ -38,13 +48,18 @@ export const ModalExit: FC<Props> = function ModalExit({ open, onClose }) {
           borderTopLeftRadius: 14,
           borderTopRightRadius: 14,
           display: "flex",
-          flexDirection:"column",
-          alignItems:"center"
+          flexDirection: "column",
+          alignItems: "center",
+          ":focus": {
+            border: "none",
+            outline: "none",
+          },
         }}
       >
-        <span className="text-center font-medium w-3/4">{t("areYouSure")}</span>
-        <Button mode="red" className="mb-2" onClick={() => {  tokenService.deleteValue();
-          navigate({ to: "/auth" });}}>{t("exit")}</Button>
+        <span className="text-center font-medium">{t("deleteAd")}</span>
+        <Button mode="red" className="mb-2" onClick={handleDeleteAd}>
+          {t("delete")}
+        </Button>
         <Button onClick={onClose}>{t("cancel")}</Button>
       </Box>
     </Modal>

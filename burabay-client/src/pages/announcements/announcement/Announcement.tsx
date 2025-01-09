@@ -1,19 +1,22 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Announcement as AnnouncementType } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
-import { COLORS_TEXT } from "../../../shared/ui/colors";
+import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
 // import EditIcon from "../../../app/icons/edit.svg";
+import DeleteIcon from "../../../app/icons/delete.svg";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
-import { categoryColors } from "../../mapNav/MapNav";
 import { baseUrl } from "../../../services/api/ServerData";
+import { ModalDelete } from "./ui/ModalDelete";
+import { roleService } from "../../../services/storage/Factory";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
 
 interface Props {
   announcement: AnnouncementType;
@@ -29,7 +32,13 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
       };
     })
   );
-
+  const [showModal, setShowModal] = useState<boolean>(false);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
+  };
   return (
     <section className="bg-background">
       <Header>
@@ -47,16 +56,21 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               {t("ad")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
-            {/* <img src={EditIcon} alt="" /> */}
-          </IconContainer>
+          {roleService.getValue() == ROLE_TYPE.BUSINESS ? (
+            <IconContainer align="end" action={() => setShowModal(true)}>
+              {/* <img src={EditIcon} alt="" /> */}
+              <img src={DeleteIcon} alt="" />
+            </IconContainer>
+          ) : (
+            <IconContainer align="center" />
+          )}
         </div>
       </Header>
 
       <div className="px-4 bg-white pb-4 mb-2">
         <div className="relative">
           <div
-            className={`absolute w-7 h-7 rounded-full ${categoryColors[announcement.subcategory.category.name]} z-10 right-2.5 top-2.5`}
+            className={`absolute w-7 h-7 rounded-full ${categoryBgColors[announcement.subcategory.category.name]} z-10 right-2.5 top-2.5`}
           >
             <img
               src={baseUrl + announcement.subcategory.category.imgPath}
@@ -64,8 +78,17 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-100"
             />
           </div>
-          <Carousel items={carouselImages} height="pt-[105%]" />
+          <Carousel
+            items={carouselImages}
+            ratio="aspect-[1/1.1]"
+            height="h-full"
+          />
         </div>
+        <h1 className="font-medium text-[28px] uppercase text-blue200">
+          {announcement.price || announcement.priceForChild
+            ? formatPrice(announcement.price || announcement.priceForChild)
+            : t("free")}
+        </h1>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 
         <div className="flex justify-between mb-4">
@@ -81,34 +104,29 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
               <span className="mr-1 text-sm">
                 {announcement.views ? announcement.views : 0}
               </span>
-              <img src={EyeIcon} alt="Просмотренных" className="w-[18px]" />
+              <img src={EyeIcon} className="w-[18px]" />
             </div>
             <div className="flex items-center">
               <span className="mr-1 text-sm">
                 {announcement.favCount ? announcement.favCount : 0}
               </span>
-              <img src={FavouriteIcon} alt="Избранных" className="w-[14px]" />
+              <img src={FavouriteIcon} className="w-[14px]" />
             </div>
           </div>
         </div>
 
         <p className="mb-4 leading-5">{announcement.description}</p>
 
-        <AnnouncementInfoList
-          id={announcement.id}
-          phoneNumber={announcement.phoneNumber}
-          schedule={announcement.schedule}
-        />
+        <AnnouncementInfoList ad={announcement} />
       </div>
-      {/* FIXME цена в виде boolean */}
-      <CostInfoList
-        id={announcement.id}
-        price={0}
-        priceForChild={announcement.priceForChild}
-        adultNumbers={announcement.adultsNumber}
-        kidsNumber={announcement.kidsNumber}
-        petsAllowed={announcement.petsAllowed}
-      />
+      <CostInfoList ad={announcement} />
+      {showModal && (
+        <ModalDelete
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          adId={announcement.id}
+        />
+      )}
     </section>
   );
 };

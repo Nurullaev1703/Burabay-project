@@ -65,7 +65,7 @@ export const DeleteProfile: FC = function DeleteProfile() {
             />
           </div>
         )}
-        <div className="fixed bottom-0 left-0 px-4 py-2 w-full">
+        <div className="fixed bottom-0 left-0 px-4 py-2 w-full z-10">
           <Button mode="red" className="mb-2" onClick={handleDeleteUser}>
             {t("deleteProfile")}
           </Button>

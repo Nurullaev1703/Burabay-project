@@ -3,23 +3,14 @@ import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import { Link } from "@tanstack/react-router";
 import ArrowRight from "../../../../app/icons/arrow-right.svg";
+import { Announcement } from "pages/announcements/model/announcements";
 
 interface Props {
-  price: number;
-  priceForChild: number;
-  adultNumbers: number;
-  kidsNumber: number;
-  petsAllowed: boolean;
-  id: string;
+  ad: Announcement
 }
 
 export const CostInfoList: FC<Props> = function CostInfoList({
-  price,
-  priceForChild,
-  adultNumbers,
-  kidsNumber,
-  petsAllowed,
-  id
+  ad
 }) {
   const { t } = useTranslation();
   const formatPrice = (value: number) => {
@@ -32,13 +23,15 @@ export const CostInfoList: FC<Props> = function CostInfoList({
       <ul className="flex mb-4">
         <li className="flex flex-col w-44">
           <span className={`text-[#155A77] font-medium text-lg`}>
-            {formatPrice(price || 0)}
+            {formatPrice(ad.price)}
           </span>
-          <span className={`${COLORS_TEXT.gray100} text-sm`}>{t("forAdults")}</span>
+          <span className={`${COLORS_TEXT.gray100} text-sm`}>
+            {t("forAdults")}
+          </span>
         </li>
         <li className="flex flex-col w-44">
           <span className={`text-[#155A77] font-medium text-lg`}>
-            {formatPrice(priceForChild)}
+            {formatPrice(ad.priceForChild)}
           </span>
           <span className={`${COLORS_TEXT.gray100} text-sm`}>
             {t("paymentForKids")}
@@ -57,7 +50,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
           <span>
             {t("adults") +
               " — " +
-              (adultNumbers ? adultNumbers : "без ограничений")}
+              (ad.adultsNumber ? ad.adultsNumber : "без ограничений")}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxAdults")}
@@ -65,23 +58,26 @@ export const CostInfoList: FC<Props> = function CostInfoList({
         </li>
         <li className="mb-4">
           <span>
-            {t("kids") + " — " + (kidsNumber ? kidsNumber : "без ограничений")}
+            {t("kids") + " — " + (ad.kidsNumber ? ad.kidsNumber : "без ограничений")}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxKids")}
           </p>
         </li>
-        {petsAllowed && (
+        {ad.petsAllowed && (
           <li className="mb-4">
             <span>{t("permissionWithAnimals")}</span>
           </li>
         )}
-          <li className="py-4"> 
-            <Link to={`/announcements/service-schedule/${id}`} className="flex justify-between">
+        <li>
+          <Link
+            to={`/announcements/service-schedule/${ad.id}`}
+            className="flex justify-between"
+          >
             <span>{t("serviceSchedule")}</span>
             <img src={ArrowRight} alt="Стрелка" />
-            </Link>
-          </li>
+          </Link>
+        </li>
       </ul>
     </div>
   );

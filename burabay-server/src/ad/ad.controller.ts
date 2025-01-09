@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { Public } from 'src/constants';
-import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AdFilter } from './types/ad.filter';
 
 @ApiTags('Объявления')
@@ -25,13 +25,14 @@ export class AdController {
   }
 
   @Get('by-org/:orgId')
-  findAllByOrg(@Param('orgId') orgId: string) {
-    return this.adService.findAllByOrg(orgId);
+  findAllByOrg(@Param('orgId') orgId: string, @Query() filters: AdFilter) {
+    return this.adService.findAllByOrg(orgId, filters);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adService.findOne(id);
+  @ApiParam({ name: 'id', description: 'ID of the ad' })
+  findOne(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.adService.findOne(id, req.user);
   }
 
   @Get('favorite/list/:userId')

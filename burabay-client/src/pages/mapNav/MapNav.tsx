@@ -15,9 +15,17 @@ import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
-import { Announcement, Category } from "../announcements/model/announcements";
+import {
+  Announcement,
+  Category,
+  Schedule,
+} from "../announcements/model/announcements";
 import BackIcon from "../../app/icons/back-icon.svg";
-import { COLORS_TEXT } from "../../shared/ui/colors";
+import {
+  categoryBgColors,
+  categoryColors,
+  COLORS_TEXT,
+} from "../../shared/ui/colors";
 import cancel from "../../app/icons/announcements/xCancel.svg";
 import { baseUrl } from "../../services/api/ServerData";
 import { Select } from "ol/interaction";
@@ -36,7 +44,7 @@ import { useTranslation } from "react-i18next";
 
 const containerStyle = {
   width: "100%",
-  height: "90vh",
+  height: "86vh",
 };
 
 interface Props {
@@ -45,31 +53,31 @@ interface Props {
   filters: MapFilter;
 }
 
-export const categoryColors: Record<string, string> = {
-  Отдых: "bg-[#39B598]",
-  Жилье: "bg-[#5EBAE1]",
-  Здоровье: "bg-[#DC53AD]",
-  Экстрим: "bg-[#EF5C7F]",
-  Достопримечательности: "bg-[#B49081]",
-  Питание: "bg-[#F4A261]",
-  Развлечения: "bg-[#E5C82F]",
-  Прокат: "bg-[#A16ACD]",
-  Безопасность: "bg-[#777CEF]",
-};
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const colors: Record<string, string> = {
-    Отдых: "#39B598",
-    Жилье: "#5EBAE1",
-    Здоровье: "#DC53AD",
-    Экстрим: "#EF5C7F",
-    Достопримечательности: "#B49081",
-    Питание: "#F4A261",
-    Развлечения: "#E5C82F",
-    Прокат: "#A16ACD",
-    Безопасность: "#777CEF",
-  };
+  const { t } = useTranslation();
+  const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
+    if (!announcementInfo?.schedule) {
+      return { start: null, end: null }; // Возвращаем null, если нет расписания
+    }
 
-  const {t}= useTranslation()
+    const days = [
+      { start: "sunStart", end: "sunEnd" },
+      { start: "monStart", end: "monEnd" },
+      { start: "tueStart", end: "tueEnd" },
+      { start: "wenStart", end: "wenEnd" },
+      { start: "thuStart", end: "thuEnd" },
+      { start: "friStart", end: "friEnd" },
+      { start: "satStart", end: "satEnd" },
+    ];
+
+    const currentDayIndex = new Date().getDay();
+    const currentDay = days[currentDayIndex];
+
+    const start = announcementInfo.schedule[currentDay.start as keyof Schedule];
+    const end = announcementInfo.schedule[currentDay.end as keyof Schedule];
+
+    return { start, end };
+  };
 
   const [announcementsName, setAnnouncementsName] = useState<string>(
     filters.adName || ""
@@ -87,22 +95,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
-      if(announcementsName.length > 0){
+      if (announcementsName.length > 0) {
         navigate({
           to: "/mapNav/search/$value",
           params: {
-            value: announcementsName
-          }
+            value: announcementsName,
+          },
         });
-      }
-      else{
+      } else {
         navigate({
           to: "/mapNav",
           search: {
             categoryNames: "",
-            adName: ""
-          }
-        })
+            adName: "",
+          },
+        });
       }
     }
   };
@@ -173,7 +180,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
         const iconStyle = new Style({
           image: new Icon({
-            color: colors[category.name],
+            color: categoryColors[category.name],
             src: locationIcon, // Стандартная иконка маркера
             scale: 1,
             anchor: [0.5, 1], // Центрируем иконку маркера
@@ -244,10 +251,28 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
   // Создаем переменную для отслеживания уже отображенных категорий
   const openGoogleMaps = (latitude: number, longitude: number) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    window.open(url, "_blank"); // Открывает ссылку в новой вкладке
-  };
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); // Проверка устройства
+    const url = isMobile
+      ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}` // Для маршрутов
+      : `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`; // Для десктопа и мобильных
 
+    window.open(url, "_blank");
+  };
+  console.log(announcementInfo);
+  const { start, end } = getCurrentDaySchedule(announcementInfo);
+  // Получаем текущую дату и время
+const currentTime = new Date();
+
+// Извлекаем из строки времени end только часы и минуты
+const [hours, minutes] = end?.split(':').map(Number) || [0,0];
+
+// Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
+let closingTime = new Date();
+closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
+
+
+// Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
+const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime; 
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -271,15 +296,13 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       <div
         id="map"
-
-        style={
-          {
+        style={{
           ...containerStyle,
           transition: "opacity 0.3s ease-in-out",
         }}
       ></div>
 
-      <div className="relative px-4 top-[-80px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
+      <div className="relative px-4 top-[-65px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
         {categories.map((item) => {
           return (
             <button
@@ -305,10 +328,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
               key={item.id}
               className={`
                      w-fit
-                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryColors[item.name] : "bg-white"} `}
+                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"} `}
             >
               <div
-                className={`relative min-w-7 min-h-7 rounded-full ${categoryColors[item.name]}  `}
+                className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
               >
                 <img
                   src={baseUrl + item.imgPath}
@@ -340,7 +363,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {/* Модальное окно для категории */}
       {showCategoryModal && announcementInfo && (
-        <div className="fixed bottom-40 left-0 right-0 bg-white p-4 shadow-lg rounded-t-lg">
+        <div className="fixed bottom-40 left-0 right-0 bg-white p-4 shadow-lg rounded-t-lg z-20">
           <Typography size={18} weight={600}>
             {activeCategory}
           </Typography>
@@ -359,26 +382,32 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
-        <div className="fixed bottom-0 left-0 flex w-full z-[9999]">
+        <div
+          key={announcementInfo.id}
+          className="fixed bottom-0 left-0 flex w-full z-[9999]"
+        >
           <div className="bg-white p-4 w-full rounded-lg shadow-lg">
             <Typography size={18} weight={500}>
               {announcementInfo.title}
             </Typography>
-
-            <Typography className="mb-4">
-              {t("DurationOfService") + " - "} {announcementInfo.startTime}
-            </Typography>
+            {announcementInfo.duration ? (
+              <Typography className="mb-4">
+                {`${t("DurationOfService")} - ${announcementInfo.duration}`}
+              </Typography>
+            ) : (
+              <Typography className="mb-2">{t("allDay")}</Typography>
+            )}
             <div className="">
               <div className="flex gap-4">
                 <CoveredImage
                   errorImage={defaultAnnoun}
                   width="w-40"
                   height="h-40"
-                  imageSrc={defaultAnnoun}
+                  imageSrc={announcementInfo.images[0]}
                 >
                   <div className="flex items-center">
                     <div
-                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryColors[announcementInfo.subcategory.category.name]}`}
+                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                     >
                       <img
                         className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
@@ -389,19 +418,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 </CoveredImage>
                 <div>
                   <div className="flex flex-row justify-between">
-                    <Typography
-                      size={28}
-                      weight={700}
-                      color={COLORS_TEXT.blue200}
-                    >
-                      {announcementInfo.price} ₸
-                    </Typography>
+                  <Typography
+                    size={28}
+                    weight={700}
+                    color={COLORS_TEXT.blue200}
+                  >
+                    {announcementInfo.price && announcementInfo.price > 0 
+                      ? `${announcementInfo.price} ₸` 
+                      : t("free")}
+                  </Typography>
                     <img src={flag} alt="" />
                   </div>
                   <div className="flex flex-row gap-2">
                     <img src={star} alt="" />
                     <Typography size={16} weight={400}>
-                      {"4.8"}
+                      {announcementInfo.avgRating}
                     </Typography>
                     <img src={ellipse} alt="" />
                     <Typography
@@ -410,19 +441,23 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       color={COLORS_TEXT.gray100}
                       className=""
                     >
-                      {`12 ${t("grades")}`}
+                      {`${announcementInfo.reviewCount} ${t("grades")}`}
                     </Typography>
                   </div>
-                  <Typography size={14} weight={400}>
-                    {`${t("todayWith")} 9:00 ${t("to")} 19:00`}
-                  </Typography>
-                  <Typography
-                    size={14}
-                    weight={400}
-                    color={COLORS_TEXT.gray100}
-                  >
-                    {`${t("open")}`}
-                  </Typography>
+                  {announcementInfo?.schedule && start && end && (
+                    <Typography size={14} weight={400}>
+                      {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                    </Typography>
+                  )}
+                  {announcementInfo?.schedule &&(
+                    <Typography
+                      size={14}
+                      weight={400}
+                      color={COLORS_TEXT.gray100}
+                    >
+                      {isClosed ? t("closed") : t("open")}
+                    </Typography>
+                  )}
                   <Button
                     onClick={() =>
                       openGoogleMaps(

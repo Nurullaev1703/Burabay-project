@@ -10,6 +10,7 @@ import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad.filter';
 import stringSimilarity from 'string-similarity-js';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 
 @Injectable()
 export class AdService {
@@ -42,6 +43,7 @@ export class AdService {
     const newAd = this.adRepository.create({
       organization: organization,
       subcategory: subcategory,
+      createdAt: new Date(),
       ...otherFields,
     });
 
@@ -65,6 +67,9 @@ export class AdService {
           address: true,
           subcategory: { category: true },
         },
+        order: {
+          createdAt: 'DESC',
+        },
       });
     } else {
       ads = await this.adRepository.find({
@@ -76,6 +81,9 @@ export class AdService {
           address: true,
           subcategory: { category: true },
         },
+        order: {
+          createdAt: 'DESC',
+        },
       });
     }
     if (filter.adName) {
@@ -86,8 +94,8 @@ export class AdService {
 
   /* Метод для получения всех Объявлений у Организации */
   @CatchErrors()
-  async findAllByOrg(orgId: string) {
-    const ads = await this.adRepository.find({
+  async findAllByOrg(orgId: string, filter?: AdFilter) {
+    let ads = await this.adRepository.find({
       where: {
         organization: { id: orgId },
       },
@@ -97,12 +105,18 @@ export class AdService {
         schedule: true,
         breaks: true,
         address: true,
-        subcategory:{
-          category: true
-        }
+        subcategory: {
+          category: true,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
       },
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
+    if (filter.adName) {
+      ads = this._searchAd(filter.adName, ads);
+    }
     return ads;
   }
 
@@ -119,7 +133,7 @@ export class AdService {
 
   /* Метод для получения одного Объявления по id. */
   @CatchErrors()
-  async findOne(id: string) {
+  async findOne(id: string, tokenData?: TokenData) {
     const ad = await this.adRepository.findOne({
       where: { id: id },
       relations: {
@@ -134,8 +148,18 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     const favCount = ad.usersFavorited.length;
     delete ad.usersFavorited;
-    ad.views++;
-    await this.adRepository.save(ad);
+    if (tokenData) {
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        relations: { favorites: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      if (user.role === ROLE_TYPE.TOURIST) {
+        ad.views++;
+        await this.adRepository.save(ad);
+      }
+    }
+
     return { ...ad, favCount };
   }
 

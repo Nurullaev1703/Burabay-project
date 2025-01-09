@@ -26,7 +26,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
     );
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
       string | null
-    >(null);
+    >(category.subcategories.length > 0 ? category.subcategories[0].id : null);
     const navigate = useNavigate();
 
     const handleRadioChange = (id: string) => {
@@ -66,9 +66,11 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 {t("choiseSubcategory")}
               </Typography>
             </div>
-            <IconContainer align="end" action={() => history.back()}>
-              <img src={XIcon} alt="" />
-            </IconContainer>
+            <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
           </div>
           <ProgressSteps currentStep={2} totalSteps={9}></ProgressSteps>
         </Header>
@@ -121,7 +123,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
             ))}
           </ul>
         </div>
-        <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+        <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
           <Button onClick={handleContinue} mode="default">
             {t("continueBtn")}
           </Button>

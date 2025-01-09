@@ -44,19 +44,39 @@ export const COLORS_BORDER = {
 };
 
 export const COLORS = {
-
-    blue100:  "#035F7C",
-    blue200:  "#0A7D9E",
-    blue300:  "#228AA8",
-    red: "#FF4545",
-    almostWhite: "#F1F2F6",
-    totalBlack: "#000000",
-    gray100: "#999999",
-    gray200: "#DBDBDB",
-    gray300: "#E4E9EA",
-    white: "#FFFFFF",
-    angularWhiteBlue: "linear-gradient(135deg, #FFFFFF 0%, #228AA8 100%)",
-    sunset: "linear-gradient(90deg, #FF7B1C 0%, #FF891C 50%, #FF9737 100%)",
-    softGray: "linear-gradient(180deg, #EDECEA 0%, #FAF9F7 100%)",
-
-}
+  blue100: "#035F7C",
+  blue200: "#0A7D9E",
+  blue300: "#228AA8",
+  red: "#FF4545",
+  almostWhite: "#F1F2F6",
+  totalBlack: "#000000",
+  gray100: "#999999",
+  gray200: "#DBDBDB",
+  gray300: "#E4E9EA",
+  white: "#FFFFFF",
+  angularWhiteBlue: "linear-gradient(135deg, #FFFFFF 0%, #228AA8 100%)",
+  sunset: "linear-gradient(90deg, #FF7B1C 0%, #FF891C 50%, #FF9737 100%)",
+  softGray: "linear-gradient(180deg, #EDECEA 0%, #FAF9F7 100%)",
+};
+export const categoryBgColors: Record<string, string> = {
+  Отдых: "bg-[#39B598]",
+  Жилье: "bg-[#5EBAE1]",
+  Здоровье: "bg-[#DC53AD]",
+  Экстрим: "bg-[#EF5C7F]",
+  Достопримечательности: "bg-[#B49081]",
+  Питание: "bg-[#F4A261]",
+  Развлечения: "bg-[#E5C82F]",
+  Прокат: "bg-[#A16ACD]",
+  Безопасность: "bg-[#777CEF]",
+};
+export const categoryColors: Record<string, string> = {
+  Отдых: "#39B598",
+  Жилье: "#5EBAE1",
+  Здоровье: "#DC53AD",
+  Экстрим: "#EF5C7F",
+  Достопримечательности: "#B49081",
+  Питание: "#F4A261",
+  Развлечения: "#E5C82F",
+  Прокат: "#A16ACD",
+  Безопасность: "#777CEF",
+};

@@ -16,7 +16,7 @@ export interface Profile {
   fullName: string;
   email: string;
   isEmailConfirmed: boolean;
-  organization: Organization | null;
+  organization: Organization;
   phoneNumber: string;
   picture: string;
   role: ROLE_TYPE;

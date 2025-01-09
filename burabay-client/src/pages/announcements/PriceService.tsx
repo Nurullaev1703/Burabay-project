@@ -32,12 +32,13 @@ export const PriceService: FC<Props> = function PriceService(props) {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(false);
   const [onSitePayment, setOnSitePayment] = useState(false);
-  const [onlinePayment, setOnlinePayment] = useState(false);
+  const [onlinePayment, _setOnlinePayment] = useState(false);
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isFocusedChild, setIsFocusedChild] = useState<boolean>(false);
   const inputRefChild = useRef<HTMLInputElement>(null);
   const symbolRefChild = useRef<HTMLDivElement>(null);
+  const isButtonDisabled = inputValue === "0" || !onSitePayment && !onlinePayment;
 
   const calculateTextWidth = (number: string, font: string): number => {
     const span = document.createElement("span");
@@ -71,15 +72,23 @@ export const PriceService: FC<Props> = function PriceService(props) {
   };
 
   const handleInputChange = (rawValue: string) => {
-    const sanitizedValue = rawValue.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    let sanitizedValue = rawValue.replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    if (sanitizedValue.startsWith("0")) {
+      sanitizedValue = sanitizedValue.substring(1); // Удаляем начальный ноль
+    }
     const formattedValue = formatNumberWithSpaces(sanitizedValue); // Форматируем с пробелами
-    setInputValue(formattedValue); // Устанавливаем форматированное значение
+    setInputValue(formattedValue || "0"); // Если значение пустое, показываем "0"
   };
+  
   const handleInputChangeChild = (rawValue: string) => {
-    const sanitizedValue = rawValue.replace(/\D/g, "");
+    let sanitizedValue = rawValue.replace(/\D/g, "");
+    if (sanitizedValue.startsWith("0")) {
+      sanitizedValue = sanitizedValue.substring(1);
+    }
     const formattedValue = formatNumberWithSpaces(sanitizedValue);
-    setInputValueChild(formattedValue);
+    setInputValueChild(formattedValue || "0");
   };
+  
 
   useEffect(() => {
     updateTengePosition(inputRef, symbolRef, inputValue);
@@ -97,7 +106,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
     mode: "onSubmit",
   });
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-auto">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -116,9 +125,11 @@ export const PriceService: FC<Props> = function PriceService(props) {
               {t("priceService")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
@@ -264,8 +275,8 @@ export const PriceService: FC<Props> = function PriceService(props) {
               </div>
             )}
           />
-          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
-            <Button type="submit" mode="default">
+          <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
+            <Button className="" type="submit" mode="default" disabled={isButtonDisabled}>
               {t("continueBtn")}
             </Button>
           </div>
@@ -310,11 +321,11 @@ export const PriceService: FC<Props> = function PriceService(props) {
         </div>
         <Switch
           checked={onlinePayment}
-          onChange={() => setOnlinePayment(!onlinePayment)}
+          // onChange={() => _setOnlinePayment(!onlinePayment)}
           className="sr-only"
         />
       </div>
-      <div className="px-4 mt-2">
+      <div className="px-4 mt-2 mb-32">
         <Typography size={12} weight={700} color={COLORS_TEXT.red}>
           {t("accessAcount")}{" "}
           <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>

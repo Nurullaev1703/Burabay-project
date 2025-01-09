@@ -118,9 +118,14 @@ export const Login: FC = function Login() {
     <div className="bg-almostWhite h-screen">
       <AlternativeHeader>
         <div className="flex justify-between items-center mb-2">
-          <IconContainer align="start" action={() => navigate({
-            to:"/help"
-          })}>
+          <IconContainer
+            align="start"
+            action={() =>
+              navigate({
+                to: "/help",
+              })
+            }
+          >
             <img src={InfoIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
@@ -202,6 +207,7 @@ export const Login: FC = function Login() {
               <img src={GoogleLogo} alt="" />
               <Typography>Google</Typography>
             </button>
+            {/* @ts-ignore */}
             <FacebookLogin
               buttonStyle={{
                 padding: "16px",

@@ -15,6 +15,7 @@ import { HTTP_STATUS } from "../../services/api/ServerData";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import { useAuth } from "../../features/auth";
 import { Profile } from "../profile/model/profile";
+import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
@@ -91,6 +92,7 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
             });
             if (userResponse.data) {
               setUser(userResponse.data);
+              roleService.setValue(userResponse.data.role)
               navigate({
                 to: "/profile",
               });

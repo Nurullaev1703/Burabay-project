@@ -191,7 +191,7 @@ export const EditProfile: FC = function EditProfile() {
 
           {!error ? (
             <Button
-              className="fixed bottom-4 left-3 w-header"
+              className="fixed bottom-4 left-3 w-header z-10"
               type="submit"
               loading={isLoading}
               disabled={!isValid}
@@ -199,7 +199,7 @@ export const EditProfile: FC = function EditProfile() {
               {t("save")}
             </Button>
           ) : (
-            <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8">
+            <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
               {errorText}
             </Button>
           )}

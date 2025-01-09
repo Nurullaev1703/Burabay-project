@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Typography } from "../../shared/ui/Typography";
 import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 import { Button } from "../../shared/ui/Button";
@@ -10,18 +10,33 @@ import SearchIcon from "../../app/icons/search-icon.svg";
 import { AdCard } from "../main/ui/AdCard";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import marker from "../../app/icons/announcements/markerMapBlue.svg"
+import { MapFilter } from "./announcements-utils";
 
 interface Props {
   announcements: Announcement[];
+  filters?: MapFilter
 }
 
 export const Announcements: FC<Props> = function Announcements({
-  announcements,
+  announcements,filters
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState<string>(filters?.adName || "")
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
+      navigate({
+        to: "/announcements",
+        search: {
+          ...filters,
+          adName: searchValue,
+        },
+      });
+    }
+  };
   return (
-    <div className="min-h-screen px-4">
+    <div className="min-h-screen px-4 mb-36">
       {!announcements.length && (
         <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
           <img src={Intersect} className="w-40 h-40 mb-8" alt="" />
@@ -41,8 +56,11 @@ export const Announcements: FC<Props> = function Announcements({
             <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
               <img src={SearchIcon} alt="" />
               <input
-                type="text"
+                type="search"
                 placeholder="Поиск"
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="flex-grow bg-transparent outline-none text-gray-700"
               />
             </div>
@@ -58,16 +76,16 @@ export const Announcements: FC<Props> = function Announcements({
               />
             </IconContainer>
           </div>
-          <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] gap-4 mb-10">
+          <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2">
             {announcements.map((item) => {
-              return <AdCard ad={item} key={item.id} isOrganization />;
+              return <AdCard ad={item} key={item.id} isOrganization width={ announcements.length == 1 ? "w-[48%]" : ""} />;
             })}
           </ul>
         </>
       )}
 
       <Button
-        className="fixed bottom-20 left-4 w-header"
+        className="fixed bottom-navbar left-4 w-header z-50"
         onClick={() =>
           navigate({
             to: "/announcements/addAnnouncements",

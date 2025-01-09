@@ -82,10 +82,9 @@ const ImageCard: FC<ImageCardProps> = ({
   return (
     <div
       ref={ref}
-      className={`relative w-[32%]  pt-[32%] aspect-square rounded-lg border`}
+      className={`relative w-[90px] pt-[90px] rounded-lg border select-none`}
       style={{
         opacity: isDragging ? 0.75 : 1,
-        rotate: isDragging ? "5deg" : "0deg",
         transform: isDragging ? "scale(0.8)" : "scale(1)",
         transition: "transform 0.2s ease, opacity 0.2s ease",
       }}
@@ -100,18 +99,18 @@ const ImageCard: FC<ImageCardProps> = ({
       {isMain && imageSrc !== DefaultImage && (
         <div className="absolute bottom-2 left-0 bg-blue200 rounded-r-[4px] px-[8px] py-[2px]">
           <Typography size={10} color={COLORS_TEXT.white}>
-            {t('main')}
+            {t("main")}
           </Typography>
         </div>
       )}
-        <input
-          type="file"
-          accept="image/*"
-          multiple={true}
-          className="absolute bottom-0 right-0 w-full h-full opacity-0 cursor-pointer"
-          onChange={handleFileChange}
-          style={{ zIndex: 10 }}
-        />
+      <input
+        type="file"
+        accept="image/*"
+        multiple={true}
+        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+        onChange={handleFileChange}
+        style={{ zIndex: 10 }}
+      />
     </div>
   );
 };

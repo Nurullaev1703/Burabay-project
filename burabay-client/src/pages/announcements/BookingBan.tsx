@@ -151,9 +151,11 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
               {t("optional")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={7} totalSteps={9} />
       </Header>
@@ -172,6 +174,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
             wrapperClassName="w-full h-full"
             className="w-0 bg-transparent outline-none cursor-none select-none h-full"
             dateFormat="yyyy-MM-dd"
+            minDate={new Date()}
           />
           <Typography
             size={16}
@@ -226,7 +229,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
         showModals[date] && dateSettings[date] ? (
           <div
             key={date}
-            className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center"
+            className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20"
           >
             <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">
               <Typography size={18} weight={500} className="mb-3">
@@ -278,7 +281,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
         ) : null
       )}
 
-      <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full">
+      <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
         <Button onClick={handleSubmit} mode="default">{t("continueBtn")}</Button>
       </div>
     </main>

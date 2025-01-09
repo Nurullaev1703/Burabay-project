@@ -72,8 +72,8 @@ export const MapComponent: FC<Props> = (props) => {
     map.on('click', async (e) => {
       const coordinates = e.coordinate; // Получаем координаты клика
       const [lng, lat] = toLonLat(coordinates); // Переводим координаты в долготу и широту
-      setCoords(toLonLat(coordinates))
-  
+      setCoords(toLonLat(coordinates));
+    
       if (!currentMarker) {
         // Если маркер отсутствует, создаем новый
         currentMarker = new Feature({
@@ -92,19 +92,29 @@ export const MapComponent: FC<Props> = (props) => {
         // Если маркер уже существует, обновляем его координаты
         currentMarker.setGeometry(new Point(coordinates));
       }
-  
+    
       // Обновляем адрес
       try {
         const response = await apiService.get<any>({
           url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
         });
-        const { display_name } = response.data;
-        setAddress(display_name); // Устанавливаем полный адрес
+    
+        const { display_name, address } = response.data;
+    
+        // Получение улицы и дома из объекта address
+        const street = address?.road || ''; // Улица
+        const houseNumber = address?.house_number || ''; // Номер дома
+    
+        const fullAddress = `${street} ${houseNumber}`.trim(); // Формируем полный адрес
+    
+        setAddress(fullAddress || display_name); // Устанавливаем полный адрес или "display_name" как fallback
       } catch (error) {
         console.error('Ошибка при получении адреса:', error);
       }
     });
-  
+    
+    
+    
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
   }, []);
 
@@ -151,9 +161,11 @@ export const MapComponent: FC<Props> = (props) => {
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer align="end" action={async () => history.back()}>
-            <img src={XIcon} alt="" />
-          </IconContainer>
+          <IconContainer align='end' action={async() =>  navigate({
+        to: "/announcements"
+      })}>
+      <img src={XIcon} alt="" />
+      </IconContainer>
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
@@ -179,10 +191,11 @@ export const MapComponent: FC<Props> = (props) => {
 
         </div>
       )}
-      <div className="fixed left-0 bottom-6 mb-2 mt-2 px-2 w-full">
+      <div className="fixed left-0 bottom-6 mb-2 mt-2 px-2 w-full z-10">
         <Button
           onClick={handleSubmit}
           mode="default"
+          disabled={coords.length === 0}
         >
           {t("continueBtn")}
         </Button>

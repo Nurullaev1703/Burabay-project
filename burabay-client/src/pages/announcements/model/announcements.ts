@@ -42,12 +42,16 @@ export interface AnnouncementBreaks {
   end: string;
 }
 
-interface AnnouncementDetails {
-  type: string;
-  bicycles: boolean;
-  electricScooters: boolean;
-  campingEquipment: boolean;
-  carRentalWithDriver: boolean;
+export interface AnnouncementDetails {
+  type?: string;
+  bicycles?: boolean;
+  electricScooters?: boolean;
+  campingEquipment?: boolean;
+  carRentalWithDriver?: boolean;
+  barbecueArea?: boolean;
+  equippedBeach?: boolean;
+  restingCanopy?: boolean;
+  wildBeach?: boolean;
 }
 
 interface AnnouncementOrganization {
@@ -72,7 +76,7 @@ export interface Announcement {
   youtubeLink: string;
   isRoundTheClock: boolean;
   isFullDay: boolean;
-  startTime: string;
+  startTime: string[];
   isDuration: boolean;
   duration: string;
   unlimitedClients: boolean;
@@ -89,7 +93,7 @@ export interface Announcement {
   isComplete: boolean;
   createdAt: Date;
   organization: AnnouncementOrganization;
-  breaks: string[];
+  breaks: Breaks[];
   schedule: Schedule;
   views: number;
   favCount: number;
@@ -108,6 +112,7 @@ export interface location {
 
 export interface Schedule {
   adId: string;
+  id?:string;
   monStart: string;
   monEnd: string;
   tueStart: string;
