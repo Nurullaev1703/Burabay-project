@@ -17,6 +17,7 @@ import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
 
+
 interface Props {
   id: string;
 }
@@ -37,7 +38,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
     return `${hours}:${minutes}`;
   };
 
-  const { handleSubmit, control, setValue, watch } = useForm<FormType>({
+  const { handleSubmit, control, setValue, watch , formState: {isValid} } = useForm<FormType>({
     defaultValues: {
       isRoundTheClock: false,
       workingDays: {
@@ -80,7 +81,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
   };
 
   const addBreak = () => {
-    if (breaks.length < 2) {
+    if (breaks.length < 5) {
       // Добавляем новый объект с пустыми значениями времени
       const newBreak = { adId: id, start: "", end: "" };
       setBreaks([...breaks, newBreak]);
@@ -176,9 +177,37 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
       console.error("Ошибка при сохранении графика:", e);
     }
   };
+  const validateTime = (value: string) => {
+    const regex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/; // Проверка формата времени
+    if (!regex.test(value)) {
+      return t("invalidTimeFormat"); // Сообщение об ошибке, если время некорректно
+    }
+  
+    const [hours, minutes] = value.split(":").map(Number);
+  
+    // Если время больше 23:59, то заменяем на 23:59
+    if (hours > 23 || (hours === 23 && minutes > 59)) {
+      return "23:59"; // Автоматическая замена на 23:59
+    }
+  
+    return true;
+  };
+  
 
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number, type: keyof Breaks) => {
+    const input = e.target as HTMLInputElement;
+    const value = input.value;
+    // Если значение больше "23:59", заменяем его на "23:59"
+    if (value > "23:59") {
+      handleBreakChange(index, type, "23:59");
+    } else {
+      handleBreakChange(index, type, value);
+    }
+  };
+  
+  
   return (
-    <section className="min-h-screen bg-background">
+    <section className="min-h-screen bg-background pb-[20px]">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -221,6 +250,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
             <Controller
               name={"isRoundTheClock"}
               control={control}
+              
               render={() => (
                 <Switch
                   checked={currentAroundClock}
@@ -280,7 +310,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         rules={{
                           required: t("requiredField"),
                           validate: (value) => {
-                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                            const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(value);
                             return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
                           },
                         }}
@@ -312,7 +342,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         rules={{
                           required: t("requiredField"),
                           validate: (value) => {
-                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                            const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(value);
                             return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
                           },
                         }}
@@ -364,10 +394,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                   control={control}
                   rules={{
                     required: t("requiredField"),
-                    validate: (value) => {
-                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                    },
+                    validate: (value) => validateTime(value) === true || t("invalidTimeFormat"),
                   }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
@@ -385,9 +412,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         inputRef={timeMask}
                         error={Boolean(error?.message)}
                         placeholder="00:00"
-                        onChange={(e) =>
-                          handleBreakChange(index, "start", e.target.value)
-                        }
+                        onChange={(e) => handleTimeChange(e, index, "start")}
                         variant="standard"
                         style={{ width: "80px", marginRight: "16px" }}
                       />
@@ -400,10 +425,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                   control={control}
                   rules={{
                     required: t("requiredField"),
-                    validate: (value) => {
-                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                    },
+                    validate: (value) => validateTime(value),
                   }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
@@ -422,9 +444,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
                         error={Boolean(error?.message)}
                         variant="standard"
                         placeholder="00:00"
-                        onChange={(e) =>
-                          handleBreakChange(index, "end", e.target.value)
-                        }
+                        onChange={(e) => handleTimeChange(e, index, "end")}
                         style={{ width: "80px", marginLeft: "16px" }}
                       />
                     );
@@ -440,7 +460,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
           ))}
         </ul>
 
-        {breaks.length < 2 && (
+        {breaks.length < 5 && (
           <div
             onClick={addBreak}
             className={`mt-2 h-11 w-fit items-center flex cursor-pointer ${COLORS_TEXT.blue200} font-semibold`}
@@ -457,7 +477,7 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
             handleSubmit(saveSchedule)();
           }}
           loading={isLoading}
-          disabled={!isButtonValid()}
+          disabled={!isButtonValid() || !isValid}
         >
           {t("continue")}
         </Button>

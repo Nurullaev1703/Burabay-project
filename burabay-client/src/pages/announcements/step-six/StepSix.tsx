@@ -86,26 +86,51 @@
       setValue("serviceTime", updatedServices);
     };
 
-    // При создании времени - создаю временную переменную для дальнейшего добавления
     const handleTempTimeChange = (value: string) => {
-      setTempTime(value); // Обновляем временное значение
+      value = value.replace(/[^0-9:]/g, "");
+  
+      if (value.length === 1) {
+        value = `${value}`;
+      }
+      const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(value);
+      if (value.length < 5) {
+        setTempTime(value); // Оставляем частичный ввод
+        setErrorText(""); // Ошибку не показываем при неполном вводе
+      } else if (value.length === 5 && isValidTime) {
+        setTempTime(value); 
+        setErrorText("");
+      } else {
+        setErrorText("Некорректное время"); // Если невалидный ввод, показываем ошибку
+      }
     };
+    
 
     // При отвода фокуса от поля
     const handleBlur = () => {
       if (isCreating && tempTime) {
-        const updatedServices = [...servicesTime, tempTime];
-        setServicesTime(updatedServices); // Обновляем список
-        setValue("serviceTime", updatedServices); // Сохраняем весь массив
-        setIsCreating(false); // Завершаем создание
-        setTempTime(""); // Сбрасываем временное значение
+        const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(tempTime);
+    
+        if (isValidTime) {
+          // Если введенное время корректное, сохраняем его
+          const updatedServices = [...servicesTime, tempTime];
+          setServicesTime(updatedServices); // Обновляем список
+          setValue("serviceTime", updatedServices); // Сохраняем весь массив
+          setIsCreating(false); // Завершаем создание
+          setTempTime(""); // Сбрасываем временное значение
+        } else {
+          // Если время некорректное, сбрасываем его
+          setTempTime(""); // Очищаем поле ввода
+        }
       }
+    
       if (editingIndex !== null) {
         const updatedServices = [...servicesTime];
         setValue("serviceTime", updatedServices); // Сохраняем весь массив
         setEditingIndex(null); // Завершаем редактирование
       }
     };
+
+    
 
     const deleteTime = (index: number) => {
       const updatedServices = [...servicesTime];
@@ -226,7 +251,7 @@
                       control={control}
                       rules={{
                         validate: (value: any) => {
-                          const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                          const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(value);
                           return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
                         },
                       }}
@@ -235,7 +260,7 @@
                           mask: "hH:mM",
                           replacement: {
                             h: /[0-2]/,
-                            H: /[0-9]/,
+                            H: /[0-3]/,
                             m: /[0-5]/,
                             M: /[0-9]/,
                           },
@@ -363,7 +388,7 @@
               rules={{
                 required: t("requiredField"),
                 validate: (value) => {
-                  const isValidTime = /^\d{2}:\d{2}$/.test(value);
+                  const isValidTime = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(value);
                   return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
                 },
               }}
