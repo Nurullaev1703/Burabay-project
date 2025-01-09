@@ -20,6 +20,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { Announcement } from "../model/announcements";
+import { queryClient } from "../../../ini/InitializeApp";
 
 interface Props {
   id: string;
@@ -142,8 +143,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
         url: `/ad/${id}`,
         dto: form,
       });
-
+      
       if (response.data) {
+        await queryClient.refetchQueries({queryKey: [`/ad/${id}`]})
         navigate({
           to: `/announcements/bookingBan/${id}?serviceTime=${form.startTime.join(",")}`,
           params: {

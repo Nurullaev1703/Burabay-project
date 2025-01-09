@@ -165,11 +165,10 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           isRoundTheClock: form.isRoundTheClock,
         },
       });
-  
       if (
         responseAd.data &&
-        responseSchedule.data === HTTP_STATUS.CREATED &&
-        responseBreaks.data === HTTP_STATUS.CREATED
+        (responseSchedule.data === parseInt(HTTP_STATUS.CREATED) || responseSchedule.data === parseInt(HTTP_STATUS.OK)) &&
+        (responseBreaks.data === parseInt(HTTP_STATUS.CREATED) || responseBreaks.data === parseInt(HTTP_STATUS.OK))
       ) {
         navigate({
           to: `/announcements/addAnnouncements/step-six/${id}`,
@@ -190,6 +189,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
       ) {
         handleError(t("tooManyRequest"));
       }
+      
   
       setIsLoading(false);
     } catch (e) {
