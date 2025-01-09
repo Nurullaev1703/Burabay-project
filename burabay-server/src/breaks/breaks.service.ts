@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateBreakDto } from './dto/create-break.dto';
 import { UpdateBreakDto } from './dto/update-break.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -35,24 +35,38 @@ export class BreaksService {
 
   async findAllByAd(adId: string) {
     try {
-      const ad = await this.adRepository.findOne({ where: { id: adId } });
-      Utils.checkEntity(ad, 'Объявление не найдено');
-      return await this.breakRepository.find({ where: { ad: ad } });
+      // const ad = await this.adRepository.findOne({ where: { id: adId } });
+      // Utils.checkEntity(ad, 'Объявление не найдено');
+      return await this.breakRepository.find({ where: { ad: { id: adId } } });
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
-  async update(id: string, updateBreakDto: UpdateBreakDto) {
-    try {
-      const findBreak = await this.breakRepository.findOne({ where: { id: id } });
-      Utils.checkEntity(findBreak, 'Перерыв не найден');
-      Object.assign(findBreak, updateBreakDto);
-      await this.breakRepository.save(findBreak);
+  @CatchErrors()
+  async update(adId: string, updateBreakDto: UpdateBreakDto[]) {
+    const findBreaks = await this.breakRepository.find({ where: { ad: { id: adId } } });
+    Utils.checkEntity(findBreaks, 'Перерывы не найден');
+    const updateLength = updateBreakDto.length;
+
+    if (updateBreakDto.length === 0) {
+      await this.breakRepository.remove(findBreaks);
       return JSON.stringify(HttpStatus.OK);
-    } catch (error) {
-      Utils.errorHandler(error);
     }
+
+    if (findBreaks.length < updateBreakDto.length) {
+      throw new HttpException(
+        'Количество обновлений больше, чем перерывов',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    for (let i = 0; i < updateLength; i++) {
+      Object.assign(findBreaks[i], updateBreakDto[i]);
+      await this.breakRepository.save(findBreaks[i]);
+    }
+
+    return JSON.stringify(HttpStatus.OK);
   }
 
   async remove(id: string) {
