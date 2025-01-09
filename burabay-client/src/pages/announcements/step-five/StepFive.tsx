@@ -12,13 +12,14 @@ import { DefaultForm } from "../../auth/ui/DefaultForm";
 import { Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
-import { Breaks, Schedule } from "../model/announcements";
+import { Announcement, Breaks, Schedule } from "../model/announcements";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   id: string;
+  announcement?: Announcement;
 }
 
 interface FormType {
@@ -27,7 +28,7 @@ interface FormType {
   breaks: Breaks[];
 }
 
-export const StepFive: FC<Props> = function StepFive({ id }) {
+export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   const navigate = useNavigate()
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
@@ -39,30 +40,30 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
 
   const { handleSubmit, control, setValue, watch } = useForm<FormType>({
     defaultValues: {
-      isRoundTheClock: false,
+      isRoundTheClock: announcement?.isRoundTheClock || false,
       workingDays: {
         adId: id || "",
-        monStart: formatTime(undefined), // Проверяем наличие schedule
-        monEnd: formatTime(undefined),
-        tueStart: formatTime(undefined),
-        tueEnd: formatTime(undefined),
-        wenStart: formatTime(undefined),
-        wenEnd: formatTime(undefined),
-        thuStart: formatTime(undefined),
-        thuEnd: formatTime(undefined),
-        friStart: formatTime(undefined),
-        friEnd: formatTime(undefined),
-        satStart: formatTime(undefined),
-        satEnd: formatTime(undefined),
-        sunStart: formatTime(undefined),
-        sunEnd: formatTime(undefined),
+        monStart: announcement?.schedule?.monStart || formatTime(undefined), // Проверяем наличие schedule
+        monEnd: announcement?.schedule?.monEnd || formatTime(undefined),
+        tueStart: announcement?.schedule?.tueStart || formatTime(undefined),
+        tueEnd: announcement?.schedule?.tueEnd || formatTime(undefined),
+        wenStart: announcement?.schedule?.wenStart || formatTime(undefined),
+        wenEnd: announcement?.schedule?.wenEnd || formatTime(undefined),
+        thuStart: announcement?.schedule?.thuStart || formatTime(undefined),
+        thuEnd: announcement?.schedule?.thuEnd || formatTime(undefined),
+        friStart: announcement?.schedule?.friStart || formatTime(undefined),
+        friEnd: announcement?.schedule?.friEnd || formatTime(undefined),
+        satStart: announcement?.schedule?.satStart || formatTime(undefined),
+        satEnd: announcement?.schedule?.satEnd || formatTime(undefined),
+        sunStart: announcement?.schedule?.sunStart || formatTime(undefined),
+        sunEnd: announcement?.schedule?.sunEnd || formatTime(undefined),
       },
-      breaks: [],
+      breaks: announcement?.breaks || [],
     },
     mode: "onBlur",
   });
   const [breaks, setBreaks] = useState<Breaks[]>(watch("breaks"));
-  const currentAroundClock = watch("isRoundTheClock", false);
+  const currentAroundClock = watch("isRoundTheClock");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
@@ -128,54 +129,75 @@ export const StepFive: FC<Props> = function StepFive({ id }) {
   const saveSchedule = async (form: FormType) => {
     try {
       setIsLoading(true);
-      const responseSchedule = await apiService.post<string>({
-        url: "/schedule",
-        dto: form.workingDays,
-      });
-      const responseBreaks = await apiService.post<string>({
-        url: "/breaks",
-        dto: form.breaks,
-      });
+  
+      let responseSchedule: any;
+      let responseBreaks: any;
+  
+      if (announcement?.schedule) {
+        responseSchedule = await apiService.patch<string>({
+          url: `/schedule/${announcement.schedule.id}`,
+          dto: form.workingDays,
+        });
+      } else {
+        responseSchedule = await apiService.post<string>({
+          url: "/schedule",
+          dto: form.workingDays,
+        });
+      }
+  
+      if (announcement?.breaks) {
+        const breaksWithoutAdId = form.breaks.map(({ adId, ...rest }) => rest); 
+        responseBreaks = await apiService.patch<string>({
+          url: `/breaks/${id}`,
+          dto: breaksWithoutAdId,
+        });
+      }
+       else {
+        responseBreaks = await apiService.post<string>({
+          url: "/breaks",
+          dto: form.breaks,
+        });
+      }
+  
       const responseAd = await apiService.patch<string>({
         url: `/ad/${id}`,
         dto: {
           isRoundTheClock: form.isRoundTheClock,
         },
       });
-
+  
       if (
         responseAd.data &&
-        responseSchedule.data == HTTP_STATUS.CREATED &&
-        responseBreaks.data == HTTP_STATUS.CREATED
+        responseSchedule.data === HTTP_STATUS.CREATED &&
+        responseBreaks.data === HTTP_STATUS.CREATED
       ) {
         navigate({
-          to: "/announcements/addAnnouncements/step-six/$id",
+          to: `/announcements/addAnnouncements/step-six/${id}`,
           params: {
-            id: id
-          }
-        })
-      }
-
-      if (
-        responseAd.data == HTTP_STATUS.CONFLICT &&
-        responseSchedule.data == HTTP_STATUS.CONFLICT &&
-        responseBreaks.data == HTTP_STATUS.CONFLICT
+            id: id,
+          },
+        });
+      } else if (
+        responseAd.data === HTTP_STATUS.CONFLICT &&
+        responseSchedule.data === HTTP_STATUS.CONFLICT &&
+        responseBreaks.data === HTTP_STATUS.CONFLICT
       ) {
         handleError(t("invalidCode"));
-      }
-      if (
-        responseAd.data == HTTP_STATUS.SERVER_ERROR &&
-        responseSchedule.data == HTTP_STATUS.SERVER_ERROR &&
-        responseBreaks.data == HTTP_STATUS.SERVER_ERROR
+      } else if (
+        responseAd.data === HTTP_STATUS.SERVER_ERROR &&
+        responseSchedule.data === HTTP_STATUS.SERVER_ERROR &&
+        responseBreaks.data === HTTP_STATUS.SERVER_ERROR
       ) {
         handleError(t("tooManyRequest"));
       }
-
+  
       setIsLoading(false);
     } catch (e) {
       console.error("Ошибка при сохранении графика:", e);
+      setIsLoading(false); 
     }
   };
+  
 
   return (
     <section className="min-h-screen bg-background pb-2">
