@@ -195,6 +195,7 @@ export const MapComponent: FC<Props> = (props) => {
         <Button
           onClick={handleSubmit}
           mode="default"
+          disabled={coords.length === 0}
         >
           {t("continueBtn")}
         </Button>
