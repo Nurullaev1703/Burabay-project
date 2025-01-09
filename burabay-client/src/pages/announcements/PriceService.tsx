@@ -38,6 +38,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
   const [isFocusedChild, setIsFocusedChild] = useState<boolean>(false);
   const inputRefChild = useRef<HTMLInputElement>(null);
   const symbolRefChild = useRef<HTMLDivElement>(null);
+  const isButtonDisabled = inputValue === "0" || !onSitePayment && !onlinePayment;
 
   const calculateTextWidth = (number: string, font: string): number => {
     const span = document.createElement("span");
@@ -275,7 +276,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
             )}
           />
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-            <Button className="" type="submit" mode="default">
+            <Button className="" type="submit" mode="default" disabled={isButtonDisabled}>
               {t("continueBtn")}
             </Button>
           </div>
@@ -320,7 +321,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
         </div>
         <Switch
           checked={onlinePayment}
-          // onChange={() => setOnlinePayment(!onlinePayment)}
+          // onChange={() => _setOnlinePayment(!onlinePayment)}
           className="sr-only"
         />
       </div>
