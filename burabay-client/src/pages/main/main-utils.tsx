@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, Category } from "../announcements/model/announcements";
-import { MapFilter } from "pages/announcements/announcements-utils";
+import { MapFilter } from "../announcements/announcements-utils";
 
 export interface MainDataType{
     ads: Announcement[],

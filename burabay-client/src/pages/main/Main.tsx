@@ -6,7 +6,7 @@ import investirovanie from "../../app/icons/main/investirovanie.png";
 import { Announcement, Category } from "../announcements/model/announcements";
 import { baseUrl } from "../../services/api/ServerData";
 import { AdCard } from "./ui/AdCard";
-import { MapFilter } from "pages/announcements/announcements-utils";
+import { MapFilter } from "../announcements/announcements-utils";
 import { categoryBgColors, COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";

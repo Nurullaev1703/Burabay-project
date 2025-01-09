@@ -302,7 +302,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
         }}
       ></div>
 
-      <div className="relative px-4 top-[-65px] left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
+      <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
         {categories.map((item) => {
           return (
             <button
@@ -488,7 +488,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
             </div>
             <button
               onClick={handleCloseModal}
-              className=" absolute  top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
+              className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
             >
               <IconContainer align="center">
                 <img src={cancelBlack} className="z-10" alt="" />

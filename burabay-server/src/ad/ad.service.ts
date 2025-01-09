@@ -11,6 +11,9 @@ import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad.filter';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
+import { Break } from 'src/breaks/entities/break.entity';
 
 @Injectable()
 export class AdService {
@@ -24,6 +27,13 @@ export class AdService {
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
     private readonly entityManager: EntityManager,
+    // TODO упростить связки с репозиториями при удалении
+    @InjectRepository(Schedule)
+    private readonly scheduleRepository: Repository<Schedule>,
+    @InjectRepository(BookingBanDate)
+    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
+    @InjectRepository(Break)
+    private readonly breakRepository: Repository<Break>,
   ) {}
 
   /* Метод для создания Объявления. Принимает айти Категории (Подкатегории) и Организации. */
@@ -205,7 +215,14 @@ export class AdService {
   /* Метод для удаления Объявления. */
   @CatchErrors()
   async remove(id: string) {
-    const ad = await this.adRepository.findOne({ where: { id: id } });
+    const ad = await this.adRepository.findOne({
+      where: { id: id },
+      relations: {
+        schedule: true,
+        bookingBanDate: true,
+        breaks: true,
+      },
+    });
     Utils.checkEntity(ad, 'Объявление не найдено');
     await this.entityManager.remove(ad);
     return JSON.stringify(HttpStatus.OK);
