@@ -6,9 +6,12 @@ import { Ad } from './entities/ad.entity';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
+import { Break } from 'src/breaks/entities/break.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ad, Subcategory, Organization, User])],
+  imports: [TypeOrmModule.forFeature([Ad, Subcategory, Organization, User, Schedule, BookingBanDate, Break])],
   controllers: [AdController],
   providers: [AdService],
 })

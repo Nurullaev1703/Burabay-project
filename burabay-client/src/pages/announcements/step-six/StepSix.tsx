@@ -354,14 +354,14 @@
                 control={control}
                 render={() => (
                   <Switch
-                    checked={isDuration}
+                    checked={!isDuration}
                     onChange={() => setValue("isDuration", !isDuration)}
                   />
                 )}
               />
             </div>
           )}
-          {isDuration && (
+          {isDuration && !fullDay && (
             <Controller
               name={`duration`}
               control={control}

@@ -20,10 +20,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": "./src",
-    "paths": {
-      "@routes/*": ["routes/*"]
-    }
   },
   "include": ["src", "index.tsx", "App.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
