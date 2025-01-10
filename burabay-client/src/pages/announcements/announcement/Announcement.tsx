@@ -17,6 +17,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { ModalDelete } from "./ui/ModalDelete";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { ReviewsInfo } from "./ui/ReviewsInfo";
 
 interface Props {
   announcement: AnnouncementType;
@@ -120,6 +121,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
+      <ReviewsInfo ad={announcement}/>
       {showModal && (
         <ModalDelete
           open={showModal}
