@@ -19,11 +19,11 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
   ) {}
-  async create(createReviewDto: CreateReviewDto) {
+  async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const { userId, adId, ...oF } = createReviewDto;
-        const user = await manager.findOne(User, { where: { id: userId } });
+        const { adId, ...oF } = createReviewDto;
+        const user = await manager.findOne(User, { where: { id: tokenData.id } });
         Utils.checkEntity(user, 'Пользователь не найден');
         const ad = await manager.findOne(Ad, {
           where: { id: adId },
@@ -82,7 +82,7 @@ export class ReviewService {
   async update(id: string, updateReviewDto: UpdateReviewDto) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { userId, adId, ...oF } = updateReviewDto;
+      const { adId, ...oF } = updateReviewDto;
       const review = await this.reviewRepository.findOne({ where: { id: id } });
       Utils.checkEntity(review, 'Отзыв не найден');
       Object.assign(review, oF);
