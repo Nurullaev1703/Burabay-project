@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.wnapp.id1733915898448",
+      "sha256_cert_fingerprints": [
+        "64:7D:D1:2F:30:AA:73:B2:32:A3:36:61:C4:53:8E:5F:A2:3E:A4:8B:E7:A3:6A:00:26:66:D0:92:D3:CF:9C:5B"
+      ]
+    }
+  }
+]
