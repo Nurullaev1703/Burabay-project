@@ -51,13 +51,13 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
 
   return (
     <ul>
-      <li className="flex flex-col border-b border-[#999999] py-3">
+      <li className="flex flex-col border-b border-[#E4E9EA] py-3">
         <span>{formatPhoneNumber(ad.phoneNumber)}</span>
         <span className={`${COLORS_TEXT.gray100} text-sm`}>
           {t("contactPhone")}
         </span>
       </li>
-      <li className="border-b border-[#999999] py-3">
+      <li className="border-b border-[#E4E9EA] py-3">
         <Link
           to={`/announcements/schedule/${ad.id}`}
           className="flex justify-between"
@@ -71,7 +71,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      <li className="border-b border-[#999999] py-3">
+      <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
           to="/mapNav"

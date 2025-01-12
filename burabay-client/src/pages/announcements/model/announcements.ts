@@ -141,3 +141,12 @@ export interface Booking {
   allDay: boolean;
   times: string[];
 }
+
+export interface Review {
+  id: string;
+  images: string[];
+  text: string;
+  stars: number;
+  user_name?: string;
+  date?: Date;
+}
