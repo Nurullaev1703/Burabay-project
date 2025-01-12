@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -19,33 +19,32 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
   ) {}
+
+  @CatchErrors()
   async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
-    try {
-      return await this.dataSource.transaction(async (manager) => {
-        const { adId, ...oF } = createReviewDto;
-        const user = await manager.findOne(User, { where: { id: tokenData.id } });
-        Utils.checkEntity(user, 'Пользователь не найден');
-        const ad = await manager.findOne(Ad, {
-          where: { id: adId },
-          relations: { reviews: true },
-        });
-        Utils.checkEntity(ad, 'Объявление не найдено');
-        const newReview = manager.create(Review, {
-          user: user,
-          ad: ad,
-          ...oF,
-        });
-        const rating = ad.reviews.map((r) => r.stars).reduce((a, b) => a + b, 0) + oF.stars;
-        const length = ad.reviews.length + 1;
-        ad.avgRating = Math.round((length > 0 ? rating / length : 0) * 10) / 10;
-        ad.reviewCount = length;
-        await manager.save(ad);
-        await manager.save(newReview);
-        return JSON.stringify(HttpStatus.CREATED);
+    return await this.dataSource.transaction(async (manager) => {
+      console.log(tokenData);
+      const { adId, ...oF } = createReviewDto;
+      const user = await manager.findOne(User, { where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      const ad = await manager.findOne(Ad, {
+        where: { id: adId },
+        relations: { reviews: true },
       });
-    } catch (error) {
-      Utils.errorHandler(error);
-    }
+      Utils.checkEntity(ad, 'Объявление не найдено');
+      const newReview = manager.create(Review, {
+        user: user,
+        ad: ad,
+        ...oF,
+      });
+      const rating = ad.reviews.map((r) => r.stars).reduce((a, b) => a + b, 0) + oF.stars;
+      const length = ad.reviews.length + 1;
+      ad.avgRating = Math.round((length > 0 ? rating / length : 0) * 10) / 10;
+      ad.reviewCount = length;
+      await manager.save(ad);
+      await manager.save(newReview);
+      return JSON.stringify(HttpStatus.CREATED);
+    });
   }
 
   async findAll() {
