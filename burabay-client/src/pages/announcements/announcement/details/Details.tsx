@@ -1,7 +1,7 @@
 import {
   Announcement,
   AnnouncementDetails,
-} from "pages/announcements/model/announcements";
+} from "../../model/announcements";
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";

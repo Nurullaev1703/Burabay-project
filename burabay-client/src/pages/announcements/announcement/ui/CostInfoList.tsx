@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import { Link } from "@tanstack/react-router";
 import ArrowRight from "../../../../app/icons/arrow-right.svg";
-import { Announcement } from "pages/announcements/model/announcements";
+import { Announcement } from "../../model/announcements";
 
 interface Props {
   ad: Announcement
