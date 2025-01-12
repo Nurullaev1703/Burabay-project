@@ -49,7 +49,11 @@ export class ReviewService {
 
   async findAll() {
     try {
-      return await this.reviewRepository.find();
+      return await this.reviewRepository.find({
+        relations: {
+          user: true,
+        },
+      });
     } catch (error) {
       Utils.errorHandler(error);
     }
@@ -59,7 +63,7 @@ export class ReviewService {
     try {
       const ad = await this.adRepository.findOne({
         where: { id: adId },
-        relations: { reviews: true },
+        relations: { reviews: { user: true } },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
       return ad.reviews;
@@ -70,7 +74,10 @@ export class ReviewService {
 
   async findOne(id: string) {
     try {
-      const review = await this.reviewRepository.findOne({ where: { id: id } });
+      const review = await this.reviewRepository.findOne({
+        where: { id: id },
+        relations: { user: true },
+      });
       Utils.checkEntity(review, 'Отзыв не найден');
       return review;
     } catch (error) {
