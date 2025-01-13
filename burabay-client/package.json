@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^6.3.0",
     "@mui/x-date-pickers": "^7.23.3",
+    "@react-google-maps/api": "^2.20.5",
     "@react-input/mask": "^1.2.5",
     "@react-oauth/google": "latest",
     "@tanstack/react-query": "^5.36.2",
