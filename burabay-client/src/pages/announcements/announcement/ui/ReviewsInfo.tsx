@@ -16,6 +16,16 @@ interface Props {
 export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
   const [reviews, _] = useState<Review[]>(review || []);
   const { t } = useTranslation();
+  const [expandedReviews, setExpandedReviews] = useState<
+    Record<number, boolean>
+  >({});
+
+  const toggleReviewText = (index: number) => {
+    setExpandedReviews((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
+  };
   return (
     <div className="bg-white p-4 mb-2">
       <div className="flex justify-between mb-4">
@@ -46,10 +56,12 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
             <div className="flex justify-between items-center mb-2.5">
               <div className="flex flex-col">
                 <span>
-                  {review.user_name ? review.user_name : "Безымянный"}
+                  {review.user.fullName ? review.user.fullName : "Безымянный"}
                 </span>
                 <span className={`text-xs ${COLORS_TEXT.gray100}`}>
-                  {review.date ? review.date.toLocaleDateString() : "Нет даты"}
+                  {review.date
+                    ? new Date(review.date).toLocaleDateString()
+                    : "Нет даты"}
                 </span>
               </div>
               <div className="flex gap-1">
@@ -71,7 +83,33 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
               </div>
             </div>
 
-            <p className="leading-5 mb-2.5">{review?.text}</p>
+            <div className="leading-5 mb-2.5 break-words">
+              {expandedReviews[index] ? (
+                <>
+                  {review.text}{" "}
+                  <span
+                    className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
+                    onClick={() => toggleReviewText(index)}
+                  >
+                    {t("hide")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {review.text.length > 150
+                    ? `${review.text.slice(0, 150)}...`
+                    : review.text}{" "}
+                  {review.text.length > 150 && (
+                    <span
+                      className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
+                      onClick={() => toggleReviewText(index)}
+                    >
+                      {t("more")}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
 
             <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth">
               {review.images.map((image, index) => (

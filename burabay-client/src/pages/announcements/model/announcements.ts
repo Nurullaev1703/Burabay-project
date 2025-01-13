@@ -1,3 +1,5 @@
+import { Profile } from "../../profile/model/profile";
+
 export interface Category {
   id: string;
   name: string;
@@ -147,6 +149,6 @@ export interface Review {
   images: string[];
   text: string;
   stars: number;
-  user_name?: string;
-  date?: Date;
+  date: Date;
+  user: Profile;
 }
