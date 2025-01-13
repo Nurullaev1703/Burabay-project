@@ -9,7 +9,7 @@ import { Feature } from "ol";
 import { Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource } from "ol/source";
 import { Fill, Icon, Style } from "ol/style";
-import locationIcon from "../../../app/icons/announcements/markerSvg.svg";
+import locationIcon from "../../../app/icons/announcements/markerMapBlue.svg";
 import { Typography } from "../../../shared/ui/Typography";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -29,7 +29,8 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { useNavigate } from "@tanstack/react-router";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
-import { GoogleMap, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import whiteCircle from "../../../app/icons/EllipseWhite.svg"
 
 const containerStyle = {
   width: "100%",
@@ -78,6 +79,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     null
   ); // Храним информацию о выбранном объявлении
 
+  
   useEffect(() => {
     const vectorSource = new VectorSource();
     const vectorLayer = new VectorLayer({
@@ -245,7 +247,6 @@ closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем вре
 
 // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
 const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime; 
-
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -265,6 +266,9 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
           </div>
         </div>
       </Header>
+      
+
+    
 
       {isLoaded ? (
   <GoogleMap
@@ -277,9 +281,13 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
     return null; 
   }
 
+  const subcategoryImgPath = loadImage(announcement.subcategory?.category?.imgPath);
+  
+
   return (
+    <>
     <Marker
-      key={announcement.id}
+    key={`${announcement.id}-${Date.now()}`}
       position={{
         lat: announcement.address.longitude,
         lng: announcement.address.latitude,
@@ -288,8 +296,41 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
         url: locationIcon,
         scaledSize: new google.maps.Size(40, 40),
       }}
+      zIndex={1}
+
       onClick={() => handleMarkerClick(announcement.id)}
     />
+    <Marker
+    key={`${announcement.id}- ${Date.now()}`}
+    position={{
+      lat: announcement.address.longitude,
+      lng: announcement.address.latitude,
+    }}
+    icon={{
+      url: subcategoryImgPath,
+      scaledSize: new google.maps.Size(15,15),
+      anchor: new google.maps.Point(8,33),
+      fillColor: "white",
+      strokeColor: "white",
+    }}
+    zIndex={2}
+    onClick={() => handleMarkerClick(announcement.id)}
+    />
+    <Marker
+    key={`${announcement.id}- ${Date.now()}`}
+    position={{
+      lat: announcement.address.longitude,
+      lng: announcement.address.latitude,
+    }}
+    icon={{
+      url: whiteCircle,
+      scaledSize: new google.maps.Size(23,23),
+      anchor: new google.maps.Point(12,36)
+    }}
+    zIndex={1}
+    onClick={() => handleMarkerClick(announcement.id)}
+    />
+    </> 
   );
 })}
 
