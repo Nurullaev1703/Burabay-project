@@ -7,6 +7,9 @@ import UnfocusedStarIcon from "../../../../app/icons/announcements/unfocused-sta
 import ArrowIcon from "../../../../app/icons/announcements/black-arrowRight.svg";
 import { Link } from "@tanstack/react-router";
 import { baseUrl } from "../../../../services/api/ServerData";
+import { Button } from "../../../../shared/ui/Button";
+import { roleService } from "../../../../services/storage/Factory";
+import { ROLE_TYPE } from "../../../auth/model/auth-model";
 
 interface Props {
   ad: Announcement;
@@ -125,6 +128,11 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
           </li>
         ))}
       </ul>
+
+      <Button mode="transparent" className="mb-4">{t("viewAllReviews")}</Button>
+      {roleService.getValue() === ROLE_TYPE.TOURIST && (
+        <Button>{t("toBook")}</Button>
+      )} 
     </div>
   );
 };

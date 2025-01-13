@@ -540,6 +540,8 @@ i18n.use(initReactI18next).init({
         add: "Добавить",
         more: "еще",
         hide: "скрыть",
+        viewAllReviews: "Смотреть все отзывы",
+        toBook: "Забронировать",
 
         serviceSchedule: "Расписание услуг",
         preview: "Просмотр",
