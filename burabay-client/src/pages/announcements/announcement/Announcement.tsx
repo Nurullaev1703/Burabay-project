@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { Announcement as AnnouncementType } from "../model/announcements";
+import { Announcement as AnnouncementType, Review } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -23,13 +23,16 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { ModalDelete } from "./ui/ModalDelete";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { ReviewsInfo } from "./ui/ReviewsInfo";
 import { Link } from "@tanstack/react-router";
+
 
 interface Props {
   announcement: AnnouncementType;
+  review?: Review[];
 }
 
-export const Announcement: FC<Props> = function Announcement({ announcement }) {
+export const Announcement: FC<Props> = function Announcement({ announcement, review }) {
   const { t } = useTranslation();
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
@@ -156,6 +159,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
+      <ReviewsInfo ad={announcement} review={review}/>
       {showModal && (
         <ModalDelete
           open={showModal}

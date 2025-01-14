@@ -70,7 +70,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </Link>
         )}
       </li>
-      <li className="border-b border-[#999999] py-3">
+      <li className="border-b border-[#E4E9EA] py-3">
         <Link
           to={`/announcements/schedule/${ad.id}`}
           className="flex justify-between"
@@ -84,7 +84,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      <li className="border-b border-[#999999] py-3">
+      <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
           to="/mapNav"

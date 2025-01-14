@@ -8,7 +8,7 @@ import { AdFilter } from './types/ad.filter';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
+// @Public() // TODO Удалить после тестирования.
 @Controller('ad')
 export class AdController {
   constructor(private readonly adService: AdService) {}
