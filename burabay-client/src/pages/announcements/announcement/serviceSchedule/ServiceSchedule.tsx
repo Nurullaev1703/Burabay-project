@@ -10,6 +10,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/ru";
+import ArrowLeftIcon from "../../../../app/icons/announcements/service-schedule/arrow-left.svg"
 
 interface Props {
   serviceSchedule: Booking[];
@@ -21,7 +22,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
   const { t } = useTranslation();
   const [times, setTimes] = useState<string[]>([]);
 
-  //   Установка даты
+  // Установка даты
   const handleDateChange = (date: any) => {
     serviceSchedule.forEach((currDate) => {
       if (currDate.date === date?.format("DD.MM.YYYY")) {
@@ -49,10 +50,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
               {t("serviceSchedule")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={() => history.back()}
-          ></IconContainer>
+          <IconContainer align="end" action={() => history.back()}></IconContainer>
         </div>
       </Header>
 
@@ -61,6 +59,32 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
+            sx={{
+              "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ": {
+                padding: "0px !important",
+              },
+              "& .css-1e9nyoq-MuiPickersCalendarHeader-labelContainer": {
+                marginLeft: "20% !important",
+              },
+              "& .css-1chuxo2-MuiPickersCalendarHeader-label": {
+                color: "#999999"
+              },
+              "& .css-1nxbkmn-MuiPickersCalendarHeader-root": {
+                flexDirection: "row-reverse !important",
+                position: "relative",
+              },
+              "& .css-17nrfho-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button": {
+                position: "absolute",
+                right: "25px",
+                padding: "0px",
+              },
+              "& .css-iupya1-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton": {
+                display: "none"
+              },
+              "& .css-1rf3jwr-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton": {
+                display: "none"
+              },
+            }}
           />
         </LocalizationProvider>
       </div>

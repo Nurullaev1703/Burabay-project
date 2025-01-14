@@ -4,6 +4,10 @@ import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import ArrowRight from "../../../../app/icons/arrow-right.svg";
 import { Link } from "@tanstack/react-router";
+import PhoneIcon from "../../../../app/icons/announcements/phone.svg";
+import { roleService } from "../../../../services/storage/Factory";
+import { ROLE_TYPE } from "../../../auth/model/auth-model";
+
 interface Props {
   ad: Announcement;
 }
@@ -41,7 +45,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       })
       .map(([, value]) => value);
 
-    return workingDays.length > 0 ? workingDays.join(", ") : t("aroundClockDays");
+    return workingDays.length > 0
+      ? workingDays.join(", ")
+      : t("aroundClockDays");
   };
 
   const formatPhoneNumber = (number: number | string) => {
@@ -51,11 +57,18 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
 
   return (
     <ul>
-      <li className="flex flex-col border-b border-[#E4E9EA] py-3">
-        <span>{formatPhoneNumber(ad.phoneNumber)}</span>
-        <span className={`${COLORS_TEXT.gray100} text-sm`}>
-          {t("contactPhone")}
-        </span>
+      <li className="flex border-b border-[#999999] py-3 justify-between">
+        <div className="flex flex-col">
+          <span>{formatPhoneNumber(ad.phoneNumber)}</span>
+          <span className={`${COLORS_TEXT.gray100} text-sm`}>
+            {t("contactPhone")}
+          </span>
+        </div>
+        {roleService.getValue() === ROLE_TYPE.TOURIST && (
+          <Link>
+            <img src={PhoneIcon} alt="Звонить" />
+          </Link>
+        )}
       </li>
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
@@ -82,7 +95,10 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         </Link>
       </li>
       <li className="py-3">
-        <Link to={`/announcements/details/${ad.id}`} className="flex justify-between">
+        <Link
+          to={`/announcements/details/${ad.id}`}
+          className="flex justify-between"
+        >
           <span>{t("details")}</span>
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
