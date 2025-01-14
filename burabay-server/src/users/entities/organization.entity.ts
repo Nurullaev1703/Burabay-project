@@ -1,8 +1,8 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { User } from './user.entity';
-import { Ad } from 'src/ad/entities/ad.entity';
-import { Address } from 'src/address/entities/address.entity';
+import { Ad } from '../../ad/entities/ad.entity';
+import { Address } from '../../address/entities/address.entity';
 
 @Entity()
 export class Organization extends AbstractEntity<Organization> {
