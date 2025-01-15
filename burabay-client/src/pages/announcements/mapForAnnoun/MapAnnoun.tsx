@@ -9,7 +9,7 @@ import { Feature } from "ol";
 import { Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource } from "ol/source";
 import { Fill, Icon, Style } from "ol/style";
-import locationIcon from "../../../app/icons/announcements/markerMapBlue.svg";
+import locationIcon from "../../../app/icons/announcements/markerSvg.svg";
 import { Typography } from "../../../shared/ui/Typography";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -34,7 +34,7 @@ import whiteCircle from "../../../app/icons/EllipseWhite.svg"
 
 const containerStyle = {
   width: "100%",
-  height: "100vh",
+  height: "90vh",
 };
 
 interface Props {
@@ -282,6 +282,15 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
   }
 
   const subcategoryImgPath = loadImage(announcement.subcategory?.category?.imgPath);
+
+  const categoryName = announcement.subcategory?.category?.name;
+  const categoryColor = categoryColors[categoryName];
+
+  const svgLocationWithColor = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+      <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
+      <circle cx="21" cy="17.5" r="7" fill="white"/>
+    </svg>`)}`
   
 
   return (
@@ -293,9 +302,10 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
         lng: announcement.address.latitude,
       }}
       icon={{
-        url: locationIcon,
+        url: svgLocationWithColor,
         scaledSize: new google.maps.Size(40, 40),
-      }}
+        fillColor: categoryColor
+      }}  
       zIndex={1}
 
       onClick={() => handleMarkerClick(announcement.id)}
@@ -308,8 +318,8 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
     }}
     icon={{
       url: subcategoryImgPath,
-      scaledSize: new google.maps.Size(15,15),
-      anchor: new google.maps.Point(8,33),
+      scaledSize: new google.maps.Size(18,18),
+      anchor: new google.maps.Point(9,33),
       fillColor: "white",
       strokeColor: "white",
     }}
@@ -324,7 +334,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
     }}
     icon={{
       url: whiteCircle,
-      scaledSize: new google.maps.Size(23,23),
+      scaledSize: new google.maps.Size(24,24),
       anchor: new google.maps.Point(12,36)
     }}
     zIndex={1}
