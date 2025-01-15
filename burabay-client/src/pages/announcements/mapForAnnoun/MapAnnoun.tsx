@@ -15,7 +15,11 @@ import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Announcement, Schedule } from "../model/announcements";
 import BackIcon from "../../../app/icons/back-icon.svg";
-import { categoryBgColors, categoryColors, COLORS_TEXT } from "../../../shared/ui/colors";
+import {
+  categoryBgColors,
+  categoryColors,
+  COLORS_TEXT,
+} from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
 import { Select } from "ol/interaction";
 import defaultImage from "../../../app/icons/main/health.svg";
@@ -30,7 +34,7 @@ import { useNavigate } from "@tanstack/react-router";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
-import whiteCircle from "../../../app/icons/EllipseWhite.svg"
+import whiteCircle from "../../../app/icons/EllipseWhite.svg";
 
 const containerStyle = {
   width: "100%",
@@ -51,7 +55,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
   const [showAnnouncementModal, setShowAnnouncementModal] =
-  useState<boolean>(false); // Для отображения модального окна с объявлением
+    useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
       return { start: null, end: null }; // Возвращаем null, если нет расписания
@@ -79,7 +83,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     null
   ); // Храним информацию о выбранном объявлении
 
-  
   useEffect(() => {
     const vectorSource = new VectorSource();
     const vectorLayer = new VectorLayer({
@@ -221,32 +224,32 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   };
 
   const { start, end } = getCurrentDaySchedule(announcementInfo);
-    // Получаем текущую дату и время
-const currentTime = new Date();
+  // Получаем текущую дату и время
+  const currentTime = new Date();
 
-// Извлекаем из строки времени end только часы и минуты
-const [hours, minutes] = end?.split(':').map(Number) || [0,0];
-const center = {
-  lat: 53.08271195503471, 
-  lng: 70.30456742278163,
-};
-const handleMarkerClick = (announcementId: string) => {
-  const selectedAnnouncement = announcements.find(
-    (announcement) => announcement.id === announcementId
-  );
-  if (selectedAnnouncement) {
-    setAnnouncementInfo(selectedAnnouncement);
-    setShowAnnouncementModal(true);
-  }
-};
+  // Извлекаем из строки времени end только часы и минуты
+  const [hours, minutes] = end?.split(":").map(Number) || [0, 0];
+  const center = {
+    lat: 53.08271195503471,
+    lng: 70.30456742278163,
+  };
+  const handleMarkerClick = (announcementId: string) => {
+    const selectedAnnouncement = announcements.find(
+      (announcement) => announcement.id === announcementId
+    );
+    if (selectedAnnouncement) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+    }
+  };
 
-// Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
-let closingTime = new Date();
-closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
+  // Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
+  let closingTime = new Date();
+  closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
 
-
-// Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
-const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime; 
+  // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
+  const isClosed =
+    hours == 0 && minutes == 0 ? false : closingTime < currentTime;
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -266,90 +269,90 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
           </div>
         </div>
       </Header>
-      
-
-    
 
       {isLoaded ? (
-  <GoogleMap
-    mapContainerStyle={containerStyle}
-    center={center}
-    zoom={15}
-  >
-{announcements.map((announcement) => {
-  if (!announcement.address || !announcement.address.latitude || !announcement.address.longitude) {
-    return null; 
-  }
+        <GoogleMap  mapContainerStyle={containerStyle} center={center} zoom={15}   options={{
+          mapTypeControl: false, fullscreenControl: false, zoomControl: false, streetViewControl: false,
+        }}>
+          {announcements.map((announcement) => {
+            if (
+              !announcement.address ||
+              !announcement.address.latitude ||
+              !announcement.address.longitude
+            ) {
+              return null;
+            }
 
-  const subcategoryImgPath = loadImage(announcement.subcategory?.category?.imgPath);
+            const subcategoryImgPath = loadImage(
+              announcement.subcategory?.category?.imgPath
+            );
 
-  const categoryName = announcement.subcategory?.category?.name;
-  const categoryColor = categoryColors[categoryName];
+            const categoryName = announcement.subcategory?.category?.name;
+            const categoryColor = categoryColors[categoryName];
 
-  const svgLocationWithColor = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+            const svgLocationWithColor = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
     <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
       <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
       <circle cx="21" cy="17.5" r="7" fill="white"/>
-    </svg>`)}`
-  
+    </svg>`)}`;
 
-  return (
-    <>
-    <Marker
-    key={`${announcement.id}-${Date.now()}`}
-      position={{
-        lat: announcement.address.longitude,
-        lng: announcement.address.latitude,
-      }}
-      icon={{
-        url: svgLocationWithColor,
-        scaledSize: new google.maps.Size(40, 40),
-        fillColor: categoryColor
-      }}  
-      zIndex={1}
-
-      onClick={() => handleMarkerClick(announcement.id)}
-    />
-    <Marker
-    key={`${announcement.id}- ${Date.now()}`}
-    position={{
-      lat: announcement.address.longitude,
-      lng: announcement.address.latitude,
-    }}
-    icon={{
-      url: subcategoryImgPath,
-      scaledSize: new google.maps.Size(18,18),
-      anchor: new google.maps.Point(9,33),
-      fillColor: "white",
-      strokeColor: "white",
-    }}
-    zIndex={2}
-    onClick={() => handleMarkerClick(announcement.id)}
-    />
-    <Marker
-    key={`${announcement.id}- ${Date.now()}`}
-    position={{
-      lat: announcement.address.longitude,
-      lng: announcement.address.latitude,
-    }}
-    icon={{
-      url: whiteCircle,
-      scaledSize: new google.maps.Size(24,24),
-      anchor: new google.maps.Point(12,36)
-    }}
-    zIndex={1}
-    onClick={() => handleMarkerClick(announcement.id)}
-    />
-    </> 
-  );
-})}
-
-  </GoogleMap>
-) : (
-  <div>
-    <Typography size={16} weight={600}>{"Загрузка"}</Typography>
-  </div>
-)}
+            return (
+              <>
+                <Marker
+                  key={`${announcement.id}-${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: svgLocationWithColor,
+                    scaledSize: new google.maps.Size(40, 40),
+                    fillColor: categoryColor,
+                  }}
+                  zIndex={1}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+                <Marker
+                  key={`${announcement.id}- ${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: subcategoryImgPath,
+                    scaledSize: new google.maps.Size(18, 18),
+                    anchor: new google.maps.Point(9, 33),
+                    fillColor: "white",
+                    strokeColor: "white",
+                  }}
+                  zIndex={2}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+                <Marker
+                  key={`${announcement.id}- ${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: whiteCircle,
+                    scaledSize: new google.maps.Size(24, 24),
+                    anchor: new google.maps.Point(12, 36),
+                  }}
+                  zIndex={1}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+              </>
+            );
+          })}
+        </GoogleMap>
+      ) : (
+        <div>
+          <Typography size={16} weight={600}>
+            {"Загрузка"}
+          </Typography>
+        </div>
+      )}
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
         <div
@@ -388,15 +391,15 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
                 </CoveredImage>
                 <div>
                   <div className="flex flex-row justify-between">
-                  <Typography
-                    size={28}
-                    weight={700}
-                    color={COLORS_TEXT.blue200}
-                  >
-                    {announcementInfo.price && announcementInfo.price > 0 
-                      ? `${announcementInfo.price} ₸` 
-                      : t("free")}
-                  </Typography>
+                    <Typography
+                      size={28}
+                      weight={700}
+                      color={COLORS_TEXT.blue200}
+                    >
+                      {announcementInfo.price && announcementInfo.price > 0
+                        ? `${announcementInfo.price} ₸`
+                        : t("free")}
+                    </Typography>
                     <img src={flag} alt="" />
                   </div>
                   <div className="flex flex-row gap-2">
@@ -419,7 +422,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
                       {`${t("todayWith")} ${start} ${t("to")} ${end}`}
                     </Typography>
                   )}
-                  {announcementInfo?.schedule &&(
+                  {announcementInfo?.schedule && (
                     <Typography
                       size={14}
                       weight={400}
