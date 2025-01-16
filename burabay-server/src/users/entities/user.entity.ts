@@ -5,6 +5,7 @@ import { Organization } from './organization.entity';
 import { Ad } from '../../ad/entities/ad.entity';
 import { Feedback } from '../../feedback/entities/feedback.entity';
 import { Review } from '../../review/entities/review.entity';
+import { Booking } from '../../booking/entities/booking.entity';
 
 @Entity()
 export class User extends AbstractEntity<User> {
@@ -49,4 +50,7 @@ export class User extends AbstractEntity<User> {
 
   @Column({ name: 'is_banned', default: false })
   isBanned: boolean;
+
+  @OneToMany(() => Booking, (booking) => booking.user)
+  bookings: Booking[];
 }
