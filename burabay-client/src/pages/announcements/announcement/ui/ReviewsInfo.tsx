@@ -5,7 +5,7 @@ import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../../shared/ui/colors";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
 import UnfocusedStarIcon from "../../../../app/icons/announcements/unfocused-star.svg";
 import ArrowIcon from "../../../../app/icons/announcements/black-arrowRight.svg";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { baseUrl } from "../../../../services/api/ServerData";
 import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
@@ -22,6 +22,8 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
   >({});
+
+  const navigate = useNavigate();
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -130,9 +132,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       </ul>
 
       <Button mode="transparent" className="mb-4">{t("viewAllReviews")}</Button>
-      {roleService.getValue() === ROLE_TYPE.TOURIST && (
-        <Button>{t("toBook")}</Button>
-      )} 
+      <Button onClick={() => navigate({to: `/announcements/booking/${ad.id}`})}>{t("toBook")}</Button>
+      {/* {roleService.getValue() === ROLE_TYPE.TOURIST && (
+      )}  */}
     </div>
   );
 };

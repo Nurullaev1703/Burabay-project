@@ -57,7 +57,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
 
   return (
     <ul>
-      <li className="flex border-b border-[#999999] py-3 justify-between">
+      <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
         <div className="flex flex-col">
           <span>{formatPhoneNumber(ad.phoneNumber)}</span>
           <span className={`${COLORS_TEXT.gray100} text-sm`}>
