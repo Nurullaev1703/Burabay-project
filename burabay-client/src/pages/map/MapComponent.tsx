@@ -4,7 +4,7 @@ import 'ol/ol.css';
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Tile as TileLayer } from 'ol/layer';
-import { OSM } from 'ol/source';
+import { XYZ } from 'ol/source';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { Point } from 'ol/geom';
 import { Feature } from 'ol';
@@ -37,7 +37,14 @@ interface Props {
 
 const initialCenter = [70.310, 53.080]; // Координаты для Борового
 
+
 export const MapComponent: FC<Props> = (props) => {
+  const googleMapsApiKey = "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q"
+  const googleMapsLayer = new TileLayer({
+    source: new XYZ({
+      url: `https://mt{0-3}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=en&gl=en&key=${googleMapsApiKey}`,
+    }),
+  });
   const {t} = useTranslation()
   const navigate = useNavigate();
   const {user} = useAuth();
@@ -58,15 +65,14 @@ export const MapComponent: FC<Props> = (props) => {
     const map = new Map({
       target: 'map',
       layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
+        googleMapsLayer,
         vectorLayer,
       ],
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 14,
       }),
+      controls: []
     });
   
     map.on('click', async (e) => {
