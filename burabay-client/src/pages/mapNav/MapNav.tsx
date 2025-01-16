@@ -41,6 +41,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { MapFilter } from "../announcements/announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
+import {GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import whiteCircle from "../../app/icons/EllipseWhite.svg";
 
 const containerStyle = {
   width: "100%",
@@ -54,6 +56,9 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q", // Замените на ваш ключ API
+  });
   const { t } = useTranslation();
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
@@ -117,6 +122,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   useEffect(() => {
     setActiveCategory(filters?.categoryNames || "");
   }, []);
+
+  const center = {
+    lat: 53.08271195503471,
+    lng: 70.30456742278163,
+  };
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -258,6 +268,15 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
     window.open(url, "_blank");
   };
+  const handleMarkerClick = (announcementId: string) => {
+    const selectedAnnouncement = announcements.find(
+      (announcement) => announcement.id === announcementId
+    );
+    if (selectedAnnouncement) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+    }
+  };
   console.log(announcementInfo);
   const { start, end } = getCurrentDaySchedule(announcementInfo);
   // Получаем текущую дату и время
@@ -294,13 +313,89 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
         </div>
       </Header>
 
-      <div
-        id="map"
-        style={{
-          ...containerStyle,
-          transition: "opacity 0.3s ease-in-out",
-        }}
-      ></div>
+      {isLoaded ? (
+        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15} options={{
+          mapTypeControl: false, fullscreenControl: false, zoomControl: false, streetViewControl: false,
+        }}>
+          {announcements.map((announcement) => {
+            if (
+              !announcement.address ||
+              !announcement.address.latitude ||
+              !announcement.address.longitude
+            ) {
+              return null;
+            }
+
+            const subcategoryImgPath = loadImage(
+              announcement.subcategory?.category?.imgPath
+            );
+
+            const categoryName = announcement.subcategory?.category?.name;
+            const categoryColor = categoryColors[categoryName];
+
+            const svgLocationWithColor = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+      <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
+      <circle cx="21" cy="17.5" r="7" fill="white"/>
+    </svg>`)}`;
+
+            return (
+              <>
+                <Marker
+                  key={`${announcement.id}-${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: svgLocationWithColor,
+                    scaledSize: new google.maps.Size(40, 40),
+                    fillColor: categoryColor,
+                  }}
+                  zIndex={1}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+                <Marker
+                  key={`${announcement.id}- ${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: subcategoryImgPath,
+                    scaledSize: new google.maps.Size(16, 16),
+                    anchor: new google.maps.Point(8, 32),
+                    fillColor: "white",
+                    strokeColor: "white",
+                  }}
+                  zIndex={2}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+                <Marker
+                  key={`${announcement.id}- ${Date.now()}`}
+                  position={{
+                    lat: announcement.address.longitude,
+                    lng: announcement.address.latitude,
+                  }}
+                  icon={{
+                    url: whiteCircle,
+                    scaledSize: new google.maps.Size(24, 24),
+                    anchor: new google.maps.Point(12, 36),
+                  }}
+                  zIndex={1}
+                  onClick={() => handleMarkerClick(announcement.id)}
+                />
+              </>
+            );
+          })}
+        </GoogleMap>
+      ) : (
+        <div>
+          <Typography size={16} weight={600}>
+            {"Загрузка"}
+          </Typography>
+        </div>
+      )}
 
       <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
         {categories.map((item) => {
@@ -335,7 +430,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
               >
                 <img
                   src={baseUrl + item.imgPath}
-                  className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                  className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-200 z-[0]"
                 />
               </div>
               <Typography

@@ -1,6 +1,6 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Ad } from 'src/ad/entities/ad.entity';
-import { User } from 'src/users/entities/user.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Ad } from '../../ad/entities/ad.entity';
+import { User } from '../../users/entities/user.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()

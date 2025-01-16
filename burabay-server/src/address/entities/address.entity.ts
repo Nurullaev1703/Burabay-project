@@ -1,6 +1,6 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Ad } from 'src/ad/entities/ad.entity';
-import { Organization } from 'src/users/entities/organization.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Ad } from '../../ad/entities/ad.entity';
+import { Organization } from '../../users/entities/organization.entity';
 import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()

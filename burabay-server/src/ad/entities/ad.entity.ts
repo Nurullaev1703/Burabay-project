@@ -1,6 +1,6 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
-import { Organization } from 'src/users/entities/organization.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Subcategory } from '../../subcategory/entities/subcategory.entity';
+import { Organization } from '../../users/entities/organization.entity';
 import {
   Column,
   CreateDateColumn,
@@ -12,12 +12,12 @@ import {
   OneToOne,
 } from 'typeorm';
 import { AdDetailsType } from '../types/ad.details.type';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { Break } from 'src/breaks/entities/break.entity';
-import { Address } from 'src/address/entities/address.entity';
-import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
-import { User } from 'src/users/entities/user.entity';
-import { Review } from 'src/review/entities/review.entity';
+import { Schedule } from '../../schedule/entities/schedule.entity';
+import { Break } from '../../breaks/entities/break.entity';
+import { Address } from '../../address/entities/address.entity';
+import { BookingBanDate } from '../../booking-ban-date/entities/booking-ban-date.entity';
+import { User } from '../../users/entities/user.entity';
+import { Review } from '../../review/entities/review.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
