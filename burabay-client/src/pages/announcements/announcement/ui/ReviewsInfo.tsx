@@ -132,7 +132,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       </ul>
 
       <Button mode="transparent" className="mb-4">{t("viewAllReviews")}</Button>
-      <Button onClick={() => navigate({to: `/announcements/booking/${ad.id}`})}>{t("toBook")}</Button>
+      <Button onClick={() => navigate({to: `/announcements/booking-time/${ad.id}`})}>{t("toBook")}</Button>
       {/* {roleService.getValue() === ROLE_TYPE.TOURIST && (
       )}  */}
     </div>
