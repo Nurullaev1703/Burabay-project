@@ -12,7 +12,7 @@ import {
   RentDetails,
   SecurityDetails,
 } from 'src/ad/types/ad.details.type';
-import { Category } from 'src/category/entities/category.entity';
+import { Category } from '../category/entities/category.entity';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -158,7 +158,6 @@ export class SeederService {
     //   } else {
     //     org = await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } });
     //   }
-
     //   const subcategories = [
     //     'Туристические тропы',
     //     'Грибные места',
@@ -170,7 +169,6 @@ export class SeederService {
     //     'Рестораны',
     //     'Столовые',
     //   ];
-
     //   for (let i = 0; i < 9; i++) {
     //     const subcategory = await this.subcategoryRepository.findOne({
     //       where: { name: subcategories[i] },
