@@ -37,7 +37,7 @@ import { Organization } from 'src/users/entities/organization.entity';
           User,
           Organization,
         ],
-        synchronize: false,
+        synchronize: true,
         migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
         seeds: [__dirname + '/seeds/**/*{.ts,.js}'],
         factories: [__dirname + '/factories/**/*{.ts,.js}'],

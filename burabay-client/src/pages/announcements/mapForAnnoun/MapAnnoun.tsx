@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { Map, View } from "ol";
 import "ol/ol.css";
 import { Tile as TileLayer } from "ol/layer";
@@ -233,7 +233,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     lat: 53.08271195503471,
     lng: 70.30456742278163,
   };
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
+    setSelectedMarker(announcementId);
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === announcementId
     );
@@ -242,7 +244,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       setShowAnnouncementModal(true);
     }
   };
-
   // Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
   let closingTime = new Date();
   closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
@@ -275,6 +276,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
           mapTypeControl: false, fullscreenControl: false, zoomControl: false, streetViewControl: false,
         }}>
           {announcements.map((announcement) => {
+            const isSelected = selectedMarker === announcement.id;
             if (
               !announcement.address ||
               !announcement.address.latitude ||
@@ -297,31 +299,31 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     </svg>`)}`;
 
             return (
-              <>
+              <React.Fragment key={announcement.id}>
                 <Marker
-                  key={`${announcement.id}-${Date.now()}`}
+                  key={`${announcement.id}-svg`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: svgLocationWithColor,
-                    scaledSize: new google.maps.Size(40, 40),
+                    scaledSize: new google.maps.Size(isSelected ? 50: 40, isSelected ? 50: 40),
                     fillColor: categoryColor,
                   }}
                   zIndex={1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
-                  key={`${announcement.id}- ${Date.now()}`}
+                  key={`${announcement.id}-subcategory`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: subcategoryImgPath,
-                    scaledSize: new google.maps.Size(18, 18),
-                    anchor: new google.maps.Point(9, 33),
+                    scaledSize: new google.maps.Size(isSelected ? 18: 16, isSelected ? 18: 16),
+                    anchor: new google.maps.Point(isSelected ? 9: 8, isSelected ? 38: 32),
                     fillColor: "white",
                     strokeColor: "white",
                   }}
@@ -329,20 +331,20 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
-                  key={`${announcement.id}- ${Date.now()}`}
+                  key={`${announcement.id}-whiteCircle`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: whiteCircle,
-                    scaledSize: new google.maps.Size(24, 24),
-                    anchor: new google.maps.Point(12, 36),
+                    scaledSize: new google.maps.Size(isSelected ? 26: 24, isSelected ? 26: 24),
+                    anchor: new google.maps.Point(isSelected ? 13: 12, isSelected ? 42: 36),
                   }}
                   zIndex={1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
-              </>
+              </React.Fragment>
             );
           })}
         </GoogleMap>
@@ -356,119 +358,124 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
         <div
-          key={announcementInfo.id}
-          className="fixed bottom-0 left-0 flex w-full z-[9999]"
-        >
-          <div className="bg-white p-4 w-full rounded-lg shadow-lg">
+        key={announcementInfo.id}
+        className="fixed bottom-0 left-0 flex w-full z-[9999]"
+      >
+        <div className="bg-white p-4 w-full justify-center rounded-lg shadow-lg">
+
+          <div className="">
+            <div className="grid justify-center flex-col gap-4">
+              <div className="flex flex-col">
             <Typography size={18} weight={500}>
-              {announcementInfo.title}
+            {announcementInfo.title}
+          </Typography>
+          {announcementInfo.duration ? (
+            <Typography className="mb-4">
+              {`${t("DurationOfService")} - ${announcementInfo.duration}`}
             </Typography>
-            {announcementInfo.duration ? (
-              <Typography className="mb-4">
-                {`${t("DurationOfService")} - ${announcementInfo.duration}`}
-              </Typography>
-            ) : (
-              <Typography className="mb-2">{t("allDay")}</Typography>
-            )}
-            <div className="">
-              <div className="flex gap-4">
-                <CoveredImage
-                  errorImage={defaultAnnoun}
-                  width="w-40"
-                  height="h-40"
-                  imageSrc={announcementInfo.images[0]}
-                >
-                  <div className="flex items-center">
-                    <div
-                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
-                    >
-                      <img
-                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
-                        src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
-                      />
-                    </div>
-                  </div>
-                </CoveredImage>
-                <div>
-                  <div className="flex flex-row justify-between">
-                    <Typography
-                      size={28}
-                      weight={700}
-                      color={COLORS_TEXT.blue200}
-                    >
-                      {announcementInfo.price && announcementInfo.price > 0
-                        ? `${announcementInfo.price} ₸`
-                        : t("free")}
-                    </Typography>
-                    <img src={flag} alt="" />
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <img src={star} alt="" />
-                    <Typography size={16} weight={400}>
-                      {announcementInfo.avgRating}
-                    </Typography>
-                    <img src={ellipse} alt="" />
-                    <Typography
-                      weight={400}
-                      size={16}
-                      color={COLORS_TEXT.gray100}
-                      className=""
-                    >
-                      {`${announcementInfo.reviewCount} ${t("grades")}`}
-                    </Typography>
-                  </div>
-                  {announcementInfo?.schedule && start && end && (
-                    <Typography size={14} weight={400}>
-                      {`${t("todayWith")} ${start} ${t("to")} ${end}`}
-                    </Typography>
-                  )}
-                  {announcementInfo?.schedule && (
-                    <Typography
-                      size={14}
-                      weight={400}
-                      color={COLORS_TEXT.gray100}
-                    >
-                      {isClosed ? t("closed") : t("open")}
-                    </Typography>
-                  )}
-                  <Button
-                    onClick={() =>
-                      openGoogleMaps(
-                        announcementInfo?.address.longitude,
-                        announcementInfo?.address.latitude
-                      )
-                    }
-                    mode="transparent"
-                  >
-                    {`${t("BuildTheRoad")}`}
-                  </Button>
-                </div>
-              </div>
-              <Button
-                onClick={() => {
-                  navigate({
-                    to: "/announcements/$announcementId",
-                    params: {
-                      announcementId: announcementInfo.id,
-                    },
-                  });
-                }}
-                mode="default"
-                className="mt-4"
-              >
-                {`${t("MoreDetails")}`}
-              </Button>
-            </div>
-            <button
-              onClick={handleCloseModal}
-              className=" absolute  top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
-            >
-              <IconContainer align="center">
-                <img src={cancelBlack} className="z-10" alt="" />
-              </IconContainer>
-            </button>
+          ) : (
+            <Typography className="mb-2">{t("allDay")}</Typography>
+          )}
           </div>
+          <div className="flex flex-row gap-4">
+              <CoveredImage
+                errorImage={defaultAnnoun}
+                width="w-40"
+                height="h-40"
+                imageSrc={announcementInfo.images[0]}
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
+                  >
+                    <img
+                      className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                      src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
+                    />
+                  </div>
+                </div>
+              </CoveredImage>
+              <div>
+                <div className="flex flex-row justify-between">
+                <Typography
+                  size={28}
+                  weight={700}
+                  color={COLORS_TEXT.blue200}
+                >
+                  {announcementInfo.price && announcementInfo.price > 0 
+                    ? `${announcementInfo.price} ₸` 
+                    : t("free")}
+                </Typography>
+                  <img src={flag} alt="" />
+                </div>
+                <div className="flex flex-row gap-2">
+                  <img src={star} alt="" />
+                  <Typography size={16} weight={400}>
+                    {announcementInfo.avgRating}
+                  </Typography>
+                  <img src={ellipse} alt="" />
+                  <Typography
+                    weight={400}
+                    size={16}
+                    color={COLORS_TEXT.gray100}
+                    className=""
+                  >
+                    {`${announcementInfo.reviewCount} ${t("grades")}`}
+                  </Typography>
+                </div>
+                {announcementInfo?.schedule && start && end && (
+                  <Typography size={14} weight={400}>
+                    {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                  </Typography>
+                )}
+                {announcementInfo?.schedule &&(
+                  <Typography
+                    size={14}
+                    weight={400}
+                    color={COLORS_TEXT.gray100}
+                  >
+                    {isClosed ? t("closed") : t("open")}
+                  </Typography>
+                )}
+                <Button
+                  onClick={() =>
+                    openGoogleMaps(
+                      announcementInfo?.address.longitude,
+                      announcementInfo?.address.latitude
+                    )
+                  }
+                  mode="transparent"
+                >
+                  {`${t("BuildTheRoad")}`}
+                </Button>
+              </div>
+              </div>
+            </div>
+            <Button
+              onClick={() => {
+                navigate({
+                  to: "/announcements/$announcementId",
+                  params: {
+                    announcementId: announcementInfo.id,
+                  },
+                });
+              }}
+              mode="default"
+              className="mt-4"
+            >
+              {`${t("MoreDetails")}`}
+            </Button>
+          </div>
+          <button
+            onClick={handleCloseModal}
+            className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
+          >
+            <IconContainer align="center">
+              <img src={cancelBlack} className="z-10" alt="" />
+            </IconContainer>
+          </button>
         </div>
+      </div> 
       )}
       <div className="fixed left-0 bottom-2 px-2 w-full z-10">
         <Button onClick={() => history.back()} mode="default">

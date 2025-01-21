@@ -2,9 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { UseGetAnnouncement } from '../../../pages/announcements/announcement/announcement-util'
 import { UseGetServiceSchedule } from '../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util'
 import { Loader } from '../../../components/Loader'
-import { Booking } from '../../../pages/announcements/booking/Booking'
+import { BookingTime } from '../../../pages/announcements/booking-time/BookingTime'
 
-export const Route = createFileRoute('/announcements/booking/$announcementId')({
+export const Route = createFileRoute(
+  '/announcements/booking-time/$announcementId',
+)({
   component: RouteComponent,
 })
 
@@ -18,7 +20,7 @@ function RouteComponent() {
   }
   if (data && announcementData) {
     return (
-      <Booking serviceSchedule={data} announcement={announcementData} />
+      <BookingTime serviceSchedule={data} announcement={announcementData} />
     )
   }
 }

@@ -1,68 +1,81 @@
 import { FC, useState } from "react";
-import { Announcement, Booking as BookingType } from "../model/announcements";
+import { useTranslation } from "react-i18next";
+import { BookingState } from "../booking-time/BookingTime";
+import { useLocation } from "@tanstack/react-router";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
-import {
-  COLORS_BACKGROUND,
-  COLORS_BORDER,
-  COLORS_TEXT,
-} from "../../../shared/ui/colors";
-import { useTranslation } from "react-i18next";
+import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../shared/ui/colors";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import "dayjs/locale/ru";
-import { baseUrl } from "../../../services/api/ServerData";
+import { baseUrl, HTTP_STATUS } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
+import { DefaultForm } from "../../auth/ui/DefaultForm";
+import { Controller, useForm } from "react-hook-form";
+import { useAuth } from "../../../features/auth";
+import { Radio, Switch, TextField } from "@mui/material";
+import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
-import { useNavigate } from "@tanstack/react-router";
+import { apiService } from "../../../services/api/ApiService";
 
-interface Props {
-  announcement: Announcement;
-  serviceSchedule: BookingType[];
+type PaymentType = "online" | "cash";
+
+interface FormType {
+  name: string;
+  phoneNumber: string;
+  date: string;
+  time: string;
+  isChildRate: boolean;
+  paymentType: PaymentType;
 }
 
-export const Booking: FC<Props> = function Booking({
-  serviceSchedule,
-  announcement,
-}) {
+export const Booking: FC = function Booking() {
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { time, date, announcement } = location.state as BookingState;
   const { t } = useTranslation();
-  const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
-    []
-  );
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const navigate = useNavigate();
-
-  // Установка времени с учетом заблокированных
-  const handleDateChange = (date: any) => {
-    setSelectedTime("");
-    const selectedDate = date?.format("DD.MM.YYYY");
-    const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === selectedDate
-    );
-
-    const availableTimes = announcement.startTime || []; // Общие временные интервалы
-    if (matchingDate) {
-      const blockedTimes = matchingDate.times; // Временные интервалы, которые заблокированы
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: blockedTimes.includes(time),
-      }));
-      setTimes(combinedTimes);
-    } else {
-      // Если даты нет в расписании, все времена доступны
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: false,
-      }));
-      setTimes(combinedTimes);
-    }
+  const { user } = useAuth();
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
   };
+  const mask = useMask({
+    mask: "+7 ___ ___-__-__",
+    replacement: { _: /\d/ },
+    showMask: true,
+  });
+  const { handleSubmit, watch, control, setValue } = useForm<FormType>({
+    defaultValues: {
+      name: user?.fullName || "Безымянный",
+      phoneNumber: user?.phoneNumber || "",
+      date: date,
+      time: time,
+      isChildRate: false,
+      paymentType: "online",
+    },
+    mode: "onChange",
+  });
 
-  const saveTime = async (time: string) => {
-    console.log(time);
+  const paymentType = watch("paymentType");
+  const isChildRate = watch("isChildRate");
+
+  const saveBooking = async (form: FormType) => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.post<string>({
+        url: "/booking",
+        dto: form,
+      });
+
+      if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
+        console.log(true);
+      } else {
+        console.error(response.data);
+      }
+      setIsLoading(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,7 +92,7 @@ export const Booking: FC<Props> = function Booking({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("serviceSchedule")}
+              {t("booking")}
             </Typography>
           </div>
           <IconContainer
@@ -117,73 +130,221 @@ export const Booking: FC<Props> = function Booking({
         </div>
       </div>
 
-      <div className="mb-4 border-y border-[#E4E9EA] mx-4">
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-          <DateCalendar
-            showDaysOutsideCurrentMonth
-            onChange={handleDateChange}
-            sx={{
-              "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
-                {
-                  padding: "0px !important",
-                },
-              "& .css-1e9nyoq-MuiPickersCalendarHeader-labelContainer": {
-                marginLeft: "20% !important",
+      <ul className="px-4 mb-4">
+        <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+          <span className={`${COLORS_TEXT.blue200} text-sm`}>
+            {t("bookingDate")}
+          </span>
+          <span>{date}</span>
+        </li>
+        <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+          <span className={`${COLORS_TEXT.blue200} text-sm`}>
+            {t("bookingTime")}
+          </span>
+          <span>{time}</span>
+        </li>
+      </ul>
+
+      <div className="px-4 mb-4">
+        <h2 className="text-lg font-medium mb-2">{t("yourData")}</h2>
+        <DefaultForm id="paymentForm" onSubmit={handleSubmit(saveBooking)}>
+          <Controller
+            name="name"
+            control={control}
+            rules={{
+              required: t("requiredField"),
+              maxLength: {
+                value: 40,
+                message: t("maxLengthExceeded", { count: 40 }),
               },
-              "& .css-1chuxo2-MuiPickersCalendarHeader-label": {
-                color: "#999999",
-              },
-              "& .css-1nxbkmn-MuiPickersCalendarHeader-root": {
-                flexDirection: "row-reverse !important",
-                position: "relative",
-              },
-              "& .css-17nrfho-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button":
-                {
-                  position: "absolute",
-                  right: "25px",
-                  padding: "0px",
-                },
-              "& .css-iupya1-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-              "& .css-1rf3jwr-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
             }}
+            render={({ field, fieldState: { error } }) => (
+              <div className="relative w-full">
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
+                  label={t("name")}
+                  fullWidth={true}
+                  variant="outlined"
+                />
+                <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                  {field.value?.length || 0}/40
+                </span>
+              </div>
+            )}
           />
-        </LocalizationProvider>
+
+          <Controller
+            name="phoneNumber"
+            control={control}
+            rules={{
+              required: t("requiredField"),
+              validate: (value: string) => {
+                const phoneRegex = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
+                return phoneRegex.test(value) || t("invalidNumber");
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                error={Boolean(error?.message)}
+                helperText={error?.message}
+                fullWidth
+                type="tel"
+                inputMode="tel"
+                label={t("phoneV2")}
+                variant="outlined"
+                inputRef={mask}
+                placeholder="+7 700 000-00-00"
+              />
+            )}
+          />
+        </DefaultForm>
       </div>
 
-      <div className="px-4">
-        <h2 className="mb-4">{t("serviceDuration")}</h2>
-        <ul className="flex flex-wrap gap-2">
-          {times.map(({ time, isBlocked }, index) => (
-            <li
-              key={index}
-              className={`border-2 rounded-3xl w-28 h-12 flex items-center justify-center 
-             ${
-               isBlocked
-                 ? "border-gray-400 text-gray-400 cursor-not-allowed"
-                 : `${COLORS_BORDER.blue200} bg-white cursor-pointer`
-             } 
-              ${selectedTime === time && !isBlocked ? "bg-sky-600 !important text-white" : ""}`}
-              onClick={() => !isBlocked && setSelectedTime(time)}
-            >
-              <span>{time}</span>
-            </li>
-          ))}
+      <div className="px-4 mb-4">
+        <h2 className="font-medium text-lg mb-2">{t("costOneService")}</h2>
+        <ul className="flex mb-4">
+          <li className="flex flex-col w-44">
+            <span className={`text-[#155A77] font-medium text-lg`}>
+              {formatPrice(announcement.price)}
+            </span>
+            <span className={`${COLORS_TEXT.gray100} text-sm`}>
+              {t("forAdults")}
+            </span>
+          </li>
+          <li className="flex flex-col w-44">
+            <span className={`text-[#155A77] font-medium text-lg`}>
+              {formatPrice(announcement.priceForChild)}
+            </span>
+            <span className={`${COLORS_TEXT.gray100} text-sm`}>
+              {t("paymentForKids")}
+            </span>
+          </li>
         </ul>
       </div>
 
-      <Button
-        onClick={() => saveTime(selectedTime)}
-        className="fixed bottom-4 left-3 w-header mt-8 z-10"
-        disabled={!selectedTime}
+      <p
+        className={`${COLORS_BACKGROUND.almostWhite} mx-4 p-4 leading-5 rounded-lg mb-4`}
       >
-        {t("toBook")}
-      </Button>
+        {t("bookingAttention")}
+      </p>
+
+      <ul className="px-4 mb-4">
+        <li className="mb-4">
+          <span>
+            {t("adults") +
+              " — " +
+              (announcement.adultsNumber
+                ? announcement.adultsNumber
+                : "без ограничений")}
+          </span>
+          <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
+            {t("maxAdults")}
+          </p>
+        </li>
+        <li className="mb-4">
+          <span>
+            {t("kids") +
+              " — " +
+              (announcement.kidsNumber
+                ? announcement.kidsNumber
+                : "без ограничений")}
+          </span>
+          <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
+            {t("maxKids")}
+          </p>
+        </li>
+      </ul>
+
+      <div className="px-4 mb-4">
+        <Controller
+          name={"isChildRate"}
+          control={control}
+          render={() => (
+            <div className="flex justify-between items-center">
+              <div>
+                <span>{t("childRate")}</span>
+                <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                  {t("ifChildRate")}
+                </p>
+              </div>
+              <Switch
+                checked={isChildRate}
+                onChange={() => setValue("isChildRate", !isChildRate)}
+              />
+            </div>
+          )}
+        />
+      </div>
+
+      <div className="px-4 flex flex-col">
+        <span className="text-[22px] font-medium mb-2">{t("total")}</span>
+        <span className={`font-bold ${COLORS_TEXT.blue200} text-[28px]`}>
+          {isChildRate
+            ? formatPrice(announcement.priceForChild)
+            : formatPrice(announcement.price)}
+        </span>
+      </div>
+
+      <div className="p-4">
+        <div className="flex justify-between items-center">
+          <div className={`w-28 ${COLORS_BACKGROUND.gray100} h-0.5`}></div>
+          <span className={`${COLORS_TEXT.gray100}`}>{t("paymentMethod")}</span>
+          <div className={`w-28 ${COLORS_BACKGROUND.gray100} h-0.5`}></div>
+        </div>
+      </div>
+
+      <div className="px-4 mb-4">
+        <Controller
+          name={"paymentType"}
+          control={control}
+          render={() => (
+            <div className="flex justify-between items-center py-3">
+              <div>
+                <span>{t("onlinePayment")}</span>
+                <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                  {t("onlinePaymentDescription")}
+                </p>
+              </div>
+              <Radio
+                checked={paymentType === "online"}
+                onChange={() => setValue("paymentType", "online")}
+              />
+            </div>
+          )}
+        />
+        <Controller
+          name={"paymentType"}
+          control={control}
+          render={() => (
+            <div className="flex justify-between items-center py-3">
+              <div>
+                <span>{t("payOnPlace")}</span>
+                <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                  {t("payOnPlaceOrOnline")}
+                </p>
+              </div>
+              <Radio
+                checked={paymentType === "cash"}
+                onChange={() => setValue("paymentType", "cash")}
+              />
+            </div>
+          )}
+        />
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          className="w-header z-10"
+          type="submit"
+          onClick={() => handleSubmit(saveBooking)()}
+          loading={isLoading}
+        >
+          {t("pay")}
+        </Button>
+      </div>
     </section>
   );
 };
