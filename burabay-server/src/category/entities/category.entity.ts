@@ -1,5 +1,5 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Subcategory } from '../../subcategory/entities/subcategory.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity()

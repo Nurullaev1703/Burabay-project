@@ -1,7 +1,7 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Ad } from 'src/ad/entities/ad.entity';
-import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Ad } from '../../ad/entities/ad.entity';
+import { User } from '../../users/entities/user.entity';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 export class Review extends AbstractEntity<Review> {
@@ -21,4 +21,7 @@ export class Review extends AbstractEntity<Review> {
 
   @Column()
   stars: number;
+
+  @CreateDateColumn()
+  date: Date;
 }

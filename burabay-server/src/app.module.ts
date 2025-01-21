@@ -23,6 +23,7 @@ import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ReviewModule } from './review/review.module';
 import { AdminPanelModule } from './admin-panel/admin-panel.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { AdminPanelModule } from './admin-panel/admin-panel.module';
     FeedbackModule,
     ReviewModule,
     AdminPanelModule,
+    BookingModule,
   ],
   controllers: [],
   providers: [

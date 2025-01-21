@@ -1,3 +1,5 @@
+import { Profile } from "../../profile/model/profile";
+
 export interface Category {
   id: string;
   name: string;
@@ -140,4 +142,13 @@ export interface Booking {
   date: string;
   allDay: boolean;
   times: string[];
+}
+
+export interface Review {
+  id: string;
+  images: string[];
+  text: string;
+  stars: number;
+  date: Date;
+  user: Profile;
 }

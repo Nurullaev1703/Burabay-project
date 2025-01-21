@@ -1,16 +1,12 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateReviewDto {
-  @IsNotEmpty()
-  @IsString()
-  userId: string;
-
   @IsNotEmpty()
   @IsString()
   adId: string;
 
   @IsOptional()
-  @IsString()
+  @IsArray()
   images: string[];
 
   @IsNotEmpty()

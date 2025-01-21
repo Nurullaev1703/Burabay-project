@@ -1,15 +1,21 @@
 import { FC, useEffect, useState } from "react";
-import { Announcement as AnnouncementType } from "../model/announcements";
+import { Announcement as AnnouncementType, Review } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
-import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
+import {
+  categoryBgColors,
+  COLORS_BACKGROUND,
+  COLORS_TEXT,
+} from "../../../shared/ui/colors";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
 // import EditIcon from "../../../app/icons/edit.svg";
 import DeleteIcon from "../../../app/icons/delete.svg";
+import StarIcon from "../../../app/icons/announcements/star.svg";
+import FavouriteFocusedIcon from "../../../app/icons/announcements/favourite-focus.svg";
 import { AnnouncementInfoList } from "./ui/AnnouncementInfoList";
 import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
@@ -17,12 +23,16 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { ModalDelete } from "./ui/ModalDelete";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { ReviewsInfo } from "./ui/ReviewsInfo";
+import { Link } from "@tanstack/react-router";
+
 
 interface Props {
   announcement: AnnouncementType;
+  review?: Review[];
 }
 
-export const Announcement: FC<Props> = function Announcement({ announcement }) {
+export const Announcement: FC<Props> = function Announcement({ announcement, review }) {
   const { t } = useTranslation();
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
@@ -58,7 +68,6 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
           </div>
           {roleService.getValue() == ROLE_TYPE.BUSINESS ? (
             <IconContainer align="end" action={() => setShowModal(true)}>
-              {/* <img src={EditIcon} alt="" /> */}
               <img src={DeleteIcon} alt="" />
             </IconContainer>
           ) : (
@@ -84,14 +93,21 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
             height="h-full"
           />
         </div>
-        <h1 className="font-medium text-[28px] uppercase text-blue200">
-          {announcement.price || announcement.priceForChild
-            ? formatPrice(announcement.price || announcement.priceForChild)
-            : t("free")}
-        </h1>
+        <div className="flex items-center justify-between mt-4 mb-2">
+          <h1 className="font-medium text-[28px] uppercase text-blue200">
+            {announcement.price || announcement.priceForChild
+              ? formatPrice(announcement.price || announcement.priceForChild)
+              : t("free")}
+          </h1>
+          {roleService.getValue() === ROLE_TYPE.TOURIST && (
+            <Link>
+              <img src={FavouriteFocusedIcon} alt="Избранное" />
+            </Link>
+          )}
+        </div>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-between mb-4 items-center">
           <span className="text-sm">
             {t("duration") +
               " — " +
@@ -99,20 +115,43 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
                 ? announcement.duration
                 : t("notSpecified"))}
           </span>
-          <div className="flex">
-            <div className="flex mr-4 items-center">
-              <span className="mr-1 text-sm">
-                {announcement.views ? announcement.views : 0}
-              </span>
-              <img src={EyeIcon} className="w-[18px]" />
+
+          {/* Для организации блок */}
+          {roleService.getValue() === ROLE_TYPE.BUSINESS && (
+            <div className="flex">
+              <div className="flex mr-4 items-center">
+                <span className="mr-1 text-sm">
+                  {announcement.views ? announcement.views : 0}
+                </span>
+                <img src={EyeIcon} className="w-[18px]" />
+              </div>
+              <div className="flex items-center">
+                <span className="mr-1 text-sm">
+                  {announcement.favCount ? announcement.favCount : 0}
+                </span>
+                <img src={FavouriteIcon} className="w-[14px]" />
+              </div>
             </div>
+          )}
+
+          {/* Для туриста блок */}
+          {roleService.getValue() === ROLE_TYPE.TOURIST && (
             <div className="flex items-center">
-              <span className="mr-1 text-sm">
-                {announcement.favCount ? announcement.favCount : 0}
+              <div className="flex items-center mr-2">
+                <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
+                <span className="mr-1">
+                  {announcement.avgRating ? announcement.avgRating : 0}
+                </span>
+              </div>
+              <div
+                className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
+              ></div>
+              <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
+                {announcement.reviewCount ? announcement.reviewCount : 0}{" "}
+                {t("grades")}
               </span>
-              <img src={FavouriteIcon} className="w-[14px]" />
             </div>
-          </div>
+          )}
         </div>
 
         <p className="mb-4 leading-5">{announcement.description}</p>
@@ -120,6 +159,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement }) {
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
+      <ReviewsInfo ad={announcement} review={review}/>
       {showModal && (
         <ModalDelete
           open={showModal}
