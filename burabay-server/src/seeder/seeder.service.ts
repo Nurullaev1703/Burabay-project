@@ -158,7 +158,6 @@ export class SeederService {
     //   } else {
     //     org = await this.orgRepository.findOne({ where: { name: 'Тестовая организация' } });
     //   }
-
     //   const subcategories = [
     //     'Туристические тропы',
     //     'Грибные места',
@@ -170,7 +169,6 @@ export class SeederService {
     //     'Рестораны',
     //     'Столовые',
     //   ];
-
     //   for (let i = 0; i < 9; i++) {
     //     const subcategory = await this.subcategoryRepository.findOne({
     //       where: { name: subcategories[i] },
