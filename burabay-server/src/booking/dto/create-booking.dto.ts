@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PaymentType } from '../types/payment.type';
 
 export class CreateBookingDto {
@@ -15,7 +15,7 @@ export class CreateBookingDto {
   date: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   time: string;
 
   @IsBoolean()

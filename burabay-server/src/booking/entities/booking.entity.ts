@@ -17,7 +17,7 @@ export class Booking extends AbstractEntity<Booking> {
   @Column()
   date: string;
 
-  @Column()
+  @Column({ nullable: true })
   time: string;
 
   @Column({ name: 'is_child_rate' })
