@@ -224,7 +224,18 @@ export class AdService {
       },
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
-    await this.entityManager.remove(ad);
+    await this.scheduleRepository.delete({ id: ad.schedule.id });
+    await this.bookingBanDateRepository.delete({
+      ad: {
+        id: ad.id,
+      },
+    });
+    await this.breakRepository.delete({
+      ad: {
+        id: ad.id,
+      },
+    });
+    await this.adRepository.delete(id);
     return JSON.stringify(HttpStatus.OK);
   }
 
