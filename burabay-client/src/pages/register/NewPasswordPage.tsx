@@ -45,7 +45,7 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
     mode: "onChange",
   });
   return (
-    <div className="bg-almostWhite h-screen">
+    <div className="bg-almostWhite min-h-screen">
       <AlternativeHeader>
         <div className="flex justify-between items-center mb-2">
           <IconContainer align="start" action={() => history.back()}>
@@ -61,7 +61,7 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
           color={COLORS_TEXT.white}
           size={18}
           weight={500}
-          className="w-1/2 mx-auto leading-none"
+          className="w-3/5 mx-auto leading-none"
         >
           {t("createPassword")}
         </Typography>

@@ -131,8 +131,18 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
         ))}
       </ul>
 
-      <Button mode="transparent" className="mb-4">{t("viewAllReviews")}</Button>
-      <Button onClick={() => navigate({to: `/announcements/booking-time/${ad.id}`})}>{t("toBook")}</Button>
+      <Button mode="transparent" className="mb-4">
+        {t("viewAllReviews")}
+      </Button>
+      <Button
+        onClick={() =>
+          ad.subcategory.category.name === "Жилье"
+            ? navigate({ to: `/announcements/booking-date/${ad.id}` })
+            : navigate({ to: `/announcements/booking-time/${ad.id}` })
+        }
+      >
+        {t("toBook")}
+      </Button>
       {/* {roleService.getValue() === ROLE_TYPE.TOURIST && (
       )}  */}
     </div>

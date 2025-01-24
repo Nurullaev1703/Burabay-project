@@ -15,7 +15,7 @@ export const PolitikHelp: FC<Props> = function PolitikHelp() {
   const {t} = useTranslation()
   return (
     <main>
-    <AlternativeHeader>
+    <AlternativeHeader isMini>
     <div className="flex justify-between items-center">
       <IconContainer align="start" action={() => history.back()}>
         <img src={BackIcon} alt="" />

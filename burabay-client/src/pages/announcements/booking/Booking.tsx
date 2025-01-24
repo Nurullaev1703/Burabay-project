@@ -22,16 +22,19 @@ type PaymentType = "online" | "cash";
 interface FormType {
   name: string;
   phoneNumber: string;
-  date: string;
-  time: string;
+  date?: string | null;
+  time?: string | null;
   isChildRate: boolean;
   paymentType: PaymentType;
+  dateStart?: string | null;
+  dateEnd?: string | null;
 }
 
 export const Booking: FC = function Booking() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { time, date, announcement } = location.state as BookingState;
+  const { time, date, announcement, dateStart, dateEnd } =
+    location.state as BookingState;
   const { t } = useTranslation();
   const { user } = useAuth();
   const formatPrice = (value: number) => {
@@ -47,9 +50,11 @@ export const Booking: FC = function Booking() {
       name: user?.fullName || "Безымянный",
       phoneNumber: user?.phoneNumber || "",
       date: date,
-      time: time,
+      time: time || null,
       isChildRate: false,
       paymentType: "online",
+      dateStart: dateStart || null,
+      dateEnd: dateEnd || null,
     },
     mode: "onChange",
   });
@@ -131,18 +136,69 @@ export const Booking: FC = function Booking() {
       </div>
 
       <ul className="px-4 mb-4">
-        <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
-          <span className={`${COLORS_TEXT.blue200} text-sm`}>
-            {t("bookingDate")}
-          </span>
-          <span>{date}</span>
-        </li>
-        <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
-          <span className={`${COLORS_TEXT.blue200} text-sm`}>
-            {t("bookingTime")}
-          </span>
-          <span>{time}</span>
-        </li>
+        {date && (
+          <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+            <span className={`${COLORS_TEXT.blue200} text-sm`}>
+              {t("bookingDate")}
+            </span>
+            <span>{date}</span>
+          </li>
+        )}
+        {time && (
+          <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+            <span className={`${COLORS_TEXT.blue200} text-sm`}>
+              {t("bookingTime")}
+            </span>
+            <span>{time}</span>
+          </li>
+        )}
+        {dateStart && (
+          <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+            <span className={`${COLORS_TEXT.blue200} text-sm`}>
+              {t("CheckInDate")}
+            </span>
+            <span>{dateStart}</span>
+          </li>
+        )}
+        {dateEnd && (
+          <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+            <span className={`${COLORS_TEXT.blue200} text-sm`}>
+              {t("DepartureDate")}
+            </span>
+            <span>{dateEnd}</span>
+          </li>
+        )}
+        {dateEnd && dateStart && (
+          <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
+            <span className={`${COLORS_TEXT.blue200} text-sm`}>
+              {t("totalDuration")}
+            </span>
+            <span>
+              {(() => {
+                const parseDate = (dateString: string) => {
+                  const [day, month, year] = dateString.split(".").map(Number);
+                  return new Date(year, month - 1, day);
+                };
+                const getDaySuffix = (days: number) => {
+                  if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "дня"
+                  if (
+                    [2, 3, 4].includes(days % 10) &&
+                    ![12, 13, 14].includes(days % 100)
+                  ) {
+                    return t("daysV2"); // "дня"
+                  }
+                  return t("daysV1"); // "дней"
+                };
+                const start = parseDate(dateStart);
+                const end = parseDate(dateEnd);
+                const diffInMs = end.getTime() - start.getTime();
+                const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+                return `${diffInDays} ${getDaySuffix(diffInDays)}`;
+              })()}
+            </span>
+          </li>
+        )}
       </ul>
 
       <div className="px-4 mb-4">
@@ -297,45 +353,57 @@ export const Booking: FC = function Booking() {
       </div>
 
       <div className="px-4 mb-4">
-        <Controller
-          name={"paymentType"}
-          control={control}
-          render={() => (
-            <div className="flex justify-between items-center py-3">
-              <div>
-                <span>{t("onlinePayment")}</span>
-                <p className={`${COLORS_TEXT.gray100} text-xs`}>
-                  {t("onlinePaymentDescription")}
-                </p>
+        {announcement.onlinePayment && (
+          <Controller
+            name={"paymentType"}
+            control={control}
+            render={() => (
+              <div className="flex justify-between items-center py-3">
+                <div>
+                  <span>{t("onlinePayment")}</span>
+                  <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                    {t("onlinePaymentDescription")}
+                  </p>
+                </div>
+                {!announcement.onlinePayment ? (
+                  <Radio
+                    checked={paymentType === "online"}
+                    onChange={() => setValue("paymentType", "online")}
+                  />
+                ) : (
+                  <></>
+                )}
               </div>
-              <Radio
-                checked={paymentType === "online"}
-                onChange={() => setValue("paymentType", "online")}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          name={"paymentType"}
-          control={control}
-          render={() => (
-            <div className="flex justify-between items-center py-3">
-              <div>
-                <span>{t("payOnPlace")}</span>
-                <p className={`${COLORS_TEXT.gray100} text-xs`}>
-                  {t("payOnPlaceOrOnline")}
-                </p>
+            )}
+          />
+        )}
+        {announcement.onSitePayment && (
+          <Controller
+            name={"paymentType"}
+            control={control}
+            render={() => (
+              <div className="flex justify-between items-center py-3">
+                <div>
+                  <span>{t("payOnPlace")}</span>
+                  <p className={`${COLORS_TEXT.gray100} text-xs`}>
+                    {t("payOnPlaceOrOnline")}
+                  </p>
+                </div>
+                {!announcement.onSitePayment ? (
+                  <Radio
+                    checked={paymentType === "cash"}
+                    onChange={() => setValue("paymentType", "cash")}
+                  />
+                ) : (
+                  <></>
+                )}
               </div>
-              <Radio
-                checked={paymentType === "cash"}
-                onChange={() => setValue("paymentType", "cash")}
-              />
-            </div>
-          )}
-        />
+            )}
+          />
+        )}
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-6">
         <Button
           className="w-header z-10"
           type="submit"
