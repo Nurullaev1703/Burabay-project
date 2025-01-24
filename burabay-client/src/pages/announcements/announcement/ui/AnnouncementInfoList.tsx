@@ -65,9 +65,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </span>
         </div>
         {roleService.getValue() === ROLE_TYPE.TOURIST && (
-          <Link>
+          <a href={`tel:${ad.phoneNumber}`}>
             <img src={PhoneIcon} alt="Звонить" />
-          </Link>
+          </a>
         )}
       </li>
       <li className="border-b border-[#E4E9EA] py-3">
@@ -76,7 +76,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           className="flex justify-between"
         >
           <div className="flex flex-col">
-            <span>{((ad.isRoundTheClock) ? t("aroundClockDays") : renderSchedule())}</span>
+            <span>
+              {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
+            </span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>
               {t("workingDays")}
             </span>

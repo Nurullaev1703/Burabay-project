@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Announcement, Booking as BookingType } from "../model/announcements";
+import { Announcement} from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -22,65 +22,51 @@ import dayjs from "dayjs";
 
 interface Props {
   announcement: Announcement;
-  serviceSchedule: BookingType[];
 }
 
-export interface BookingState {
-  time?: string;
-  date?: string;
-  announcement: Announcement;
-  dateStart?: string;
-  dateEnd?: string;
-}
-
-export const BookingTime: FC<Props> = function BookingTime({
-  serviceSchedule,
-  announcement,
-}) {
+export const BookingDate: FC<Props> = ({ announcement }) => {
   const { t } = useTranslation();
-  const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
-    []
+  const [selectedDateStart, setSelectedDateStart] = useState<string | null>(
+    null
   );
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
+  const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
 
-  // Установка времени с учетом заблокированных
-  const handleDateChange = (date: any) => {
-    setSelectedTime("");
-    const selectedDate = date?.format("DD.MM.YYYY");
-    setSelectedDate(selectedDate);
-    const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === selectedDate
-    );
+  // Обработчик выбора даты
+  const handleDateChange = (date: any | null) => {
+    if (!date) return;
 
-    const availableTimes = announcement.startTime || []; // Общие временные интервалы
-    if (matchingDate) {
-      const blockedTimes = matchingDate.times; // Временные интервалы, которые заблокированы
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: blockedTimes.includes(time),
-      }));
-      setTimes(combinedTimes);
+    const formattedDate = date.format("DD.MM.YYYY");
+
+    if (activeField === "start") {
+      setSelectedDateStart(formattedDate);
+      setActiveField("end"); // Переключаем на выбор "Дата отъезда"
     } else {
-      // Если даты нет в расписании, все времена доступны
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: false,
-      }));
-      setTimes(combinedTimes);
+      setSelectedDateEnd(formattedDate);
     }
   };
 
-  const saveTime = async (
-    time: string | null,
-    date: string,
-    announcement: Announcement
-  ) => {
-    // нужно будет передать параметры все для страницы чтобы сделать итоговую 
+  // Проверка, чтобы отключить дни раньше текущей даты или вне диапазона
+  const shouldDisableDate = (date: any) => {
+    if (date.isBefore(dayjs(), "day")) return true;
+
+    if (activeField === "end" && selectedDateStart) {
+      // Отключаем даты до выбранной "Дата заезда"
+      return date.isBefore(dayjs(selectedDateStart, "DD.MM.YYYY"), "day");
+    }
+
+    return false;
+  };
+
+  const saveTime = async () => {
     navigate({
       to: "/announcements/booking",
-      state: { time, date, announcement } as unknown as Record<string, unknown>, // Убедитесь, что здесь типы соответствуют ожидаемым
+      state: {
+        dateStart: selectedDateStart,
+        dateEnd: selectedDateEnd,
+        announcement,
+      } as Record<string, unknown>,
     });
   };
 
@@ -89,7 +75,7 @@ export const BookingTime: FC<Props> = function BookingTime({
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} alt="" />
+            <img src={BackIcon} alt="Back" />
           </IconContainer>
           <div>
             <Typography
@@ -98,7 +84,7 @@ export const BookingTime: FC<Props> = function BookingTime({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("serviceSchedule")}
+              {t("service")}
             </Typography>
           </div>
           <IconContainer
@@ -108,6 +94,7 @@ export const BookingTime: FC<Props> = function BookingTime({
         </div>
       </Header>
 
+      {/* Информация об объявлении */}
       <div className="mb-4 px-4">
         <div className="flex">
           <img
@@ -136,13 +123,18 @@ export const BookingTime: FC<Props> = function BookingTime({
         </div>
       </div>
 
+      {/* Календарь */}
       <div className="mb-4 border-y border-[#E4E9EA] mx-4">
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
-            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")} 
+            shouldDisableDate={shouldDisableDate}
             sx={{
+              "& .Mui-selected": {
+                backgroundColor: "#0A7D9E !important",
+                color: "white !important",
+              },
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {
                   padding: "0px !important",
@@ -172,47 +164,72 @@ export const BookingTime: FC<Props> = function BookingTime({
                   display: "none",
                 },
             }}
+            slotProps={{
+              day: {
+                disableHighlightToday: true,
+              },
+            }}
           />
         </LocalizationProvider>
       </div>
 
-      <div className="px-4">
-        {times.length > 0 ? (
-          <>
-            <h2 className="mb-4">{t("serviceDuration")}</h2>
-            <ul className="flex flex-wrap gap-2">
-              {times.map(({ time, isBlocked }, index) => (
-                <li
-                  key={index}
-                  className={`border-2 rounded-3xl w-28 h-12 flex items-center justify-center 
-                  ${
-                    isBlocked
-                      ? "border-gray-400 text-gray-400 cursor-not-allowed"
-                      : `${COLORS_BORDER.blue200} cursor-pointer`
-                  } 
-                  ${selectedTime === time && !isBlocked ? "bg-blue200 text-white" : "bg-white"}`}
-                  onClick={() => !isBlocked && setSelectedTime(time)}
-                >
-                  <span>{time}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <span
-            className={`${COLORS_TEXT.gray100} flex items-center justify-center w-full h-full text-sm`}
+      {/* Выбор дат */}
+      <div className="px-4 mb-32">
+        <h2 className="mb-4">{t("bookingDate")}</h2>
+        <div className="flex justify-between mb-4">
+          {/* Кнопка выбора даты заезда */}
+          <button
+            className={`relative w-full h-16 px-10 py-5 rounded-[40px] mr-2 text-sm border ${
+              activeField === "start"
+                ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
+                : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
+            }`}
+            onClick={() => setActiveField("start")}
           >
-            {t("serviceFullDay")}
-          </span>
-        )}
+            <span
+              className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${
+                selectedDateStart ? "translate-y-[-5px]" : "translate-y-[50%]"
+              }`}
+            >
+              {t("CheckInDate")}
+            </span>
+            <span
+              className={`absolute bottom-[20%] left-[25%] transition-all text-lg text-black font-medium`}
+            >
+              {selectedDateStart}
+            </span>
+          </button>
+
+          {/* Кнопка выбора даты отъезда */}
+          <button
+            className={`relative w-full h-16 px-10 py-5 rounded-[40px] mr-2 text-sm border ${
+              activeField === "end"
+                ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
+                : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
+            }`}
+            onClick={() => setActiveField("end")}
+          >
+            <span
+              className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${
+                selectedDateEnd ? "translate-y-[-5px]" : "translate-y-[50%]"
+              }`}
+            >
+              {t("CheckInDate")}
+            </span>
+            <span
+              className={`absolute bottom-[20%] left-[25%] transition-all text-lg text-black font-medium`}
+            >
+              {selectedDateEnd}
+            </span>
+          </button>
+        </div>
       </div>
 
+      {/* Кнопка */}
       <Button
-        onClick={() =>
-          saveTime(selectedTime || null, selectedDate, announcement)
-        }
+        onClick={saveTime}
+        disabled={!selectedDateStart || !selectedDateEnd}
         className="fixed bottom-6 left-3 w-header mt-8 z-10"
-        disabled={!selectedDate || (!selectedTime && times.length > 0)}
       >
         {t("toBook")}
       </Button>
