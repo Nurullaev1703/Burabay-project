@@ -19,7 +19,7 @@ export const HelpPage: FC = function HelpPage() {
 
   return (
     <div className=" min-h-screen">
-      <AlternativeHeader>
+      <AlternativeHeader isMini>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />

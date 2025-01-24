@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { Map, View } from "ol";
 import "ol/ol.css";
 import { Tile as TileLayer } from "ol/layer";
@@ -83,7 +83,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
     return { start, end };
   };
-
+  const [isSearchResultFound, setIsSearchResultFound] = useState(false);
   const [announcementsName, setAnnouncementsName] = useState<string>(
     filters.adName || ""
   );
@@ -99,8 +99,12 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
+      event.preventDefault(); 
       if (announcementsName.length > 0) {
+        const foundAnnouncement = announcements.some((announcement) =>
+          announcement.title.toLowerCase().includes(announcementsName.toLowerCase())
+        );
+        setIsSearchResultFound(foundAnnouncement);
         navigate({
           to: "/mapNav/search/$value",
           params: {
@@ -115,7 +119,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             adName: "",
           },
         });
-      }
+      }    
     }
   };
 
@@ -251,6 +255,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   }, [announcements, activeCategory]);
 
   const handleCloseModal = () => {
+    setSelectedMarker(null);
     setShowCategoryModal(false);
     setShowAnnouncementModal(false); // Закрываем и модальное окно с информацией о объявлении
   };
@@ -268,7 +273,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
     window.open(url, "_blank");
   };
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
+    setSelectedMarker(announcementId);
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === announcementId
     );
@@ -277,7 +284,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       setShowAnnouncementModal(true);
     }
   };
-  console.log(announcementInfo);
+
   const { start, end } = getCurrentDaySchedule(announcementInfo);
   // Получаем текущую дату и время
 const currentTime = new Date();
@@ -296,7 +303,9 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
     <main className="min-h-screen">
       <Header pb="0" className="">
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer align="start" action={() => navigate({
+            to: "/main"
+          })}>
             <img src={BackIcon} />
           </IconContainer>
           <div className="w-full flex items-center  gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
@@ -309,7 +318,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
               value={announcementsName}
               className="flex-grow bg-transparent outline-none "
             />
-          </div>
+          </div>  
         </div>
       </Header>
 
@@ -318,6 +327,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
           mapTypeControl: false, fullscreenControl: false, zoomControl: false, streetViewControl: false,
         }}>
           {announcements.map((announcement) => {
+            const isSelected = selectedMarker === announcement.id;
             if (
               !announcement.address ||
               !announcement.address.latitude ||
@@ -340,31 +350,31 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
     </svg>`)}`;
 
             return (
-              <>
+              <React.Fragment key={announcement.id}>
                 <Marker
-                  key={`${announcement.id}-${Date.now()}`}
+                  key={`${announcement.id}-svg`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: svgLocationWithColor,
-                    scaledSize: new google.maps.Size(40, 40),
+                    scaledSize: new google.maps.Size(isSelected ? 50: 40, isSelected ? 50: 40),
                     fillColor: categoryColor,
                   }}
                   zIndex={1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
-                  key={`${announcement.id}- ${Date.now()}`}
+                  key={`${announcement.id}-subcategory`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: subcategoryImgPath,
-                    scaledSize: new google.maps.Size(16, 16),
-                    anchor: new google.maps.Point(8, 32),
+                    scaledSize: new google.maps.Size(isSelected ? 18: 16, isSelected ? 18: 16),
+                    anchor: new google.maps.Point(isSelected ? 9: 8, isSelected ? 38: 32),
                     fillColor: "white",
                     strokeColor: "white",
                   }}
@@ -372,20 +382,20 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
-                  key={`${announcement.id}- ${Date.now()}`}
+                  key={`${announcement.id}-whiteCircle`}
                   position={{
                     lat: announcement.address.longitude,
                     lng: announcement.address.latitude,
                   }}
                   icon={{
                     url: whiteCircle,
-                    scaledSize: new google.maps.Size(24, 24),
-                    anchor: new google.maps.Point(12, 36),
+                    scaledSize: new google.maps.Size(isSelected ? 26: 24, isSelected ? 26: 24),
+                    anchor: new google.maps.Point(isSelected ? 13: 12, isSelected ? 42: 36),
                   }}
                   zIndex={1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
-              </>
+              </React.Fragment>
             );
           })}
         </GoogleMap>
@@ -398,7 +408,7 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
       )}
 
       <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
-        {categories.map((item) => {
+        {!isSearchResultFound && categories.map((item) => {
           return (
             <button
               type="button"
@@ -478,119 +488,124 @@ const isClosed = hours == 0 && minutes == 0 ? false : closingTime < currentTime;
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
         <div
-          key={announcementInfo.id}
-          className="fixed bottom-0 left-0 flex w-full z-[9999]"
-        >
-          <div className="bg-white p-4 w-full rounded-lg shadow-lg">
+        key={announcementInfo.id}
+        className="fixed bottom-0 left-0 flex w-full z-[9999]"
+      >
+        <div className="bg-white p-4 w-full justify-center rounded-lg shadow-lg">
+
+          <div className="">
+            <div className="grid justify-center flex-col gap-4">
+              <div className="flex flex-col">
             <Typography size={18} weight={500}>
-              {announcementInfo.title}
+            {announcementInfo.title}
+          </Typography>
+          {announcementInfo.duration ? (
+            <Typography className="mb-4">
+              {`${t("DurationOfService")} - ${announcementInfo.duration}`}
             </Typography>
-            {announcementInfo.duration ? (
-              <Typography className="mb-4">
-                {`${t("DurationOfService")} - ${announcementInfo.duration}`}
-              </Typography>
-            ) : (
-              <Typography className="mb-2">{t("allDay")}</Typography>
-            )}
-            <div className="">
-              <div className="flex gap-4">
-                <CoveredImage
-                  errorImage={defaultAnnoun}
-                  width="w-40"
-                  height="h-40"
-                  imageSrc={announcementInfo.images[0]}
-                >
-                  <div className="flex items-center">
-                    <div
-                      className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
-                    >
-                      <img
-                        className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
-                        src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
-                      />
-                    </div>
-                  </div>
-                </CoveredImage>
-                <div>
-                  <div className="flex flex-row justify-between">
-                  <Typography
-                    size={28}
-                    weight={700}
-                    color={COLORS_TEXT.blue200}
-                  >
-                    {announcementInfo.price && announcementInfo.price > 0 
-                      ? `${announcementInfo.price} ₸` 
-                      : t("free")}
-                  </Typography>
-                    <img src={flag} alt="" />
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <img src={star} alt="" />
-                    <Typography size={16} weight={400}>
-                      {announcementInfo.avgRating}
-                    </Typography>
-                    <img src={ellipse} alt="" />
-                    <Typography
-                      weight={400}
-                      size={16}
-                      color={COLORS_TEXT.gray100}
-                      className=""
-                    >
-                      {`${announcementInfo.reviewCount} ${t("grades")}`}
-                    </Typography>
-                  </div>
-                  {announcementInfo?.schedule && start && end && (
-                    <Typography size={14} weight={400}>
-                      {`${t("todayWith")} ${start} ${t("to")} ${end}`}
-                    </Typography>
-                  )}
-                  {announcementInfo?.schedule &&(
-                    <Typography
-                      size={14}
-                      weight={400}
-                      color={COLORS_TEXT.gray100}
-                    >
-                      {isClosed ? t("closed") : t("open")}
-                    </Typography>
-                  )}
-                  <Button
-                    onClick={() =>
-                      openGoogleMaps(
-                        announcementInfo?.address.longitude,
-                        announcementInfo?.address.latitude
-                      )
-                    }
-                    mode="transparent"
-                  >
-                    {`${t("BuildTheRoad")}`}
-                  </Button>
-                </div>
-              </div>
-              <Button
-                onClick={() => {
-                  navigate({
-                    to: "/announcements/$announcementId",
-                    params: {
-                      announcementId: announcementInfo.id,
-                    },
-                  });
-                }}
-                mode="default"
-                className="mt-4"
-              >
-                {`${t("MoreDetails")}`}
-              </Button>
-            </div>
-            <button
-              onClick={handleCloseModal}
-              className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
-            >
-              <IconContainer align="center">
-                <img src={cancelBlack} className="z-10" alt="" />
-              </IconContainer>
-            </button>
+          ) : (
+            <Typography className="mb-2">{t("allDay")}</Typography>
+          )}
           </div>
+          <div className="flex flex-row gap-4">
+              <CoveredImage
+                errorImage={defaultAnnoun}
+                width="w-40"
+                height="h-40"
+                imageSrc={announcementInfo.images[0]}
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
+                  >
+                    <img
+                      className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                      src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
+                    />
+                  </div>
+                </div>
+              </CoveredImage>
+              <div>
+                <div className="flex flex-row justify-between">
+                <Typography
+                  size={28}
+                  weight={700}
+                  color={COLORS_TEXT.blue200}
+                >
+                  {announcementInfo.price && announcementInfo.price > 0 
+                    ? `${announcementInfo.price} ₸` 
+                    : t("free")}
+                </Typography>
+                  <img src={flag} alt="" />
+                </div>
+                <div className="flex flex-row gap-2">
+                  <img src={star} alt="" />
+                  <Typography size={16} weight={400}>
+                    {announcementInfo.avgRating}
+                  </Typography>
+                  <img src={ellipse} alt="" />
+                  <Typography
+                    weight={400}
+                    size={16}
+                    color={COLORS_TEXT.gray100}
+                    className=""
+                  >
+                    {`${announcementInfo.reviewCount} ${t("grades")}`}
+                  </Typography>
+                </div>
+                {announcementInfo?.schedule && start && end && (
+                  <Typography size={14} weight={400}>
+                    {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                  </Typography>
+                )}
+                {announcementInfo?.schedule &&(
+                  <Typography
+                    size={14}
+                    weight={400}
+                    color={COLORS_TEXT.gray100}
+                  >
+                    {isClosed ? t("closed") : t("open")}
+                  </Typography>
+                )}
+                <Button
+                  onClick={() =>
+                    openGoogleMaps(
+                      announcementInfo?.address.longitude,
+                      announcementInfo?.address.latitude
+                    )
+                  }
+                  mode="transparent"
+                >
+                  {`${t("BuildTheRoad")}`}
+                </Button>
+              </div>
+              </div>
+            </div>
+            <Button
+              onClick={() => {
+                navigate({
+                  to: "/announcements/$announcementId",
+                  params: {
+                    announcementId: announcementInfo.id,
+                  },
+                });
+              }}
+              mode="default"
+              className="mt-4"
+            >
+              {`${t("MoreDetails")}`}
+            </Button>
+          </div>
+          <button
+            onClick={handleCloseModal}
+            className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
+          >
+            <IconContainer align="center">
+              <img src={cancelBlack} className="z-10" alt="" />
+            </IconContainer>
+          </button>
         </div>
+      </div>  
       )}
       <NavMenuClient />
     </main>
