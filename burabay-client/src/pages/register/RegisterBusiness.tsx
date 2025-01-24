@@ -50,7 +50,7 @@ export const RegisterBusiness: FC = function RegisterBusiness() {
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {"Business"}
+            {t("business")}
           </Typography>
           <LanguageButton />
         </div>
