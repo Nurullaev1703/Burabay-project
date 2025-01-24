@@ -12,7 +12,7 @@ import {
   RentDetails,
   SecurityDetails,
 } from 'src/ad/types/ad.details.type';
-import { Category } from 'src/category/entities/category.entity';
+import { Category } from '../category/entities/category.entity';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
