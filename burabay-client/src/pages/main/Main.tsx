@@ -10,6 +10,7 @@ import { MapFilter } from "../announcements/announcements-utils";
 import { categoryBgColors, COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   announcements: Announcement[];
@@ -22,6 +23,7 @@ export const Main: FC<Props> = function Main({
   categories,
   filters,
 }) {
+  const { t } = useTranslation()
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -43,12 +45,21 @@ export const Main: FC<Props> = function Main({
           <img src={SearchIcon} alt="" />
           <input
             type="search"
-            placeholder="Поиск"
+            placeholder={t("adSearch")}
             className="flex-grow bg-transparent outline-none text-gray-700"
             autoCorrect="true"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onBlur={() => {
+              navigate({
+                to: "/main",
+                search: {
+                  ...filters,
+                  adName: searchValue,
+                },
+              });
+            }}
           />
         </div>
         {/* <img src={FilterIcon} className="mt-4" alt="" /> */}
@@ -92,9 +103,9 @@ export const Main: FC<Props> = function Main({
               <img src={baseUrl + imgPath} className="w-8 h-8" />
             </div>
             <span
-              className={`text-sm text-ellipsis overflow-hidden whitespace-nowrap w-20 ${name == filters.category && `text-white`}`}
+              className={`text-sm text-center text-ellipsis overflow-hidden whitespace-nowrap w-20 ${name == filters.category && `text-white`}`}
             >
-              {name}
+              {t(name)}
             </span>
           </div>
         ))}
@@ -119,7 +130,7 @@ export const Main: FC<Props> = function Main({
           className={`rounded-xl mb-navContent ${filters.category ? categoryBgColors[filters.category] : "bg-blue200"} p-4 mx-2 mt-4`}
         >
           <Typography color={COLORS_TEXT.white} align="center">
-            {"Объявлений не найдено"}
+            {t("noAds")}
           </Typography>
         </div>
       )}
