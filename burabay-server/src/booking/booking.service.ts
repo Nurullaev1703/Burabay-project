@@ -37,6 +37,14 @@ export class BookingService {
   }
 
   @CatchErrors()
+  async findAllByOrgId(tokerData: TokenData) {
+    return await this.bookingRepository.find({
+      where: { ad: { organization: { user: { id: tokerData.id } } } },
+      relations: { user: true, ad: { organization: true } },
+    });
+  }
+
+  @CatchErrors()
   async findOne(id: string) {
     const booking = await this.bookingRepository.findOne({
       where: { id: id },

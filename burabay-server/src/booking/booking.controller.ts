@@ -24,6 +24,11 @@ export class BookingController {
     return this.bookingService.findAllByUserId(req.user);
   }
 
+  @Get('org')
+  findAllByOrg(@Request() req: AuthRequest) {
+    return this.bookingService.findAllByOrgId(req.user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(id);
