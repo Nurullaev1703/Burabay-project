@@ -6,11 +6,13 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
+import { AnalyticsService } from './analytics.service';
+import { AnalyticsController } from './analytics.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Organization, Ad, Review])],
-  controllers: [AdminPanelController],
-  providers: [AdminPanelService],
+  controllers: [AdminPanelController, AnalyticsController],
+  providers: [AdminPanelService, AnalyticsService],
   exports: [],
 })
 export class AdminPanelModule {}

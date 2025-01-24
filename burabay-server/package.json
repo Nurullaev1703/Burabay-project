@@ -29,8 +29,9 @@
     "migration:revert": "npx typeorm-ts-node-commonjs migration:revert -d ./src/database/data-source.ts"
   },
   "dependencies": {
+    "@google-analytics/data": "^4.12.0",
     "@nestjs/cache-manager": "^2.2.2",
-    "@nestjs/common": "^10.0.0",
+    "@nestjs/common": "^11.0.5",
     "@nestjs/core": "^10.0.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.3.9",
@@ -50,6 +51,7 @@
     "express-session": "^1.18.1",
     "form-data": "^4.0.0",
     "fuse.js": "^7.0.0",
+    "googleapis": "^144.0.0",
     "mailgun-js": "^0.22.0",
     "mailgun.js": "^10.2.1",
     "multer": "^1.4.5-lts.1",
