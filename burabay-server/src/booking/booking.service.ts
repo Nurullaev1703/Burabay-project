@@ -6,10 +6,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Ad } from 'src/ad/entities/ad.entity';
 
 @Injectable()
 export class BookingService {
   constructor(
+    @InjectRepository(Ad)
+    private readonly adRepository: Repository<Ad>,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(User)
@@ -20,7 +23,9 @@ export class BookingService {
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
     Utils.checkEntity(user, 'Пользователь не найден');
-    const newBooking = this.bookingRepository.create({ user: user, ...createBookingDto });
+    const ad = await this.adRepository.findOne({ where: { id: createBookingDto.adId } });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    const newBooking = this.bookingRepository.create({ user: user, ad: ad, ...createBookingDto });
     await this.bookingRepository.save(newBooking);
     return JSON.stringify(HttpStatus.CREATED);
   }

@@ -10,20 +10,19 @@ import { Public } from 'src/constants';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  @Get('report')
-  async getAnalyticsReport(
-    @Query('viewId') viewId: string,
+  @Get('user-report')
+  async getUserStatistics(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
-    return this.analyticsService.getReport(viewId, startDate, endDate);
+    return this.analyticsService.getUserStatistics(startDate, endDate);
   }
-  @Get('detailed-report')
-  async getDetailedAnalyticsReport(
-    @Query('viewId') viewId: string,
+
+  @Get('pages-report')
+  async getPagesStatistics(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
-    return this.analyticsService.getDetailedReport(viewId, startDate, endDate);
+    return this.analyticsService.getPageViews(startDate, endDate);
   }
 }

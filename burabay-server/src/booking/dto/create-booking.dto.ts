@@ -4,6 +4,10 @@ import { PaymentType } from '../types/payment.type';
 export class CreateBookingDto {
   @IsString()
   @IsNotEmpty()
+  adId: string;
+
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -11,7 +15,7 @@ export class CreateBookingDto {
   phoneNumber: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   date: string;
 
   @IsString()
