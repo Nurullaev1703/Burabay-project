@@ -134,6 +134,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       <Button mode="transparent" className="mb-4">
         {t("viewAllReviews")}
       </Button>
+      {roleService.getValue() === ROLE_TYPE.TOURIST && (
       <Button
         onClick={() =>
           ad.subcategory.category.name === "Жилье"
@@ -143,8 +144,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       >
         {t("toBook")}
       </Button>
-      {/* {roleService.getValue() === ROLE_TYPE.TOURIST && (
-      )}  */}
+      )} 
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookingState } from "../booking-time/BookingTime";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -20,6 +20,7 @@ import { apiService } from "../../../services/api/ApiService";
 type PaymentType = "online" | "cash";
 
 interface FormType {
+  adId: string;
   name: string;
   phoneNumber: string;
   date?: string | null;
@@ -40,16 +41,27 @@ export const Booking: FC = function Booking() {
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
   };
+  const navigate = useNavigate();
   const mask = useMask({
     mask: "+7 ___ ___-__-__",
     replacement: { _: /\d/ },
     showMask: true,
   });
+  const formatPhoneNumber = (phone?: string) => {
+    if (!phone) return "+7 ___ ___-__-__"; // Возвращаем маску по умолчанию
+    const digits = phone.replace(/\D/g, ""); // Убираем все нечисловые символы
+    if (digits.length !== 11 || !digits.startsWith("7")) {
+      return "+7 ___ ___-__-__"; // Проверяем корректность номера
+    }
+    return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
+  };
+  
   const { handleSubmit, watch, control, setValue } = useForm<FormType>({
     defaultValues: {
+      adId: announcement.id,
       name: user?.fullName || "Безымянный",
-      phoneNumber: user?.phoneNumber || "",
-      date: date,
+      phoneNumber: formatPhoneNumber(user?.phoneNumber) || "",
+      date: date || null,
       time: time || null,
       isChildRate: false,
       paymentType: "online",
@@ -71,7 +83,7 @@ export const Booking: FC = function Booking() {
       });
 
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
-        console.log(true);
+        navigate({to: `/announcements/${announcement.id}`})
       } else {
         console.error(response.data);
       }
