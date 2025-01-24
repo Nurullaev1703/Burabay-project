@@ -18,6 +18,7 @@ import { Address } from '../../address/entities/address.entity';
 import { BookingBanDate } from '../../booking-ban-date/entities/booking-ban-date.entity';
 import { User } from '../../users/entities/user.entity';
 import { Review } from '../../review/entities/review.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -135,4 +136,7 @@ export class Ad extends AbstractEntity<Ad> {
 
   @Column({ type: 'numeric', name: 'avg_rating', default: 0, precision: 2, scale: 1 })
   avgRating: number;
+
+  @OneToMany(() => Booking, (booking) => booking.ad)
+  bookings: Booking[];
 }

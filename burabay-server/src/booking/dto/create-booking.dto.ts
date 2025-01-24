@@ -2,6 +2,10 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PaymentType } from '../types/payment.type';
 
 export class CreateBookingDto {
+  @IsNotEmpty()
+  @IsString()
+  adId: string;
+
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -11,7 +15,7 @@ export class CreateBookingDto {
   phoneNumber: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   date: string;
 
   @IsString()
@@ -25,4 +29,12 @@ export class CreateBookingDto {
   @IsString()
   @IsNotEmpty()
   paymentType: PaymentType;
+
+  @IsString()
+  @IsOptional()
+  dateStart: string;
+
+  @IsString()
+  @IsOptional()
+  dateEnd: string;
 }
