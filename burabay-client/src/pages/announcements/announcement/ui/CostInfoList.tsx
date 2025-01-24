@@ -41,7 +41,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
 
       <ul>
         <li className="mb-4">
-          <span>Оплата на месте</span>
+          <span>{t("payOnPlace")}</span>
           <p className={`${COLORS_TEXT.gray100} max-w-72 leading-4 text-sm`}>
             {t("cashOrCard")}
           </p>
