@@ -7,7 +7,7 @@ import { Booking } from './entities/booking.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
-import { BookingStatus } from './types/booking.types';
+import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
 
 @Injectable()
 export class BookingService {
@@ -38,11 +38,33 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async findAllByOrgId(tokerData: TokenData) {
+  async findAllByOrgId(tokerData: TokenData, filter?: BookingFilter) {
+    let whereOptions: any = {
+      ad: { organization: { user: { id: tokerData.id } } },
+    };
+    if (filter.canceled) {
+      whereOptions = {
+        ...whereOptions,
+        status: BookingStatus.CANCELED,
+      };
+    }
+    if (filter.onSidePayment !== filter.onlinePayment) {
+      if (filter.onSidePayment) {
+        whereOptions = {
+          ...whereOptions,
+          paymentType: PaymentType.CASH,
+        };
+      }
+      if (filter.onlinePayment) {
+        whereOptions = {
+          ...whereOptions,
+          paymentType: PaymentType.ONLINE,
+        };
+      }
+    }
+
     const bookings = await this.bookingRepository.find({
-      where: {
-        ad: { organization: { user: { id: tokerData.id } } },
-      },
+      where: whereOptions,
       relations: { user: true, ad: { organization: true } },
     });
 
@@ -94,15 +116,44 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async getAllByAdId(adId: string, date: string) {
+  async getAllByAdId(adId: string, date: string, filter?: BookingFilter) {
     const ad = await this.adRepository.findOne({ where: { id: adId } });
-    let bookings: Booking[];
+    let whereOptions = {};
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    if (ad.isBookable) {
+      whereOptions = { ad: { id: adId }, dateStart: date };
+    } else {
+      whereOptions = { ad: { id: adId }, date: date };
+    }
+
+    if (filter.canceled) {
+      whereOptions = {
+        ...whereOptions,
+        status: BookingStatus.CANCELED,
+      };
+    }
+    if (filter.onSidePayment !== filter.onlinePayment) {
+      if (filter.onSidePayment) {
+        whereOptions = {
+          ...whereOptions,
+          paymentType: PaymentType.CASH,
+        };
+      }
+      if (filter.onlinePayment) {
+        whereOptions = {
+          ...whereOptions,
+          paymentType: PaymentType.ONLINE,
+        };
+      }
+    }
+
+    const bookings = await this.bookingRepository.find({
+      where: whereOptions,
+      relations: { ad: true, user: true },
+    });
+
     const ad_bookins = [];
     if (ad.isBookable) {
-      bookings = await this.bookingRepository.find({
-        where: { ad: { id: adId }, dateStart: date },
-        relations: { ad: true, user: true },
-      });
       for (const b of bookings) {
         ad_bookins.push({
           dateStart: b.dateStart,
@@ -118,10 +169,6 @@ export class BookingService {
         });
       }
     } else {
-      bookings = await this.bookingRepository.find({
-        where: { ad: { id: adId }, date: date },
-        relations: { ad: true, user: true },
-      });
       for (const b of bookings) {
         ad_bookins.push({
           time: b.time,

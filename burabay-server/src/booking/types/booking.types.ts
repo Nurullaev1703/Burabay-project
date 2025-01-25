@@ -8,3 +8,9 @@ export enum BookingStatus {
   CONFIRMED = 'подтверждено',
   CANCELED = 'отменено',
 }
+
+export interface BookingFilter {
+  canceled?: boolean;
+  onSidePayment?: boolean;
+  onlinePayment?: boolean;
+}

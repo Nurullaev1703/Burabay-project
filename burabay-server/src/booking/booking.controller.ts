@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { BookingFilter } from './types/booking.types';
 
 @Controller('booking')
 @ApiBearerAuth()
@@ -25,13 +26,17 @@ export class BookingController {
   }
 
   @Get('org')
-  findAllByOrg(@Request() req: AuthRequest) {
-    return this.bookingService.findAllByOrgId(req.user);
+  findAllByOrg(@Request() req: AuthRequest, @Query() filter: BookingFilter) {
+    return this.bookingService.findAllByOrgId(req.user, filter);
   }
 
   @Get('by-ad/:adId/:date')
-  findAllByAdId(@Param('adId') adId: string, @Param('date') date: string) {
-    return this.bookingService.getAllByAdId(adId, date);
+  findAllByAdId(
+    @Param('adId') adId: string,
+    @Param('date') date: string,
+    @Query() filter: BookingFilter,
+  ) {
+    return this.bookingService.getAllByAdId(adId, date, filter);
   }
 
   @Get(':id')
