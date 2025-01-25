@@ -72,7 +72,7 @@ export class BookingService {
 
     for (const b of bookings) {
       // Создаём заголовок.
-      const header = b.status === BookingStatus.IN_PROCESS ? 'В процессе' : b.date;
+      const header = b.status === BookingStatus.IN_PROCESS ? 'In process' : b.date;
 
       if (b.status === BookingStatus.CANCELED) {
         // Если бронь отменена, то добавляет _ к времени
