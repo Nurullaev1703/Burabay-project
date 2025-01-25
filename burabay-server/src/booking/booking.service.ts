@@ -68,7 +68,7 @@ export class BookingService {
       relations: { user: true, ad: { organization: true } },
     });
 
-    const groups = {};
+    const groups = [];
 
     for (const b of bookings) {
       // Создаём заголовок.
@@ -79,36 +79,29 @@ export class BookingService {
         b.time = b.time + '_';
       }
 
-      if (!groups[header]) {
-        // Если дата отсутствует в `groups`, создаём её
-        groups[header] = {};
+      let group = groups.find((g) => g.header === header);
+
+      if (!group) {
+        group = { header, ads: [] };
+        groups.push(group);
+      }
+
+      let adGroup = group.ads.find((ad) => ad.title === b.ad.title);
+
+      if (!adGroup) {
+        adGroup = {
+          title: b.ad.title,
+          ad_id: b.ad.id,
+          img: b.ad.images[0],
+          times: [],
+        };
+        group.ads.push(adGroup);
       }
 
       if (b.ad.isBookable) {
-        // Если это бронь
-        if (!groups[header][b.ad.title]) {
-          // Если брони на указанную дату нет.
-          groups[header][b.ad.title] = {
-            ad_id: b.ad.id,
-            img: b.ad.images[0],
-            times: [`с ${b.dateStart} до ${b.dateEnd}`],
-          };
-        } else {
-          groups[header][b.ad.title].times.push(`с ${b.dateStart} до ${b.dateEnd}`);
-        }
+        adGroup.times.push(`с ${b.dateStart} до ${b.dateEnd}`);
       } else {
-        // Если это услуга.
-        if (!groups[header][b.ad.title]) {
-          // Если название отсутствует для даты, создаём объект для названия.
-          groups[header][b.ad.title] = {
-            ad_id: b.ad.id,
-            img: b.ad.images[0], // Берём первое изображение
-            times: [b.time], // Создаём массив с первым временем
-          };
-        } else {
-          // Если название уже есть, добавляем время
-          groups[header][b.ad.title].times.push(b.time);
-        }
+        adGroup.times.push(b.time);
       }
     }
 
