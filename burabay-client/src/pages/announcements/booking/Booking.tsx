@@ -175,7 +175,7 @@ export const Booking: FC = function Booking() {
         {dateEnd && (
           <li className="flex justify-between border-b border-[#E4E9EA] py-4 items-center">
             <span className={`${COLORS_TEXT.blue200} text-sm`}>
-              {t("DepartureDate")}
+              {t("DepatureDate")}
             </span>
             <span>{dateEnd}</span>
           </li>
