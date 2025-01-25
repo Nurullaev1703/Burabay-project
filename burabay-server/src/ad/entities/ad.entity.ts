@@ -30,6 +30,9 @@ export class Ad extends AbstractEntity<Ad> {
   @JoinColumn({ name: 'subcategory_id' })
   subcategory: Subcategory;
 
+  @OneToMany(() => Booking, (booking) => booking.ad)
+  bookings: Booking[];
+
   @Column()
   title: string;
 
@@ -73,7 +76,7 @@ export class Ad extends AbstractEntity<Ad> {
   isFullDay: boolean;
 
   // Времена начала услуги. Массив со строками времени типа: ['10:00', '12:00']
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'text', array: true, nullable: true, name: 'start_time' })
   startTime: string[];
 
   // Имеется ли длительность у услуги.
@@ -136,7 +139,4 @@ export class Ad extends AbstractEntity<Ad> {
 
   @Column({ type: 'numeric', name: 'avg_rating', default: 0, precision: 2, scale: 1 })
   avgRating: number;
-
-  @OneToMany(() => Booking, (booking) => booking.ad)
-  bookings: Booking[];
 }

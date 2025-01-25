@@ -1,6 +1,6 @@
 import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { PaymentType } from '../types/payment.type';
+import { BookingStatus, PaymentType } from '../types/booking.types';
 import { User } from '../../users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 
@@ -12,6 +12,9 @@ export class Booking extends AbstractEntity<Booking> {
   @ManyToOne(() => Ad, (ad) => ad.bookings)
   @JoinColumn({ name: 'ad_id' })
   ad: Ad;
+
+  @Column({ default: BookingStatus.IN_PROCESS })
+  status: BookingStatus;
 
   @Column()
   name: string;
@@ -30,6 +33,9 @@ export class Booking extends AbstractEntity<Booking> {
 
   @Column({ name: 'payment_type' })
   paymentType: PaymentType;
+
+  @Column({ name: 'is_paid', default: false })
+  isPaid: boolean;
 
   @Column({ name: 'date_start', nullable: true })
   dateStart: string;

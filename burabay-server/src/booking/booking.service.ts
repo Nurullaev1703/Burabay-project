@@ -7,6 +7,7 @@ import { Booking } from './entities/booking.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
+import { BookingStatus } from './types/booking.types';
 
 @Injectable()
 export class BookingService {
@@ -38,10 +39,109 @@ export class BookingService {
 
   @CatchErrors()
   async findAllByOrgId(tokerData: TokenData) {
-    return await this.bookingRepository.find({
-      where: { ad: { organization: { user: { id: tokerData.id } } } },
+    const bookings = await this.bookingRepository.find({
+      where: {
+        ad: { organization: { user: { id: tokerData.id } } },
+      },
       relations: { user: true, ad: { organization: true } },
     });
+
+    const groups = {};
+
+    for (const b of bookings) {
+      // Создаём заголовок.
+      const header = b.status === BookingStatus.IN_PROCESS ? 'В процессе' : b.date;
+
+      if (b.status === BookingStatus.CANCELED) {
+        // Если бронь отменена, то добавляет _ к времени
+        b.time = b.time + '_';
+      }
+
+      if (!groups[header]) {
+        // Если дата отсутствует в `groups`, создаём её
+        groups[header] = {};
+      }
+
+      if (b.ad.isBookable) {
+        // Если это бронь
+        if (!groups[header][b.ad.title]) {
+          // Если брони на указанную дату нет.
+          groups[header][b.ad.title] = {
+            ad_id: b.ad.id,
+            img: b.ad.images[0],
+            times: [`с ${b.dateStart} до ${b.dateEnd}`],
+          };
+        } else {
+          groups[header][b.ad.title].times.push(`с ${b.dateStart} до ${b.dateEnd}`);
+        }
+      } else {
+        // Если это услуга.
+        if (!groups[header][b.ad.title]) {
+          // Если название отсутствует для даты, создаём объект для названия.
+          groups[header][b.ad.title] = {
+            ad_id: b.ad.id,
+            img: b.ad.images[0], // Берём первое изображение
+            times: [b.time], // Создаём массив с первым временем
+          };
+        } else {
+          // Если название уже есть, добавляем время
+          groups[header][b.ad.title].times.push(b.time);
+        }
+      }
+    }
+
+    return groups;
+  }
+
+  @CatchErrors()
+  async getAllByAdId(adId: string, date: string) {
+    const ad = await this.adRepository.findOne({ where: { id: adId } });
+    let bookings: Booking[];
+    const ad_bookins = [];
+    if (ad.isBookable) {
+      bookings = await this.bookingRepository.find({
+        where: { ad: { id: adId }, dateStart: date },
+        relations: { ad: true, user: true },
+      });
+      for (const b of bookings) {
+        ad_bookins.push({
+          dateStart: b.dateStart,
+          dateEnd: b.dateEnd,
+          time: b.time,
+          name: b.name,
+          avatar: b.user.picture,
+          user_number: b.user.phoneNumber,
+          payment_method: b.paymentType,
+          isPaid: b.isPaid,
+          price: b.ad.price,
+          status: b.status,
+        });
+      }
+    } else {
+      bookings = await this.bookingRepository.find({
+        where: { ad: { id: adId }, date: date },
+        relations: { ad: true, user: true },
+      });
+      for (const b of bookings) {
+        ad_bookins.push({
+          time: b.time,
+          name: b.name,
+          avatar: b.user.picture,
+          user_number: b.user.phoneNumber,
+          payment_method: b.paymentType,
+          isPaid: b.isPaid,
+          price: b.ad.price,
+          status: b.status,
+        });
+      }
+    }
+
+    return {
+      title: bookings[0].ad.title,
+      image: bookings[0].ad.images[0],
+      date: date,
+      bookings: ad_bookins,
+    };
   }
 
   @CatchErrors()

@@ -1,5 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { PaymentType } from '../types/payment.type';
+import { PaymentType } from '../types/booking.types';
 
 export class CreateBookingDto {
   @IsNotEmpty()

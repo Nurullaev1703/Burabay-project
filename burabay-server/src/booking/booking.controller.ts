@@ -29,6 +29,11 @@ export class BookingController {
     return this.bookingService.findAllByOrgId(req.user);
   }
 
+  @Get('by-ad/:adId/:date')
+  findAllByAdId(@Param('adId') adId: string, @Param('date') date: string) {
+    return this.bookingService.getAllByAdId(adId, date);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(id);
