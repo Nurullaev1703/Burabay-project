@@ -214,7 +214,7 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
                 selectedDateEnd ? "translate-y-[-5px]" : "translate-y-[50%]"
               }`}
             >
-              {t("CheckInDate")}
+              {t("DepatureDate")}
             </span>
             <span
               className={`absolute bottom-[20%] left-[25%] transition-all text-lg text-black font-medium`}
