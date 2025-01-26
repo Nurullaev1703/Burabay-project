@@ -1,5 +1,11 @@
+interface BookingAd {
+  title: string;
+  ad_id: string;
+  img: string;
+  times: string[];
+}
+
 export interface BookingList {
-   ad_id: string;
-   img: string;
-   time: string[];
+    header: string;
+    ads: BookingAd[]
 }
