@@ -113,10 +113,14 @@ export class BookingService {
     const ad = await this.adRepository.findOne({ where: { id: adId } });
     let whereOptions = {};
     Utils.checkEntity(ad, 'Объявление не найдено');
-    if (ad.isBookable) {
-      whereOptions = { ad: { id: adId }, dateStart: date };
+    if (date === 'In process') {
+      whereOptions = { ad: { id: adId }, status: BookingStatus.IN_PROCESS };
     } else {
-      whereOptions = { ad: { id: adId }, date: date };
+      if (ad.isBookable) {
+        whereOptions = { ad: { id: adId }, dateStart: date };
+      } else {
+        whereOptions = { ad: { id: adId }, date: date };
+      }
     }
 
     if (filter.canceled) {
