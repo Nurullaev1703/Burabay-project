@@ -157,12 +157,12 @@ export class BookingService {
     if (ad.isBookable) {
       for (const b of bookings) {
         ad_bookins.push({
+          bookingId: b.id,
           dateStart: b.dateStart,
           dateEnd: b.dateEnd,
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
-          user_id: b.user.id,
           user_number: b.phoneNumber,
           payment_method: b.paymentType,
           isPaid: b.isPaid,
@@ -173,10 +173,10 @@ export class BookingService {
     } else {
       for (const b of bookings) {
         ad_bookins.push({
+          bookingId: b.id,
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
-          user_id: b.user.id,
           user_number: b.phoneNumber,
           payment_method: b.paymentType,
           isPaid: b.isPaid,
