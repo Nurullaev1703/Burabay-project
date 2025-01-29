@@ -162,7 +162,8 @@ export class BookingService {
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
-          user_number: b.user.phoneNumber,
+          user_id: b.user.id,
+          user_number: b.phoneNumber,
           payment_method: b.paymentType,
           isPaid: b.isPaid,
           price: b.ad.price,
@@ -175,7 +176,8 @@ export class BookingService {
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
-          user_number: b.user.phoneNumber,
+          user_id: b.user.id,
+          user_number: b.phoneNumber,
           payment_method: b.paymentType,
           isPaid: b.isPaid,
           price: b.ad.price,
@@ -214,15 +216,18 @@ export class BookingService {
   @CatchErrors()
   async remove(id: string) {
     return await this.dataSource.transaction(async (manager) => {
-      const booking = await manager.findOne(Booking, { where: { id: id }, relations:{user:true, ad:true} });
+      const booking = await manager.findOne(Booking, {
+        where: { id: id },
+        relations: { user: true, ad: true },
+      });
       Utils.checkEntity(booking, 'Бронирование не найдено');
       await manager.remove(booking);
       const notification = await manager.create(Notification, {
-        user: await this.userRepository.findOne({where:{id: booking.user.id}}),
+        user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
         message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
-      })
-      await manager.save(notification)
+      });
+      await manager.save(notification);
       return JSON.stringify(HttpStatus.OK);
-    })
+    });
   }
 }
