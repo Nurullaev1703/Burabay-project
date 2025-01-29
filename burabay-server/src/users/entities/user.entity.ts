@@ -6,7 +6,7 @@ import { Ad } from '../../ad/entities/ad.entity';
 import { Feedback } from '../../feedback/entities/feedback.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Booking } from '../../booking/entities/booking.entity';
-
+import { Notification } from 'src/notification/entities/notification.entity';
 @Entity()
 export class User extends AbstractEntity<User> {
   @Column({ name: 'full_name' })
@@ -53,4 +53,7 @@ export class User extends AbstractEntity<User> {
 
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
+
+  @OneToMany(()=> Notification, notification => notification.user)
+  notifications: Notification[];
 }
