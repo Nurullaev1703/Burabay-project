@@ -37,7 +37,7 @@ import flag from "../../app/icons/announcements/falg.svg";
 import { Button } from "../../shared/ui/Button";
 import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../shared/ui/CoveredImage";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { MapFilter } from "../announcements/announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
@@ -56,6 +56,21 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const adId = queryParams.get("adId");
+  useEffect(() => {
+    if (adId) {
+      const selectedAnnouncement = announcements.find(
+        (announcement) => announcement.id === adId
+      );
+      if (selectedAnnouncement) {
+        setAnnouncementInfo(selectedAnnouncement); // Устанавливаем данные объявления
+        setShowAnnouncementModal(true); // Показываем модальное окно
+      }
+    }
+  }, [adId, announcements]);
+  
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q", // Замените на ваш ключ API
   });

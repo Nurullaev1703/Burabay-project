@@ -77,10 +77,9 @@ export const BookingTime: FC<Props> = function BookingTime({
     date: string,
     announcement: Announcement
   ) => {
-    // нужно будет передать параметры все для страницы чтобы сделать итоговую 
     navigate({
       to: "/announcements/booking",
-      state: { time, date, announcement } as unknown as Record<string, unknown>, // Убедитесь, что здесь типы соответствуют ожидаемым
+      state: { time, date, announcement } as unknown as Record<string, unknown>,
     });
   };
 

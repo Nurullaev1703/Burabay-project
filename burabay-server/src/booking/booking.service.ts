@@ -4,20 +4,24 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class BookingService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
   ) {}
 
   @CatchErrors()
@@ -209,9 +213,16 @@ export class BookingService {
 
   @CatchErrors()
   async remove(id: string) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
-    Utils.checkEntity(booking, 'Бронирование не найдено');
-    await this.bookingRepository.remove(booking);
-    return JSON.stringify(HttpStatus.OK);
+    return await this.dataSource.transaction(async (manager) => {
+      const booking = await manager.findOne(Booking, { where: { id: id }, relations:{user:true, ad:true} });
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+      await manager.remove(booking);
+      const notification = await manager.create(Notification, {
+        user: await this.userRepository.findOne({where:{id: booking.user.id}}),
+        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
+      })
+      await manager.save(notification)
+      return JSON.stringify(HttpStatus.OK);
+    })
   }
 }

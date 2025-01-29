@@ -1,14 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
+import { BookingList } from "./model/booking";
 
-export function useGetBooking() {
-    return useQuery({
-        queryKey: ["/booking/org"],
-        queryFn: async () => {
-            const response = await apiService.get<any>({
-                url: "/booking/org"
-            })
-            return response.data
-        }
-    })
+export function useGetBookings(
+  onlinePayment: boolean | null = false,
+  onSidePayment: boolean | null = false,
+  canceled: boolean | null = false
+) {
+  // Формируем строку параметров запроса
+  const queryParams = new URLSearchParams();
+
+  if (onlinePayment) queryParams.set("onlinePayment", "true");
+  if (onSidePayment) queryParams.set("onSidePayment", "true");
+  if (canceled) queryParams.set("canceled", "true");
+
+  // Строим URL с параметрами
+  const url = `/booking/org?${queryParams.toString()}`;
+
+  return useQuery({
+    queryKey: [url],
+    queryFn: async () => {
+      const response = await apiService.get<BookingList[]>({
+        url: url,
+      });
+      return response.data;
+    },
+  });
+}
+
+export function useGetBooking(bookingId: string) {
+  return useQuery({
+    queryKey: [`/booking/${bookingId}`],
+    queryFn: async () => {
+      const response = await apiService.get<any>({
+        url: `/booking/${bookingId}`,
+      });
+      return response.data;
+    },
+  });
 }
