@@ -26,7 +26,6 @@ export const BookingModal: FC<Props> = function BookingModal({
     baseUrl + booking.avatar
   );
   const { t } = useTranslation();
-  console.log(booking);
   return (
     <section>
       <Modal
