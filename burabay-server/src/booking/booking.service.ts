@@ -124,7 +124,7 @@ export class BookingService {
         b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
 
       if (isRent) {
-        adGroup.times.push(`с ${b.dateStart} до ${b.dateEnd}`);
+        adGroup.times.push(`с ${b.date} до ${b.dateEnd}`);
       } else {
         adGroup.times.push(b.time);
       }
@@ -153,15 +153,9 @@ export class BookingService {
     } else {
       findDate = date;
     }
-
-    let whereOptions = {};
     Utils.checkEntity(ad, 'Объявление не найдено');
 
-    if (isRent) {
-      whereOptions = { ad: { id: adId }, dateStart: findDate };
-    } else {
-      whereOptions = { ad: { id: adId }, date: findDate };
-    }
+    let whereOptions: any = { ad: { id: adId }, date: findDate };
 
     if (filter.canceled) {
       whereOptions = {
@@ -195,7 +189,7 @@ export class BookingService {
       for (const b of bookings) {
         ad_bookins.push({
           bookingId: b.id,
-          dateStart: b.dateStart,
+          date: b.date,
           dateEnd: b.dateEnd,
           time: b.time,
           name: b.name,
@@ -206,6 +200,7 @@ export class BookingService {
           isPaid: b.isPaid,
           price: b.ad.price,
           status: b.status,
+          type: 'Аренда',
         });
       }
     } else {
@@ -221,6 +216,7 @@ export class BookingService {
           isPaid: b.isPaid,
           price: b.ad.price,
           status: b.status,
+          type: 'Услуга',
         });
       }
     }
