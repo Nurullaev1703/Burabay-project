@@ -20,9 +20,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
 }) {
-  const [bookings, _] = useState<SelectedBookingList[]>(
-    booking.bookings || []
-  );
+  const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedBooking, setSelectedBooking] = useState<SelectedBookingList>({
     bookingId: "",
@@ -32,6 +30,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
     payment_method: "cash",
     price: 0,
     status: "",
+    rate: "",
     time: "",
     user_number: "",
   });
@@ -79,19 +78,30 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </div>
       </div>
 
+
+      {/* {booking.} */}
       <ul className="flex flex-col px-4">
         {bookings.map((booking, index) => (
           <li
             onClick={() => {
-              setShowModal(true);
-              setSelectedBooking(booking);
+              if (booking.status !== "отменено") {
+                setShowModal(true);
+                setSelectedBooking(booking);
+              }
             }}
             key={index}
             className="flex flex-col py-3 border-b border-[#E4E9EA]"
           >
-            <span className={`${COLORS_TEXT.blue200} font-bold mb-2`}>
-              {booking.time}
-            </span>
+            <div className="flex justify-between">
+              <span
+                className={`${booking.status === "отменено" ? `${COLORS_TEXT.gray100}` : `${COLORS_TEXT.blue200}`} font-bold mb-2`}
+              >
+                {booking.time}
+              </span>
+              <span className={`${COLORS_TEXT.red} font-bold`}>
+                {booking.status === "отменено" ? t("cancelStatus") : ""}
+              </span>
+            </div>
             <span>{booking.name}</span>
             <div className="flex justify-between">
               <div>
@@ -112,6 +122,10 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
             </div>
           </li>
         ))}
+      </ul>
+
+
+
         {showModal && (
           <BookingModal
             open={showModal}
@@ -119,7 +133,6 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
             booking={selectedBooking}
           />
         )}
-      </ul>
     </section>
   );
 };

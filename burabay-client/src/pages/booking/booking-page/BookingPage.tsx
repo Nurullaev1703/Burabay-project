@@ -85,19 +85,30 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       <div>
                         <span>{ad.title}</span>
                         <div className="max-w-[300px] truncate">
-                          {ad.times.slice(0, 5).map((time, index) => (
-                            <span
-                              key={index}
-                              className={
-                                time.includes("_")
-                                  ? COLORS_TEXT.red
-                                  : COLORS_TEXT.blue200
-                              }
-                            >
-                              {time}
-                              {index < Math.min(5, ad.times.length) - 1 && ", "}
-                            </span>
-                          ))}
+                          {ad.times.slice(0, 5).map((time, index) => {
+                            const hasUnderscore = time.includes("_");
+                            const formattedTime = time.replace("_", "");
+                            // Убираем год из дат формата "дд.мм.гггг"
+                            const updatedTime = formattedTime.replace(
+                              /(\d{2}\.\d{2})\.\d{4}/g,
+                              "$1"
+                            );
+
+                            return (
+                              <span
+                                key={index}
+                                className={
+                                  hasUnderscore
+                                    ? COLORS_TEXT.red
+                                    : COLORS_TEXT.blue200
+                                }
+                              >
+                                {updatedTime}
+                                {index < Math.min(5, ad.times.length) - 1 &&
+                                  ", "}
+                              </span>
+                            );
+                          })}
                           {ad.times.length > 5 && " ..."}
                         </div>
                       </div>

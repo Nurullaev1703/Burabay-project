@@ -21,6 +21,7 @@ export interface TSelectedBooking {
 
 export interface SelectedBookingList {
   bookingId: string;
+  rate: string;
   avatar: string;
   isPaid: boolean;
   name: string;

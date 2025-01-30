@@ -74,7 +74,9 @@ export const BookingModal: FC<Props> = function BookingModal({
                       ? t("onSidePayment")
                       : t("onlinePayment")}
                   </span>
-                  <span className={`${COLORS_TEXT.access}`}>{(booking.status === "оплачено") ? t("paid") : ""}</span>
+                  <span className={`${COLORS_TEXT.access}`}>
+                    {booking.status === "оплачено" ? t("paid") : ""}
+                  </span>
                 </div>
                 <span className={`${COLORS_TEXT.blue200}`}>
                   {formatPrice(booking.price)}
@@ -82,8 +84,10 @@ export const BookingModal: FC<Props> = function BookingModal({
               </li>
               <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
                 <span>{t("rate")}</span>
-                <span className={`${COLORS_TEXT.blue200}`}>
-                  {formatPrice(booking.price)}
+                <span>
+                  {booking.rate === "Детский"
+                    ? t("childRate")
+                    : t("adultsService")}
                 </span>
               </li>
               <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
@@ -100,14 +104,14 @@ export const BookingModal: FC<Props> = function BookingModal({
             </ul>
           </div>
 
-          <Button className="mb-4" onClick={() => setIsCancel(true) } mode="red">
+          <Button className="mb-4" onClick={() => setIsCancel(true)} mode="red">
             {t("cancel")}
           </Button>
         </Box>
       </Modal>
 
       {isCancel && (
-        <CancelBooking 
+        <CancelBooking
           open={isCancel}
           onClose={() => setIsCancel(false)}
           bookingId={booking.bookingId}
