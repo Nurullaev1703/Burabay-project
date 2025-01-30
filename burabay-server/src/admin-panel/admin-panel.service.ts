@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -19,15 +20,15 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(Booking)
+    private readonly bookingRespository: Repository<Booking>,
   ) {}
 
   @CatchErrors()
   async getStats() {
-    const users = await this.userRepository.count();
+    const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
     const orgs = await this.organizationRepository.count();
-    const ads = await this.adRepository.count();
-    const reviews = await this.reviewRepository.count();
-    return { users, orgs, ads, reviews };
+    return { tourists, orgs };
   }
 
   @CatchErrors()
@@ -47,7 +48,21 @@ export class AdminPanelService {
 
   @CatchErrors()
   async getAds() {
-    return await this.adRepository.find();
+    const ads = await this.adRepository.find();
+    const result = [];
+    for (const ad of ads) {
+      const bookingsCount = await this.bookingRespository.count({ where: { ad: { id: ad.id } } });
+      result.push({
+        adTitle: ad.title,
+        adImage: ad.images[0],
+        adId: ad.id,
+        bookingsCount: bookingsCount,
+      });
+    }
+    return {
+      count: result.length,
+      ads: result,
+    };
   }
 
   @CatchErrors()

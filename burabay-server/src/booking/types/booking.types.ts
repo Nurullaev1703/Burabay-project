@@ -5,7 +5,7 @@ export enum PaymentType {
 
 export enum BookingStatus {
   IN_PROCESS = 'в процессе',
-  CONFIRMED = 'подтверждено',
+  PAYED = 'оплачено',
   CANCELED = 'отменено',
 }
 

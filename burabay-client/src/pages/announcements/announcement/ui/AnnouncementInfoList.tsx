@@ -87,8 +87,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
-          to="/mapNav"
-          search={{ adName: ad.title }}
+          to={`/mapNav?adId=${ad.id}`}
+          
         >
           <span>{t("locationOnMap")}</span>
           <img src={ArrowRight} alt="Стрелка" />
