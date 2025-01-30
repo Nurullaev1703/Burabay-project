@@ -200,7 +200,6 @@ export class BookingService {
           isPaid: b.isPaid,
           price: b.ad.price,
           status: b.status,
-          type: 'Аренда',
         });
       }
     } else {
@@ -216,7 +215,6 @@ export class BookingService {
           isPaid: b.isPaid,
           price: b.ad.price,
           status: b.status,
-          type: 'Услуга',
         });
       }
     }
@@ -224,6 +222,7 @@ export class BookingService {
     return {
       title: bookings[0].ad.title,
       image: bookings[0].ad.images[0],
+      type: isRent ? 'Аренда' : 'Услуга',
       date: date,
       bookings: ad_bookins,
     };
