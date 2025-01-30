@@ -25,6 +25,8 @@ export function useGetBookings(
       });
       return response.data;
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 

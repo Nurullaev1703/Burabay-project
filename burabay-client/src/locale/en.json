@@ -416,6 +416,7 @@
   "paid": "Paid",
   "rate": "Rate",
   "changeMind": "I changed my mind",
+  "areYouSureCancelBooking": "Are you sure you want to fire the booking?",
   "payOnPlace": "Pay on-site",
   "payOnPlaceOrOnline": "Payment is made on-site in cash or by card",
   "onlinePayment": "Online payment",

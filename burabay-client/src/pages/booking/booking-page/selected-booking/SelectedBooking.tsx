@@ -20,17 +20,18 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
 }) {
-  const [bookings, setBookings] = useState<SelectedBookingList[]>(
+  const [bookings, _] = useState<SelectedBookingList[]>(
     booking.bookings || []
   );
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedBooking, setSelectedBooking] = useState<SelectedBookingList>({
+    bookingId: "",
     avatar: "",
     isPaid: false,
     name: "",
     payment_method: "cash",
     price: 0,
-    status: 0,
+    status: "",
     time: "",
     user_number: "",
   });
@@ -100,7 +101,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                     : t("onlinePayment")}
                 </span>
                 {booking.isPaid && (
-                  <span className="text-sm">
+                  <span className={`text-sm ${COLORS_TEXT.access}`}>
                     {booking.isPaid ? t("paid") : t("")}
                   </span>
                 )}
@@ -113,7 +114,6 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         ))}
         {showModal && (
           <BookingModal
-            // bookingId={booking.}
             open={showModal}
             onClose={() => setShowModal(false)}
             booking={selectedBooking}

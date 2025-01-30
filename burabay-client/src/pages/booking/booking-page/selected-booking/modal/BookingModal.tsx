@@ -74,7 +74,7 @@ export const BookingModal: FC<Props> = function BookingModal({
                       ? t("onSidePayment")
                       : t("onlinePayment")}
                   </span>
-                  <span></span>
+                  <span className={`${COLORS_TEXT.access}`}>{(booking.status === "оплачено") ? t("paid") : ""}</span>
                 </div>
                 <span className={`${COLORS_TEXT.blue200}`}>
                   {formatPrice(booking.price)}
@@ -100,7 +100,7 @@ export const BookingModal: FC<Props> = function BookingModal({
             </ul>
           </div>
 
-          <Button className="mb-4" onClick={onClose} mode="red">
+          <Button className="mb-4" onClick={() => setIsCancel(true) } mode="red">
             {t("cancel")}
           </Button>
         </Box>
