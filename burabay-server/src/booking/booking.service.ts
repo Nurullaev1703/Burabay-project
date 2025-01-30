@@ -69,18 +69,36 @@ export class BookingService {
 
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
-      relations: { user: true, ad: { organization: true } },
+      relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
     });
 
     const groups = [];
 
     for (const b of bookings) {
       // Создаём заголовок.
-      const header = b.status === BookingStatus.IN_PROCESS ? 'In process' : b.date;
+      // Вернуть, когда будет этап со статусом "В процессе".
+      // const header = b.status === BookingStatus.IN_PROCESS ? 'In process' : b.date;
+      const today = new Date();
+      const [day, month, year] = b.date.split('.'); // Достать день, месяц, год из строки даты.
+      const date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
+      let header = b.date;
+      // Если date и today это один день, то изменить header на "Сегодня".
+      if (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      ) {
+        header = 'Сегодня';
+      }
+      // Если date это следующий день, то изменить header на "Завтра".
+      if (date.getDate() === today.getDate() + 1) {
+        header = 'Завтра';
+      }
 
       if (b.status === BookingStatus.CANCELED) {
-        // Если бронь отменена, то добавляет _ к времени
+        // Если бронь отменена, то добавляет _ к времени.
         b.time = b.time + '_';
+        b.dateEnd = b.dateEnd + '_';
       }
 
       let group = groups.find((g) => g.header === header);
@@ -101,8 +119,11 @@ export class BookingService {
         };
         group.ads.push(adGroup);
       }
+      // Является ли объявление арендой.
+      const isRent =
+        b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
 
-      if (b.ad.isBookable) {
+      if (isRent) {
         adGroup.times.push(`с ${b.dateStart} до ${b.dateEnd}`);
       } else {
         adGroup.times.push(b.time);
@@ -114,17 +135,32 @@ export class BookingService {
 
   @CatchErrors()
   async getAllByAdId(adId: string, date: string, filter?: BookingFilter) {
-    const ad = await this.adRepository.findOne({ where: { id: adId } });
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: { subcategory: { category: true } },
+    });
+
+    const isRent =
+      ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+    let findDate;
+    if (date === 'Сегодня') {
+      const today = new Date();
+      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+    } else if (date === 'Завтра') {
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+    } else {
+      findDate = date;
+    }
+
     let whereOptions = {};
     Utils.checkEntity(ad, 'Объявление не найдено');
-    if (date === 'In process') {
-      whereOptions = { ad: { id: adId }, status: BookingStatus.IN_PROCESS };
+
+    if (isRent) {
+      whereOptions = { ad: { id: adId }, dateStart: findDate };
     } else {
-      if (ad.isBookable) {
-        whereOptions = { ad: { id: adId }, dateStart: date };
-      } else {
-        whereOptions = { ad: { id: adId }, date: date };
-      }
+      whereOptions = { ad: { id: adId }, date: findDate };
     }
 
     if (filter.canceled) {
@@ -147,14 +183,15 @@ export class BookingService {
         };
       }
     }
-
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
       relations: { ad: true, user: true },
     });
-
+    if (bookings.length === 0) {
+      return [];
+    }
     const ad_bookins = [];
-    if (ad.isBookable) {
+    if (isRent) {
       for (const b of bookings) {
         ad_bookins.push({
           bookingId: b.id,
@@ -198,7 +235,7 @@ export class BookingService {
   async findOne(id: string) {
     const booking = await this.bookingRepository.findOne({
       where: { id: id },
-      relations: { ad: true },
+      relations: { ad: { organization: true }, user: true },
     });
     Utils.checkEntity(booking, 'Бронирование не найдено');
     return booking;
@@ -224,7 +261,26 @@ export class BookingService {
       await manager.remove(booking);
       const notification = await manager.create(Notification, {
         user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
-        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
+        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+      });
+      await manager.save(notification);
+      return JSON.stringify(HttpStatus.OK);
+    });
+  }
+
+  @CatchErrors()
+  async bookingCancel(id: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      const booking = await manager.findOne(Booking, {
+        where: { id: id },
+        relations: { user: true, ad: true },
+      });
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+      booking.status = BookingStatus.CANCELED;
+      await manager.save(booking);
+      const notification = await manager.create(Notification, {
+        user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
+        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
       });
       await manager.save(notification);
       return JSON.stringify(HttpStatus.OK);
