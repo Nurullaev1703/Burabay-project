@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
-import { BookingList } from "./model/booking";
+import { BookingList, TSelectedBooking } from "./model/booking";
 
 export function useGetBookings(
   onlinePayment: boolean | null = false,
@@ -28,12 +28,12 @@ export function useGetBookings(
   });
 }
 
-export function useGetBooking(bookingId: string) {
+export function useGetBooking(bookingId: string, category: string) {
   return useQuery({
-    queryKey: [`/booking/${bookingId}`],
+    queryKey: [`/booking/by-ad/${bookingId}/${category}`],
     queryFn: async () => {
-      const response = await apiService.get<any>({
-        url: `/booking/${bookingId}`,
+      const response = await apiService.get<TSelectedBooking>({
+        url: `/booking/by-ad/${bookingId}/${category}`,
       });
       return response.data;
     },
