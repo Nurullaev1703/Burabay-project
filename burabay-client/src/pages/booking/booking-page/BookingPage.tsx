@@ -86,6 +86,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                         <span>{ad.title}</span>
                         <div className="max-w-[300px] truncate">
                           {ad.times.slice(0, 5).map((time, index) => {
+                            if (!time) return null; // Пропускаем null значения
+
                             const hasUnderscore = time.includes("_");
                             const formattedTime = time.replace("_", "");
                             // Убираем год из дат формата "дд.мм.гггг"

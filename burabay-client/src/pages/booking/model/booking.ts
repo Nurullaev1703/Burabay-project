@@ -16,6 +16,7 @@ export interface TSelectedBooking {
   date: string;
   image: string;
   title: string;
+  type: "Услуга" | "Аренда",
   bookings: SelectedBookingList[];
 }
 
@@ -30,4 +31,6 @@ export interface SelectedBookingList {
   status: string;
   time: string;
   user_number: string;
+  date?: string;
+  dateEnd?: string;
 }
