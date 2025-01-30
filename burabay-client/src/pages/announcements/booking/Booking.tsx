@@ -17,7 +17,7 @@ import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { apiService } from "../../../services/api/ApiService";
 
-type PaymentType = "online" | "cash";
+export type PaymentType = "online" | "cash";
 
 interface FormType {
   adId: string;

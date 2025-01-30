@@ -13,7 +13,7 @@ interface Props {
 export const ModalExit: FC<Props> = function ModalExit({ open, onClose }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
+
   return (
     <Modal
       open={open}
@@ -38,13 +38,21 @@ export const ModalExit: FC<Props> = function ModalExit({ open, onClose }) {
           borderTopLeftRadius: 14,
           borderTopRightRadius: 14,
           display: "flex",
-          flexDirection:"column",
-          alignItems:"center"
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <span className="text-center font-medium w-3/4">{t("areYouSure")}</span>
-        <Button mode="red" className="mb-2" onClick={() => {  tokenService.deleteValue();
-          navigate({ to: "/auth" });}}>{t("exit")}</Button>
+        <Button
+          mode="red"
+          className="mb-2"
+          onClick={() => {
+            tokenService.deleteValue();
+            navigate({ to: "/auth" });
+          }}
+        >
+          {t("exit")}
+        </Button>
         <Button onClick={onClose}>{t("cancel")}</Button>
       </Box>
     </Modal>

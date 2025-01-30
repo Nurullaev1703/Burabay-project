@@ -32,6 +32,10 @@ interface Props {
   review?: Review[];
 }
 
+export const formatPrice = (value: number) => {
+  return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
+};
+
 export const Announcement: FC<Props> = function Announcement({ announcement, review }) {
   const { t } = useTranslation();
   const [carouselImages, _] = useState<CarouselItem[]>(
@@ -46,9 +50,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement, rev
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
-  };
+ 
   return (
     <section className="bg-background">
       <Header>

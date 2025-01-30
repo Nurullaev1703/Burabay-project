@@ -54,7 +54,9 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             onKeyDown={handleKeyDown}
           />
         </div>
-        <Link to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}>
+        <Link
+          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+        >
           <img src={FilterIcon} className="mt-4" alt="Фильтр" />
         </Link>
       </div>
@@ -70,7 +72,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             <ul>
               {category.ads.map((ad) => (
                 <li className="py-3 border-b border-[#E4E9EA]">
-                  <Link className="flex justify-between" to={`/booking/${ad.ad_id}`}>
+                  <Link
+                    className="flex justify-between"
+                    to={`/booking/${ad.ad_id}/${category.header}`}
+                  >
                     <div className="flex">
                       <img
                         src={baseUrl + ad.img}

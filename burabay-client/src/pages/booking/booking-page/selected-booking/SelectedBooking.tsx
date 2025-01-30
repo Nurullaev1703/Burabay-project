@@ -1,19 +1,39 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Header } from "../../../../components/Header";
 import { IconContainer } from "../../../../shared/ui/IconContainer";
 import { Typography } from "../../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
+import { SelectedBookingList, TSelectedBooking } from "../../model/booking";
+import { Announcement } from "../../../announcements/model/announcements";
+import { baseUrl } from "../../../../services/api/ServerData";
+import { BookingModal } from "./modal/BookingModal";
+import { formatPrice } from "../../../announcements/announcement/Announcement";
 
 interface Props {
-  booking: any;
+  announcement: Announcement;
+  booking: TSelectedBooking;
 }
 
 export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
+  announcement,
 }) {
-  console.log(booking);
+  const [bookings, setBookings] = useState<SelectedBookingList[]>(
+    booking.bookings || []
+  );
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedBooking, setSelectedBooking] = useState<SelectedBookingList>({
+    avatar: "",
+    isPaid: false,
+    name: "",
+    payment_method: "cash",
+    price: 0,
+    status: 0,
+    time: "",
+    user_number: "",
+  });
   const { t } = useTranslation();
   return (
     <section>
@@ -37,7 +57,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("booking")}
+              {t(booking.date)}
             </Typography>
           </div>
           <IconContainer
@@ -46,6 +66,60 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           ></IconContainer>
         </div>
       </Header>
+
+      <div className="px-4 flex flex-col">
+        <div className="flex items-center">
+          <img
+            src={baseUrl + announcement.images[0]}
+            alt={announcement.title}
+            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+          />
+          <span className="max-w-[266px] truncate">{announcement.title}</span>
+        </div>
+      </div>
+
+      <ul className="flex flex-col px-4">
+        {bookings.map((booking, index) => (
+          <li
+            onClick={() => {
+              setShowModal(true);
+              setSelectedBooking(booking);
+            }}
+            key={index}
+            className="flex flex-col py-3 border-b border-[#E4E9EA]"
+          >
+            <span className={`${COLORS_TEXT.blue200} font-bold mb-2`}>
+              {booking.time}
+            </span>
+            <span>{booking.name}</span>
+            <div className="flex justify-between">
+              <div>
+                <span className="text-sm mr-2">
+                  {booking.payment_method === "cash"
+                    ? t("payOnPlace")
+                    : t("onlinePayment")}
+                </span>
+                {booking.isPaid && (
+                  <span className="text-sm">
+                    {booking.isPaid ? t("paid") : t("")}
+                  </span>
+                )}
+              </div>
+              <span className={`${COLORS_TEXT.blue200}`}>
+                {formatPrice(booking.price)}
+              </span>
+            </div>
+          </li>
+        ))}
+        {showModal && (
+          <BookingModal
+            // bookingId={booking.}
+            open={showModal}
+            onClose={() => setShowModal(false)}
+            booking={selectedBooking}
+          />
+        )}
+      </ul>
     </section>
   );
 };

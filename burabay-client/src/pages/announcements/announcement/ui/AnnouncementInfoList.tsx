@@ -11,7 +11,10 @@ import { ROLE_TYPE } from "../../../auth/model/auth-model";
 interface Props {
   ad: Announcement;
 }
-
+export const formatPhoneNumber = (number: number | string) => {
+  const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
+  return `+${phoneStr.slice(0, 1)} ${phoneStr.slice(1, 4)} ${phoneStr.slice(4, 7)} ${phoneStr.slice(7, 9)}-${phoneStr.slice(9)}`;
+};
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
 }) {
@@ -48,11 +51,6 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
     return workingDays.length > 0
       ? workingDays.join(", ")
       : t("aroundClockDays");
-  };
-
-  const formatPhoneNumber = (number: number | string) => {
-    const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
-    return `+${phoneStr.slice(0, 1)} ${phoneStr.slice(1, 4)} ${phoneStr.slice(4, 7)} ${phoneStr.slice(7, 9)}-${phoneStr.slice(9)}`;
   };
 
   return (
