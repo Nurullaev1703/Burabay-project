@@ -376,6 +376,7 @@
   "mapNav": "Map",
   "cancelBtn": "Cancel",
   "cancelled": "Cancelled",
+  "cancelStatus": "Cancelled",
   "addNewAd": "New ad",
   "choiseCat": "Select a category",
   "choiseSub": "Select a subcategory before continuing!",

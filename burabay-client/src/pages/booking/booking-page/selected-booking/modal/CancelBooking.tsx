@@ -22,8 +22,8 @@ export const CancelBooking: FC<Props> = function CancelBooking({
   const navigate = useNavigate();
   const cancelBooking = async (idBooking: string = bookingId) => {
     try {
-      const response = await apiService.delete<HTTP_STATUS>({
-        url: `/booking/${idBooking}`,
+      const response = await apiService.patch<HTTP_STATUS>({
+        url: `/booking/${idBooking}/cancel`,
       });
       if (parseInt(response.data) === parseInt(HTTP_STATUS.OK)) {
         await queryClient.invalidateQueries({ queryKey: [`/booking/org`] });
