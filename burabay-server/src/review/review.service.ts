@@ -52,6 +52,7 @@ export class ReviewService {
       return await this.reviewRepository.find({
         relations: {
           user: true,
+          answer: true,
         },
       });
     } catch (error) {
@@ -63,7 +64,7 @@ export class ReviewService {
     try {
       const ad = await this.adRepository.findOne({
         where: { id: adId },
-        relations: { reviews: { user: true } },
+        relations: { reviews: { user: true, answer: true } },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
       return ad.reviews;
@@ -76,7 +77,7 @@ export class ReviewService {
     try {
       const review = await this.reviewRepository.findOne({
         where: { id: id },
-        relations: { user: true },
+        relations: { user: true, answer: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
       return review;
