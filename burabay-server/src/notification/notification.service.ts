@@ -13,35 +13,39 @@ export class NotificationService {
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
-  ){}
+    private readonly userRepository: Repository<User>,
+  ) {}
+
   @CatchErrors()
   async create(createNotificationDto: CreateNotificationDto) {
-    const {userId, ...of} = createNotificationDto
+    const { userId, ...of } = createNotificationDto;
     const user = await this.userRepository.findOne({
-      where:{id: userId}
-    })
-    Utils.checkEntity(user, "Пользователь не найден")
+      where: { id: userId },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    const createdAt = new Date();
+    console.log(createdAt);
     const newNotification = this.notificationRepository.create({
-     ...of,
-      user: user
-    })
-    await this.notificationRepository.save(newNotification)
-    return JSON.stringify(HttpStatus.CREATED)
+      ...of,
+      createdAt: createdAt,
+      user: user,
+    });
+    await this.notificationRepository.save(newNotification);
+    return JSON.stringify(HttpStatus.CREATED);
   }
 
- async findAll(tokenData: TokenData) {
+  async findAll(tokenData: TokenData) {
     const user = await this.userRepository.findOne({
-      where:{id: tokenData.id}
-    })
-    Utils.checkEntity(user, "Пользователь не найден")
+      where: { id: tokenData.id },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
     return await this.notificationRepository.find({
-      where:{user: user},
-      order:{createdAt: 'DESC'}
-    })
+      where: { user: user },
+      order: { createdAt: 'DESC' },
+    });
   }
 
- async update(id: string, updateNotificationDto: UpdateNotificationDto) {
+  async update(id: string, updateNotificationDto: UpdateNotificationDto) {
     return `This action updates a #${id} notification`;
   }
 
