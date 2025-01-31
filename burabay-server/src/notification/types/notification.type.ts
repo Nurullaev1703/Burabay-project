@@ -1,5 +1,6 @@
 export enum NotificationType {
-  REPORT = 'жалоба',
-  BOOKING = 'бронирование',
-  SYSTEM = 'системное',
+  POSITIVE = 'позитивное',
+  NEGATIVE = 'негативное',
+  NEUTRAL = 'нейтральное',
+  NONE = 'пустое',
 }
