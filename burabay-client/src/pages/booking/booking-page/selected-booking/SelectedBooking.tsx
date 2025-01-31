@@ -129,92 +129,114 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </ul>
       )}
 
-{booking.type === "Аренда" && (
-  <div className="px-4 mt-4">
-    {booking.bookings.map((b, index) => (
-      <div key={b.bookingId} className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}>
-        <div className="flex items-center py-3 border-t border-[#E4E9EA]">
-          <img
-            src={baseUrl + b.avatar}
-            alt={b.name}
-            className="w-[52px] h-[52px] object-cover rounded-full mr-4"
-          />
-          <span>{b.name}</span>
-        </div>
+      {booking.type === "Аренда" && (
+        <div className="px-4 mt-4">
+          {booking.bookings.map((b, index) => (
+            <div
+              key={b.bookingId}
+              className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
+            >
+              <div className="flex items-center py-3 border-t border-[#E4E9EA]">
+                <img
+                  src={baseUrl + b.avatar}
+                  alt={b.name}
+                  className="w-[52px] h-[52px] object-cover rounded-full mr-4"
+                />
+                <span>{b.name}</span>
+              </div>
 
-        <ul className="mb-8">
-          <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-            <span className="text-sm">{t("CheckInDate")}</span>
-            <span>{b.date}</span>
-          </li>
-          <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-            <span className="text-sm">{t("DepatureDate")}</span>
-            <span>{b.dateEnd}</span>
-          </li>
-          <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-            <span className="text-sm">{t("totalDuration")}</span>
-            <span>
-              {(() => {
-                const parseDate = (dateString?: string) => {
-                  if (!dateString) return null;
-                  const [day, month, year] = dateString.split(".").map(Number);
-                  return new Date(year, month - 1, day);
-                };
+              <ul className="mb-8">
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("CheckInDate")}</span>
+                  <span>{b.date}</span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("DepatureDate")}</span>
+                  <span>{b.dateEnd}</span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("totalDuration")}</span>
+                  <span>
+                    {(() => {
+                      const parseDate = (dateString?: string) => {
+                        if (!dateString) return null;
+                        const [day, month, year] = dateString
+                          .split(".")
+                          .map(Number);
+                        return new Date(year, month - 1, day);
+                      };
 
-                const getDaySuffix = (days: number) => {
-                  if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "дня"
-                  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
-                    return t("daysV2"); // "дня"
-                  }
-                  return t("daysV1"); // "дней"
-                };
+                      const getDaySuffix = (days: number) => {
+                        if (days % 10 === 1 && days % 100 !== 11)
+                          return t("daysV2"); // "дня"
+                        if (
+                          [2, 3, 4].includes(days % 10) &&
+                          ![12, 13, 14].includes(days % 100)
+                        ) {
+                          return t("daysV2"); // "дня"
+                        }
+                        return t("daysV1"); // "дней"
+                      };
 
-                const start = parseDate(b.date);
-                const end = parseDate(b.dateEnd);
+                      const start = parseDate(b.date);
+                      const end = parseDate(b.dateEnd);
 
-                if (!start || !end) return t("noDate");
+                      if (!start || !end) return t("noDate");
 
-                const diffInMs = end.getTime() - start.getTime();
-                const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+                      const diffInMs = end.getTime() - start.getTime();
+                      const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
-                return `${diffInDays} ${getDaySuffix(diffInDays)}`;
-              })()}
-            </span>
-          </li>
-          <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-            <div>
-              <span className="text-sm">
-                {b.payment_method === "online" ? t("onlinePayment") : t("onSidePayment")}
-              </span>
-              {b.isPaid && (
-                <span className={`text-sm ${COLORS_TEXT.access}`}>
-                  {b.isPaid ? t("paid") : t("")}
-                </span>
+                      return `${diffInDays} ${getDaySuffix(diffInDays)}`;
+                    })()}
+                  </span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <div>
+                    <span className="text-sm">
+                      {b.payment_method === "online"
+                        ? t("onlinePayment")
+                        : t("onSidePayment")}
+                    </span>
+                    {b.isPaid && (
+                      <span className={`text-sm ${COLORS_TEXT.access}`}>
+                        {b.isPaid ? t("paid") : t("")}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`${COLORS_TEXT.blue200}`}>
+                    {formatPrice(b.price)}
+                  </span>
+                </li>
+                <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                  <div className="flex flex-col">
+                    <span>{formatPhoneNumber(b.user_number)}</span>
+                    <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                      {t("contactPhone")}
+                    </span>
+                  </div>
+                  <a href={`tel:${b.user_number}`}>
+                    <img src={PhoneIcon} alt="Звонить" />
+                  </a>
+                </li>
+              </ul>
+              {b.status !== "отменено" && (
+                <Button
+                  className="mb-4"
+                  onClick={() => setIsCancel(true)}
+                  mode="red"
+                >
+                  {t("cancel")}
+                </Button>
               )}
+              <CancelBooking
+                open={isCancel}
+                onClose={() => setIsCancel(false)}
+                bookingId={b.bookingId}
+              />
             </div>
-            <span className={`${COLORS_TEXT.blue200}`}>{formatPrice(b.price)}</span>
-          </li>
-          <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-            <div className="flex flex-col">
-              <span>{formatPhoneNumber(b.user_number)}</span>
-              <span className={`${COLORS_TEXT.gray100} text-sm`}>{t("contactPhone")}</span>
-            </div>
-            <a href={`tel:${b.user_number}`}>
-              <img src={PhoneIcon} alt="Звонить" />
-            </a>
-          </li>
-        </ul>
-        {b.status !== "отменено" && isCancel && (
-          <Button className="mb-4" onClick={() => setIsCancel(true)} mode="red">
-            {t("cancel")}
-          </Button>
-        )}
-        <CancelBooking open={isCancel} onClose={() => setIsCancel(false)} bookingId={b.bookingId} />
-      </div>
-    ))}
-  </div>
-)}
-
+          ))}
+        </div>
+      )}
 
       {showModal && (
         <BookingModal
