@@ -158,13 +158,25 @@ export class BookingService {
     const groups = [];
 
     for (const b of bookings) {
+      // Является ли объявление арендой.
+      const isRent =
+        b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
       // Создаём заголовок.
       // Вернуть, когда будет этап со статусом "В процессе".
       // const header = b.status === BookingStatus.IN_PROCESS ? 'In process' : b.date;
       const today = new Date();
-      const [day, month, year] = b.date.split('.'); // Достать день, месяц, год из строки даты.
-      const date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
-      let header = b.date;
+      let date: Date;
+      let header: string;
+
+      if (isRent) {
+        const [day, month, year] = b.dateStart.split('.'); // Достать день, месяц, год из строки даты.
+        date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
+        header = b.dateStart;
+      } else {
+        const [day, month, year] = b.date.split('.'); // Достать день, месяц, год из строки даты.
+        date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
+        header = b.date;
+      }
       // Если date и today это один день, то изменить header на "Сегодня".
       if (
         date.getDate() === today.getDate() &&
@@ -202,12 +214,9 @@ export class BookingService {
         };
         group.ads.push(adGroup);
       }
-      // Является ли объявление арендой.
-      const isRent =
-        b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
 
       if (isRent) {
-        adGroup.times.push(`с ${b.date} до ${b.dateEnd}`);
+        adGroup.times.push(`с ${b.dateStart} до ${b.dateEnd}`);
       } else {
         adGroup.times.push(b.time);
       }
@@ -226,6 +235,7 @@ export class BookingService {
     const isRent =
       ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
     let findDate;
+
     if (date === 'Сегодня') {
       const today = new Date();
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
