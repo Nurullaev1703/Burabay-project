@@ -41,7 +41,6 @@ export class BookingService {
       const dateStart = new Date(`${yearStart}-${monthStart}-${dayStart}`);
       const dateEnd = new Date(`${yearEnd}-${monthEnd}-${dayEnd}`);
       const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
-      console.log(days);
       newBooking.totalPrice = days * ad.price;
     } else {
       newBooking.totalPrice = ad.price;
@@ -139,17 +138,28 @@ export class BookingService {
           ad_id: b.ad.id,
           img: b.ad.images[0],
           times: [],
-          isPaid: b.isPaid,
-          paymentType: b.paymentType,
-          price: b.totalPrice,
         };
         group.ads.push(adGroup);
       }
 
       if (isRent) {
-        adGroup.times.push(`с ${b.dateStart} до ${b.dateEnd}`);
+        const newTime = {
+          time: `с ${b.dateStart} до ${b.dateEnd}`,
+          status: b.status,
+          price: b.totalPrice,
+          isPaid: b.isPaid,
+          paymentType: b.paymentType,
+        };
+        adGroup.times.push(newTime);
       } else {
-        adGroup.times.push(b.time);
+        const newTime = {
+          time: b.time,
+          status: b.status,
+          price: b.totalPrice,
+          isPaid: b.isPaid,
+          paymentType: b.paymentType,
+        };
+        adGroup.times.push(newTime);
       }
     }
 
