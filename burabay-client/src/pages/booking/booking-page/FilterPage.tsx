@@ -46,7 +46,7 @@ export const FilterPage: FC = function FilterPage() {
 
     // Обновляем URL с новыми фильтрами
     navigate({
-      to: `/booking/${userRole === "турист" ? "tourist" : "org"}?${searchParams.toString()}`,
+      to: `/booking/${userRole === "турист" ? "tourist" : "business"}?${searchParams.toString()}`,
     });
   };
   return (

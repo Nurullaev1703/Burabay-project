@@ -35,7 +35,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
               <ul className="mb-8">
                 <li className="flex justify-between py-3.5 border-y border-[#E4E9EA]">
                   <span className="text-sm">{t("CheckInDate")}</span>
-                  <span>{b.date}</span>
+                  <span>{bookingsState.date}</span>
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("DepatureDate")}</span>
@@ -69,7 +69,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                         return t("daysV1"); // "дней"
                       };
 
-                      const start = parseDate(b.date);
+                      const start = parseDate(bookingsState.date);
                       const end = parseDate(b.dateEnd);
 
                       if (!start || !end) return t("noDate");
@@ -134,7 +134,83 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
           ))}
         </ul>
       ) : (
-        <ul className="px-4"></ul>
+        <ul className="px-4">
+          {bookingsState.bookings.map((b, index) => (
+            <div
+              key={b.bookingId}
+              className={`mb-4 ${index === bookingsState.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
+            >
+              <ul className="mb-8">
+                <li className="flex justify-between py-3.5 border-y border-[#E4E9EA]">
+                  <span className="text-sm">{t("date")}</span>
+                  <span>{bookingsState.date}</span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("bookingTime")}</span>
+                  <span>{b.time}</span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("cost")}</span>
+                  <span>{formatPrice(announcement.price)}</span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <div>
+                    <span className="text-sm">
+                      {b.payment_method === "online"
+                        ? t("onlinePayment")
+                        : t("onSidePayment")}
+                    </span>
+                    {b.isPaid && (
+                      <span className={`text-sm ${COLORS_TEXT.access}`}>
+                        {b.isPaid ? t("paid") : t("")}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`${COLORS_TEXT.blue200}`}>
+                    {formatPrice(b.price)}
+                  </span>
+                </li>
+                <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                  <span className="text-sm">{t("rate")}</span>
+                  <span>
+                    {b.rate === "Взрослый" ? t("adults") : t("child")}
+                  </span>
+                </li>
+                <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                  <div className="flex flex-col">
+                    <span>{formatPhoneNumber(b.user_number)}</span>
+                    <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                      {t("contactPhone")}
+                    </span>
+                  </div>
+                  <a href={`tel:${b.user_number}`}>
+                    <img src={PhoneIcon} alt="Звонить" />
+                  </a>
+                </li>
+                <li className="py-3.5 border-b border-[#E4E9EA]">
+                  <Link className="flex justify-between">
+                    <span>{t("locationOnMap")}</span>
+                    <img src={ArrowBottomIcon} alt="Перейти" />
+                  </Link>
+                </li>
+              </ul>
+              {b.status !== "отменено" && (
+                <Button
+                  className="mb-4"
+                  onClick={() => setIsCancel(true)}
+                  mode="red"
+                >
+                  {t("cancel")}
+                </Button>
+              )}
+              <CancelBooking
+                open={isCancel}
+                onClose={() => setIsCancel(false)}
+                bookingId={b.bookingId}
+              />
+            </div>
+          ))}
+        </ul>
       )}
     </>
   );
