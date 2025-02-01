@@ -27,8 +27,25 @@ export class BookingService {
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
-    const ad = await this.adRepository.findOne({ where: { id: createBookingDto.adId } });
+    const ad = await this.adRepository.findOne({
+      where: { id: createBookingDto.adId },
+      relations: { subcategory: { category: true } },
+    });
     const newBooking = this.bookingRepository.create({ user: user, ad: ad, ...createBookingDto });
+    const isRent =
+      ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+    if (isRent) {
+      const [dayStart, monthStart, yearStart] = createBookingDto.dateStart.split('.');
+      const [dayEnd, monthEnd, yearEnd] = createBookingDto.dateEnd.split('.');
+
+      const dateStart = new Date(`${yearStart}-${monthStart}-${dayStart}`);
+      const dateEnd = new Date(`${yearEnd}-${monthEnd}-${dayEnd}`);
+      const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+      console.log(days);
+      newBooking.totalPrice = days * ad.price;
+    } else {
+      newBooking.totalPrice = ad.price;
+    }
     await this.bookingRepository.save(newBooking);
     return JSON.stringify(HttpStatus.CREATED);
   }
