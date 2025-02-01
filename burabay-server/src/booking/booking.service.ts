@@ -37,7 +37,7 @@ export class BookingService {
   async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
     // Переменная для опций запроса.
     let whereOptions: object = {
-      ad: { organization: { user: { id: tokenData.id } } },
+      user: { id: tokenData.id },
     };
 
     // Дополнение опций при фильтрации.
