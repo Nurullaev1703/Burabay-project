@@ -23,7 +23,6 @@ export class ReviewService {
   @CatchErrors()
   async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
-      console.log(tokenData);
       const { adId, ...oF } = createReviewDto;
       const user = await manager.findOne(User, { where: { id: tokenData.id } });
       Utils.checkEntity(user, 'Пользователь не найден');

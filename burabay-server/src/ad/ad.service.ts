@@ -3,7 +3,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
@@ -27,6 +27,7 @@ export class AdService {
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
     // TODO упростить связки с репозиториями при удалении
+    private readonly dataSource: DataSource,
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
     @InjectRepository(BookingBanDate)
@@ -214,28 +215,30 @@ export class AdService {
   /* Метод для удаления Объявления. */
   @CatchErrors()
   async remove(id: string) {
-    const ad = await this.adRepository.findOne({
-      where: { id: id },
-      relations: {
-        schedule: true,
-        bookingBanDate: true,
-        breaks: true,
-      },
+    return await this.dataSource.transaction(async (manager) => {
+      const ad = await manager.findOne(Ad, {
+        where: { id: id },
+        relations: {
+          schedule: true,
+          bookingBanDate: true,
+          breaks: true,
+          bookings: true,
+        },
+      });
+      Utils.checkEntity(ad, 'Объявление не найдено');
+      if (ad.bookings.length > 0) {
+        return {
+          message:
+            'Невозможно удалить объявление, так как оно забронировано. Вы можете скрыть объявление для брони',
+          code: HttpStatus.CONFLICT,
+        };
+      }
+      if (ad.schedule) await manager.remove(ad.schedule);
+      if (ad.bookingBanDate) await manager.remove(ad.bookingBanDate);
+      if (ad.breaks) await manager.remove(ad.breaks);
+      await manager.remove(ad);
+      return JSON.stringify(HttpStatus.OK);
     });
-    Utils.checkEntity(ad, 'Объявление не найдено');
-    await this.scheduleRepository.delete({ id: ad.schedule.id });
-    await this.bookingBanDateRepository.delete({
-      ad: {
-        id: ad.id,
-      },
-    });
-    await this.breakRepository.delete({
-      ad: {
-        id: ad.id,
-      },
-    });
-    await this.adRepository.delete(id);
-    return JSON.stringify(HttpStatus.OK);
   }
 
   private _searchAd(name: string, ads: Ad[]): Ad[] {
