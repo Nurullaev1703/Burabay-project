@@ -175,7 +175,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                   <ul className="mb-8">
                     <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                       <span className="text-sm">{t("CheckInDate")}</span>
-                      <span>{b.date}</span>
+                      <span>{booking.date}</span>
                     </li>
                     <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                       <span className="text-sm">{t("DepatureDate")}</span>
@@ -205,7 +205,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                             return t("daysV1"); // "дней"
                           };
 
-                          const start = parseDate(b.date);
+                          const start = parseDate(booking.date);
                           const end = parseDate(b.dateEnd);
 
                           if (!start || !end) return t("noDate");

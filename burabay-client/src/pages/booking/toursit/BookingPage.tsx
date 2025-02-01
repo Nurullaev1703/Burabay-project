@@ -1,5 +1,4 @@
 import { FC, useState } from "react";
-import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
@@ -9,6 +8,7 @@ import { TouristBookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { formatPrice } from "../../announcements/announcement/Announcement";
+import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
 
 interface Props {
   ads: TouristBookingList[];
@@ -39,7 +39,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       event.preventDefault();
     }
   };
-  console.log(filteredAds);
 
   return (
     <section>
@@ -158,7 +157,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
         ))}
       </ul>
 
-      <NavMenuOrg />
+      <NavMenuClient />
     </section>
   );
 };
