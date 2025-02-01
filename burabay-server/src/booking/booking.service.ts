@@ -287,8 +287,12 @@ export class BookingService {
       findDate = date;
     }
     Utils.checkEntity(ad, 'Объявление не найдено');
-
-    let whereOptions: any = { ad: { id: adId }, date: findDate };
+    let whereOptions: any;
+    if (isRent) {
+      whereOptions = { ad: { id: adId }, dateStart: findDate };
+    } else {
+      whereOptions = { ad: { id: adId }, date: findDate };
+    }
 
     if (filter.canceled) {
       whereOptions = {
