@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { useLocation, useNavigate } from "@tanstack/react-router";
+import { roleService } from "../../../services/storage/Factory";
 
 interface FilterType {
   onlinePayment: boolean;
@@ -18,7 +19,7 @@ export const FilterPage: FC = function FilterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-
+  const userRole = roleService.getValue();
   // Извлекаем параметры фильтров из URL
   const queryParams = new URLSearchParams(location.search);
 
@@ -44,7 +45,9 @@ export const FilterPage: FC = function FilterPage() {
     if (filters.canceled) searchParams.set("canceled", "true");
 
     // Обновляем URL с новыми фильтрами
-    navigate({ to: `/booking/business?${searchParams.toString()}` });
+    navigate({
+      to: `/booking/${userRole === "турист" ? "tourist" : "org"}?${searchParams.toString()}`,
+    });
   };
   return (
     <section>
