@@ -41,9 +41,9 @@ export class BookingService {
       const dateStart = new Date(`${yearStart}-${monthStart}-${dayStart}`);
       const dateEnd = new Date(`${yearEnd}-${monthEnd}-${dayEnd}`);
       const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
-      newBooking.totalPrice = days * ad.price;
+      newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
     } else {
-      newBooking.totalPrice = ad.price;
+      newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
     }
     await this.bookingRepository.save(newBooking);
     return JSON.stringify(HttpStatus.CREATED);
@@ -287,8 +287,12 @@ export class BookingService {
       findDate = date;
     }
     Utils.checkEntity(ad, 'Объявление не найдено');
-
-    let whereOptions: any = { ad: { id: adId }, date: findDate };
+    let whereOptions: any;
+    if (isRent) {
+      whereOptions = { ad: { id: adId }, dateStart: findDate };
+    } else {
+      whereOptions = { ad: { id: adId }, date: findDate };
+    }
 
     if (filter.canceled) {
       whereOptions = {
