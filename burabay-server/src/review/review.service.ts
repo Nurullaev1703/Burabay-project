@@ -100,14 +100,17 @@ export class ReviewService {
     }
   }
 
+  @CatchErrors()
   async remove(id: string) {
-    try {
-      const review = await this.reviewRepository.findOne({ where: { id: id } });
+    return await this.dataSource.transaction(async (manager) => {
+      const review = await manager.findOne(Review, {
+        where: { id: id },
+        relations: { answer: true },
+      });
       Utils.checkEntity(review, 'Отзыв не найден');
-      await this.reviewRepository.remove(review);
+      await manager.remove(review.answer);
+      await manager.remove(review);
       return JSON.stringify(HttpStatus.OK);
-    } catch (error) {
-      Utils.errorHandler(error);
-    }
+    });
   }
 }
