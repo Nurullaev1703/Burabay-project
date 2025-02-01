@@ -9,6 +9,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationType } from 'src/notification/types/notification.type';
 
 @Injectable()
 export class BookingService {
@@ -414,7 +415,9 @@ export class BookingService {
       await manager.save(booking);
       const notification = await manager.create(Notification, {
         user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
+        type: NotificationType.NEGATIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+        createdAt: new Date(),
       });
       await manager.save(notification);
       return JSON.stringify(HttpStatus.OK);

@@ -25,7 +25,7 @@ export class Booking extends AbstractEntity<Booking> {
   @Column({ name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: new Date() })
   date: string;
 
   @Column({ nullable: true })
