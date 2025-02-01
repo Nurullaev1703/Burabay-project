@@ -327,7 +327,7 @@ export class BookingService {
       for (const b of bookings) {
         ad_bookins.push({
           bookingId: b.id,
-          date: b.date,
+          dateStart: b.dateStart,
           dateEnd: b.dateEnd,
           time: b.time,
           name: b.name,
