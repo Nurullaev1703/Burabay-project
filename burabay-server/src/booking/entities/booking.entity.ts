@@ -16,6 +16,9 @@ export class Booking extends AbstractEntity<Booking> {
   @Column({ default: BookingStatus.IN_PROCESS })
   status: BookingStatus;
 
+  @Column({ name: 'total_price', nullable: true })
+  totalPrice: number;
+
   @Column()
   name: string;
 
