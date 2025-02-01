@@ -5,24 +5,24 @@ import { Link, useLocation } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
-import { BookingList } from "../model/booking";
+import { TouristBookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
+import { formatPrice } from "../../announcements/announcement/Announcement";
 
 interface Props {
-  ads: BookingList[];
+  ads: TouristBookingList[];
 }
 
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
-
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
 
-  const [adsList, _] = useState<BookingList[]>(ads || []);
+  const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
 
   const filteredAds = adsList
@@ -36,10 +36,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение
+      event.preventDefault();
     }
   };
-
+  console.log(filteredAds);
 
   return (
     <section>
@@ -72,53 +72,86 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             </span>
             <ul>
               {category.ads.map((ad) => (
-                <li className="py-3 border-b border-[#E4E9EA]">
-                  <Link to={`/booking/${ad.ad_id}/${category.header}`}>
-                    <div className="max-w-[300px] truncate mb-2">
-                      {ad.times.slice(0, 5).map((time, index) => {
-                        if (!time) return null; // Пропускаем null значения
+                <>
+                  {ad.times.map((time) => (
+                    <li
+                      key={ad.ad_id}
+                      className="py-3 border-b border-[#E4E9EA]"
+                    >
+                      <Link to={`/booking/${ad.ad_id}/${category.header}`}>
+                        <div className="max-w-[300px] truncate mb-2">
+                          {ad.times.slice(0, 5).map((time, index) => {
+                            if (!time.time) return null;
 
-                        const hasUnderscore = time.includes("_");
-                        const formattedTime = time.replace("_", "");
-                        // Убираем год из дат формата "дд.мм.гггг"
-                        const updatedTime = formattedTime.replace(
-                          /(\d{2}\.\d{2})\.\d{4}/g,
-                          "$1"
-                        );
+                            const hasUnderscore = time.time.includes("_");
+                            const formattedTime = time.time.replace("_", "");
+                            const updatedTime = formattedTime.replace(
+                              /(\d{2}\.\d{2})\.\d{4}/g,
+                              "$1"
+                            );
 
-                        return (
-                          <span
-                            key={index}
-                            className={`
-                              ${hasUnderscore
-                                ? COLORS_TEXT.red
-                                : COLORS_TEXT.blue200}
-                                font-bold
-                            `}
-                          >
-                            {updatedTime}
-                            {index < Math.min(5, ad.times.length) - 1 && ", "}
-                          </span>
-                        );
-                      })}
-                      {ad.times.length > 5 && " ..."}
-                    </div>
-                    <div className="flex justify-between">
-                      <div className="flex">
-                        <img
-                          src={baseUrl + ad.img}
-                          alt={ad.title}
-                          className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                        />
-                        <div>
-                          <span>{ad.title}</span>
+                            return (
+                              <div className="flex justify-between">
+                                <span
+                                  key={index}
+                                  className={`font-bold ${
+                                    hasUnderscore
+                                      ? COLORS_TEXT.red
+                                      : COLORS_TEXT.blue200
+                                  } ${time.status === "отменено" ? COLORS_TEXT.gray100 : ""}`}
+                                >
+                                  {updatedTime}
+                                  {index < Math.min(5, ad.times.length) - 1 &&
+                                    ", "}
+                                </span>
+                                <span
+                                  className={`${COLORS_TEXT.red} font-bold`}
+                                >
+                                  {time.status === "отменено"
+                                    ? t("cancelStatus")
+                                    : ""}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {ad.times.length > 5 && " ..."}
                         </div>
-                      </div>
-
-                      <img src={ArrowBottomIcon} alt="Подробнее" />
-                    </div>
-                  </Link>
-                </li>
+                        <div className="flex justify-between">
+                          <div className="flex">
+                            <img
+                              src={baseUrl + ad.img}
+                              alt={ad.title}
+                              className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                            />
+                            <div className="flex flex-col">
+                              <span className="max-w-[266px] truncate">
+                                {ad.title}
+                              </span>
+                              <div className="flex justify-between w-full">
+                                <div className="mr-8">
+                                  <span className="mr-2">
+                                    {time.paymentType === "online"
+                                      ? t("onlinePayment")
+                                      : t("onSidePayment")}
+                                  </span>
+                                  <span
+                                    className={`text-sm ${time.isPaid ? COLORS_TEXT.access : COLORS_TEXT.red}`}
+                                  >
+                                    {time.isPaid ? t("paid") : t("waiting")}
+                                  </span>
+                                </div>
+                                <span className={`${COLORS_TEXT.blue200}`}>
+                                  {formatPrice(time.price)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <img src={ArrowBottomIcon} alt="Подробнее" />
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </>
               ))}
             </ul>
           </li>
