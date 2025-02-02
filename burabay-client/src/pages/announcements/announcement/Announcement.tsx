@@ -1,5 +1,8 @@
 import { FC, useEffect, useState } from "react";
-import { Announcement as AnnouncementType, Review } from "../model/announcements";
+import {
+  Announcement as AnnouncementType,
+  Review,
+} from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -12,7 +15,7 @@ import {
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
-// import EditIcon from "../../../app/icons/edit.svg";
+import EditIcon from "../../../app/icons/edit.svg";
 import DeleteIcon from "../../../app/icons/delete.svg";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import FavouriteFocusedIcon from "../../../app/icons/announcements/favourite-focus.svg";
@@ -24,20 +27,24 @@ import { ModalDelete } from "./ui/ModalDelete";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
 import { ReviewsInfo } from "./ui/ReviewsInfo";
-import { Link } from "@tanstack/react-router";
-
+import { Link, useNavigate } from "@tanstack/react-router";
+import VerticalIcon from "../../../app/icons/vertical.svg";
 
 interface Props {
   announcement: AnnouncementType;
   review?: Review[];
 }
 
-export const formatPrice = (value: number) => {
+        export const formatPrice = (value: number) => {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
 };
-
-export const Announcement: FC<Props> = function Announcement({ announcement, review }) {
+export const Announcement: FC<Props> = function Announcement({
+  announcement,
+  review,
+}) {
+  
   const { t } = useTranslation();
+  const navigate = useNavigate()
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
       return {
@@ -47,6 +54,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement, rev
     })
   );
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [isAdActions, setIsAdActions] = useState<boolean>(false);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -54,7 +62,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement, rev
   return (
     <section className="bg-background">
       <Header>
-        <div className="flex justify-between items-center text-center">
+        <div className="flex justify-between items-center text-center relative">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -69,11 +77,41 @@ export const Announcement: FC<Props> = function Announcement({ announcement, rev
             </Typography>
           </div>
           {roleService.getValue() == ROLE_TYPE.BUSINESS ? (
-            <IconContainer align="end" action={() => setShowModal(true)}>
-              <img src={DeleteIcon} alt="" />
+            <IconContainer
+              align="end"
+              action={() => setIsAdActions(!isAdActions)}
+            >
+              <img src={VerticalIcon} alt="" />
             </IconContainer>
           ) : (
             <IconContainer align="center" />
+          )}
+          {isAdActions && (
+            <ul
+              className="absolute top-full right-0 py-2 rounded-lg bg-white bg-opacity-70 z-[100]"
+              id="morph"
+            >
+              <li
+                className="flex gap-2 items-center p-4"
+                onClick={() => navigate({
+                  to: "/announcements/edit/subcategory/$subcatId/$adId",
+                  params: {
+                    adId: announcement.id,
+                    subcatId: announcement.subcategory.category.id,
+                  }
+                })}
+              >
+                <img src={EditIcon} alt="" />
+                <Typography size={14}>{"Редактировать"}</Typography>
+              </li>
+              <li
+                className="flex gap-2 items-center p-4"
+                onClick={() => setShowModal(true)}
+              >
+                <img src={DeleteIcon} alt="" />
+                <Typography size={14}>{"Удалить"}</Typography>
+              </li>
+            </ul>
           )}
         </div>
       </Header>
@@ -161,7 +199,7 @@ export const Announcement: FC<Props> = function Announcement({ announcement, rev
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
-      <ReviewsInfo ad={announcement} review={review}/>
+      <ReviewsInfo ad={announcement} review={review} />
       {showModal && (
         <ModalDelete
           open={showModal}

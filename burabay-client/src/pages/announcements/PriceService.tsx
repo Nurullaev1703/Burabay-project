@@ -14,9 +14,11 @@ import { SmallHint } from "../../shared/ui/SmallHint";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../services/api/ApiService";
+import { Announcement } from "./model/announcements";
 
 interface Props {
   adId: string;
+  announcement?: Announcement;
 }
 
 interface FormType {
@@ -24,21 +26,27 @@ interface FormType {
   priceForChild: number;
 }
 
-export const PriceService: FC<Props> = function PriceService(props) {
+export const PriceService: FC<Props> = function PriceService({
+  adId,
+  announcement,
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const symbolRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState<string>("0");
   const [inputValueChild, setInputValueChild] = useState<string>("0");
   const navigate = useNavigate();
-  const [booking, setBooking] = useState(false);
-  const [onSitePayment, setOnSitePayment] = useState(false);
-  const [onlinePayment, _setOnlinePayment] = useState(false);
+  const [booking, setBooking] = useState(announcement?.isBookable || false);
+  const [onSitePayment, setOnSitePayment] = useState(
+    announcement?.onSitePayment || false
+  );
+  const [onlinePayment, _setOnlinePayment] = useState(
+    announcement?.onlinePayment || false
+  );
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isFocusedChild, setIsFocusedChild] = useState<boolean>(false);
   const inputRefChild = useRef<HTMLInputElement>(null);
   const symbolRefChild = useRef<HTMLDivElement>(null);
-  const isButtonDisabled = inputValue === "0" || !onSitePayment && !onlinePayment;
 
   const calculateTextWidth = (number: string, font: string): number => {
     const span = document.createElement("span");
@@ -79,7 +87,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
     const formattedValue = formatNumberWithSpaces(sanitizedValue); // Форматируем с пробелами
     setInputValue(formattedValue || "0"); // Если значение пустое, показываем "0"
   };
-  
+
   const handleInputChangeChild = (rawValue: string) => {
     let sanitizedValue = rawValue.replace(/\D/g, "");
     if (sanitizedValue.startsWith("0")) {
@@ -88,8 +96,19 @@ export const PriceService: FC<Props> = function PriceService(props) {
     const formattedValue = formatNumberWithSpaces(sanitizedValue);
     setInputValueChild(formattedValue || "0");
   };
-  
 
+  const checkPriceService = () => {
+    if (
+      announcement?.price ||
+      announcement?.priceForChild ||
+      announcement?.isBookable ||
+      announcement?.onSitePayment ||
+      announcement?.onlinePayment
+    ) {
+      return true;
+    }
+    return false;
+  };
   useEffect(() => {
     updateTengePosition(inputRef, symbolRef, inputValue);
   }, [inputValue]);
@@ -100,8 +119,8 @@ export const PriceService: FC<Props> = function PriceService(props) {
 
   const { control, handleSubmit } = useForm<FormType>({
     defaultValues: {
-      price: 0,
-      priceForChild: 0,
+      price: announcement?.price || 0,
+      priceForChild: announcement?.priceForChild || 0,
     },
     mode: "onSubmit",
   });
@@ -119,17 +138,27 @@ export const PriceService: FC<Props> = function PriceService(props) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("newService")}
+              {checkPriceService() ? t("changeAd") : t("newService")}
             </Typography>
-            <Typography size={14} weight={400} color={COLORS_TEXT.blue200}>
+            <Typography
+              size={14}
+              weight={400}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
               {t("priceService")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={async () =>
+              navigate({
+                to: "/announcements",
+              })
+            }
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
@@ -170,10 +199,10 @@ export const PriceService: FC<Props> = function PriceService(props) {
         <DefaultForm
           className="mt-2"
           onSubmit={handleSubmit(async () => {
-            const sanitizedPrice = inputValue.replace(/\s/g, ''); // Убираем все пробелы
-            const sanitizedPriceForChild = inputValueChild.replace(/\s/g, ''); // Убираем все пробелы
+            const sanitizedPrice = inputValue.replace(/\s/g, ""); // Убираем все пробелы
+            const sanitizedPriceForChild = inputValueChild.replace(/\s/g, ""); // Убираем все пробелы
             const response = await apiService.patch({
-              url: `/ad/${props.adId}`,
+              url: `/ad/${adId}`,
               dto: {
                 isBookable: booking,
                 onSitePayment: onSitePayment,
@@ -184,7 +213,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
             });
             if (response.data) {
               navigate({
-                to: "/announcements"
+                to: "/announcements",
               });
             }
           })}
@@ -206,7 +235,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
                     isFocused ? "text-blue200" : "text-[#999999]"
                   }`}
                 >
-                 {t("priceForAdult")}
+                  {t("priceForAdult")}
                 </label>
                 <input
                   {...field}
@@ -276,7 +305,7 @@ export const PriceService: FC<Props> = function PriceService(props) {
             )}
           />
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-            <Button className="" type="submit" mode="default" disabled={isButtonDisabled}>
+            <Button className="" type="submit" mode="default">
               {t("continueBtn")}
             </Button>
           </div>

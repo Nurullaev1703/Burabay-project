@@ -81,7 +81,7 @@ export class ImagesService {
 
   async deleteImage(deleteImageDto: DeleteImageDto) {
     try {
-      await promises.unlink(deleteImageDto.filepath.replace('/', '')); // Удаляем файл
+      await promises.unlink("public/" + deleteImageDto.filepath); // Удаляем файл
       return JSON.stringify(`Файл ${deleteImageDto.filepath} успешно удален`);
     } catch (error) {
       throw new HttpException(

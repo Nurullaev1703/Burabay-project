@@ -286,6 +286,16 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                               handleTempTimeChange(e.target.value)
                             }
                             onBlur={handleBlur}
+                            onKeyDown={
+                              (e) => {
+                                if (
+                                  e.key == "Enter" &&
+                                  /^\d{2}:\d{2}$/.test(tempTime)
+                                ) {
+                                  handleBlur();
+                                }
+                              }
+                            }
                             placeholder="00:00"
                           />
                           <img

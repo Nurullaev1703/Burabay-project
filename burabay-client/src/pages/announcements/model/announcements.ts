@@ -43,6 +43,12 @@ export interface AnnouncementBreaks {
   start: string;
   end: string;
 }
+export interface BookingBanDate {
+  id: string;
+  allDay: boolean;
+  date: string;
+  times: string[];
+}
 
 export interface AnnouncementDetails {
   type?: string;
@@ -101,9 +107,11 @@ export interface Announcement {
   favCount: number;
   avgRating: number;
   reviewCount: number;
+  bookingBanDate: BookingBanDate[]
 }
 
 export interface location {
+  id: string;
   organizationId: string;
   adId: string;
   address: string;

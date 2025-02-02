@@ -15,17 +15,23 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { apiService } from "../../services/api/ApiService";
+import { Announcement, BookingBanDate } from "./model/announcements";
+import { format} from 'date-fns';
 
 interface Props {
   adId: string;
+  announcement? :Announcement
 }
 
 interface DateSettings {
   allDay: boolean;
   times: string[];
 }
+interface TransformedData {
+  [key: string]: DateSettings
+}
 
-export const BookingBan: FC<Props> = function BookingBan({ adId }) {
+export const BookingBan: FC<Props> = function BookingBan({ adId, announcement }) {
   const match = useMatch({
     from: "/announcements/bookingBan/$adId",
   });
@@ -34,8 +40,8 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
   const { t } = useTranslation();
 
-  const [dates, setDates] = useState<string[]>([]);
-  const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>({});
+  const [dates, setDates] = useState<string[]>(announcement?.bookingBanDate?.map(item => format(new Date(item.date), "dd.MM.yyyy")) || []);
+  const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>(transformData(announcement?.bookingBanDate || []) || {});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModals, setShowModals] = useState<Record<string, boolean>>({});
   const [selectedDateTwo, setSelectedDateTwo] = useState<Date | null>(null);
@@ -51,7 +57,22 @@ export const BookingBan: FC<Props> = function BookingBan({ adId }) {
       });
     }
   };
-
+  function transformData(data: BookingBanDate[]): TransformedData {
+    return data.reduce<TransformedData>((acc, item) => {
+      if (!acc[format(new Date(item.date), "dd.MM.yyyy")]) {
+        acc[format(new Date(item.date), "dd.MM.yyyy")] = {
+          allDay: item.allDay,
+          times: [...item.times], // Копируем массив, чтобы избежать мутаций
+        };
+      } else {
+        // Обновляем массив `times`, если уже есть запись с такой датой
+        acc[format(new Date(item.date), "dd.MM.yyyy")].times.push(
+          ...item.times
+        );
+      }
+      return acc;
+    }, {});
+  }
   const toggleTimeSelection = (time: string) => {
     if (selectedDate) {
       setSelectedTimes((prevSelectedTimes) => {

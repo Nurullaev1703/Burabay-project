@@ -4,7 +4,7 @@ import { Announcement, Review } from "../model/announcements";
 
 export function UseGetAnnouncement(announcementId: string) {
     return useQuery({
-        queryKey: [`/ad/${announcementId}`],
+        queryKey: [`/ad/${announcementId}`, announcementId],
         queryFn: async() => {
             const response = await apiService.get<Announcement>({
                 url: `/ad/${announcementId}`

@@ -1,7 +1,4 @@
-import {
-  Announcement,
-  AnnouncementDetails,
-} from "pages/announcements/model/announcements";
+
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
@@ -10,6 +7,7 @@ import { IconContainer } from "../../../../shared/ui/IconContainer";
 import { Typography } from "../../../../shared/ui/Typography";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import CheckMarkIcon from "../../../../app/icons/announcements/check-mark.svg";
+import { Announcement, AnnouncementDetails } from "../../model/announcements";
 
 interface Props {
   announcement: Announcement;

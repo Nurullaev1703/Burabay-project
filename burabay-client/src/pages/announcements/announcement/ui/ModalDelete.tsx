@@ -57,8 +57,9 @@ export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId
         }}
       >
         <span className="text-center font-medium">{t("deleteAd")}</span>
-        <Button mode="red" className="mb-2" onClick={handleDeleteAd}>
-          {t("delete")}
+        <span className="text-center font-medium">{t("noReverse")}</span>
+        <Button mode="red" className="mb-2 border-red border-[3px] mt-4" onClick={handleDeleteAd}>
+          {t("acceptDeleteAd")}
         </Button>
         <Button onClick={onClose}>{t("cancel")}</Button>
       </Box>

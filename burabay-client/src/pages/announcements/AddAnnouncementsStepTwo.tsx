@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Category } from "./model/announcements";
+import { Announcement, Category } from "./model/announcements";
 import { Header } from "../../components/Header";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
@@ -13,31 +13,49 @@ import { useNavigate } from "@tanstack/react-router";
 import { ProgressSteps } from "./ui/ProgressSteps";
 import { Radio, RadioGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { apiService } from "../../services/api/ApiService";
 
 interface Props {
   category: Category;
+  ad? :Announcement
 }
 
 export const AddAnnouncementsStepTwo: FC<Props> =
-  function AddAnnouncementsStepTwo({ category }) {
+  function AddAnnouncementsStepTwo({ category, ad }) {
     const { t } = useTranslation();
     const [imgSource, setImgSource] = useState<string>(
       baseUrl + category.imgPath
     );
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
       string | null
-    >(category.subcategories.length > 0 ? category.subcategories[0].id : null);
+    >(category.subcategories.length > 0 ? ad?.subcategory.id || category.subcategories[0].id : null);
     const navigate = useNavigate();
 
     const handleRadioChange = (id: string) => {
       setSelectedSubcategoryId(id);
     };
 
-    const handleContinue = () => {
+    const handleContinue = async() => {
       if (selectedSubcategoryId) {
-        navigate({
-          to: `/announcements/choiseDetails/${category.id}/${selectedSubcategoryId}`,
-        });
+        if (ad?.title) {
+          await apiService.patch<string>({
+            url: `/ad/${ad.id}`,
+            dto: {
+              subcategoryId: selectedSubcategoryId
+            }
+          })
+          navigate({
+            to: "/announcements/edit/choiseDetails/$adId",
+            params: {
+              adId: ad.id
+            }
+          });
+        }
+        else {   
+          navigate({
+            to: `/announcements/choiseDetails/${category.id}/${selectedSubcategoryId}`,
+          });
+        }
       }
     };
 
@@ -55,7 +73,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 color={COLORS_TEXT.blue200}
                 align="center"
               >
-                {t("addNewAd")}
+                {ad?.title ? t("changeAd") :t("addNewAd")}
               </Typography>
               <Typography
                 size={14}
