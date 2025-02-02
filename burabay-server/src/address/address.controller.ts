@@ -3,12 +3,10 @@ import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/constants';
 
 @Controller('address')
 @ApiBearerAuth()
 @ApiTags('Адреса')
-@Public() // TODO Удалить после тестирования.
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}
 

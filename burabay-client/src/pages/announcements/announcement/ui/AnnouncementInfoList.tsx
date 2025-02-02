@@ -11,7 +11,10 @@ import { ROLE_TYPE } from "../../../auth/model/auth-model";
 interface Props {
   ad: Announcement;
 }
-
+export const formatPhoneNumber = (number: number | string) => {
+  const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
+  return `+${phoneStr.slice(0, 1)} ${phoneStr.slice(1, 4)} ${phoneStr.slice(4, 7)} ${phoneStr.slice(7, 9)}-${phoneStr.slice(9)}`;
+};
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
 }) {
@@ -50,11 +53,6 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       : t("aroundClockDays");
   };
 
-  const formatPhoneNumber = (number: number | string) => {
-    const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
-    return `+${phoneStr.slice(0, 1)} ${phoneStr.slice(1, 4)} ${phoneStr.slice(4, 7)} ${phoneStr.slice(7, 9)}-${phoneStr.slice(9)}`;
-  };
-
   return (
     <ul>
       <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
@@ -65,9 +63,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </span>
         </div>
         {roleService.getValue() === ROLE_TYPE.TOURIST && (
-          <Link>
+          <a href={`tel:${ad.phoneNumber}`}>
             <img src={PhoneIcon} alt="Звонить" />
-          </Link>
+          </a>
         )}
       </li>
       <li className="border-b border-[#E4E9EA] py-3">
@@ -76,7 +74,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           className="flex justify-between"
         >
           <div className="flex flex-col">
-            <span>{((ad.isRoundTheClock) ? t("aroundClockDays") : renderSchedule())}</span>
+            <span>
+              {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
+            </span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>
               {t("workingDays")}
             </span>
@@ -87,8 +87,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
-          to="/mapNav"
-          search={{ adName: ad.title }}
+          to={`/mapNav?adId=${ad.id}`}
+          
         >
           <span>{t("locationOnMap")}</span>
           <img src={ArrowRight} alt="Стрелка" />

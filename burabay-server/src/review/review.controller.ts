@@ -3,11 +3,9 @@ import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/constants';
 
 @ApiTags('Отзывы на объявления')
 @ApiBearerAuth()
-// @Public() // TODO удалить после тестирования.
 @Controller('review')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}

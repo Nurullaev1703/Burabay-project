@@ -23,7 +23,6 @@ export class ReviewService {
   @CatchErrors()
   async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
-      console.log(tokenData);
       const { adId, ...oF } = createReviewDto;
       const user = await manager.findOne(User, { where: { id: tokenData.id } });
       Utils.checkEntity(user, 'Пользователь не найден');
@@ -52,6 +51,7 @@ export class ReviewService {
       return await this.reviewRepository.find({
         relations: {
           user: true,
+          answer: true,
         },
       });
     } catch (error) {
@@ -63,7 +63,7 @@ export class ReviewService {
     try {
       const ad = await this.adRepository.findOne({
         where: { id: adId },
-        relations: { reviews: { user: true } },
+        relations: { reviews: { user: true, answer: true } },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
       return ad.reviews;
@@ -76,7 +76,7 @@ export class ReviewService {
     try {
       const review = await this.reviewRepository.findOne({
         where: { id: id },
-        relations: { user: true },
+        relations: { user: true, answer: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
       return review;
@@ -99,14 +99,17 @@ export class ReviewService {
     }
   }
 
+  @CatchErrors()
   async remove(id: string) {
-    try {
-      const review = await this.reviewRepository.findOne({ where: { id: id } });
+    return await this.dataSource.transaction(async (manager) => {
+      const review = await manager.findOne(Review, {
+        where: { id: id },
+        relations: { answer: true },
+      });
       Utils.checkEntity(review, 'Отзыв не найден');
-      await this.reviewRepository.remove(review);
+      await manager.remove(review.answer);
+      await manager.remove(review);
       return JSON.stringify(HttpStatus.OK);
-    } catch (error) {
-      Utils.errorHandler(error);
-    }
+    });
   }
 }

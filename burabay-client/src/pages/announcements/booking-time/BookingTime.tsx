@@ -18,6 +18,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 
 interface Props {
   announcement: Announcement;
@@ -25,9 +26,11 @@ interface Props {
 }
 
 export interface BookingState {
-  time: string;
-  date: string;
+  time?: string;
+  date?: string;
   announcement: Announcement;
+  dateStart?: string;
+  dateEnd?: string;
 }
 
 export const BookingTime: FC<Props> = function BookingTime({
@@ -69,12 +72,14 @@ export const BookingTime: FC<Props> = function BookingTime({
     }
   };
 
-  const saveTime = async (time: string, date: string, announcement: Announcement) => {
-    console.log(time, date);
-    // нужно будет передать параметры все для страницы чтобы сделать итоговую покупку
+  const saveTime = async (
+    time: string | null,
+    date: string,
+    announcement: Announcement
+  ) => {
     navigate({
       to: "/announcements/booking",
-      state: { time, date, announcement } as unknown as Record<string, unknown>,// Убедитесь, что здесь типы соответствуют ожидаемым
+      state: { time, date, announcement } as unknown as Record<string, unknown>,
     });
   };
 
@@ -135,6 +140,7 @@ export const BookingTime: FC<Props> = function BookingTime({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
+            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")} 
             sx={{
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {
@@ -170,30 +176,42 @@ export const BookingTime: FC<Props> = function BookingTime({
       </div>
 
       <div className="px-4">
-        <h2 className="mb-4">{t("serviceDuration")}</h2>
-        <ul className="flex flex-wrap gap-2">
-          {times.map(({ time, isBlocked }, index) => (
-            <li
-              key={index}
-              className={`border-2 rounded-3xl w-28 h-12 flex items-center justify-center 
-                ${
-                  isBlocked
-                    ? "border-gray-400 text-gray-400 cursor-not-allowed"
-                    : `${COLORS_BORDER.blue200} cursor-pointer`
-                } 
-                ${selectedTime === time && !isBlocked ? "bg-blue200 text-white" : "bg-white"}`}
-              onClick={() => !isBlocked && setSelectedTime(time)}
-            >
-              <span>{time}</span>
-            </li>
-          ))}
-        </ul>
+        {times.length > 0 ? (
+          <>
+            <h2 className="mb-4">{t("serviceDuration")}</h2>
+            <ul className="flex flex-wrap gap-2">
+              {times.map(({ time, isBlocked }, index) => (
+                <li
+                  key={index}
+                  className={`border-2 rounded-3xl w-28 h-12 flex items-center justify-center 
+                  ${
+                    isBlocked
+                      ? "border-gray-400 text-gray-400 cursor-not-allowed"
+                      : `${COLORS_BORDER.blue200} cursor-pointer`
+                  } 
+                  ${selectedTime === time && !isBlocked ? "bg-blue200 text-white" : "bg-white"}`}
+                  onClick={() => !isBlocked && setSelectedTime(time)}
+                >
+                  <span>{time}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <span
+            className={`${COLORS_TEXT.gray100} flex items-center justify-center w-full h-full text-sm`}
+          >
+            {t("serviceFullDay")}
+          </span>
+        )}
       </div>
 
       <Button
-        onClick={() => saveTime(selectedTime, selectedDate, announcement)}
-        className="fixed bottom-4 left-3 w-header mt-8 z-10"
-        disabled={!selectedTime}
+        onClick={() =>
+          saveTime(selectedTime || null, selectedDate, announcement)
+        }
+        className="fixed bottom-6 left-3 w-header mt-8 z-10"
+        disabled={!selectedDate || (!selectedTime && times.length > 0)}
       >
         {t("toBook")}
       </Button>

@@ -18,6 +18,7 @@ import { Address } from '../../address/entities/address.entity';
 import { BookingBanDate } from '../../booking-ban-date/entities/booking-ban-date.entity';
 import { User } from '../../users/entities/user.entity';
 import { Review } from '../../review/entities/review.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -28,6 +29,9 @@ export class Ad extends AbstractEntity<Ad> {
   @ManyToOne(() => Subcategory, (subcategory) => subcategory.ads)
   @JoinColumn({ name: 'subcategory_id' })
   subcategory: Subcategory;
+
+  @OneToMany(() => Booking, (booking) => booking.ad)
+  bookings: Booking[];
 
   @Column()
   title: string;
@@ -72,7 +76,7 @@ export class Ad extends AbstractEntity<Ad> {
   isFullDay: boolean;
 
   // Времена начала услуги. Массив со строками времени типа: ['10:00', '12:00']
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'text', array: true, nullable: true, name: 'start_time' })
   startTime: string[];
 
   // Имеется ли длительность у услуги.

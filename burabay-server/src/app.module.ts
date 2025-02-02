@@ -24,6 +24,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ReviewModule } from './review/review.module';
 import { AdminPanelModule } from './admin-panel/admin-panel.module';
 import { BookingModule } from './booking/booking.module';
+import { NotificationModule } from './notification/notification.module';
+import { ReviewAnswersModule } from './review-answers/review-answers.module';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { BookingModule } from './booking/booking.module';
     ReviewModule,
     AdminPanelModule,
     BookingModule,
+    NotificationModule,
+    ReviewAnswersModule,
   ],
   controllers: [],
   providers: [
