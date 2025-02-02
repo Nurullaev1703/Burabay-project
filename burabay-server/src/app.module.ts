@@ -26,6 +26,7 @@ import { AdminPanelModule } from './admin-panel/admin-panel.module';
 import { BookingModule } from './booking/booking.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReviewAnswersModule } from './review-answers/review-answers.module';
+import { ReviewReportModule } from './review-report/review-report.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { ReviewAnswersModule } from './review-answers/review-answers.module';
     BookingModule,
     NotificationModule,
     ReviewAnswersModule,
+    ReviewReportModule,
   ],
   controllers: [],
   providers: [

@@ -104,10 +104,11 @@ export class ReviewService {
     return await this.dataSource.transaction(async (manager) => {
       const review = await manager.findOne(Review, {
         where: { id: id },
-        relations: { answer: true },
+        relations: { answer: true, report: true},
       });
       Utils.checkEntity(review, 'Отзыв не найден');
       await manager.remove(review.answer);
+      await manager.remove(review.report);
       await manager.remove(review);
       return JSON.stringify(HttpStatus.OK);
     });

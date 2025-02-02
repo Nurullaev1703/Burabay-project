@@ -3,6 +3,7 @@ import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { Ad } from '../../ad/entities/ad.entity';
 import { User } from '../../users/entities/user.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 
 @Entity()
 export class Review extends AbstractEntity<Review> {
@@ -17,6 +18,10 @@ export class Review extends AbstractEntity<Review> {
   @OneToOne(() => ReviewAnswer, (answer) => answer.review, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'answer_id' })
   answer: ReviewAnswer;
+
+  @OneToOne(() => ReviewReport, (report) => report.review, {onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'report_id' })
+  report: ReviewReport;
 
   @Column({ type: 'text', array: true, nullable: true })
   images: string[];
