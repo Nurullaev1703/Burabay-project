@@ -56,8 +56,8 @@ export class AdService {
       createdAt: new Date(),
       ...otherFields,
     });
-
-    return this.adRepository.save(newAd);
+    await this.adRepository.save(newAd);
+    return JSON.stringify(newAd.id);
   }
 
   /* Метод для получения всех Объявлений.
@@ -153,6 +153,7 @@ export class AdService {
         breaks: true,
         address: true,
         usersFavorited: true,
+        bookingBanDate: true,
       },
     });
     Utils.checkEntity(ad, 'Объявление не найдено');

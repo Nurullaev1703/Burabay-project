@@ -1,85 +1,106 @@
-import { FC, useState, useEffect } from 'react';
-import { Map, View } from 'ol';
-import 'ol/ol.css';
+import { FC, useState, useEffect } from "react";
+import { Map, View } from "ol";
+import "ol/ol.css";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
-import { Tile as TileLayer } from 'ol/layer';
-import { XYZ } from 'ol/source';
-import { fromLonLat, toLonLat } from 'ol/proj';
-import { Point } from 'ol/geom';
-import { Feature } from 'ol';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
-import { Icon, Style } from 'ol/style';
-import location from '../../app/icons/main/markerMap.png';
-import { Typography } from '../../shared/ui/Typography';
-import { Header } from '../../components/Header';
-import { COLORS_TEXT } from '../../shared/ui/colors';
-import { IconContainer } from '../../shared/ui/IconContainer';
-import { ProgressSteps } from '../announcements/ui/ProgressSteps';
-import { apiService } from '../../services/api/ApiService';
-import { Button } from '../../shared/ui/Button';
-import { useNavigate } from '@tanstack/react-router';
-import { useAuth } from '../../features/auth';
-import { HTTP_STATUS } from '../../services/api/ServerData';
-import { TextField } from '@mui/material';
-import { useTranslation } from 'react-i18next';
-
+import { Tile as TileLayer } from "ol/layer";
+import { XYZ } from "ol/source";
+import { fromLonLat, toLonLat } from "ol/proj";
+import { Point } from "ol/geom";
+import { Feature } from "ol";
+import { Vector as VectorLayer } from "ol/layer";
+import { Vector as VectorSource } from "ol/source";
+import { Icon, Style } from "ol/style";
+import location from "../../app/icons/main/markerMap.png";
+import { Typography } from "../../shared/ui/Typography";
+import { Header } from "../../components/Header";
+import { COLORS_TEXT } from "../../shared/ui/colors";
+import { IconContainer } from "../../shared/ui/IconContainer";
+import { ProgressSteps } from "../announcements/ui/ProgressSteps";
+import { apiService } from "../../services/api/ApiService";
+import { Button } from "../../shared/ui/Button";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "../../features/auth";
+import { HTTP_STATUS } from "../../services/api/ServerData";
+import { TextField } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import { Announcement } from "../announcements/model/announcements";
 
 const containerStyle = {
-  width: '100%',
-  height: '90vh',
+  width: "100%",
+  height: "90vh",
 };
 
 interface Props {
   adId: string;
+  announcement?: Announcement;
 }
 
-const initialCenter = [70.310, 53.080]; // Координаты для Борового
+const initialCenter = [70.31, 53.08]; // Координаты для Борового
 
-
-export const MapComponent: FC<Props> = (props) => {
-  const googleMapsApiKey = "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q"
+export const MapComponent: FC<Props> = ({ adId, announcement }) => {
+  const googleMapsApiKey = "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q";
   const googleMapsLayer = new TileLayer({
     source: new XYZ({
       url: `https://mt{0-3}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=en&gl=en&key=${googleMapsApiKey}`,
     }),
   });
-  const {t} = useTranslation()
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const {user} = useAuth();
-  const [address, setAddress] = useState<string>(''); // Храним адрес
+  const { user } = useAuth();
+  const [address, setAddress] = useState<string>(
+    announcement?.address?.address || ""
+  ); // Храним адрес
 
-  const [coords, setCoords] = useState<number[]>([])
-  useEffect(() => {  
-    let currentMarker: Feature | null = null; // Переменная для хранения текущего маркера
-  
+  const [coords, setCoords] = useState<number[]>(
+    announcement?.address?.latitude && announcement?.address?.longitude
+      ? [announcement.address.latitude, announcement.address.longitude]
+      : []
+  );
+  useEffect(() => {
+    let currentMarker: Feature | null =
+      announcement?.address?.latitude && announcement?.address?.longitude
+        ? new Feature({
+            geometry: new Point(
+              fromLonLat([
+                announcement?.address.latitude,
+                announcement?.address.longitude,
+              ])
+            ),
+          })
+        : null;
+
     const vectorSource = new VectorSource();
-  
+    if (currentMarker) {
+      currentMarker.setStyle(
+        new Style({
+          image: new Icon({
+            src: location,
+            scale: 0.75,
+          }),
+        })
+      );
+      vectorSource.addFeature(currentMarker); // Добавляем новый маркер в источник
+    }
     const vectorLayer = new VectorLayer({
       source: vectorSource,
     });
 
-
-  
     const map = new Map({
-      target: 'map',
-      layers: [
-        googleMapsLayer,
-        vectorLayer,
-      ],
+      target: "map",
+      layers: [googleMapsLayer, vectorLayer],
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 14,
       }),
-      controls: []
+      controls: [],
     });
-  
-    map.on('click', async (e) => {
+
+    map.on("click", async (e) => {
       const coordinates = e.coordinate; // Получаем координаты клика
       const [lng, lat] = toLonLat(coordinates); // Переводим координаты в долготу и широту
       setCoords(toLonLat(coordinates));
-    
+
       if (!currentMarker) {
         // Если маркер отсутствует, создаем новый
         currentMarker = new Feature({
@@ -89,7 +110,7 @@ export const MapComponent: FC<Props> = (props) => {
           new Style({
             image: new Icon({
               src: location,
-              scale: 0.5,
+              scale: 0.75,
             }),
           })
         );
@@ -98,103 +119,145 @@ export const MapComponent: FC<Props> = (props) => {
         // Если маркер уже существует, обновляем его координаты
         currentMarker.setGeometry(new Point(coordinates));
       }
-    
+
       // Обновляем адрес
       try {
         const response = await apiService.get<any>({
           url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
         });
-    
+
         const { display_name, address } = response.data;
-    
+
         // Получение улицы и дома из объекта address
-        const street = address?.road || ''; // Улица
-        const houseNumber = address?.house_number || ''; // Номер дома
-    
+        const street = address?.road || ""; // Улица
+        const houseNumber = address?.house_number || ""; // Номер дома
+
         const fullAddress = `${street} ${houseNumber}`.trim(); // Формируем полный адрес
-    
+
         setAddress(fullAddress || display_name); // Устанавливаем полный адрес или "display_name" как fallback
       } catch (error) {
-        console.error('Ошибка при получении адреса:', error);
+        console.error("Ошибка при получении адреса:", error);
       }
     });
-    
-    
-    
+
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
   }, []);
 
-
-
-  const handleSubmit = async () =>{
-    const arrayAdress = address.split(",")
-    const specialName = !arrayAdress[0].includes("улица") ? arrayAdress[0] : "Бурабай"
-    const response = await apiService.post({
-      url: "/address",
-      dto:{
-        organizationId: user?.organization?.id,
-        adId: props.adId,
-        address: address,
-        latitude: coords[0],
-        longitude: coords[1],
-        specialName 
+  const handleSubmit = async () => {
+    const arrayAdress = address.split(",");
+    const specialName = !arrayAdress[0].includes("улица")
+      ? arrayAdress[0]
+      : "Бурабай";
+    if (announcement?.address) {
+      const response = await apiService.patch<string>({
+        url: `/address/${announcement.address.id}`,
+        dto: {
+          adId: adId,
+          address: address,
+          latitude: coords[0],
+          longitude: coords[1],
+          specialName,
+        },
+      });
+      if (response.data) {
+        //TODO Сделать навигацию на следующий шаг редактирования
+        navigate({
+          to: "/announcements/addAnnouncements/step-five/$id",
+          params: {
+            id: adId,
+          },
+        });
       }
-      
-      
-    })
-    if(response.data == HTTP_STATUS.CREATED){
-      navigate({
-        to: "/announcements/addAnnouncements/step-five/$id",
-        params: {
-          id: props.adId
-        }
-      })
+    } else {
+      const response = await apiService.post({
+        url: "/address",
+        dto: {
+          organizationId: user?.organization?.id,
+          adId: adId,
+          address: address,
+          latitude: coords[0],
+          longitude: coords[1],
+          specialName,
+        },
+      });
+      if (response.data == HTTP_STATUS.CREATED) {
+        navigate({
+          to: "/announcements/addAnnouncements/step-five/$id",
+          params: {
+            id: adId,
+          },
+        });
+      }
     }
-  }
+  };
 
   return (
     <main className="min-h-screen">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={async () => history.back()}>
+          <IconContainer align="start" action={async () => {
+            if (announcement?.title) {
+              navigate({
+                to: "/announcements/edit/choiseDetails/$adId",
+                params: {
+                  adId: announcement?.id,
+                }
+              })
+            }
+            else {
+              history.back()
+            }
+          }}>
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
-            <Typography size={18} weight={500} color={COLORS_TEXT.blue200} align="center">
-              {t("addNewAd")}
+            <Typography
+              size={18}
+              weight={500}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
+              {announcement?.address ? t("changeAd") : t("addNewAd")}
             </Typography>
-            <Typography size={14} weight={400} color={COLORS_TEXT.blue200} align="center">
+            <Typography
+              size={14}
+              weight={400}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={async () =>
+              navigate({
+                to: "/announcements",
+              })
+            }
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
-      <div className='z-10' id="map" style={containerStyle}></div>
+      <div className="z-10" id="map" style={containerStyle}></div>
       {address && (
         <div>
-        <TextField
-        value={address}
-        label={t("adressService")}
-        variant='outlined'
-        placeholder={t("addressPlace")}
-          style={{
-            width: "80%",
-            height: "69px",
-            position: 'absolute',
-            top: 105,
-            left: 55,
-            zIndex: 2
-          }}
-        />
-
-
-
+          <TextField
+            value={address}
+            label={t("adressService")}
+            variant="outlined"
+            placeholder={t("addressPlace")}
+            style={{
+              width: "80%",
+              height: "69px",
+              position: "absolute",
+              top: 105,
+              left: 55,
+              zIndex: 2,
+            }}
+          />
         </div>
       )}
       <div className="fixed left-0 bottom-6 mb-2 mt-2 px-2 w-full z-10">

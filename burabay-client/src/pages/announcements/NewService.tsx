@@ -11,23 +11,36 @@ import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../services/api/ApiService";
 import { useTranslation } from "react-i18next";
+import { Announcement } from "./model/announcements";
 
 interface Props {
   adId: string;
+  announcement?: Announcement;
 }
 
-export const NewService: FC<Props> = function NewService(props) {
-  const [unlimitedClients, setUnlimitedClients] = useState(false);
+export const NewService: FC<Props> = function NewService({
+  adId,
+  announcement,
+}) {
+  const [unlimitedClients, setUnlimitedClients] = useState(
+    announcement?.unlimitedClients || false
+  );
   const { t } = useTranslation();
-  const [adultsCount, setAdultsCount] = useState(0);
-  const [childrenCount, setChildrenCount] = useState(0);
-  const [ageLimit, setAgeLimit] = useState(0);
-  const [petsAllowed, setPetsAllowed] = useState(false);
-  const isButtonDisabled = !unlimitedClients && (adultsCount === 0 || childrenCount === 0  || ageLimit === 0);
+  const [adultsCount, setAdultsCount] = useState(
+    announcement?.adultsNumber || 0
+  );
+  const [childrenCount, setChildrenCount] = useState(
+    announcement?.kidsNumber || 0
+  );
+  const [ageLimit, setAgeLimit] = useState(announcement?.kidsMinAge || 0);
+  const [petsAllowed, setPetsAllowed] = useState(
+    announcement?.petsAllowed || false
+  );
+  const isButtonDisabled = !unlimitedClients && adultsCount === 0;
   const navigate = useNavigate();
   const handleSubmit = async () => {
     const response = await apiService.patch({
-      url: `/ad/${props.adId}`,
+      url: `/ad/${adId}`,
       dto: {
         unlimitedClients: unlimitedClients,
         adultsNumber: adultsCount,
@@ -40,10 +53,22 @@ export const NewService: FC<Props> = function NewService(props) {
       navigate({
         to: "/announcements/priceService/$adId",
         params: {
-          adId: props.adId,
+          adId: adId,
         },
       });
     }
+  };
+  const checkPeople = () => {
+    if (
+      announcement?.adultsNumber ||
+      announcement?.kidsNumber ||
+      announcement?.kidsMinAge ||
+      announcement?.petsAllowed ||
+      announcement?.unlimitedClients
+    ) {
+      return true;
+    }
+    return false;
   };
   return (
     <main className="min-h-screen mb-20">
@@ -59,14 +84,19 @@ export const NewService: FC<Props> = function NewService(props) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("newService")}
+              {checkPeople() ? t("changeAd") : t("newService")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={async () =>
+              navigate({
+                to: "/announcements",
+              })
+            }
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={8} totalSteps={9} />
       </Header>
@@ -237,7 +267,11 @@ export const NewService: FC<Props> = function NewService(props) {
         </div>
       </div>
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-        <Button onClick={handleSubmit} mode="default" disabled={isButtonDisabled}>
+        <Button
+          onClick={handleSubmit}
+          mode="default"
+          disabled={isButtonDisabled}
+        >
           {t("continueBtn")}
         </Button>
       </div>

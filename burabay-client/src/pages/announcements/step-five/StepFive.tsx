@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -29,7 +29,7 @@ interface FormType {
 }
 
 export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
   const formatTime = (time: string | undefined) => {
@@ -91,27 +91,38 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     }
   };
 
-  const handleBreakChange = (index: number, field: keyof Breaks, value: string) => {
+  const handleBreakChange = (
+    index: number,
+    field: keyof Breaks,
+    value: string
+  ) => {
     // Update the break in the state
     const updatedBreaks = [...breaks];
     updatedBreaks[index] = { ...updatedBreaks[index], [field]: value };
     setBreaks(updatedBreaks);
-  
+
     // Update the value in the form through setValue
     setValue(`breaks.${index}.${field}` as const, value);
   };
-  
-    // Логика для определения, валидна ли кнопка
-    const isButtonValid = () => {
-      const currentAroundClock = watch("isRoundTheClock", false);
-  
-      // Если круглосуточно, кнопка всегда валидна
-      if (currentAroundClock) return true;
-  
-      // Если не круглосуточно, кнопка валидна только если хотя бы один день имеет рабочее время
-      return ["mon", "tue", "wen", "thu", "fri", "sat", "sun"].some((day: any) => isDayActive(day));
-    };
 
+  // Логика для определения, валидна ли кнопка
+  const isButtonValid = () => {
+    const currentAroundClock = watch("isRoundTheClock", false);
+
+    // Если круглосуточно, кнопка всегда валидна
+    if (currentAroundClock) return true;
+
+    // Если не круглосуточно, кнопка валидна только если хотя бы один день имеет рабочее время
+    return ["mon", "tue", "wen", "thu", "fri", "sat", "sun"].some((day: any) =>
+      isDayActive(day)
+    );
+  };
+  // проверка валидности при рендере страницы
+  useEffect(() => {
+    if (announcement?.isRoundTheClock) {
+      setValue("isRoundTheClock", announcement.isRoundTheClock);
+    }
+  }, []);
   const removeBreak = (index: number) => {
     // Удаляем перерыв по индексу
     const updatedBreaks = breaks.filter((_, i) => i !== index);
@@ -129,10 +140,10 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   const saveSchedule = async (form: FormType) => {
     try {
       setIsLoading(true);
-  
+
       let responseSchedule: any;
       let responseBreaks: any;
-  
+
       if (announcement?.schedule) {
         responseSchedule = await apiService.patch<string>({
           url: `/schedule/${announcement.schedule.id}`,
@@ -144,21 +155,20 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           dto: form.workingDays,
         });
       }
-  
+
       if (announcement?.breaks) {
-        const breaksWithoutAdId = form.breaks.map(({ adId, ...rest }) => rest); 
+        const breaksWithoutAdId = form.breaks.map(({ adId, ...rest }) => rest);
         responseBreaks = await apiService.patch<string>({
           url: `/breaks/${id}`,
           dto: breaksWithoutAdId,
         });
-      }
-       else {
+      } else {
         responseBreaks = await apiService.post<string>({
           url: "/breaks",
           dto: form.breaks,
         });
       }
-  
+
       const responseAd = await apiService.patch<string>({
         url: `/ad/${id}`,
         dto: {
@@ -167,8 +177,10 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
       });
       if (
         responseAd.data &&
-        (responseSchedule.data === parseInt(HTTP_STATUS.CREATED) || responseSchedule.data === parseInt(HTTP_STATUS.OK)) &&
-        (responseBreaks.data === parseInt(HTTP_STATUS.CREATED) || responseBreaks.data === parseInt(HTTP_STATUS.OK))
+        (responseSchedule.data === parseInt(HTTP_STATUS.CREATED) ||
+          responseSchedule.data === parseInt(HTTP_STATUS.OK)) &&
+        (responseBreaks.data === parseInt(HTTP_STATUS.CREATED) ||
+          responseBreaks.data === parseInt(HTTP_STATUS.OK))
       ) {
         navigate({
           to: `/announcements/addAnnouncements/step-six/${id}`,
@@ -189,15 +201,13 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
       ) {
         handleError(t("tooManyRequest"));
       }
-      
-  
+
       setIsLoading(false);
     } catch (e) {
       console.error("Ошибка при сохранении графика:", e);
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
-  
 
   return (
     <section className="min-h-screen bg-background pb-2">
@@ -213,7 +223,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("newAnnouncemet")}
+              {announcement?.schedule ? t("changeAd") : t("newAnnouncemet")}
             </Typography>
             <Typography
               size={14}
@@ -224,11 +234,16 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               {t("workingDays")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={async () =>
+              navigate({
+                to: "/announcements",
+              })
+            }
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={5} totalSteps={9}></ProgressSteps>
       </Header>
@@ -399,7 +414,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         H: /[0-9]/,
                         m: /[0-5]/,
                         M: /[0-9]/,
-                      },  
+                      },
                     });
                     return (
                       <TextField

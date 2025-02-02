@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Announcement, Category, Subcategories } from "./model/announcements";
 import { Header } from "../../components/Header";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
@@ -12,7 +12,7 @@ import { DefaultForm } from "../auth/ui/DefaultForm";
 import { Controller, useForm } from "react-hook-form";
 import { Switch, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { useMask } from "@react-input/mask";
+import { useMask, format } from "@react-input/mask";
 import { ProgressSteps } from "./ui/ProgressSteps";
 import { apiService } from "../../services/api/ApiService";
 import { useAuth } from "../../features/auth";
@@ -21,15 +21,18 @@ import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import ImageCard from "./ui/ImageCard";
 import { imageService } from "../../services/api/ImageService";
+import { baseUrl } from "../../services/api/ServerData";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
   preview: string; // Превью для отображения
+  serverPreview: string; // ссылка с сервера на изображение
 }
 
 interface Props {
   category: Category;
   subcategory: Subcategories;
+  announcement?: Announcement;
 }
 interface FormType {
   title: string;
@@ -42,8 +45,11 @@ interface FormType {
 export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   category,
   subcategory,
+  announcement,
 }) {
-  const [toggles, setToggles] = useState<Record<string, boolean>>({});
+  const [toggles, setToggles] = useState<Record<string, boolean>>(
+    (announcement?.details as Record<string, boolean>) || {}
+  );
   const handleToggle = (item: string) => {
     setToggles((prev) => ({
       ...prev,
@@ -52,20 +58,34 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   };
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const mask = useMask({
+  const phoneMask = {
     mask: "+7 ___ ___-__-__",
     replacement: { _: /\d/ },
     showMask: true,
-  });
+  };
+  const mask = useMask(phoneMask);
+
   const { t } = useTranslation();
   const [errorMessage, _setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [images, setImages] = useState<ImageData[]>([
-    { file: null, preview: "" },
-  ]);
   const MAX_IMAGES = 10;
+  const [images, setImages] = useState<ImageData[]>(() => {
+    // Массив изображений, пришедших с сервера
+    const initialImages =
+      announcement?.images.map((item) => ({
+        file: null,
+        preview: baseUrl + item,
+        serverPreview: baseUrl + item,
+      })) || [];
+
+    // Если количество изображений меньше MAX_IMAGES, добавляем пустые карточки
+    if (initialImages.length < MAX_IMAGES) {
+      initialImages.push({ file: null, preview: "", serverPreview: "" });
+    }
+
+    return initialImages;
+  });
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     setImages((prevImages) =>
@@ -131,39 +151,61 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       reader.readAsDataURL(file);
     });
   };
+  const deleteImageFromServer = async (imageUrl: string) => {
+    try {
+      await apiService.delete({
+        url: "/image",
+        dto: { filepath: imageUrl.replace(baseUrl, "") },
+      });
+      console.log(`✅ Изображение ${imageUrl} удалено с сервера`);
+    } catch (error) {
+      console.error("❌ Ошибка при удалении изображения:", error);
+    }
+  };
 
   const handleImageUpload = async (index: number, files: FileList) => {
-    const newFiles = Array.from(files).slice(0, MAX_IMAGES - images.length);
+    setImages((prevImages) => {
+      const updatedImages = [...prevImages];
 
-    // Преобразуем файлы в формат JPEG
+      const oldImage = updatedImages[index];
+
+      // Если заменяем загруженное изображение — удаляем его с сервера
+      if (oldImage?.file === null && oldImage.preview) {
+        deleteImageFromServer(oldImage.preview);
+      }
+
+      return updatedImages;
+    });
+
+    const newFiles = Array.from(files).slice(0, MAX_IMAGES);
+
+    // Преобразуем файлы в JPEG
     const convertedFiles = await Promise.all(
       newFiles.map((file) => convertToJpg(file))
     );
 
-    const newImages = convertedFiles.map((file) => {
-      const preview = URL.createObjectURL(file);
-      return { file, preview };
-    });
+    const newImages = convertedFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file), // Локальное превью
+      serverPreview: "", // Пока не загружено на сервер
+    }));
 
     setImages((prevImages) => {
-      // Очищаем старые preview
-      prevImages.forEach((image) => {
-        if (image.preview) {
-          URL.revokeObjectURL(image.preview);
-        }
-      });
-
       const updatedImages = [...prevImages];
-      updatedImages.splice(index, 1, ...newImages);
 
-      if (updatedImages.length < MAX_IMAGES) {
-        updatedImages.push({ file: null, preview: "" });
+      // Очищаем старый preview, если заменяем фото
+      if (updatedImages[index]?.preview) {
+        URL.revokeObjectURL(updatedImages[index].preview);
       }
 
-      return updatedImages.slice(0, MAX_IMAGES);
+      // Вставляем новые фото в нужное место
+      updatedImages.splice(index, 1, ...newImages);
+
+      return updatedImages;
     });
   };
 
+  // 🔥 Функция загрузки фото на сервер (при нажатии "Продолжить")
   const handleUpload = async () => {
     const formData = new FormData();
 
@@ -174,30 +216,66 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     });
 
     try {
-      const response = await imageService.post<string[]>({
+      const response = await imageService.post<{ urls: string[] }>({
         url: "/images/ads",
         dto: formData,
       });
-      if (response.data && response.status) {
+
+      if (response.data) {
+        setImages((prevImages) =>
+          prevImages.map((_img, i) => ({
+            file: null, // Файл больше не нужен
+            preview: response.data.urls[i], // Меняем blob на серверный URL
+            serverPreview: response.data.urls[i], // Сохраняем ссылку с сервера
+          }))
+        );
+
         return response.data;
-      } else {
-        throw new Error("Ошибка при загрузке файлов.");
       }
-    } catch {
-      throw new Error("Ошибка при загрузке файлов.");
+      return []
+    } catch (error) {
+      return []
     }
   };
 
-  if (images.length === 0) {
-    setImages([{ file: null, preview: "" }]);
-  }
+  // 🔥 Удаление загруженных, но неиспользованных изображений
+  const deleteUnusedImages = async () => {
+    const uploadedImages = images
+      .filter((img) => img.file && img.serverPreview) // Берём только загруженные
+      .map((img) => img.serverPreview as string);
+
+    if (uploadedImages.length === 0) return;
+
+    try {
+      await apiService.delete({
+        url: "/images/ads",
+        dto: { images: uploadedImages },
+      });
+      console.log("🗑️ Удалены неиспользованные фото:", uploadedImages);
+    } catch (error) {
+      console.error("❌ Ошибка при удалении изображений:", error);
+    }
+  };
+
+  // ❗️ Вызываем удаление при размонтировании компонента (например, при отмене создания объявления)
+  useEffect(() => {
+    return () => {
+      deleteUnusedImages();
+    };
+  }, []);
+
   const {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      description: "",
+      title: announcement?.title || "",
+      description: announcement?.description || "",
+      phoneNumber: announcement?.phoneNumber
+        ? format(announcement?.phoneNumber.replace("+7", ""), phoneMask)
+        : "+7 ___ ___-__-__",
+      youtubeLink: announcement?.youtubeLink || "",
     },
     mode: "onSubmit",
   });
@@ -205,7 +283,22 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     <section className="min-h-screen bg-[#F1F2F6]">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer
+            align="start"
+            action={() => {
+              if (announcement) {
+                navigate({
+                  to: "/announcements/edit/subcategory/$subcatId/$adId",
+                  params: {
+                    subcatId: announcement?.subcategory?.category?.id,
+                    adId: announcement?.id,
+                  },
+                });
+              } else {
+                history.back();
+              }
+            }}
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -215,7 +308,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("newAnnouncemet")}
+              {announcement ? t("changeAd") : t("newAnnouncemet")}
             </Typography>
             <Typography
               size={14}
@@ -244,24 +337,49 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
-            const response = await apiService.post<Announcement>({
-              url: "/ad",
-              dto: {
-                ...form,
-                organizationId: user?.organization?.id,
-                subcategoryId: subcategory.id,
-                phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
-                images: newImages,
-                details: toggles,
-              },
-            });
-            if (response.data.id) {
+            if (announcement) {
+              await apiService.patch<string>({
+                url: `/ad/${announcement.id}`,
+                dto: {
+                  ...form,
+                  phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
+                  images: [
+                    ...images.map(item => { 
+                      if (item.serverPreview.replace(baseUrl, "").length) {
+                        return item.serverPreview.replace(baseUrl, "");
+                      }
+                    }).filter(item => item != null),
+                    ...newImages as string[]
+                  ],
+                  details: toggles,
+                },
+              });
               navigate({
                 to: `/map/$adId`,
                 params: {
-                  adId: response.data.id,
+                  adId: announcement.id,
                 },
               });
+            } else {
+              const response = await apiService.post<string>({
+                url: "/ad",
+                dto: {
+                  ...form,
+                  organizationId: user?.organization?.id,
+                  subcategoryId: subcategory.id,
+                  phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
+                  images: newImages,
+                  details: toggles,
+                },
+              });
+              if (response.data) {
+                navigate({
+                  to: `/map/$adId`,
+                  params: {
+                    adId: response.data,
+                  },
+                });
+              }
             }
             setIsLoading(false);
           })}
@@ -439,21 +557,23 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             </Typography>
             {category.details.map((item) => {
               // FIXME что за type
-              return item !== "type" && (
-                <div
-                  key={item}
-                  className="flex items-center justify-between  border-b py-2 "
-                >
-                  <Typography>{t(item)}</Typography>
-                  <Switch
-                    checked={toggles[item] || false}
-                    onChange={() => handleToggle(item)}
-                    className={`${
-                      toggles[item] ? "" : ""
-                    } relative inline-flex h-6 w-11 items-center rounded-full`}
-                  ></Switch>
-                </div>
-              ) 
+              return (
+                item !== "type" && (
+                  <div
+                    key={item}
+                    className="flex items-center justify-between  border-b py-2 "
+                  >
+                    <Typography>{t(item)}</Typography>
+                    <Switch
+                      checked={toggles[item] || false}
+                      onChange={() => handleToggle(item)}
+                      className={`${
+                        toggles[item] ? "" : ""
+                      } relative inline-flex h-6 w-11 items-center rounded-full`}
+                    ></Switch>
+                  </div>
+                )
+              );
             })}
           </div>
           <div className="fixed left-0 bottom-2 px-2 w-full z-10">

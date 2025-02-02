@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Main } from '../../pages/main/Main'
 import { useGetMainPage } from '../../pages/main/main-utils'
 import { Loader } from '../../components/Loader';
-import { MapFilter } from 'pages/announcements/announcements-utils';
+import { MapFilter } from '../../pages/announcements/announcements-utils';
 
 export const Route = createFileRoute("/main/")({
   component: MainRoute,

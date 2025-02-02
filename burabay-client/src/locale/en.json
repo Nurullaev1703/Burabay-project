@@ -454,9 +454,12 @@
   "free": "Free",
   "allDay": "Service duration - full day",
   "closed": "Closed",
-  "deleteAd": "Are you sure you want to delete the ad?",
+  "deleteAd": "Want to delete the ad?",
   "delete": "Delete",
   "tourist": "Tourist",
   "business": "Business",
-  "noAds": "No advertisements found"
+  "noAds": "No advertisements found",
+  "changeAd": "Changing an ad",
+  "noReverse": "The action is irreversible",
+  "acceptDeleteAd": "Delete announcement"
 }
