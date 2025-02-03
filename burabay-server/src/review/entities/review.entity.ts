@@ -35,6 +35,9 @@ export class Review extends AbstractEntity<Review> {
   @Column({ name: 'is_cheked', default: false })
   isCheked: boolean;
 
+  @Column({ default: true, name: 'is_new' })
+  isNew: boolean;
+
   @CreateDateColumn()
   date: Date;
 }

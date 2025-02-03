@@ -17,8 +17,8 @@ export class ReviewController {
   }
 
   @Get()
-  findAll() {
-    return this.reviewService.findAll();
+  findAll(@Request() req: AuthRequest) {
+    return this.reviewService.findAll(req.user);
   }
 
   @Get('ad/:adId')

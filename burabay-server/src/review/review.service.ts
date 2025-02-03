@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Review } from './entities/review.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
 
 @Injectable()
 export class ReviewService {
@@ -46,31 +46,48 @@ export class ReviewService {
     });
   }
 
-  async findAll() {
-    try {
-      return await this.reviewRepository.find({
-        relations: {
-          user: true,
-          answer: true,
-          report: true,
-        },
+  @CatchErrors()
+  async findAll(tokenData: TokenData) {
+    const ads = await this.adRepository.find({
+      where: {
+        organization: { user: { id: tokenData.id } },
+        reviews: { id: Not(IsNull()) },
+      },
+      relations: { reviews: true },
+    });
+    const result = [];
+    for (const ad of ads) {
+      result.push({
+        adId: ad.id,
+        adTitle: ad.title,
+        adImage: ad.images[0],
+        adAvgRating: ad.avgRating,
+        newReviews: ad.reviews.filter((r) => r.isNew).length,
       });
-    } catch (error) {
-      Utils.errorHandler(error);
     }
+    return result;
   }
 
+  @CatchErrors()
   async findAllByAd(adId: string) {
-    try {
-      const ad = await this.adRepository.findOne({
-        where: { id: adId },
-        relations: { reviews: { user: true, answer: true, report: true } },
-      });
-      Utils.checkEntity(ad, 'Объявление не найдено');
-      return ad.reviews;
-    } catch (error) {
-      Utils.errorHandler(error);
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: { reviews: { user: true, answer: true, report: true } },
+    });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    // Фильтруем новые отзывы и обновляем их
+    const newReviews = ad.reviews.filter((r) => r.isNew);
+    if (newReviews.length > 0) {
+      await this.reviewRepository.save(newReviews.map((r) => ({ ...r, isNew: false })));
     }
+    return {
+      adId: ad.id,
+      adTitle: ad.title,
+      adImage: ad.images[0],
+      adAvgRating: ad.avgRating,
+      adReviewCount: ad.reviewCount,
+      reviews: ad.reviews,
+    };
   }
 
   async findOne(id: string) {
