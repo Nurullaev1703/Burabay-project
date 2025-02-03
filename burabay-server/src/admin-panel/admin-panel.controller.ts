@@ -1,14 +1,12 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { Public } from 'src/constants';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UsersFilter } from './types/admin-panel-filters.type';
 
 @Controller('admin')
 @ApiTags('Админ Панель')
 @ApiBearerAuth()
-@Public()
-@Public()
 export class AdminPanelController {
   constructor(private readonly adminPanelService: AdminPanelService) {}
 
@@ -17,29 +15,29 @@ export class AdminPanelController {
     return this.adminPanelService.getStats();
   }
 
-  @Get('tourists')
-  async getTourists() {
-    return this.adminPanelService.getTourists();
+  @Get('reports')
+  async getReports() {
+    return this.adminPanelService.getReports();
   }
 
-  @Get('orgs')
-  async getOrgs() {
-    return this.adminPanelService.getOrgs();
+  @Get('users')
+  async getUsers(@Query() filter: UsersFilter) {
+    return this.adminPanelService.getUsers(filter);
   }
 
-  @Get('ads')
-  async getAds() {
-    return this.adminPanelService.getAds();
-  }
-
-  @Get('reviews')
-  async getReviews() {
-    return this.adminPanelService.getReviews();
+  @Patch('check-org/:orgId')
+  async checkOrg(@Param('orgId') orgId: string) {
+    return this.adminPanelService.checkOrg(orgId);
   }
 
   @Patch('ban-tourist/:userId')
   async banToursit(@Param('userId') userId: string, @Body() banUserDto: BanUserDto) {
     return this.adminPanelService.banTourist(userId, banUserDto.value);
+  }
+
+  @Patch('check-review/:reviewId')
+  async checkReview(@Param('reviewId') reviewId: string) {
+    return this.adminPanelService.checkReview(reviewId);
   }
 
   @Patch('ban-tourist/:userId')

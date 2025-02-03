@@ -15,11 +15,11 @@ export class Review extends AbstractEntity<Review> {
   @JoinColumn({ name: 'ad_id' })
   ad: Ad;
 
-  @OneToOne(() => ReviewAnswer, (answer) => answer.review, { onDelete: 'CASCADE' })
+  @OneToOne(() => ReviewAnswer, (answer) => answer.review, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'answer_id' })
   answer: ReviewAnswer;
 
-  @OneToOne(() => ReviewReport, (report) => report.review, {onDelete: 'SET NULL' })
+  @OneToOne(() => ReviewReport, (report) => report.review, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'report_id' })
   report: ReviewReport;
 
@@ -31,6 +31,9 @@ export class Review extends AbstractEntity<Review> {
 
   @Column()
   stars: number;
+
+  @Column({ name: 'is_cheked', default: false })
+  isCheked: boolean;
 
   @CreateDateColumn()
   date: Date;

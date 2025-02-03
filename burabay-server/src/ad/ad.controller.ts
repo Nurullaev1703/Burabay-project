@@ -2,13 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } fro
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
-import { Public } from 'src/constants';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AdFilter } from './types/ad.filter';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
-// @Public() // TODO Удалить после тестирования.
 @Controller('ad')
 export class AdController {
   constructor(private readonly adService: AdService) {}
