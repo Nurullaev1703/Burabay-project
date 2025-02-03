@@ -34,21 +34,6 @@ export class AdminPanelService {
   }
 
   @CatchErrors()
-  async getTourists() {
-    return await this.userRepository.find({ where: { role: ROLE_TYPE.TOURIST } });
-  }
-
-  @CatchErrors()
-  async getOrgs() {
-    return await this.organizationRepository.find({
-      relations: {
-        address: true,
-        user: true,
-      },
-    });
-  }
-
-  @CatchErrors()
   async getReports() {
     const reviews = await this.reviewRepository.find({
       where: { report: { id: Not(IsNull()) }, isCheked: false },

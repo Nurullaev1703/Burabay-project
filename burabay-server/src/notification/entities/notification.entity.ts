@@ -5,6 +5,7 @@ import { NotificationType } from '../types/notification.type';
 
 @Entity()
 export class Notification extends AbstractEntity<Notification> {
+  // TODO Переписать на ManyToMany
   @ManyToOne(() => User, (user) => user.notifications)
   @JoinColumn({ name: 'user_id' })
   user: User;

@@ -5,7 +5,7 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiBearerAuth()
-@ApiTags("Уведомления")
+@ApiTags('Уведомления')
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
