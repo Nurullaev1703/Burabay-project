@@ -1,14 +1,16 @@
 import { AbstractEntity } from 'src/abstractions/abstract.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 import { NotificationType } from '../types/notification.type';
 
 @Entity()
 export class Notification extends AbstractEntity<Notification> {
-  // TODO Переписать на ManyToMany
-  @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @ManyToMany(() => User, (user) => user.notifications)
+  @JoinTable({ name: 'user_notifications' })
+  users: User[];
+
+  @Column({ nullable: true })
+  title?: string;
 
   @Column()
   message: string;

@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @ApiBearerAuth()
 @ApiTags('Уведомления')
@@ -10,14 +10,24 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationService.create(createNotificationDto);
+  @Post('/user')
+  createForUser(@Body() createNotificationDto: CreateNotificationDto) {
+    return this.notificationService.createForUser(createNotificationDto);
   }
 
-  @Get()
-  findAll(@Request() req: AuthRequest) {
-    return this.notificationService.findAll(req.user);
+  @Post('/all')
+  createForAll(@Body() createNotificationDto: CreateNotificationDto) {
+    return this.notificationService.createForAll(createNotificationDto);
+  }
+
+  @Get('/all')
+  findForAllUsers(@Request() req: AuthRequest) {
+    return this.notificationService.findForAllUsers(req.user);
+  }
+
+  @Get('/user')
+  findForUser(@Request() req: AuthRequest) {
+    return this.notificationService.findForUser(req.user);
   }
 
   @Patch(':id')
