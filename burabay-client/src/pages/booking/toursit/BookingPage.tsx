@@ -78,7 +78,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       className="py-3 border-b border-[#E4E9EA]"
                     >
                       <Link to={`/booking/${ad.ad_id}/${category.header}`}>
-                        <div className="max-w-[300px] truncate mb-2">
+                        <div className="mb-2">
                           {ad.times.slice(0, 5).map((time, index) => {
                             if (!time.time) return null;
 

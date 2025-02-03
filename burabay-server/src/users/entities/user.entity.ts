@@ -54,6 +54,6 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
 
-  @OneToMany(()=> Notification, notification => notification.user)
+  @ManyToMany(()=> Notification, notification => notification.users)
   notifications: Notification[];
 }
