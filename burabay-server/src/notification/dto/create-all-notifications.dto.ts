@@ -1,15 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 import { NotificationType } from '../types/notification.type';
 
-export class CreateNotificationDto {
-  @IsString()
-  @IsNotEmpty()
-  email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
+export class CreateAllNotificationDto {
   @IsString()
   @IsNotEmpty()
   type: NotificationType;

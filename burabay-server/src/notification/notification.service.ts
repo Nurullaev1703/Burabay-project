@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
 
 @Injectable()
 export class NotificationService {
@@ -35,8 +36,8 @@ export class NotificationService {
   }
 
   @CatchErrors()
-  async createForAll(createNotificationDto: CreateNotificationDto) {
-    const { email, title, ...of } = createNotificationDto;
+  async createForAll(createAllNotificationDto: CreateAllNotificationDto) {
+    const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
     const newNotification = this.notificationRepository.create({
       ...of,
@@ -48,30 +49,29 @@ export class NotificationService {
 }
 
   @CatchErrors()
-  async findForAllUsers(tokenData: TokenData){
+  async findForAll(){
     const notifications = await this.notificationRepository.find({
       relations: ['users'],
     });
-  
     return notifications.filter((notification) => !notification.users || notification.users.length === 0);
   }
 
+
   @CatchErrors()
   async findForUser(tokenData: TokenData){
-    const user = await this.userRepository.findOne({
-      where: { id: tokenData.id },
-    });
-    Utils.checkEntity(user, 'Пользователь не найден');
-    return await this.notificationRepository.find({
-      where: { users: user },
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    const notifications = await this.notificationRepository.find({
       order: { createdAt: 'DESC' },
     });
+    return notifications.filter((notification) =>
+      !notification.users || notification.users.length === 0 || notification.users.some(users => users.id === user.id)
+    );
   }
 
   @CatchErrors()
   async update(id: string, updateNotificationDto: UpdateNotificationDto) {
     try {
-      const { email, ...oF } = updateNotificationDto;
+      const { ...oF } = updateNotificationDto;
       const notification = await this.notificationRepository.findOne({ where: { id: id } });
       Utils.checkEntity(notification, 'Уведомление не найдено');
       Object.assign(notification, oF);

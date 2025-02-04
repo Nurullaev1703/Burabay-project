@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty } from 'class-validator';
-import { CreateNotificationDto } from './create-notification.dto';
+import { CreateAllNotificationDto } from './create-all-notifications.dto';
 
-export class UpdateNotificationDto extends PartialType(CreateNotificationDto) {
+export class UpdateNotificationDto extends PartialType(CreateAllNotificationDto) {
   @IsNotEmpty()
   @IsBoolean()
   isRead: boolean;

@@ -3,6 +3,7 @@ import { NotificationService } from './notification.service';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
 
 @ApiBearerAuth()
 @ApiTags('Уведомления')
@@ -16,13 +17,13 @@ export class NotificationController {
   }
 
   @Post('/all')
-  createForAll(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationService.createForAll(createNotificationDto);
+  createForAll(@Body() createAllNotificationDto: CreateAllNotificationDto) {
+    return this.notificationService.createForAll(createAllNotificationDto);
   }
 
   @Get('/all')
-  findForAllUsers(@Request() req: AuthRequest) {
-    return this.notificationService.findForAllUsers(req.user);
+  findForAll() {
+    return this.notificationService.findForAll();
   }
 
   @Get('/user')
