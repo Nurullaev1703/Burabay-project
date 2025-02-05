@@ -20,7 +20,7 @@ export function useGetNotification(){
         queryKey: ["/notification"],
         queryFn: async () =>{
             const notification = await apiService.get<Notification[]>({
-                url: "/notification",
+                url: "/notification/user",
             });
             return notification.data
         }
