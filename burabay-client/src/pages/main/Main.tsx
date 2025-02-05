@@ -1,25 +1,25 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useRef, useState } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import locationImg from "../../app/icons/main/location.png";
 import investirovanie from "../../app/icons/main/investirovanie.png";
-import { Announcement, Category } from "../announcements/model/announcements";
+import { Category } from "../announcements/model/announcements";
 import { baseUrl } from "../../services/api/ServerData";
 import { AdCard } from "./ui/AdCard";
 import { MapFilter } from "../announcements/announcements-utils";
-import { categoryBgColors, COLORS_TEXT } from "../../shared/ui/colors";
+import { categoryBgColors, COLORS, COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
+import { useGetMainPageAnnouncements } from "./main-utils";
+import { RotatingLines } from "react-loader-spinner";
 
 interface Props {
-  announcements: Announcement[];
   categories: Category[];
   filters: MapFilter;
 }
 
 export const Main: FC<Props> = function Main({
-  announcements,
   categories,
   filters,
 }) {
@@ -38,6 +38,30 @@ export const Main: FC<Props> = function Main({
       });
     }
   };
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+      useGetMainPageAnnouncements(filters);
+  
+    const announcements = data?.pages.flat() || [];
+  
+    // Используем useRef для хранения observer
+    const observer = useRef<IntersectionObserver | null>(null);
+  
+    // Callback для последнего элемента списка
+    const lastElementRef = useCallback(
+      (node: HTMLLIElement | null) => {
+        if (isFetchingNextPage) return;
+        if (observer.current) observer.current.disconnect();
+  
+        observer.current = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting && hasNextPage) {
+            fetchNextPage();
+          }
+        });
+  
+        if (node) observer.current.observe(node);
+      },
+      [isFetchingNextPage, hasNextPage, fetchNextPage]
+    );
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
       <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
@@ -120,6 +144,7 @@ export const Main: FC<Props> = function Main({
                 ad={item}
                 key={item.id}
                 width={announcements.length == 1 ? "w-[48%]" : ""}
+                ref={lastElementRef}
               />
             );
           })}
@@ -132,6 +157,12 @@ export const Main: FC<Props> = function Main({
           <Typography color={COLORS_TEXT.white} align="center">
             {t("noAds")}
           </Typography>
+        </div>
+      )}
+      {/* Индикатор загрузки новых данных */}
+      {isFetchingNextPage && (
+        <div className="flex justify-center items-center my-4">
+          <RotatingLines strokeColor={COLORS.blue200} width="48px" />
         </div>
       )}
       <NavMenuClient />

@@ -14,7 +14,7 @@ export class MainPageService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
   ) {}
-  async getMainPage(filter?: AdFilter) {
+  async getMainPageAnnouncements(filter?: AdFilter) {
     let whereOptions = {};
     if (filter.category) {
       whereOptions = {
@@ -24,22 +24,22 @@ export class MainPageService {
         },
       };
     }
-    const result = await Promise.all([
-      this.categoryRepository.find(),
-      this.adRepository.find({
-        where: whereOptions,
-        relations: { organization: true, subcategory: { category: true }, address: true },
-        order: {
-          createdAt: 'DESC',
-        },
-        // take: 10, //TODO Поменять кол-во объявлений на Главной старнице
-      }),
-    ]);
-    return {
-      'categories': result[0],
-      'ads': filter.adName ? this._searchAd(filter.adName, result[1]) : result[1],
-    };
+    const announcements = await this.adRepository.find({
+      where: whereOptions,
+      relations: { organization: true, subcategory: { category: true }, address: true },
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: filter.offset || 0,
+      take: filter.limit || 10,
+    });
+    return filter.adName ? this._searchAd(filter.adName, announcements) : announcements
   }
+
+  async getMainPageCategories() {
+    return await this.categoryRepository.find();
+  }
+
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];
     ads.forEach((ad) => {

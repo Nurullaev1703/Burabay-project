@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Main } from '../../pages/main/Main'
-import { useGetMainPage } from '../../pages/main/main-utils'
 import { Loader } from '../../components/Loader';
 import { MapFilter } from '../../pages/announcements/announcements-utils';
+import { useGetMainPageCategories } from '../../pages/main/main-utils';
 
 export const Route = createFileRoute("/main/")({
   component: MainRoute,
@@ -12,9 +12,9 @@ export const Route = createFileRoute("/main/")({
 
 function MainRoute(){
   const filters = Route.useSearch()
-  const { data, isLoading } = useGetMainPage(filters);
+  const { data, isLoading } = useGetMainPageCategories();
   if(data){
-    return <Main announcements={data.ads} categories={data.categories} filters={filters}/>
+    return <Main categories={data} filters={filters}/>
   }
   if(isLoading){
     return <Loader />

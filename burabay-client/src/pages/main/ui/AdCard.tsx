@@ -11,10 +11,11 @@ import { Link } from "@tanstack/react-router";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
-  width?: string
+  width?: string;
+  ref?: (node: HTMLLIElement | null) => void;
 }
 
-export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width }) {
+export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width,ref }) {
   const [carouselItems, _] = useState(
     ad.images.map((image, index) => {
       return {
@@ -24,7 +25,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width }) 
     })
   );
   return (
-    <li className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`}>
+    <li className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`} ref={ref}>
       <Link
         to="/announcements/$announcementId"
         params={{ announcementId: ad.id }}

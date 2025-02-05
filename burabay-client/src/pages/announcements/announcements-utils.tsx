@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, Category, Subcategories } from "./model/announcements";
 
@@ -43,9 +43,11 @@ export function useGetCategorySubcategoryId(categoryId: string , subcategoryId: 
 }
 
 export interface MapFilter {
-    categoryNames?: string;
-    adName?: string;
-    category?:string
+  categoryNames?: string;
+  adName?: string;
+  category?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export function UseGetAnnouncements(filters?: MapFilter) {
@@ -65,15 +67,21 @@ export function UseGetAnnouncements(filters?: MapFilter) {
     })
 }
 
-export function UseGetOrganizationAnnouncements(orgId: string, filters?: MapFilter) {
-    const adNameFilter = filters?.adName || "";
-  return useQuery({
+export function UseGetOrganizationAnnouncements(
+  orgId: string,
+  filters?: MapFilter
+) {
+  return useInfiniteQuery({
     queryKey: [`ad-organization`, orgId, filters],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Announcement[]>({
-        url: `/ad/by-org/${orgId}?adName=${adNameFilter}`,
+        url: `/ad/by-org/${orgId}?adName=${filters?.adName || ""}&offset=${pageParam}&limit=10`,
       });
       return response.data;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 10 ? allPages.length * 10 : undefined;
     },
   });
 }
