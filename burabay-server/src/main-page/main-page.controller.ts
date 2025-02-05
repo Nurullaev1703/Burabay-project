@@ -8,11 +8,18 @@ import { AdFilter } from 'src/ad/types/ad.filter';
 export class MainPageController {
   constructor(private readonly mainPageService: MainPageService) {}
 
-  @Get()
+  @Get('/announcements')
   @ApiBearerAuth()
-  @ApiTags('Главная страница')
+  @ApiTags('Объявления главной')
   @Public()
-  getMainPage(@Query() filter: AdFilter) {
-    return this.mainPageService.getMainPage(filter);
+  getMainPageAnnouncements(@Query() filter: AdFilter) {
+    return this.mainPageService.getMainPageAnnouncements(filter);
+  }
+  @Get('/categories')
+  @ApiBearerAuth()
+  @ApiTags('Категории главной')
+  @Public()
+  getMainPageCategories() {
+    return this.mainPageService.getMainPageCategories();
   }
 }

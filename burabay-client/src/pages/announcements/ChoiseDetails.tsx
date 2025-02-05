@@ -200,6 +200,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
       // Вставляем новые фото в нужное место
       updatedImages.splice(index, 1, ...newImages);
+      if (updatedImages.length < MAX_IMAGES) { 
+        updatedImages.push({
+          file: null,
+          preview: "",
+          serverPreview: "",
+        })
+      }
 
       return updatedImages;
     });
