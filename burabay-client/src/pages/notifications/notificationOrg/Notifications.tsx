@@ -6,6 +6,7 @@ import bacground from "../../../app/icons/announcements/bacground.png";
 import reviews from "../../../app/icons/announcements/reviews.svg";
 import { Notification, NotificationType } from "./model/notifications";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   notifications: Notification[];
@@ -15,8 +16,8 @@ export const Notifications: FC<Props> = function Notifications({
   notifications,
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  // Функция получения цвета по типу уведомления
   const getColorByType = (type: string) => {
     const typeToColorMap: Record<string, string> = {
       [NotificationType.POSITIVE]: "bg-green-500",
@@ -38,19 +39,19 @@ export const Notifications: FC<Props> = function Notifications({
         <div className="relative z-10 min-h-screen py-4 px-4 mb-20">
           {/* Отображение даты */}
           <div className="flex justify-center items-center">
-          <Typography
-            size={14}
-            weight={400}
-            color={COLORS_TEXT.gray100}
-            className="text-center font-medium mb-2 mt-20 rounded-full  w-[28%] px-3 bg-[#FFFFFF80]
+            <Typography
+              size={14}
+              weight={400}
+              color={COLORS_TEXT.gray100}
+              className="text-center font-medium mb-2 mt-20 rounded-full  w-[28%] px-3 bg-[#FFFFFF80]
             "
-          >
-            {new Date().toLocaleDateString("ru-RU", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </Typography>
+            >
+              {new Date().toLocaleDateString("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </Typography>
           </div>
 
           {notifications.map((notification) => (
@@ -72,12 +73,12 @@ export const Notifications: FC<Props> = function Notifications({
                   className=" mb-2"
                 >
                   {notification.type === NotificationType.POSITIVE
-                    ? "Жалоба удовлетворена. Отзыв удален"
+                    ? notification.title
                     : notification.type === NotificationType.NEGATIVE
-                      ? "Объявление удалено"
+                      ? notification.title
                       : notification.type === NotificationType.NEUTRAL
-                        ? "Жалоба на рассмотрении"
-                        : "Уведомление"}
+                        ? notification.title
+                        : notification.title}
                 </Typography>
 
                 <Typography
@@ -87,9 +88,27 @@ export const Notifications: FC<Props> = function Notifications({
                   className="leading-5 break-all whitespace-normal"
                 >
                   {notification.message}
+                  {notification.type === NotificationType.NEGATIVE && (
+                    <Typography
+                    size={14}
+                    weight={600}
+                    color={COLORS_TEXT.blue200}
+                      onClick={() => navigate({
+                        to: "/help/TermsOfUse"
+                      })} 
+                      className=""
+                    >
+                      {t("PolitikLearn")}
+                    </Typography>
+                  )}
                 </Typography>
 
-                <Typography size={14} weight={400} color={COLORS_TEXT.gray100} className="text-right">
+                <Typography
+                  size={14}
+                  weight={400}
+                  color={COLORS_TEXT.gray100}
+                  className="text-right"
+                >
                   {new Date(notification.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",

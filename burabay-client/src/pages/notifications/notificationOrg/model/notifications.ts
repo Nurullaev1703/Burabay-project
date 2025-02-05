@@ -4,6 +4,7 @@ export interface Notification {
     user: Profile,
     message: string,
     createdAt: Date,
+    title: string,
     isRead: boolean,
     id: string,
     type: NotificationType,
