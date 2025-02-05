@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UseGetAnnouncement, UseGetReview } from "../../pages/announcements/announcement/announcement-util";
+import { UseGetAnnouncement, UseGetReviews } from "../../pages/announcements/announcement/announcement-util";
 import { Loader } from "../../components/Loader";
 import { Announcement } from "../../pages/announcements/announcement/Announcement";
 
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/announcements/$announcementId")({
 
 function RouteComponent() {
   const { announcementId } = Route.useParams();
-  const { data: reviewData, isLoading: reviewIsLoading } = UseGetReview(announcementId);
+  const { data: reviewData, isLoading: reviewIsLoading } = UseGetReviews(announcementId);
   const { data, isLoading } = UseGetAnnouncement(announcementId);
 
   if (isLoading && reviewIsLoading) {

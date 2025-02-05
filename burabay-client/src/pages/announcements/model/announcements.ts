@@ -107,7 +107,7 @@ export interface Announcement {
   favCount: number;
   avgRating: number;
   reviewCount: number;
-  bookingBanDate: BookingBanDate[]
+  bookingBanDate: BookingBanDate[];
 }
 
 export interface location {
@@ -122,7 +122,7 @@ export interface location {
 
 export interface Schedule {
   adId: string;
-  id?:string;
+  id?: string;
   monStart: string;
   monEnd: string;
   tueStart: string;
@@ -152,11 +152,24 @@ export interface Booking {
   times: string[];
 }
 
+export interface ReviewAnnouncement {
+  adId: string;
+  adTitle: string;
+  adImage: string;
+  adAvgRating: string;
+  adReviewCount: number;
+  reviews: Review[];
+}
+
 export interface Review {
   id: string;
   images: string[];
   text: string;
   stars: number;
   date: Date;
+  isCheked: boolean;
+  isNew: boolean;
+  answer: string[];
+  report: string[];
   user: Profile;
 }

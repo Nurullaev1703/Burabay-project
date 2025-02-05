@@ -9,7 +9,7 @@ interface ImageCardProps {
   id: number;
   index: number;
   src: string; // Превью изображения
-  isMain: boolean;
+  isMain?: boolean;
   isLast: boolean; // Указывает, является ли это последняя карточка
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onImageUpload: (files: FileList) => void; // Поддержка нескольких файлов

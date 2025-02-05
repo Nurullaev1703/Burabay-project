@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Announcement, Review } from "../../model/announcements";
+import { Announcement, Review, ReviewAnnouncement } from "../../model/announcements";
 import { useTranslation } from "react-i18next";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../../shared/ui/colors";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
@@ -13,16 +13,15 @@ import { ROLE_TYPE } from "../../../auth/model/auth-model";
 
 interface Props {
   ad: Announcement;
-  review?: Review[];
+  review?: ReviewAnnouncement;
 }
 
 export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
-  const [reviews, _] = useState<Review[]>(review || []);
+  const [reviews, _] = useState<Review[]>(Array.isArray(review?.reviews) ? review.reviews : []);
   const { t } = useTranslation();
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
   >({});
-
   const navigate = useNavigate();
 
   const toggleReviewText = (index: number) => {
@@ -31,11 +30,14 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       [index]: !prevState[index],
     }));
   };
+  console.log(review  )
   return (
     <div className="bg-white p-4 mb-2">
       <div className="flex justify-between mb-4">
         <div className="flex items-center">
-          <h2 className="text-[22px] font-medium mr-1">{t("reviews")}</h2>
+          <h2 className="text-[22px] font-medium mr-1">
+            {t("С высокой оценкой")}
+          </h2>
           <Link className="w-6 h-6 flex justify-center items-center">
             <img src={ArrowIcon} alt="Стрелка" className="mt-0.5" />
           </Link>
@@ -56,6 +58,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       </div>
 
       <ul className="flex flex-col gap-8">
+        {/* Вывод отзывов */}
         {reviews.map((review, index) => (
           <li key={index} className="border-b border-[#E4E9EA] pb-4">
             <div className="flex justify-between items-center mb-2.5">
@@ -120,7 +123,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
               {review.images.map((image, index) => (
                 <li key={index} className="w-20 h-20 flex-shrink-0">
                   <img
-                    src={baseUrl + "/public/images/reviews/" + image + ".jpg"}
+                    src={baseUrl + image}
                     alt="Изображение"
                     className="rounded-lg  w-full h-full object-cover"
                   />
@@ -131,20 +134,24 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
         ))}
       </ul>
 
-      <Button mode="transparent" className="mb-4">
+      <Button
+        mode="transparent"
+        className="mb-4"
+        onClick={() => navigate({ to: `/announcements/reviews/${ad.id}` })}
+      >
         {t("viewAllReviews")}
       </Button>
-      {roleService.getValue() === ROLE_TYPE.TOURIST && (
-      <Button
-        onClick={() =>
-          ad.subcategory.category.name === "Жилье"
-            ? navigate({ to: `/announcements/booking-date/${ad.id}` })
-            : navigate({ to: `/announcements/booking-time/${ad.id}` })
-        }
-      >
-        {t("toBook")}
-      </Button>
-      )} 
+      {roleService.getValue() === ROLE_TYPE.TOURIST && ad.isBookable && (
+        <Button
+          onClick={() =>
+            ad.subcategory.category.name === "Жилье"
+              ? navigate({ to: `/announcements/booking-date/${ad.id}` })
+              : navigate({ to: `/announcements/booking-time/${ad.id}` })
+          }
+        >
+          {t("toBook")}
+        </Button>
+      )}
     </div>
   );
 };
