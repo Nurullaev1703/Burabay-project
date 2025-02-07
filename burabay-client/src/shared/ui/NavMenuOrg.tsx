@@ -3,10 +3,12 @@ import { FC } from "react";
 import { Announcements } from "../../app/icons/navbar/announcements";
 import { Star } from "../../app/icons/navbar/star";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
-import { Profile } from "../../app/icons/navbar/profile"; 
+import { ProfileIcon } from "../../app/icons/navbar/profile";
 import { Notifications} from "../../app/icons/navbar/notifications";
 import { useTranslation } from "react-i18next";
 import { Booking } from "../../app/icons/navbar/booking";
+
+
 
 export const NavMenuOrg: FC = function NavMenuOrg() {
   const { t } = useTranslation();
@@ -101,11 +103,10 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
         </li>
         <li
           className="w-1/5 pb-4 pt-2"
-          onClick={() =>
-            navigate({
-              to: "/notifications/notificationsOrg",
-            })
-          }
+          onClick={() => {
+            navigate({ to: `/notifications/notificationsOrg` });
+          }}
+          
         >
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Notifications
@@ -132,7 +133,7 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           }
         >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Profile
+            <ProfileIcon
               strokeColor={getStrokeColor("profile")}
               fillColor={getFillColor("profile")}
             />

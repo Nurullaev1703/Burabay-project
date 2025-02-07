@@ -1,7 +1,8 @@
 import { Profile } from "../../../profile/model/profile";
 
 export interface Notification {
-    user: Profile,
+  email: string;
+    users: Profile[],
     message: string,
     createdAt: Date,
     title: string,
