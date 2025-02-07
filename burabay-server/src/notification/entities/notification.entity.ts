@@ -1,5 +1,5 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { User } from 'src/users/entities/user.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { User } from '../../users/entities/user.entity';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 import { NotificationType } from '../types/notification.type';
 

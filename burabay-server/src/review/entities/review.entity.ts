@@ -1,9 +1,9 @@
-import { ReviewAnswer } from 'src/review-answers/entities/review-answer.entity';
+import { ReviewAnswer } from '../../review-answers/entities/review-answer.entity';
 import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { Ad } from '../../ad/entities/ad.entity';
 import { User } from '../../users/entities/user.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
-import { ReviewReport } from 'src/review-report/entities/review-report.entity';
+import { ReviewReport } from '../../review-report/entities/review-report.entity';
 
 @Entity()
 export class Review extends AbstractEntity<Review> {

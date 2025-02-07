@@ -11,7 +11,17 @@ import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.e
 import { Break } from 'src/breaks/entities/break.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ad, Subcategory, Organization, User, Schedule, BookingBanDate, Break])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Ad,
+      Subcategory,
+      Organization,
+      User,
+      Schedule,
+      BookingBanDate,
+      Break,
+    ]),
+  ],
   controllers: [AdController],
   providers: [AdService],
 })
