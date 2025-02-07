@@ -6,18 +6,33 @@ import bacground from "../../../app/icons/announcements/bacground.png";
 import reviews from "../../../app/icons/announcements/reviews.svg";
 import { Notification, NotificationType } from "./model/notifications";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
-import { useNavigate } from "@tanstack/react-router";
+import {useNavigate } from "@tanstack/react-router";
+import { Profile } from "../../profile/model/profile";
+
 
 interface Props {
   notifications: Notification[];
+  user: Profile
 }
 
 export const Notifications: FC<Props> = function Notifications({
   notifications,
+  user,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  console.log("Текущий пользователь:", user.email);
+
+  notifications.forEach((notif) => {
+    console.log("Уведомление:", notif.title);
+    console.log("Пользователи уведомления:", notif.users);
+  });
+  const userNotifications = notifications.filter(
+    (notification) => notification.email === user.email
+  );
+  console.log("📌 Notifications:", notifications);
+  console.log("Отфильтрованные уведомления:", userNotifications);
   const getColorByType = (type: string) => {
     const typeToColorMap: Record<string, string> = {
       [NotificationType.POSITIVE]: "bg-green-500",
@@ -29,13 +44,14 @@ export const Notifications: FC<Props> = function Notifications({
   };
 
   return (
-    <div className="min-h-screen relative  ">
+    <div className="min-h-screen relative">
       <img
         className="absolute inset-0 w-full h-full object-cover z-0"
         src={bacground}
         alt=""
       />
-      {notifications.length > 0 ? (
+
+      {userNotifications.length > 0 ? (
         <div className="relative z-10 min-h-screen py-4 px-4 mb-20">
           {/* Отображение даты */}
           <div className="flex justify-center items-center">
@@ -43,8 +59,7 @@ export const Notifications: FC<Props> = function Notifications({
               size={14}
               weight={400}
               color={COLORS_TEXT.gray100}
-              className="text-center font-medium mb-2 mt-20 rounded-full  w-[28%] px-3 bg-[#FFFFFF80]
-            "
+              className="text-center font-medium mb-2 mt-20 rounded-full  w-[28%] px-3 bg-[#FFFFFF80]"
             >
               {new Date().toLocaleDateString("ru-RU", {
                 day: "2-digit",
@@ -54,31 +69,23 @@ export const Notifications: FC<Props> = function Notifications({
             </Typography>
           </div>
 
-          {notifications.map((notification) => (
+          {userNotifications.map((notification) => (
             <div
               key={notification.id}
               className="bg-[#FFFFFFBF] rounded-[18px] p-3 mt-2 flex items-start gap-3"
             >
               <div
-                className={`w-0.5 h-[84px] ${getColorByType(
-                  notification.type
-                )} rounded-full`}
+                className={`w-0.5 h-[84px] ${getColorByType(notification.type)} rounded-full`}
               ></div>
 
-              <div className="flex-1 ">
+              <div className="flex-1">
                 <Typography
                   size={18}
                   weight={500}
                   color={COLORS_TEXT.totalBlack}
-                  className=" mb-2"
+                  className="mb-2"
                 >
-                  {notification.type === NotificationType.POSITIVE
-                    ? notification.title
-                    : notification.type === NotificationType.NEGATIVE
-                      ? notification.title
-                      : notification.type === NotificationType.NEUTRAL
-                        ? notification.title
-                        : notification.title}
+                  {notification.title}
                 </Typography>
 
                 <Typography
@@ -90,13 +97,13 @@ export const Notifications: FC<Props> = function Notifications({
                   {notification.message}
                   {notification.type === NotificationType.NEGATIVE && (
                     <Typography
-                    size={14}
-                    weight={600}
-                    color={COLORS_TEXT.blue200}
+                      size={14}
+                      weight={600}
+                      color={COLORS_TEXT.blue200}
                       onClick={() => navigate({
                         to: "/help/TermsOfUse"
-                      })} 
-                      className=""
+                      })}
+                      className="cursor-pointer"
                     >
                       {t("PolitikLearn")}
                     </Typography>
