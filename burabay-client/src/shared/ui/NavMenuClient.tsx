@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { FC } from "react";
 import { Map } from "../../app/icons/navbar/map"; 
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
-import { Profile } from "../../app/icons/navbar/profile"; 
+import { ProfileIcon } from "../../app/icons/navbar/profile"; 
 import { Notifications} from "../../app/icons/navbar/notifications";
 import { useTranslation } from "react-i18next";
 import { Main} from "../../app/icons/navbar/main"
@@ -132,7 +132,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
           }
         >
           <div className="flex justify-center items-center flex-col cursor-pointer">
-            <Profile
+            <ProfileIcon
               strokeColor={getStrokeColor("profile")}
               fillColor={getFillColor("profile")}
             />

@@ -60,8 +60,12 @@ export class ProfileService {
   }
 
   async getUsers() {
-    return this.userRepository.find({
-      relations: {},
+    const users = await this.userRepository.find({
+      relations: {
+        organization: true,
+      },
     });
+    const filteredUsers = users.map((user) => new Profile(user));
+    return filteredUsers;
   }
 }
