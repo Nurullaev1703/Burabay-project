@@ -1,6 +1,6 @@
-import { AbstractEntity } from 'src/abstractions/abstract.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { Organization } from 'src/users/entities/organization.entity';
+import { AbstractEntity } from '../../abstractions/abstract.entity';
+import { Review } from '../../review/entities/review.entity';
+import { Organization } from '../../users/entities/organization.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 
 @Entity()

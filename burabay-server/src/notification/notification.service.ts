@@ -62,10 +62,19 @@ export class NotificationService {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
     const notifications = await this.notificationRepository.find({
       order: { createdAt: 'DESC' },
+      where: { users: { id: user.id } },
+      relations: { users: true },
     });
-    return notifications.filter((notification) =>
-      !notification.users || notification.users.length === 0 || notification.users.some(users => users.id === user.id)
+    const filterNotifications = notifications.filter((notification) =>
+      !notification.users ||
+      notification.users.length === 0 ||
+      notification.users.some(user => user.id === user.id)
     );
+    const mapNotifications = filterNotifications.map(notification => ({
+      ...notification,
+      users: notification.users ? notification.users.map(user => user.email) : [],
+    }));
+    return mapNotifications
   }
 
   @CatchErrors()

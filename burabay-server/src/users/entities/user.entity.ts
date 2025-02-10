@@ -6,7 +6,7 @@ import { Ad } from '../../ad/entities/ad.entity';
 import { Feedback } from '../../feedback/entities/feedback.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Booking } from '../../booking/entities/booking.entity';
-import { Notification } from 'src/notification/entities/notification.entity';
+import { Notification } from '../../notification/entities/notification.entity';
 @Entity()
 export class User extends AbstractEntity<User> {
   @Column({ name: 'full_name' })
@@ -31,7 +31,7 @@ export class User extends AbstractEntity<User> {
   isEmailConfirmed: boolean;
 
   @ManyToMany(() => Ad, (ad) => ad.usersFavorited)
-  @JoinTable() // Обязательно для владельца связи
+  @JoinTable()
   favorites: Ad[];
 
   @OneToOne(() => Organization, (organization) => organization.user, {
@@ -54,6 +54,6 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
 
-  @ManyToMany(()=> Notification, notification => notification.users)
+  @ManyToMany(() => Notification, (notification) => notification.users)
   notifications: Notification[];
 }

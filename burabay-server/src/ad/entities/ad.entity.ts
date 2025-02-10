@@ -18,7 +18,7 @@ import { Address } from '../../address/entities/address.entity';
 import { BookingBanDate } from '../../booking-ban-date/entities/booking-ban-date.entity';
 import { User } from '../../users/entities/user.entity';
 import { Review } from '../../review/entities/review.entity';
-import { Booking } from 'src/booking/entities/booking.entity';
+import { Booking } from '../../booking/entities/booking.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
@@ -46,7 +46,7 @@ export class Ad extends AbstractEntity<Ad> {
   phoneNumber: string;
 
   // Подробности объявления
-  @Column({ type: 'json' })
+  @Column({ type: 'jsonb' })
   details: AdDetailsType;
 
   @Column({ name: 'youtube_link', nullable: true })

@@ -7,7 +7,7 @@ interface SVGIconProps {
   fillColor?: string;
 }
 
-export const Profile: FC<SVGIconProps> = ({
+export const ProfileIcon: FC<SVGIconProps> = ({
   strokeColor = "#999999", 
   fillColor = "#FFFFFF"
 }) => {

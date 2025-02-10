@@ -2,7 +2,7 @@ import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BookingStatus, PaymentType } from '../types/booking.types';
 import { User } from '../../users/entities/user.entity';
-import { Ad } from 'src/ad/entities/ad.entity';
+import { Ad } from '../../ad/entities/ad.entity';
 
 @Entity()
 export class Booking extends AbstractEntity<Booking> {
