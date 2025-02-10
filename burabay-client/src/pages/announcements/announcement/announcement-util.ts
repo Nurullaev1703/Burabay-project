@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../../services/api/ApiService";
-import { Announcement, Review } from "../model/announcements";
+import { Announcement, Review, ReviewAnnouncement, ReviewsOrg } from "../model/announcements";
 
 export function UseGetAnnouncement(announcementId: string) {
     return useQuery({
@@ -18,9 +18,21 @@ export function UseGetReviews(announcementId: string) {
     return useQuery({
         queryKey: [`/review/ad/${announcementId}`],
         queryFn: async () => {
-            const response = await apiService.get<Review[]>({
+            const response = await apiService.get<ReviewAnnouncement>({
                 url: `/review/ad/${announcementId}`
             })
+            return response.data
+        }
+    })
+}
+
+export function UseGetReviewsOrg() {
+    return useQuery({
+        queryKey: ["/review"],
+        queryFn: async () => {
+            const response = await apiService.get<ReviewsOrg[]>({
+                url: "/review"
+            });
             return response.data
         }
     })

@@ -12,6 +12,7 @@ import UnfocusedStarIcon from "../../../app/icons/announcements/unfocused-star.s
 import SortIcon from "../../../app/icons/announcements/reviews/sort.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { TextField } from "@mui/material";
 
 interface Props {
   announcement: Announcement;
@@ -22,7 +23,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   announcement,
   review,
 }) {
-  const [reviews, _] = useState<Review[]>(Array.isArray(review.reviews) ? review.reviews : []);
+  const [reviews, _] = useState<Review[]>(
+    Array.isArray(review.reviews) ? review.reviews : []
+  );
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
   >({});
@@ -162,7 +165,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
               )}
             </div>
 
-            <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth">
+            <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
               {review.images.map((image, index) => (
                 <li key={index} className="w-20 h-20 flex-shrink-0">
                   <img
@@ -172,6 +175,39 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                   />
                 </li>
               ))}
+            </ul>
+
+            <ul>
+              {review.answer && (
+                <li key={index}>
+                  <TextField
+                    value={review.answer.text}
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    label={t("theAnswer")}
+                    InputProps={{ readOnly: true }}
+                  />
+                </li>
+              )}
+              {review.report && (
+                <li key={index}>
+                  <TextField
+                    InputLabelProps={{
+                      sx: {
+                        color: "red",
+                        "&.Mui-focused": { color: "red" },
+                      },
+                    }}
+                    value={review.report.text}
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    label={t("complaint")}
+                    InputProps={{ readOnly: true }}
+                  />
+                </li>
+              )}
             </ul>
           </li>
         ))}
