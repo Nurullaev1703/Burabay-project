@@ -79,9 +79,25 @@ export function UseGetOrganizationAnnouncements(
       });
       return response.data;
     },
+
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === 10 ? allPages.length * 10 : undefined;
     },
   });
 }
+
+export function UseGetOrganizationAnnouncementsTwo(
+    orgId: string,
+    filters?: MapFilter
+  ) {
+    return useQuery({
+      queryKey: [`ad-organization`, orgId, filters],
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiService.get<Announcement[]>({
+          url: `/ad/by-org/${orgId}?adName=${filters?.adName || ""}&offset=${pageParam}&limit=10`,
+        });
+        return response.data;
+      },
+    });
+  }
