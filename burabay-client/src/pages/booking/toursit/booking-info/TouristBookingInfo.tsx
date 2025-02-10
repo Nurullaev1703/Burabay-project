@@ -110,7 +110,8 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   </a>
                 </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link className="flex justify-between">
+                  <Link className="flex justify-between"
+                    to={`/mapNav?adId=${announcement.id}`}>
                     <span>{t("locationOnMap")}</span>
                     <img src={ArrowBottomIcon} alt="Перейти" />
                   </Link>
@@ -188,7 +189,9 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   </a>
                 </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link className="flex justify-between">
+                  <Link className="flex justify-between"
+                  to={`/mapNav?adId=${announcement.id}`}
+                  >
                     <span>{t("locationOnMap")}</span>
                     <img src={ArrowBottomIcon} alt="Перейти" />
                   </Link>
