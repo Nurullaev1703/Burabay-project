@@ -471,6 +471,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                 </div>
                 <div className="flex flex-row gap-4">
                   <CoveredImage
+                  borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
