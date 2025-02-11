@@ -626,6 +626,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 </div>
                 <div className="flex flex-row gap-4">
                   <CoveredImage
+                  borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
@@ -636,7 +637,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>
