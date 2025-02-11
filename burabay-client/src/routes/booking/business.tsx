@@ -10,7 +10,7 @@ export const Route = createFileRoute("/booking/business")({
 
 function RouteComponent() {
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+  const queryParams = new URLSearchParams(location.search as string);
 
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";

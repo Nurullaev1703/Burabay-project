@@ -169,7 +169,23 @@ export interface Review {
   date: Date;
   isCheked: boolean;
   isNew: boolean;
-  answer: string[];
-  report: string[];
   user: Profile;
+  answer: ReviewAnswer;
+  report: ReviewAnswer;
+}
+
+
+
+interface ReviewAnswer {
+  date: string;
+  id: string;
+  text: string;
+}
+
+export interface ReviewsOrg {
+  adId: string;
+  adTitle: string;
+  adImage: string;
+  adAvgRating: string;
+  newReviews: number;
 }

@@ -1,5 +1,9 @@
 import { FC, useState } from "react";
-import { Announcement, Review, ReviewAnnouncement } from "../../model/announcements";
+import {
+  Announcement,
+  Review,
+  ReviewAnnouncement,
+} from "../../model/announcements";
 import { useTranslation } from "react-i18next";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../../shared/ui/colors";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
@@ -10,6 +14,7 @@ import { baseUrl } from "../../../../services/api/ServerData";
 import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../../auth/model/auth-model";
+import { TextField } from "@mui/material";
 
 interface Props {
   ad: Announcement;
@@ -17,7 +22,9 @@ interface Props {
 }
 
 export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
-  const [reviews, _] = useState<Review[]>(Array.isArray(review?.reviews) ? review.reviews : []);
+  const [reviews, _] = useState<Review[]>(
+    Array.isArray(review?.reviews) ? review.reviews : []
+  );
   const { t } = useTranslation();
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
@@ -30,7 +37,6 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       [index]: !prevState[index],
     }));
   };
-  console.log(review  )
   return (
     <div className="bg-white p-4 mb-2">
       <div className="flex justify-between mb-4">
@@ -119,7 +125,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
               )}
             </div>
 
-            <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth">
+            <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
               {review.images.map((image, index) => (
                 <li key={index} className="w-20 h-20 flex-shrink-0">
                   <img
@@ -129,6 +135,39 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
                   />
                 </li>
               ))}
+            </ul>
+
+            <ul>
+              {review.answer && (
+                <li key={index}>
+                  <TextField
+                    value={review.answer.text}
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    label={t("theAnswer")}
+                    InputProps={{ readOnly: true }}
+                  />
+                </li>
+              )}
+              {review.report && (
+                <li key={index}>
+                  <TextField
+                    InputLabelProps={{
+                      sx: {
+                        color: "red",
+                        "&.Mui-focused": { color: "red" },
+                      },
+                    }}
+                    value={review.report.text}
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    label={t("complaint")}
+                    InputProps={{ readOnly: true }}
+                  />
+                </li>
+              )}
             </ul>
           </li>
         ))}
