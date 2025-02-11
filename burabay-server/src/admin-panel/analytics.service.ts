@@ -57,7 +57,9 @@ export class AnalyticsService {
         groupedData.operatingSystems[os] = (groupedData.operatingSystems[os] || 0) + metrics[0];
         groupedData.countries[country] = (groupedData.countries[country] || 0) + metrics[0];
         groupedData.regions[region] = (groupedData.regions[region] || 0) + metrics[0];
-        groupedData.cities[city] = (groupedData.cities[city] || 0) + metrics[0];
+        if (country === 'Kazakhstan') {
+          groupedData.cities[city] = (groupedData.cities[city] || 0) + metrics[0];
+        }
         groupedData.languages[language] = (groupedData.languages[language] || 0) + metrics[0];
       });
 
