@@ -492,5 +492,8 @@
   "changeAd": "Changing an ad",
   "noReverse": "The action is irreversible",
   "acceptDeleteAd": "Delete announcement",
-  "PolitikLearn": "Read the terms of use"
+  "PolitikLearn": "Read the terms of use",
+  "OpenSettings": "Open settings",
+  "NeedGeo": "We need your location to build a route.",
+  "GeoOn": "Turn on geolocation"
 }
