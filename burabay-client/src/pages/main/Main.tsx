@@ -15,6 +15,7 @@ import { useGetMainPageAnnouncements } from "./main-utils";
 import { RotatingLines } from "react-loader-spinner";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/back-icon.svg";
+import FilterIcon from "../../app/icons/main/filter.svg";
 
 interface Props {
   categories: Category[];
@@ -106,9 +107,13 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
             }}
           />
         </div>
-        {/* <IconContainer align="center">
-          <img src={FilterIcon} className="mt-4" alt="" />
-        </IconContainer> */}
+        {activeCategory && (
+          <IconContainer align="center" action={() => navigate({
+            to:"/main/filter"
+          })}>
+            <img src={FilterIcon} alt="" />
+          </IconContainer>
+        )}
       </div>
 
       {/* Отображаем предложения при отсутствии фильтров */}
@@ -168,7 +173,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
               onClick={() => {
                 setActiveCategory(
                   categories.find((item) => item.name == name) || null
-                )
+                );
                 navigate({
                   to: "/main",
                   search: {

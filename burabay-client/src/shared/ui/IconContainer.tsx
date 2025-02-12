@@ -17,7 +17,7 @@ export const IconContainer: FC<Props> = function IconContainer(props) {
     iconAlign = "justify-center"
   }
 
-  const style = `w-[44px] h-[44px] flex items-center ${iconAlign} cursor-pointer select-none ${props.className}`
+  const style = `min-w-[44px] min-h-[44px] flex items-center ${iconAlign} cursor-pointer select-none ${props.className}`
   return <div className={style} onClick={props.action}>
     {props.children}
   </div>
