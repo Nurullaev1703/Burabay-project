@@ -12,6 +12,21 @@ export class Organization extends AbstractEntity<Organization> {
   @Column({ name: 'name' })
   name: string;
 
+  @Column({ nullable: true })
+  bin: string;
+
+  // Талон регистрации.
+  @Column({ nullable: true, name: 'reg_coupon_path' })
+  regCouponPath: string;
+
+  // Справка IBAN.
+  @Column({ nullable: true, name: 'iban_doc_path' })
+  ibanDocPath: string;
+
+  // Устав организации
+  @Column({ nullable: true, name: 'org_rule_path' })
+  orgRulePath: string;
+
   // @Column()
   // address: string;
 
