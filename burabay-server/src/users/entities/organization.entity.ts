@@ -30,7 +30,7 @@ export class Organization extends AbstractEntity<Organization> {
   @OneToOne(() => User, (user) => user.organization)
   user: User;
 
-  @Column()
+  @Column({ name: 'is_confirmed' })
   isConfirmed: boolean;
 
   @Column()

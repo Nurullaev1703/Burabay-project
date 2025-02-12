@@ -10,6 +10,7 @@ import { CatchErrors, Utils } from 'src/utilities';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
+import { AdminPanelAd } from './types/admin-panel-ads.type';
 
 @Injectable()
 export class AdminPanelService {
@@ -26,22 +27,72 @@ export class AdminPanelService {
     private readonly bookingRespository: Repository<Booking>,
   ) {}
 
+  /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
   async getStats() {
+    // Получение кол-ва пользователей.
     const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
     const orgs = await this.organizationRepository.count();
-    return { tourists, orgs };
+    const totalUsers = tourists + orgs;
+
+    // Получение объявлений и кол-во броней к ним.
+    const ads = await this.adRepository.find({
+      relations: { bookings: true },
+      select: {
+        id: true,
+        title: true,
+        images: true,
+        reviewCount: true,
+        avgRating: true,
+      },
+    });
+    const adsData = ads.map((ad) => {
+      const result: AdminPanelAd = {
+        id: ad.id,
+        title: ad.title,
+        reviewCount: ad.reviewCount,
+        avgRating: ad.avgRating,
+        image: ad.images[0],
+        bookingCount: ad.bookings.length,
+      };
+      return result;
+    });
+    return {
+      tourists,
+      orgs,
+      totalUsers,
+      ads: this._quickSortAdminPanelAds(adsData),
+    };
   }
 
+  /** Получить данные для экрана жалоб в Админ Панели. */
   @CatchErrors()
   async getReports() {
     const reviews = await this.reviewRepository.find({
       where: { report: { id: Not(IsNull()) }, isCheked: false },
       relations: { report: true, ad: { organization: true }, user: true },
+      select: {
+        id: true,
+        text: true,
+        stars: true,
+        images: true,
+        date: true,
+        user: { fullName: true },
+        ad: {
+          images: true,
+          title: true,
+          reviewCount: true,
+          avgRating: true,
+          organization: { name: true, imgUrl: true },
+        },
+        report: {
+          text: true,
+          date: true,
+        },
+      },
     });
-    const result = [];
-    for (const review of reviews) {
-      result.push({
+    return reviews.map((review) => {
+      return {
         reviewId: review.id,
         username: review.user.fullName,
         reviewDate: review.date,
@@ -55,11 +106,12 @@ export class AdminPanelService {
         orgName: review.ad.organization.name,
         orgImage: review.ad.organization.imgUrl,
         reportText: review.report.text,
-      });
-    }
-    return result;
+        reportData: review.report.date,
+      };
+    });
   }
 
+  /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
   @CatchErrors()
   async checkReview(reviewId: string) {
     const review = await this.reviewRepository.findOne({ where: { id: reviewId } });
@@ -68,6 +120,7 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
+  /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
     let users: User[], orgs: Organization[];
@@ -87,7 +140,7 @@ export class AdminPanelService {
       // Поиск туристов.
       users = await this.userRepository.find({ where: usersWhereOptions });
       if (filter.name) {
-        const { searchedUsers } = this._search(filter.name, users);
+        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
         users = searchedUsers;
       }
     } else if (filter.role === ROLE_TYPE.BUSINESS) {
@@ -97,7 +150,7 @@ export class AdminPanelService {
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
-        const { searchedOrgs } = this._search(filter.name, undefined, orgs);
+        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgs);
         orgs = searchedOrgs;
       }
     } else {
@@ -108,7 +161,7 @@ export class AdminPanelService {
       users = await this.userRepository.find({ where: usersWhereOptions });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {
-        const { searchedUsers, searchedOrgs } = this._search(filter.name, users, orgs);
+        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(filter.name, users, orgs);
         users = searchedUsers;
         orgs = searchedOrgs;
       }
@@ -116,6 +169,7 @@ export class AdminPanelService {
     return { users, orgs };
   }
 
+  /** Подтверждение Организации. */
   @CatchErrors()
   async checkOrg(orgId: string) {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
@@ -125,6 +179,7 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
+  /** Блокировка Пользователя. */
   @CatchErrors()
   async banTourist(userId: string, value: boolean) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -134,6 +189,7 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
+  /** Логика для блокировки Орагнизации. */
   @CatchErrors()
   async banOrg(orgId: string, value: boolean) {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
@@ -143,7 +199,8 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  private _search(
+  /** Поиск по названию среди Пользователей или Организациий.  */
+  private _searchUsersOrOrgs(
     name: string,
     users?: User[],
     orgs?: Organization[],
@@ -171,4 +228,22 @@ export class AdminPanelService {
 
     return { searchedUsers, searchedOrgs };
   }
+
+  _quickSortAdminPanelAds = (ads: AdminPanelAd[]) => {
+    if (ads.length < 2) return ads;
+
+    const pivot = ads[0];
+    const left = [];
+    const right = [];
+
+    for (let i = 1; i < ads.length; i++) {
+      if (ads[i].bookingCount > pivot.bookingCount) {
+        left.push(ads[i]); // Большее значение теперь идёт в левый массив
+      } else {
+        right.push(ads[i]);
+      }
+    }
+
+    return this._quickSortAdminPanelAds(left).concat(pivot, this._quickSortAdminPanelAds(right));
+  };
 }

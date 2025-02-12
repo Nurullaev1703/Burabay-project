@@ -1,20 +1,20 @@
 import { FC } from "react";
-import { Typography } from "../../../shared/ui/Typography";
+import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
-import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
-import bacground from "../../../app/icons/announcements/bacground.png";
-import reviews from "../../../app/icons/announcements/reviews.svg";
-import { Notification, NotificationType } from "./model/notifications";
-import { COLORS_TEXT } from "../../../shared/ui/colors";
+import bacground from "../../app/icons/announcements/bacground.png";
+import reviews from "../../app/icons/announcements/reviews.svg";
+import { Notification, NotificationType } from "./notificationOrg/model/notifications";
+import { COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
-import { Profile } from "../../profile/model/profile";
+import { Profile } from "../profile/model/profile";
+import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 
 interface Props {
   notifications: Notification[];
   user: Profile;
 }
 
-export const Notifications: FC<Props> = function Notifications({
+export const NotificationsClient: FC<Props> = function Notifications({
   notifications,
 }) {
   const { t } = useTranslation();
@@ -130,7 +130,7 @@ export const Notifications: FC<Props> = function Notifications({
         </>
       )}
 
-      <NavMenuOrg />
+      <NavMenuClient />
     </div>
   );
 };

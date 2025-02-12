@@ -199,7 +199,7 @@ export const Announcement: FC<Props> = function Announcement({
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
-      <ReviewsInfo ad={announcement} review={review} />
+      <ReviewsInfo ad={announcement} review={review}  />
       {showModal && (
         <ModalDelete
           open={showModal}

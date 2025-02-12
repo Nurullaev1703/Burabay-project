@@ -372,6 +372,12 @@
   "notific": "Notifications",
   "profile": "Profile",
   "filter": "Filter",
+  "yourAnswer": "Your answer",
+  "writeAnswer": "Write an answer",
+  "complain": "Complain",
+  "complaint": "Complaint",
+  "theAnswer": "The answer",
+  "writeComplaint": "Write a reason for the complaint",
   "mainPage": "Home",
   "writeReview": "Write a review",
   "review": "Review",
@@ -486,5 +492,8 @@
   "changeAd": "Changing an ad",
   "noReverse": "The action is irreversible",
   "acceptDeleteAd": "Delete announcement",
-  "PolitikLearn": "Read the terms of use"
+  "PolitikLearn": "Read the terms of use",
+  "OpenSettings": "Open settings",
+  "NeedGeo": "We need your location to build a route.",
+  "GeoOn": "Turn on geolocation"
 }

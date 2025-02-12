@@ -35,6 +35,7 @@ import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import whiteCircle from "../../../app/icons/EllipseWhite.svg";
+import { DirectionsRenderer } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%",
@@ -47,8 +48,65 @@ interface Props {
 
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q", // Замените на ваш ключ API
+    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q",
   });
+  const [directionsResponse, setDirectionsResponse] =
+    useState<google.maps.DirectionsResult | null>(null);
+  const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
+    null
+  );
+  useEffect(() => {
+    if (window.google && window.google?.maps?.TravelMode) {
+      setTravelMode(google.maps.TravelMode.DRIVING);
+    }
+  }, []);
+  const [isLocationDenied, setIsLocationDenied] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocationDenied(false); // Если доступ есть, сбрасываем флаг отказа
+        },
+        (error) => {
+          console.error("Ошибка при получении геолокации:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            setIsLocationDenied(true); // Если юзер отказался, показываем модалку
+          } else {
+            setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если ошибка другая
+          }
+        }
+      );
+    } else {
+      console.error("Геолокация не поддерживается этим браузером.");
+      setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
+    }
+  }, []);
+  const calculateRoute = async (latitude: number, longitude: number) => {
+    if (!userLocation) {
+      console.error("Геолокация пользователя недоступна!");
+      return;
+    }
+    if (!isLoaded || !window.google || !window.google.maps) {
+      return;
+    }
+    const directionsService = new google.maps.DirectionsService();
+    try {
+      const results = await directionsService.route({
+        origin: userLocation,
+        destination: { lat: longitude, lng: latitude },
+        travelMode: travelMode || google.maps.TravelMode.DRIVING,
+      });
+
+      setDirectionsResponse(results);
+    } catch (error) {
+      console.error("Ошибка при построении маршрута:", error);
+    }
+  };
   const { t } = useTranslation();
   const [activeCategory, _setActiveCategory] = useState<string>("");
   const [_showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
@@ -58,7 +116,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
-      return { start: null, end: null }; // Возвращаем null, если нет расписания
+      return { start: null, end: null }; // Возвращаем null если нет расписания
     }
 
     const days = [
@@ -154,7 +212,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
           zIndex: 0,
         });
 
-        // Создаем кастомный маркер с изображением категории внутри
 
         // Создание стиля для фона
         const backgroundStyle = new Style({
@@ -218,10 +275,10 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   };
 
   // Создаем переменную для отслеживания уже отображенных категорий
-  const openGoogleMaps = (latitude: number, longitude: number) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    window.open(url, "_blank"); // Открывает ссылку в новой вкладке
-  };
+  // const openGoogleMaps = (latitude: number, longitude: number) => {
+  //   const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+  //   window.open(url, "_blank"); // Открывает ссылку в новой вкладке
+  // };
 
   const { start, end } = getCurrentDaySchedule(announcementInfo);
   // Получаем текущую дату и время
@@ -251,6 +308,17 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
   const isClosed =
     hours == 0 && minutes == 0 ? false : closingTime < currentTime;
+    const openLocationSettings = () => {
+      if (/android/i.test(navigator.userAgent)) {
+        // Открыть настройки геолокации на Android
+        window.location.href = "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
+      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // Открыть настройки приложения на iOS
+        window.location.href = "app-settings:";
+      } else {
+        alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+      }
+    };
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -272,9 +340,20 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       </Header>
 
       {isLoaded ? (
-        <GoogleMap  mapContainerStyle={containerStyle} center={center} zoom={15}   options={{
-          mapTypeControl: false, fullscreenControl: false, zoomControl: false, streetViewControl: false,
-        }}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={15}
+          options={{
+            mapTypeControl: false,
+            fullscreenControl: false,
+            zoomControl: false,
+            streetViewControl: false,
+          }}
+        >
+          {directionsResponse && (
+            <DirectionsRenderer directions={directionsResponse} />
+          )}
           {announcements.map((announcement) => {
             const isSelected = selectedMarker === announcement.id;
             if (
@@ -297,7 +376,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
       <circle cx="21" cy="17.5" r="7" fill="white"/>
     </svg>`)}`;
-
             return (
               <React.Fragment key={announcement.id}>
                 <Marker
@@ -308,7 +386,10 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   }}
                   icon={{
                     url: svgLocationWithColor,
-                    scaledSize: new google.maps.Size(isSelected ? 50: 40, isSelected ? 50: 40),
+                    scaledSize: new google.maps.Size(
+                      isSelected ? 50 : 40,
+                      isSelected ? 50 : 40
+                    ),
                     fillColor: categoryColor,
                   }}
                   zIndex={1}
@@ -322,8 +403,14 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   }}
                   icon={{
                     url: subcategoryImgPath,
-                    scaledSize: new google.maps.Size(isSelected ? 18: 16, isSelected ? 18: 16),
-                    anchor: new google.maps.Point(isSelected ? 9: 8, isSelected ? 38: 32),
+                    scaledSize: new google.maps.Size(
+                      isSelected ? 18 : 16,
+                      isSelected ? 18 : 16
+                    ),
+                    anchor: new google.maps.Point(
+                      isSelected ? 9 : 8,
+                      isSelected ? 38 : 32
+                    ),
                     fillColor: "white",
                     strokeColor: "white",
                   }}
@@ -338,8 +425,14 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   }}
                   icon={{
                     url: whiteCircle,
-                    scaledSize: new google.maps.Size(isSelected ? 26: 24, isSelected ? 26: 24),
-                    anchor: new google.maps.Point(isSelected ? 13: 12, isSelected ? 42: 36),
+                    scaledSize: new google.maps.Size(
+                      isSelected ? 26 : 24,
+                      isSelected ? 26 : 24
+                    ),
+                    anchor: new google.maps.Point(
+                      isSelected ? 13 : 12,
+                      isSelected ? 42 : 36
+                    ),
                   }}
                   zIndex={1}
                   onClick={() => handleMarkerClick(announcement.id)}
@@ -358,130 +451,151 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       {/* Модальное окно для объявления */}
       {showAnnouncementModal && announcementInfo && (
         <div
-        key={announcementInfo.id}
-        className="fixed bottom-0 left-0 flex w-full z-[9999]"
-      >
-        <div className="bg-white p-4 w-full justify-center rounded-lg shadow-lg">
-
-          <div className="">
-            <div className="grid justify-center flex-col gap-4">
-              <div className="flex flex-col">
-            <Typography size={18} weight={500}>
-            {announcementInfo.title}
-          </Typography>
-          {announcementInfo.duration ? (
-            <Typography className="mb-4">
-              {`${t("DurationOfService")} - ${announcementInfo.duration}`}
-            </Typography>
-          ) : (
-            <Typography className="mb-2">{t("allDay")}</Typography>
-          )}
-          </div>
-          <div className="flex flex-row gap-4">
-              <CoveredImage
-                errorImage={defaultAnnoun}
-                width="w-40"
-                height="h-40"
-                imageSrc={announcementInfo.images[0]}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
+          key={announcementInfo.id}
+          className="fixed bottom-0 left-0 flex w-full z-[9999]"
+        >
+          <div className="bg-white p-4 w-full justify-center rounded-lg shadow-lg">
+            <div className="">
+              <div className="grid justify-center flex-col gap-4">
+                <div className="flex flex-col">
+                  <Typography size={18} weight={500}>
+                    {announcementInfo.title}
+                  </Typography>
+                  {announcementInfo.duration ? (
+                    <Typography className="mb-4">
+                      {`${t("DurationOfService")} - ${announcementInfo.duration}`}
+                    </Typography>
+                  ) : (
+                    <Typography className="mb-2">{t("allDay")}</Typography>
+                  )}
+                </div>
+                <div className="flex flex-row gap-4">
+                  <CoveredImage
+                  borderRadius="rounded-lg"
+                    errorImage={defaultAnnoun}
+                    width="w-40"
+                    height="h-40"
+                    imageSrc={announcementInfo.images[0]}
                   >
-                    <img
-                      className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
-                      src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
-                    />
+                    <div className="flex items-center">
+                      <div
+                        className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
+                      >
+                        <img
+                          className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                          src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
+                        />
+                      </div>
+                    </div>
+                  </CoveredImage>
+                  <div>
+                    <div className="flex flex-row justify-between">
+                      <Typography
+                        size={28}
+                        weight={700}
+                        color={COLORS_TEXT.blue200}
+                      >
+                        {announcementInfo.price && announcementInfo.price > 0
+                          ? `${announcementInfo.price} ₸`
+                          : t("free")}
+                      </Typography>
+                      <img src={flag} alt="" />
+                    </div>
+                    <div className="flex flex-row gap-2">
+                      <img src={star} alt="" />
+                      <Typography size={16} weight={400}>
+                        {announcementInfo.avgRating}
+                      </Typography>
+                      <img src={ellipse} alt="" />
+                      <Typography
+                        weight={400}
+                        size={16}
+                        color={COLORS_TEXT.gray100}
+                        className=""
+                      >
+                        {`${announcementInfo.reviewCount} ${t("grades")}`}
+                      </Typography>
+                    </div>
+                    {announcementInfo?.schedule && start && end && (
+                      <Typography size={14} weight={400}>
+                        {`${t("todayWith")} ${start} ${t("to")} ${end}`}
+                      </Typography>
+                    )}
+                    {announcementInfo?.schedule && (
+                      <Typography
+                        size={14}
+                        weight={400}
+                        color={COLORS_TEXT.gray100}
+                      >
+                        {isClosed ? t("closed") : t("open")}
+                      </Typography>
+                    )}
+                    <Button
+                      onClick={() => {
+                        if (
+                          announcementInfo?.address?.latitude &&
+                          announcementInfo?.address?.longitude
+                        ) {
+                          calculateRoute(
+                            announcementInfo.address.latitude,
+                            announcementInfo.address.longitude
+                          );
+                        }
+                      }}
+                      mode="transparent"
+                    >
+                      {`${t("BuildTheRoad")}`}
+                    </Button>
                   </div>
                 </div>
-              </CoveredImage>
-              <div>
-                <div className="flex flex-row justify-between">
-                <Typography
-                  size={28}
-                  weight={700}
-                  color={COLORS_TEXT.blue200}
-                >
-                  {announcementInfo.price && announcementInfo.price > 0 
-                    ? `${announcementInfo.price} ₸` 
-                    : t("free")}
-                </Typography>
-                  <img src={flag} alt="" />
-                </div>
-                <div className="flex flex-row gap-2">
-                  <img src={star} alt="" />
-                  <Typography size={16} weight={400}>
-                    {announcementInfo.avgRating}
-                  </Typography>
-                  <img src={ellipse} alt="" />
-                  <Typography
-                    weight={400}
-                    size={16}
-                    color={COLORS_TEXT.gray100}
-                    className=""
-                  >
-                    {`${announcementInfo.reviewCount} ${t("grades")}`}
-                  </Typography>
-                </div>
-                {announcementInfo?.schedule && start && end && (
-                  <Typography size={14} weight={400}>
-                    {`${t("todayWith")} ${start} ${t("to")} ${end}`}
-                  </Typography>
-                )}
-                {announcementInfo?.schedule &&(
-                  <Typography
-                    size={14}
-                    weight={400}
-                    color={COLORS_TEXT.gray100}
-                  >
-                    {isClosed ? t("closed") : t("open")}
-                  </Typography>
-                )}
-                <Button
-                  onClick={() =>
-                    openGoogleMaps(
-                      announcementInfo?.address.longitude,
-                      announcementInfo?.address.latitude
-                    )
-                  }
-                  mode="transparent"
-                >
-                  {`${t("BuildTheRoad")}`}
-                </Button>
               </div>
-              </div>
+              <Button
+                onClick={() => {
+                  navigate({
+                    to: "/announcements/$announcementId",
+                    params: {
+                      announcementId: announcementInfo.id,
+                    },
+                  });
+                }}
+                mode="default"
+                className="mt-4"
+              >
+                {`${t("MoreDetails")}`}
+              </Button>
             </div>
-            <Button
-              onClick={() => {
-                navigate({
-                  to: "/announcements/$announcementId",
-                  params: {
-                    announcementId: announcementInfo.id,
-                  },
-                });
-              }}
-              mode="default"
-              className="mt-4"
+            <button
+              onClick={handleCloseModal}
+              className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
             >
-              {`${t("MoreDetails")}`}
-            </Button>
+              <IconContainer align="center">
+                <img src={cancelBlack} className="z-10" alt="" />
+              </IconContainer>
+            </button>
           </div>
-          <button
-            onClick={handleCloseModal}
-            className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
-          >
-            <IconContainer align="center">
-              <img src={cancelBlack} className="z-10" alt="" />
-            </IconContainer>
-          </button>
         </div>
-      </div> 
       )}
       <div className="fixed left-0 bottom-2 px-2 w-full z-10">
         <Button onClick={() => history.back()} mode="default">
           {t("backMap")}
         </Button>
       </div>
+      {isLocationDenied && (
+  <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
+      <Typography size={16} weight={500} className=" mb-2">{t("GeoOn")}</Typography>
+      <Typography size={14} weight={400} className="text-gray-600 mb-4">
+        {t("NeedGeo")}
+      </Typography>
+      <Button
+        onClick={openLocationSettings}
+        className="px-4 py-2 text-white shadow-md"
+      >
+        {t("OpenSettings")}
+      </Button>
+    </div>
+  </div>
+)}
     </main>
   );
 };

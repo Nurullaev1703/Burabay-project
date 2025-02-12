@@ -376,6 +376,12 @@
   "mainPage": "Басты бет",
   "mapNav": "Карта",
   "writeReview": "Пікір жазу",
+  "yourAnswer": "Сіздің жауабыңыз",
+  "writeAnswer": "Жауап жазыңыз",
+  "complain": "Шағымдану",
+  "complaint": "Шағым",
+  "theAnswer": "Жауаб",
+  "writeComplaint": "Шағымның себебін жазыңыз",
   "serviceReview": "Қызметке шолу",
   "review": "Шолу",
   "describeImpressions": "Тәжірибені сипаттаңыз",
@@ -486,5 +492,10 @@
   "changeAd": "Жарнаманы өзгерту",
   "noReverse": "Бұл әрекет қайтымсыз.",
   "acceptDeleteAd": "Жарнаманы жою",
-  "PolitikLearn": "Пайдалану шарттарын оқыңыз"
+  "PolitikLearn": "Пайдалану шарттарын оқыңыз",
+  "OpenSettings": "Параметрлерді ашыңыз",
+  "NeedGeo": "Маршрутты құру үшін бізге орналасқан жеріңіз қажет.",
+  "GeoOn": "Геолокацияны қосыңыз"
+
+
 }
