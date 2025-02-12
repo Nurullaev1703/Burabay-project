@@ -3,10 +3,12 @@ import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UsersFilter } from './types/admin-panel-filters.type';
+import { Public } from 'src/constants';
 
 @Controller('admin')
 @ApiTags('Админ Панель')
 @ApiBearerAuth()
+@Public() // TODO Удалить после тестирования.
 export class AdminPanelController {
   constructor(private readonly adminPanelService: AdminPanelService) {}
 
@@ -25,9 +27,19 @@ export class AdminPanelController {
     return this.adminPanelService.getUsers(filter);
   }
 
+  @Get('org-info/:orgId')
+  async getOrgAndAds(@Param('orgId') orgId: string) {
+    return this.adminPanelService.getOrgAndAds(orgId);
+  }
+
   @Patch('check-org/:orgId')
   async checkOrg(@Param('orgId') orgId: string) {
     return this.adminPanelService.checkOrg(orgId);
+  }
+
+  @Patch('check-org/:orgId')
+  async cancelCheckOrg(@Param('orgId') orgId: string) {
+    return this.adminPanelService.cancelCheckOrg(orgId);
   }
 
   @Patch('ban-tourist/:userId')
