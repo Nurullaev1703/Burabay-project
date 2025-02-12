@@ -49,7 +49,6 @@ export interface MapFilter {
   limit?: number;
   offset?: number;
 }
-
 export function UseGetAnnouncements(filters?: MapFilter) {
     const categoryFilter = filters?.categoryNames || ""
     const adNameFilter = filters?.adName || ""

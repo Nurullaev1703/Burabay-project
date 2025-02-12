@@ -14,6 +14,7 @@ import {
 } from "./announcements-utils";
 import { RotatingLines } from "react-loader-spinner";
 import { COLORS } from "../../shared/ui/colors";
+import AddAnnouncementIcon from "../../app/icons/Intersect.png";
 
 interface Props {
   orgId: string;
@@ -62,8 +63,10 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
   );
 
   return (
-    <div className="min-h-screen px-4 mb-36">
-      {(adList.length || filters) && (
+    <div
+      className={`min-h-screen px-4 ${adList.length ? "mb-36" : "overflow-y-hidden"}`}
+    >
+      {(adList.length || filters?.adName) && (
         <div className="flex justify-between items-center text-center">
           <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="" />
@@ -95,13 +98,22 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
         </div>
       )}
       {!adList.length && (
-        <div className="flex justify-center flex-col items-center flex-grow min-h-screen">
-          <Typography size={18} weight={500}>
-            {t("emptyAd")}
-          </Typography>
-          <Typography size={16} weight={400} align="center" className="w-4/5">
-            {t("addAd")}
-          </Typography>
+        <div className="flex justify-center flex-col items-center flex-grow mt-16 py-8">
+          <img src={AddAnnouncementIcon} alt="" className="mb-8" />
+          {filters?.adName ? (
+            <Typography size={18} weight={500}>
+              {t("noAds")}
+            </Typography>
+          ) : (
+            <>
+              <Typography size={18} weight={500}>
+                {t("emptyAd")}
+              </Typography>
+              <Typography size={16} weight={400} align="center" className="">
+                {t("addAd")}
+              </Typography>
+            </>
+          )}
         </div>
       )}
 
@@ -116,6 +128,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
                     key={item.id}
                     isOrganization
                     ref={lastElementRef}
+                    width={adList.length == 1 ? "w-[50%]" : ""}
                   />
                 );
               }
@@ -132,7 +145,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
       )}
 
       <Button
-        className="fixed bottom-navbar left-4 w-header z-50 bg-white"
+        className={`${adList.length || filters?.adName ? "fixed bottom-navbar left-4 z-50" : "mx-4 mt-4"}  w-header `}
         onClick={() => navigate({ to: "/announcements/addAnnouncements" })}
       >
         {t("addAdBtn")}

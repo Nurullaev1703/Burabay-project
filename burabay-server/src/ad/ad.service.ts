@@ -124,7 +124,7 @@ export class AdService {
         createdAt: 'DESC',
       },
       skip: filter.offset || 0,
-      take: filter.limit || 10,
+      take: filter.limit || Infinity,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
     if (filter.adName) {
