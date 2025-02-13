@@ -25,10 +25,11 @@ interface Answer {
 }
 
 export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
+  const [reviewData, setReviewData] = useState<ReviewAnnouncement>(review);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [modalAnswer, setModalAnswer] = useState<"complain" | "answer" | false>(
-    false
-  );
+  const [modalAnswer, setModalAnswer] = useState<
+    Record<string, "complain" | "answer" | false>
+  >({});
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
   >({});
@@ -56,18 +57,35 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
       if (parseInt(response.data) !== parseInt(HTTP_STATUS.CREATED)) {
         throw new Error("Не удалось добавить ответ");
       }
+
+      setReviewData((prev) => ({
+        ...prev,
+        reviews: prev.reviews.map((r) =>
+          r.id === answerText.reviewId
+            ? { ...r, [type === "complain" ? "report" : "answer"]: { text: answerText.text } }
+            : r
+        ),
+      }));
+
       await queryClient.invalidateQueries({
-        queryKey: [`/review/ad/${review.adId}`],
+        queryKey: [`/review/ad/${review.adId}`, `/ad/${review.adId}`],
       });
       setIsLoading(false);
-      setAnswerText({
-        reviewId: "",
-        text: "",
-      });
-      setModalAnswer(false);
+      setAnswerText({ reviewId: "", text: "" });
+      closeModal(answerText.reviewId);
     } catch (e) {
       console.error("Ошибка:", e);
     }
+  };
+
+  // Функция для открытия модалки для конкретного отзыва
+  const openModal = (reviewId: string, type: "complain" | "answer") => {
+    setModalAnswer((prev) => ({ ...prev, [reviewId]: type }));
+  };
+
+  // Функция для закрытия модалки
+  const closeModal = (reviewId: string) => {
+    setModalAnswer((prev) => ({ ...prev, [reviewId]: false }));
   };
 
   return (
@@ -96,8 +114,8 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
       <div className="px-4 flex bg-white py-3 mb-2">
         <img
-          src={baseUrl + review.adImage}
-          alt={review.adTitle}
+          src={baseUrl + reviewData.adImage}
+          alt={reviewData.adTitle}
           className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
         />
         <div>
@@ -106,21 +124,21 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
             <div className="flex items-center mr-2">
               <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
               <span className="mr-1">
-                {review.adAvgRating ? review.adAvgRating : 0}
+                {reviewData.adAvgRating ? review.adAvgRating : 0}
               </span>
             </div>
             <div
               className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
             ></div>
             <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
-              {review.adReviewCount ? review.adReviewCount : 0} {t("grades")}
+              {reviewData.adReviewCount ? review.adReviewCount : 0} {t("grades")}
             </span>
           </div>
         </div>
       </div>
 
       <ul className="p-4 bg-white">
-        {review.reviews.map((review, index) => (
+        {reviewData.reviews.map((review, index) => (
           <li key={index} className="border-b border-[#E4E9EA] pb-4">
             <div className="flex justify-between items-center mb-2.5">
               <div className="flex flex-col">
@@ -225,23 +243,20 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
               )}
             </ul>
 
-            {!modalAnswer && (
-              <div className="flex justify-between mb-4">
-                <img
-                  src={WarningIcon}
-                  alt="Опровергнуть"
-                  onClick={() => setModalAnswer("complain")}
-                />
-                <span
-                  className={`font-semibold ${COLORS_TEXT.blue200}`}
-                  onClick={() => setModalAnswer("answer")}
-                >
-                  {t("answer")}
-                </span>
-              </div>
-            )}
-
-            {modalAnswer === "answer" && (
+            <div className="flex justify-between mb-4">
+              <img
+                src={WarningIcon}
+                alt="Опровергнуть"
+                onClick={() => openModal(review.id, "complain")}
+              />
+              <span
+                className={`font-semibold ${COLORS_TEXT.blue200}`}
+                onClick={() => openModal(review.id, "answer")}
+              >
+                {t("answer")}
+              </span>
+            </div>
+            {modalAnswer[review.id] === "answer" && (
               <div>
                 <TextField
                   sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
@@ -260,7 +275,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                   <Button
                     className="mr-2.5"
                     mode="border"
-                    onClick={() => setModalAnswer(false)}
+                    onClick={() => closeModal(review.id)}
                   >
                     {t("cancelBtn")}
                   </Button>
@@ -274,7 +289,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
               </div>
             )}
 
-            {modalAnswer === "complain" && (
+            {modalAnswer[review.id] === "complain" && (
               <div>
                 <TextField
                   sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
@@ -299,7 +314,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                   <Button
                     className="mr-2.5"
                     mode="border"
-                    onClick={() => setModalAnswer(false)}
+                    onClick={() => closeModal(review.id)}
                   >
                     {t("cancelBtn")}
                   </Button>

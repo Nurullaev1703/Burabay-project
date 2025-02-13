@@ -13,7 +13,7 @@ function RouteComponent() {
 
   if (isLoadingReview) return <Loader />;
 
-  if (reviewsData) {
+  if (reviewsData && reviewsData?.length > 0) {
     return <ReviewsPage reviews={reviewsData} />;
   } else {
     return <Reviews />;

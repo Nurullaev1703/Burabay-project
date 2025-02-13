@@ -12,10 +12,12 @@ import BackIcon from "../../app/icons/back-icon-white.svg";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 import { apiService } from "../../services/api/ApiService";
 import { DefaultForm } from "../auth/ui/DefaultForm";
-import ClosedEye from "../../app/icons/close-eye.svg"
-import OpenedEye from "../../app/icons/open-eye.svg"
+import ClosedEye from "../../app/icons/close-eye.svg";
+import OpenedEye from "../../app/icons/open-eye.svg";
 import { useAuth } from "../../features/auth";
 import { HTTP_STATUS } from "../../services/api/ServerData";
+import { Profile } from "../profile/model/profile";
+import { roleService } from "../../services/storage/Factory";
 
 interface Props {
   email: string;
@@ -30,8 +32,8 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isShowPassword, setIsShowPassword] = useState<boolean>(false)
-  const {setToken} = useAuth()
+  const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
+  const { setToken, setUser } = useAuth();
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const {
@@ -79,12 +81,21 @@ export const NewPasswordPage: FC<Props> = function NewPasswordPage(props) {
           });
           if (response.data !== HTTP_STATUS.CONFLICT) {
             setToken(response.data);
-            navigate({
-              to: "/profile",
+            const userResponse = await apiService.get<Profile>({
+              url: "/profile",
             });
+            if (userResponse.data) {
+              setUser(userResponse.data);
+              roleService.setValue(userResponse.data.role);
+              navigate({
+                to: "/profile",
+              });
+            } else {
+              setErrorMessage(t("wrongPassword"));
+            }
           } else {
-            setErrorMessage(t('defaultError'))
-            setPasswordError(true)
+            setErrorMessage(t("defaultError"));
+            setPasswordError(true);
           }
           setIsLoading(false);
         })}

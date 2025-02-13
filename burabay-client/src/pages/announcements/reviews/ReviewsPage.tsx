@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -13,6 +13,7 @@ import SortIcon from "../../../app/icons/announcements/reviews/sort.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { TextField } from "@mui/material";
+import { SortModal } from "./ui/SortModal";
 
 interface Props {
   announcement: Announcement;
@@ -39,6 +40,12 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
       [index]: !prevState[index],
     }));
   };
+
+  const sortedReviews = useMemo(() => {
+    return [...reviews].sort((a, b) =>
+      sort === "highReview" ? b.stars - a.stars : a.stars - b.stars
+    );
+  }, [reviews, sort]);
 
   const addReview = (announcement: Announcement) => {
     navigate({
@@ -104,8 +111,8 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         </div>
       </div>
 
-      <ul className="px-4 flex flex-col gap-8 bg-white">
-        {reviews.map((review, index) => (
+      <ul className="px-4 flex flex-col gap-2 bg-white">
+        {sortedReviews.map((review, index) => (
           <li key={index} className="border-b border-[#E4E9EA] py-4">
             <div className="flex justify-between items-center mb-2.5">
               <div className="flex flex-col">
@@ -219,6 +226,15 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
       >
         {t("writeReview")}
       </Button>
+
+      {sortModal && (
+        <SortModal
+          open={sortModal}
+          onClose={() => setSortModal(false)}
+          sort={sort}
+          setSort={(newSort) => setSort(newSort)}
+        />
+      )}
     </section>
   );
 };

@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import {
   Announcement as AnnouncementType,
-  Review,
+  ReviewAnnouncement,
 } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -32,7 +32,7 @@ import VerticalIcon from "../../../app/icons/vertical.svg";
 
 interface Props {
   announcement: AnnouncementType;
-  review?: Review[];
+  review?: ReviewAnnouncement;
 }
 
         export const formatPrice = (value: number) => {

@@ -107,7 +107,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
           {daysOfWeek.map((day) => (
             <li
               key={day}
-              className="mt-4 flex justify-between items-center h-12 border-b border-gray-300"
+              className="flex justify-between items-center border-b border-gray-300 py-4"
             >
               <div className="flex justify-between items-center px-4 w-full">
                 {/* День недели */}
@@ -181,7 +181,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
           {formattedBreaks.map((_, index) => (
             <li
               key={index}
-              className="mt-4 flex justify-between items-center h-12 border-b border-gray-300"
+              className="mt-4 flex justify-between items-center border-b border-gray-300 py-4"
             >
               <div className="flex justify-between items-center px-4 w-full">
                 {/* Перерыв */}
