@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
-import { Booking } from 'src/booking/entities/booking.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -11,6 +10,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
+import { AnalyticsService } from './analytics.service';
 
 @Injectable()
 export class AdminPanelService {
@@ -23,18 +23,21 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-    @InjectRepository(Booking)
-    private readonly bookingRespository: Repository<Booking>,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
   async getStats() {
     // Получение кол-ва пользователей.
-    const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
-    const orgs = await this.organizationRepository.count();
+    // const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
+    // const orgs = await this.organizationRepository.count();
+    const [tourists, orgs] = await Promise.all([
+      this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } }),
+      this.organizationRepository.count(),
+    ]);
     const totalUsers = tourists + orgs;
-
+    const ga4DataPromise = this.analyticsService.getStatistic();
     // Получение объявлений и кол-во броней к ним.
     const ads = await this.adRepository.find({
       relations: { bookings: true },
@@ -57,11 +60,13 @@ export class AdminPanelService {
       };
       return result;
     });
+    const ga4Data = await ga4DataPromise;
     return {
       tourists,
       orgs,
       totalUsers,
       ads: this._quickSortAdminPanelAds(adsData),
+      ...ga4Data,
     };
   }
 
@@ -109,6 +114,36 @@ export class AdminPanelService {
         reportData: review.report.date,
       };
     });
+  }
+
+  /** Полные данные об Организации и ее Объявления для раскрытии карточки в Админ Панели. */
+  @CatchErrors()
+  async getOrgAndAds(orgId: string) {
+    const org = await this.organizationRepository.findOne({
+      where: { id: orgId },
+      relations: { ads: { address: true, subcategory: { category: true } }, user: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imgUrl: true,
+        siteUrl: true,
+        user: {
+          email: true,
+          phoneNumber: true,
+        },
+        ads: {
+          images: true,
+          title: true,
+          price: true,
+          address: { address: true },
+          subcategory: { id: true, category: { imgPath: true } },
+          avgRating: true,
+          reviewCount: true,
+        },
+      },
+    });
+    return org;
   }
 
   /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
@@ -175,6 +210,18 @@ export class AdminPanelService {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmed = true;
+    org.isConfirmCanceled = false;
+    await this.organizationRepository.save(org);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  /** Отклонение подтверждения Орагнизации. */
+  @CatchErrors()
+  async cancelCheckOrg(orgId: string) {
+    const org = await this.organizationRepository.findOne({ where: { id: orgId } });
+    Utils.checkEntity(org, 'Орагнизация не найдена');
+    org.isConfirmCanceled = true;
+    org.isConfirmed = false;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -229,6 +276,7 @@ export class AdminPanelService {
     return { searchedUsers, searchedOrgs };
   }
 
+  /** Быстрая сортировка Объявлений по количеству бронирований. */
   _quickSortAdminPanelAds = (ads: AdminPanelAd[]) => {
     if (ads.length < 2) return ads;
 

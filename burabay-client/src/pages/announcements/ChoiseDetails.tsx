@@ -223,7 +223,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     });
 
     try {
-      const response = await imageService.post<{ urls: string[] }>({
+      const response = await imageService.post<string[]>({
         url: "/images/ads",
         dto: formData,
       });
@@ -232,8 +232,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         setImages((prevImages) =>
           prevImages.map((_img, i) => ({
             file: null, // Файл больше не нужен
-            preview: response.data.urls[i], // Меняем blob на серверный URL
-            serverPreview: response.data.urls[i], // Сохраняем ссылку с сервера
+            preview: response.data[i], // Меняем blob на серверный URL
+            serverPreview: response.data[i], // Сохраняем ссылку с сервера
           }))
         );
 

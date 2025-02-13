@@ -56,7 +56,7 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width,ref
           {/* TODO раскомментить, когда будет избранное */}
           {/* {!isOrganization && <img src={FavouriteIcon} alt="" />} */}
         </div>
-        <Typography size={14} weight={400}>
+        <Typography size={14} weight={400} className="line-clamp-1">
           {ad.title}
         </Typography>
         <Typography

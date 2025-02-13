@@ -85,14 +85,48 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       }
     }
   }, [adId, announcements]);
+  const [isLocationDenied, setIsLocationDenied] = useState(false);
+
+
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocationDenied(false); // Если доступ есть, сбрасываем флаг отказа
+        },
+        (error) => {
+          console.error("Ошибка при получении геолокации:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            setIsLocationDenied(true); // Если юзер отказался, показываем модалку
+          } else {
+            setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если ошибка другая
+          }
+        }
+      );
+    } else {
+      console.error("Геолокация не поддерживается этим браузером.");
+      setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
+    }
+  }, []);
+  
+  
   const calculateRoute = async (latitude: number, longitude: number) => {
+    if (!userLocation) {
+      console.error("Геолокация пользователя недоступна!");
+      return;
+    }
     if (!isLoaded || !window.google || !window.google.maps) {
       return;
     }
     const directionsService = new google.maps.DirectionsService();
     try {
       const results = await directionsService.route({
-        origin: startBase,
+        origin: userLocation,
         destination: { lat: longitude, lng: latitude },
         travelMode: travelMode || google.maps.TravelMode.DRIVING,
       });
@@ -176,10 +210,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const center = {
     lat: 53.08271195503471,
     lng: 70.30456742278163,
-  };
-  const startBase = {
-    lat: 52.2833,
-    lng: 76.9667,
   };
 
   useEffect(() => {
@@ -341,6 +371,20 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
   const isClosed =
     hours == 0 && minutes == 0 ? false : closingTime < currentTime;
+    const openLocationSettings = () => {
+      if (/android/i.test(navigator.userAgent)) {
+        // Открыть настройки геолокации на Android
+        window.location.href = "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
+      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // Открыть настройки приложения на iOS
+        window.location.href = "app-settings:";
+      } else {
+        alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+      }
+    };
+    
+    
+    
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -582,6 +626,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 </div>
                 <div className="flex flex-row gap-4">
                   <CoveredImage
+                  borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
@@ -592,7 +637,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>
@@ -685,6 +730,23 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           </div>
         </div>
       )}
+      {isLocationDenied && (
+  <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
+      <Typography size={16} weight={500} className=" mb-2">{t("GeoOn")}</Typography>
+      <Typography size={14} weight={400} className="text-gray-600 mb-4">
+        {t("NeedGeo")}
+      </Typography>
+      <Button
+        onClick={openLocationSettings}
+        className="px-4 py-2 text-white shadow-md"
+      >
+        {t("OpenSettings")}
+      </Button>
+    </div>
+  </div>
+)}
+
       <NavMenuClient />
     </main>
   );

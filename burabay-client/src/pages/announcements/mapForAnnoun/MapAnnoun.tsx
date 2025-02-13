@@ -48,7 +48,7 @@ interface Props {
 
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q", // Замените на ваш ключ API
+    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q",
   });
   const [directionsResponse, setDirectionsResponse] =
     useState<google.maps.DirectionsResult | null>(null);
@@ -60,14 +60,44 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       setTravelMode(google.maps.TravelMode.DRIVING);
     }
   }, []);
+  const [isLocationDenied, setIsLocationDenied] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocationDenied(false); // Если доступ есть, сбрасываем флаг отказа
+        },
+        (error) => {
+          console.error("Ошибка при получении геолокации:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            setIsLocationDenied(true); // Если юзер отказался, показываем модалку
+          } else {
+            setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если ошибка другая
+          }
+        }
+      );
+    } else {
+      console.error("Геолокация не поддерживается этим браузером.");
+      setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
+    }
+  }, []);
   const calculateRoute = async (latitude: number, longitude: number) => {
+    if (!userLocation) {
+      console.error("Геолокация пользователя недоступна!");
+      return;
+    }
     if (!isLoaded || !window.google || !window.google.maps) {
       return;
     }
     const directionsService = new google.maps.DirectionsService();
     try {
       const results = await directionsService.route({
-        origin: startBase,
+        origin: userLocation,
         destination: { lat: longitude, lng: latitude },
         travelMode: travelMode || google.maps.TravelMode.DRIVING,
       });
@@ -76,10 +106,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     } catch (error) {
       console.error("Ошибка при построении маршрута:", error);
     }
-  };
-  const startBase = {
-    lat: 52.2833,
-    lng: 76.9667,
   };
   const { t } = useTranslation();
   const [activeCategory, _setActiveCategory] = useState<string>("");
@@ -90,7 +116,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
-      return { start: null, end: null }; // Возвращаем null, если нет расписания
+      return { start: null, end: null }; // Возвращаем null если нет расписания
     }
 
     const days = [
@@ -186,7 +212,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
           zIndex: 0,
         });
 
-        // Создаем кастомный маркер с изображением категории внутри
 
         // Создание стиля для фона
         const backgroundStyle = new Style({
@@ -283,6 +308,17 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
   const isClosed =
     hours == 0 && minutes == 0 ? false : closingTime < currentTime;
+    const openLocationSettings = () => {
+      if (/android/i.test(navigator.userAgent)) {
+        // Открыть настройки геолокации на Android
+        window.location.href = "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
+      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // Открыть настройки приложения на iOS
+        window.location.href = "app-settings:";
+      } else {
+        alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+      }
+    };
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -340,7 +376,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
       <circle cx="21" cy="17.5" r="7" fill="white"/>
     </svg>`)}`;
-
             return (
               <React.Fragment key={announcement.id}>
                 <Marker
@@ -436,6 +471,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                 </div>
                 <div className="flex flex-row gap-4">
                   <CoveredImage
+                  borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
@@ -544,6 +580,22 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
           {t("backMap")}
         </Button>
       </div>
+      {isLocationDenied && (
+  <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
+      <Typography size={16} weight={500} className=" mb-2">{t("GeoOn")}</Typography>
+      <Typography size={14} weight={400} className="text-gray-600 mb-4">
+        {t("NeedGeo")}
+      </Typography>
+      <Button
+        onClick={openLocationSettings}
+        className="px-4 py-2 text-white shadow-md"
+      >
+        {t("OpenSettings")}
+      </Button>
+    </div>
+  </div>
+)}
     </main>
   );
 };
