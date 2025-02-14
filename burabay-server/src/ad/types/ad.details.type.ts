@@ -1,6 +1,5 @@
 export class ChillDetails {
   constructor(
-    public type: 'chillPlace' = 'chillPlace',
     public equippedBeach: boolean | null = null,
     public wildBeach: boolean | null = null,
     public restingCanopy: boolean | null = null,
@@ -30,7 +29,6 @@ export class ChillDetails {
 
 export class LivingPlaceDetails {
   constructor(
-    public type: 'livingPlace' = 'livingPlace',
     public freeWiFi: boolean | null = null,
     public privateParking: boolean | null = null,
     public breakfastIncluded: boolean | null = null,
@@ -68,7 +66,6 @@ export class LivingPlaceDetails {
 
 export class FoodDetails {
   constructor(
-    public type: 'food' = 'food',
     public europeanCuisine: boolean | null = null,
     public easternCuisine: boolean | null = null,
     public kidsMenu: boolean | null = null,
@@ -90,7 +87,6 @@ export class FoodDetails {
 
 export class AttractionsDetails {
   constructor(
-    public type: 'attractions' = 'attractions',
     public historicalPlace: boolean | null = null,
     public museum: boolean | null = null,
     public naturalMonument: boolean | null = null,
@@ -112,7 +108,6 @@ export class AttractionsDetails {
 }
 export class HealthDetails {
   constructor(
-    public type: 'health' = 'health',
     public bodyWrap: boolean | null = null,
     public peeling: boolean | null = null,
     public sauna: boolean | null = null,
@@ -168,7 +163,6 @@ export class HealthDetails {
 
 export class EntertainmentDetails {
   constructor(
-    public type: 'entertainment' = 'entertainment',
     public amusementPark: boolean | null = null,
     public waterPark: boolean | null = null,
     public zoo: boolean | null = null,
@@ -196,7 +190,6 @@ export class EntertainmentDetails {
 
 export class ExtrimDetails {
   constructor(
-    public type: 'extreme' = 'extreme',
     public quadBiking: boolean | null = null,
     public buggyRiding: boolean | null = null,
     public paragliding: boolean | null = null,
@@ -223,7 +216,6 @@ export class ExtrimDetails {
 
 export class SecurityDetails {
   constructor(
-    public type: 'security' = 'security',
     public medicalPoint: boolean | null = null,
     public rescueServicePoint: boolean | null = null,
     public pharmacy: boolean | null = null,
@@ -241,7 +233,6 @@ export class SecurityDetails {
 
 export class RentDetails {
   constructor(
-    public type: 'rent' = 'rent',
     public bicycles: boolean | null = null,
     public electricScooters: boolean | null = null,
     public snowboardsAndSkis: boolean | null = null,
