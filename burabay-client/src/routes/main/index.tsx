@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Main } from '../../pages/main/Main'
 import { Loader } from '../../components/Loader';
-import { MapFilter } from '../../pages/announcements/announcements-utils';
 import { useGetMainPageCategories } from '../../pages/main/main-utils';
+import { MainPageFilter } from '../../pages/main/model/mainpage-types';
 
 export const Route = createFileRoute("/main/")({
   component: MainRoute,
-  validateSearch: () => ({}) as MapFilter
+  validateSearch: () => ({}) as MainPageFilter
 });
 
 

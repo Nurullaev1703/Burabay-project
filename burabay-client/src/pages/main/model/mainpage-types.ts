@@ -5,4 +5,9 @@ export interface MainPageFilter {
   subcategories?: string[];
   details?: string[];
   name?: string;
+  categoryNames?: string;
+  adName?: string;
+  category?: string;
+  limit?: number;
+  offset?: number;
 }
