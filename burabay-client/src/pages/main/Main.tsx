@@ -6,7 +6,6 @@ import investirovanie from "../../app/icons/main/investirovanie.png";
 import { Category } from "../announcements/model/announcements";
 import { baseUrl } from "../../services/api/ServerData";
 import { AdCard } from "./ui/AdCard";
-import { MapFilter } from "../announcements/announcements-utils";
 import { categoryBgColors, COLORS, COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
@@ -16,10 +15,11 @@ import { RotatingLines } from "react-loader-spinner";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/back-icon.svg";
 import FilterIcon from "../../app/icons/main/filter.svg";
+import { MainPageFilter } from "./model/mainpage-types";
 
 interface Props {
   categories: Category[];
-  filters: MapFilter;
+  filters: MainPageFilter;
 }
 
 export const Main: FC<Props> = function Main({ categories, filters }) {
@@ -109,7 +109,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         </div>
         {activeCategory && (
           <IconContainer align="center" action={() => navigate({
-            to:"/main/filter"
+            to:`/main/filter/${activeCategory.id}`
           })}>
             <img src={FilterIcon} alt="" />
           </IconContainer>
