@@ -5,4 +5,6 @@ export interface MainPageFilter {
   subcategories?: string;
   details?: string;
   name?: string;
+  limit?: number;
+  offset?: number;
 }

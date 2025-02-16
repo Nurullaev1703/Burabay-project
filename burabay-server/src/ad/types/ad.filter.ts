@@ -3,5 +3,5 @@ export interface AdFilter {
   adName?: string;
   category?: string;
   limit?: number;
-  offset?: number
+  offset?: number;
 }

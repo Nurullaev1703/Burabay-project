@@ -76,6 +76,9 @@ export class MainPageService {
         subcategory: { category: true },
         usersFavorited: true,
       },
+      order: {
+        createdAt: 'DESC',
+      },
       select: {
         id: true,
         title: true,
@@ -84,6 +87,7 @@ export class MainPageService {
         details: {},
         avgRating: true,
         reviewCount: true,
+        createdAt: true,
         subcategory: {
           name: true,
           category: {
@@ -92,6 +96,8 @@ export class MainPageService {
           },
         },
       },
+      skip: mainPageFilter.offset || 0,
+      take: mainPageFilter.limit || 10,
     });
     const userIdSet = new Set(ads.flatMap((ad) => ad.usersFavorited.map((user) => user.id)));
     const result = ads.map((ad) => ({
