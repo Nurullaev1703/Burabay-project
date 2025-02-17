@@ -7,4 +7,5 @@ export interface MainPageFilter {
   name?: string;
   limit?: number;
   offset?: number;
+  category?: string;
 }

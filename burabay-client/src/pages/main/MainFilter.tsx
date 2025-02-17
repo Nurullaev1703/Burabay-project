@@ -31,23 +31,21 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
       to: "/main",
       search: selectedFilters,
     });
-  }
+  };
   const resetFilters = () => {
     setSelectedFilters({
-        minPrice: undefined,
-        maxPrice: undefined,
-        isHighRating: undefined,
-        subcategories: [],
-        details: [],
-        name: undefined,
-        
-    })
+      minPrice: undefined,
+      maxPrice: undefined,
+      isHighRating: undefined,
+      subcategories: [],
+      details: [],
+      name: undefined,
+    });
     navigate({
-        to: "/main",
-        search: {},
-    })
-    
-  }
+      to: "/main",
+      search: {},
+    });
+  };
   return (
     <div className="bg-white min-h-screen">
       <Header>
@@ -70,6 +68,10 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             action={async () =>
               navigate({
                 to: "/main",
+                search: {
+                  adName: selectedFilters.name || "",
+                  category: selectedFilters.category,
+                }
               })
             }
           >
@@ -77,7 +79,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           </IconContainer>
         </div>
       </Header>
-      <div className="p-4">
+      <div className="p-4 mb-32">
         <div className="mb-4">
           <Typography
             size={14}
@@ -88,30 +90,32 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             {"Цена"}
           </Typography>
           <div className="flex space-x-2">
-            <input
-              type="number"
-              placeholder="От"
+              <input
+                type="number"
+                placeholder="От"
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
-                setSelectedFilters((prev) => ({
-                  ...prev,
-                  minPrice: value ? Number(value) : undefined,
-                }))}
-              }
-            />
+              value={selectedFilters.minPrice ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 9);
+                  setSelectedFilters((prev) => ({
+                    ...prev,
+                    minPrice: value ? Number(value) : undefined,
+                  }));
+                }}
+              />
             <input
               type="number"
+              
               placeholder="До"
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
+              value={selectedFilters.maxPrice ?? ""}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9); 
+                const value = e.target.value.slice(0, 9);
                 setSelectedFilters((prev) => {
-                  const minPrice = prev.minPrice ?? 0;
                   const maxPrice = Number(value);
                   return {
                     ...prev,
-                    maxPrice: maxPrice >= minPrice ? maxPrice : minPrice, 
+                    maxPrice: maxPrice,
                   };
                 });
               }}
@@ -128,14 +132,14 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
               weight={400}
             >{`${filters.isHighRating ?? "4.5"}`}</Typography>
           </div>
-          <Switch 
-          checked={selectedFilters.isHighRating ?? false}
-          onChange={() =>
-            setSelectedFilters((prev) => ({
-              ...prev,
-              isHighRating: !prev.isHighRating,
-            }))
-          } 
+          <Switch
+            checked={selectedFilters.isHighRating ?? false}
+            onChange={() =>
+              setSelectedFilters((prev) => ({
+                ...prev,
+                isHighRating: !prev.isHighRating,
+              }))
+            }
           />
         </div>
 
@@ -146,18 +150,29 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           {category.subcategories?.map((subcategory, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
               <Checkbox
-              key={index}
-              checked={selectedFilters.subcategories?.includes(subcategory.name) || false}
-              onChange={() => {
-                setSelectedFilters((prevFilters) => {
-                  const updatedSubcategories = prevFilters.subcategories?.includes(subcategory.name)
-                    ? prevFilters.subcategories.filter((s) => s !== subcategory.name)
-                    : [...(prevFilters.subcategories || []), subcategory.name];
+                key={index}
+                checked={
+                  selectedFilters.subcategories?.includes(subcategory.name) ||
+                  false
+                }
+                onChange={() => {
+                  setSelectedFilters((prevFilters) => {
+                    const updatedSubcategories =
+                      prevFilters.subcategories?.includes(subcategory.name)
+                        ? prevFilters.subcategories.filter(
+                            (s) => s !== subcategory.name
+                          )
+                        : [
+                            ...(prevFilters.subcategories || []),
+                            subcategory.name,
+                          ];
 
-                  return { ...prevFilters, subcategories: updatedSubcategories };
-                });
-              }}
-              
+                    return {
+                      ...prevFilters,
+                      subcategories: updatedSubcategories,
+                    };
+                  });
+                }}
                 sx={{ p: 0 }}
                 disableRipple
                 icon={
@@ -211,16 +226,16 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           {category.details?.map((detail, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
               <Checkbox
-              checked={selectedFilters.details?.includes(detail) || false}
-              onChange={() => {
-                setSelectedFilters((prevFilters) => {
-                  const updatedDetails = prevFilters.details?.includes(detail)
-                    ? prevFilters.details.filter((d) => d !== detail)
-                    : [...(prevFilters.details || []), detail];
+                checked={selectedFilters.details?.includes(detail) || false}
+                onChange={() => {
+                  setSelectedFilters((prevFilters) => {
+                    const updatedDetails = prevFilters.details?.includes(detail)
+                      ? prevFilters.details.filter((d) => d !== detail)
+                      : [...(prevFilters.details || []), detail];
 
-                  return { ...prevFilters, details: updatedDetails };
-                });
-              }}
+                    return { ...prevFilters, details: updatedDetails };
+                  });
+                }}
                 sx={{ p: 0 }}
                 disableRipple
                 icon={
@@ -265,19 +280,21 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             </label>
           ))}
         </div>
-
-        <div className="">
-          <Button className="w-full  text-white p-3 rounded"
+      </div>
+      <div className="fixed bottom-0 left-0 w-full bg-white py-2 px-4 z-10">
+        <Button
+          className="w-full  text-white p-3 rounded"
           onClick={() => applyFilters()}
-          >
-            {"Применить"}
-          </Button>
-          <Button mode="border" className="w-full p-3 mt-2"
+        >
+          {"Применить"}
+        </Button>
+        <Button
+          mode="border"
+          className="w-full p-3 mt-2"
           onClick={resetFilters}
-          >
-            {"Сбросить все фильтры"}
-          </Button>
-        </div>
+        >
+          {"Сбросить все фильтры"}
+        </Button>
       </div>
     </div>
   );
