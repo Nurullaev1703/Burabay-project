@@ -76,7 +76,6 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
               navigate({
                 to: "/main",
                 search: {
-                  ...filters,
                   category: "",
                   adName: "",
                 },
@@ -109,7 +108,8 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         </div>
         {activeCategory && (
           <IconContainer align="center" action={() => navigate({
-            to:`/main/filter/${activeCategory.id}`
+            to: `/main/filter/${activeCategory.id}`,
+            search: filters
           })}>
             <img src={FilterIcon} alt="" />
           </IconContainer>
@@ -118,10 +118,17 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
 
       {/* Отображаем предложения при отсутствии фильтров */}
       {!activeCategory && !filters.adName && (
-        <div className="flex gap-4 overflow-x-auto p-4 bg-white">
+        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full">
           <div className=" relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
             <img
               src={investirovanie}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+              alt=""
+              />
+          </div>
+          <div className="relative min-w-[200px] h-[120px] bg-green-500 rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
+            <img
+              src={locationImg}
               className="absolute top-0 left-0 w-full h-full object-cover"
               alt=""
             />
@@ -169,7 +176,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           {categories.map(({ name, imgPath, id }) => (
             <div
               key={id}
-              className={`flex flex-col w-1/3 py-2 rounded-xl items-center select-none`}
+              className={`flex flex-col w-1/3 py-2 rounded-xl items-center select-none bg-white active:bg-almostWhite active:bg-opacity-50`}
               onClick={() => {
                 setActiveCategory(
                   categories.find((item) => item.name == name) || null

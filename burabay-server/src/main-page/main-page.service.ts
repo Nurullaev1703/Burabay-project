@@ -52,6 +52,16 @@ export class MainPageService {
     // Фильтр только с высоким рейтингом
     if (mainPageFilter.isHighRating) whereOptions.avgRating = MoreThan(4.5);
 
+    // фильтр по категориям
+    if (mainPageFilter.category) {
+      whereOptions = {
+        ...whereOptions,
+        subcategory: {
+          category: { name: mainPageFilter.category },
+        },
+      };
+    }
+
     // Фильтр по подкатегории
     if (mainPageFilter.subcategories) {
       const subcategories = mainPageFilter.subcategories.split(',');

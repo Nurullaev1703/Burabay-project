@@ -11,16 +11,16 @@ export interface MainDataType{
 export function useGetMainPageAnnouncements(filters?:MainPageFilter) {
   const categoryFilter = filters?.category || "";
   const adNameFilter = filters?.adName || "";
-  const subcategoryFilter = filters?.subcategories || "";
+  const subcategoryFilter = filters?.subcategories?.join(",") || "";
   const minPrice = filters?.minPrice || "";
   const maxPrice = filters?.maxPrice || "";
   const rating = filters?.isHighRating || "";
-  const subcategoriesString = Array.isArray(subcategoryFilter) ? subcategoryFilter.join(",") : "";
+  const detailsFilter = filters?.details?.join(",") || ""
   return useInfiniteQuery({
     queryKey: ["main-page-announcements", filters],
     queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Announcement[]>({
-        url: `/main-pages/ad?category=${categoryFilter}&adName=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating ? "4.5" : ""}&subcategories=${subcategoriesString}&offset=${pageParam}&limit=10`,
+        url: `/main-pages/ad?category=${categoryFilter}&adName=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating ? "4.5" : ""}&subcategories=${subcategoryFilter}&details=${detailsFilter}&offset=${pageParam}&limit=10`,
       });
       return response.data;
     },
