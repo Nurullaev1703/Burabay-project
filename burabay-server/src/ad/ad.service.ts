@@ -191,10 +191,13 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Проверяем, есть ли объявление уже в избранных
-    if (!user.favorites.some((fav) => fav.id === ad.id)) {
+    const favoriteIndex = user.favorites.findIndex((fav) => fav.id === ad.id);
+    if (favoriteIndex === -1) {
       user.favorites.push(ad);
-      await this.userRepository.save(user);
+    } else {
+      user.favorites.splice(favoriteIndex, 1);
     }
+    await this.userRepository.save(user);
     return JSON.stringify(HttpStatus.CREATED);
   }
 
