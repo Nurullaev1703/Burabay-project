@@ -1,5 +1,5 @@
 import { Box, IconButton, TextField, Modal as MuiModal } from "@mui/material";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
@@ -21,16 +21,15 @@ interface Props {
   user: ProfileType;
 }
 
-export const RatingModal: FC<Props> = function RatingModal({ open, onClose }) {
+export const RatingModal: FC<Props> = function RatingModal({ open, onClose, user }) {
   const [currentRating, _setCurrentRating] = useState<FormType>({
     stars: 0,
     text: "",
   });
 
-  const [isLoading, _setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [appreciated, setAppreciated] = useState<boolean>(false);
   const { t } = useTranslation();
-
   const { handleSubmit, control, setValue } = useForm<FormType>({
     defaultValues: {
       stars: currentRating.stars,

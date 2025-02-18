@@ -22,6 +22,7 @@ import ImageCard from "../../ui/ImageCard";
 import { Button } from "../../../../shared/ui/Button";
 import FocusedStarIcon from "../../../../app/icons/announcements/reviews/focused-star.svg";
 import UnFocusedStarIcon from "../../../../app/icons/announcements/reviews/unfocused-star.svg";
+import { queryClient } from "../../../../ini/InitializeApp";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
@@ -321,6 +322,7 @@ export const AddReview: FC = function AddReview() {
             },
           });
           if (response.data) {
+            await queryClient.refetchQueries({ queryKey: [`/review/ad/${announcement.id}`] });
             navigate({ to: `/announcements/${announcement.id}` });
           }
           setIsLoading(false);

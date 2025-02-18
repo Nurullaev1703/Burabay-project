@@ -35,16 +35,15 @@ interface Props {
   review?: ReviewAnnouncement;
 }
 
-        export const formatPrice = (value: number) => {
+export const formatPrice = (value: number) => {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
 };
 export const Announcement: FC<Props> = function Announcement({
   announcement,
   review,
 }) {
-  
   const { t } = useTranslation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
       return {
@@ -58,7 +57,7 @@ export const Announcement: FC<Props> = function Announcement({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
- 
+
   return (
     <section className="bg-background">
       <Header>
@@ -93,13 +92,15 @@ export const Announcement: FC<Props> = function Announcement({
             >
               <li
                 className="flex gap-2 items-center p-4"
-                onClick={() => navigate({
-                  to: "/announcements/edit/subcategory/$subcatId/$adId",
-                  params: {
-                    adId: announcement.id,
-                    subcatId: announcement.subcategory.category.id,
-                  }
-                })}
+                onClick={() =>
+                  navigate({
+                    to: "/announcements/edit/subcategory/$subcatId/$adId",
+                    params: {
+                      adId: announcement.id,
+                      subcatId: announcement.subcategory.category.id,
+                    },
+                  })
+                }
               >
                 <img src={EditIcon} alt="" />
                 <Typography size={14}>{"Редактировать"}</Typography>
@@ -199,7 +200,7 @@ export const Announcement: FC<Props> = function Announcement({
         <AnnouncementInfoList ad={announcement} />
       </div>
       <CostInfoList ad={announcement} />
-      <ReviewsInfo ad={announcement} review={review}  />
+      <ReviewsInfo ad={announcement} review={review} />
       {showModal && (
         <ModalDelete
           open={showModal}
