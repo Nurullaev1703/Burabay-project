@@ -59,7 +59,6 @@ export class FeedbackService {
   /* Обновить отзыв на приложение пользователя, чей токен передан. */
   async update(updateFeedbackDto: UpdateFeedbackDto, tokenData: TokenData) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const user = await this.userRepository.findOne({
         where: { id: tokenData.id },
         relations: { feedback: true },
