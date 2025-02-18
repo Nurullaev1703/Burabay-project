@@ -1,10 +1,6 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateFeedbackDto {
-  @IsNotEmpty()
-  @IsString()
-  userId: string;
-
   @IsOptional()
   @IsString()
   uncomfortableText: string;

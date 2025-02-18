@@ -133,10 +133,11 @@ export class AdService {
     return ads;
   }
 
+  /* Получение всех избранные Объявлений Пользователя по его токену. */
   @CatchErrors()
-  async findAllFavorite(userId: string) {
+  async findAllFavorite(tokenData: TokenData) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: tokenData.id },
       relations: { favorites: { organization: true } },
     });
     Utils.checkEntity(user, 'Пользователь не найден');
@@ -177,10 +178,11 @@ export class AdService {
     return { ...ad, favCount };
   }
 
+  /* Добавление Объявление в список избранного Пользователя по его токену. */
   @CatchErrors()
-  async addToFavorites(userId: string, adId: string) {
+  async addToFavorites(tokenData: TokenData, adId: string) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: tokenData.id },
       relations: { favorites: true },
     });
     Utils.checkEntity(user, 'Пользователь не найден');

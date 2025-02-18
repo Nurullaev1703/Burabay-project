@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  Request,
+  Req,
+} from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
@@ -33,14 +44,14 @@ export class AdController {
     return this.adService.findOne(id, req.user);
   }
 
-  @Get('favorite/list/:userId')
-  findAllFavorite(@Param('userId') userId: string) {
-    return this.adService.findAllFavorite(userId);
+  @Get('favorite/list')
+  findAllFavorite(@Request() req: AuthRequest) {
+    return this.adService.findAllFavorite(req.user);
   }
 
-  @Get('favorite/:userId/:id')
-  addToFavorite(@Param('userId') userId: string, @Param('id') adId: string) {
-    return this.adService.addToFavorites(userId, adId);
+  @Get('favorite/:id')
+  addToFavorite(@Request() req: AuthRequest, @Param('id') adId: string) {
+    return this.adService.addToFavorites(req.user, adId);
   }
 
   @Patch(':id')

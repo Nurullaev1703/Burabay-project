@@ -1,20 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete, Request } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/constants';
 
 @Controller('feedback')
 @ApiBearerAuth()
 @ApiTags('Отзывы на приложение')
-@Public() // TODO Удалить после тестирования.
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
   @Post()
-  create(@Body() createFeedbackDto: CreateFeedbackDto) {
-    return this.feedbackService.create(createFeedbackDto);
+  create(@Body() createFeedbackDto: CreateFeedbackDto, @Request() req: AuthRequest) {
+    return this.feedbackService.create(createFeedbackDto, req.user);
   }
 
   @Get()
@@ -22,18 +20,18 @@ export class FeedbackController {
     return this.feedbackService.findAll();
   }
 
-  @Get(':userId')
-  findOne(@Param('userId') userId: string) {
-    return this.feedbackService.findOneByUser(userId);
+  @Get('user')
+  findOne(@Request() req: AuthRequest) {
+    return this.feedbackService.findOneByUser(req.user);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFeedbackDto: UpdateFeedbackDto) {
-    return this.feedbackService.update(id, updateFeedbackDto);
+  @Patch()
+  update(@Body() updateFeedbackDto: UpdateFeedbackDto, @Request() req: AuthRequest) {
+    return this.feedbackService.update(updateFeedbackDto, req.user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.feedbackService.remove(id);
+  @Delete()
+  remove(@Request() req: AuthRequest) {
+    return this.feedbackService.remove(req.user);
   }
 }

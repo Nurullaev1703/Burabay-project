@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -16,25 +16,25 @@ export class FeedbackService {
     private readonly feedbackRepository: Repository<Feedback>,
   ) {}
 
-  async create(createFeedbackDto: CreateFeedbackDto) {
+  /* Создать отзыв на приложение от лица пользователя, чей токен передан. */
+  async create(createFeedbackDto: CreateFeedbackDto, tokenData: TokenData) {
     try {
-      const { userId, ...oF } = createFeedbackDto;
       const user = await this.userRepository.findOne({
-        where: { id: userId },
+        where: { id: tokenData.id },
         relations: { feedback: true },
       });
       Utils.checkEntity(user, 'Пользователь не найден');
-      const newFeedback = this.feedbackRepository.create({
-        user: user,
-        ...oF,
-      });
+      const newFeedback = this.feedbackRepository.create(createFeedbackDto);
       await this.feedbackRepository.save(newFeedback);
+      user.feedback = newFeedback;
+      await this.userRepository.save(user);
       return JSON.stringify(HttpStatus.CREATED);
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
+  /* Получить все отзывы на приложение. */
   async findAll() {
     try {
       return await this.feedbackRepository.find();
@@ -43,27 +43,30 @@ export class FeedbackService {
     }
   }
 
-  async findOneByUser(userId: string) {
+  /* Получить отзыв на приложения пользователя, чей токен передан. */
+  async findOneByUser(tokenData: TokenData) {
     try {
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: { feedback: true },
+      const feedback = await this.feedbackRepository.findOne({
+        where: { user: { id: tokenData.id } },
       });
-      return user.feedback;
+      Utils.checkEntity(feedback, 'Отзыв не найден');
+      return feedback;
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
-  async update(id: string, updateFeedbackDto: UpdateFeedbackDto) {
+  /* Обновить отзыв на приложение пользователя, чей токен передан. */
+  async update(updateFeedbackDto: UpdateFeedbackDto, tokenData: TokenData) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { userId, ...oF } = updateFeedbackDto;
-      const feedback = await this.feedbackRepository.findOne({
-        where: { id: id },
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        relations: { feedback: true },
       });
-      Utils.checkEntity(feedback, 'Отзыв не найден');
-      Object.assign(feedback, oF);
+      Utils.checkEntity(user.feedback, 'Отзыв не найден');
+      const feedback = user.feedback;
+      Object.assign(feedback, updateFeedbackDto);
       await this.feedbackRepository.save(feedback);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
@@ -71,7 +74,18 @@ export class FeedbackService {
     }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} feedback`;
+  /* Удалить отзыв на приложение пользователя, чей токен передан. */
+  @CatchErrors()
+  async remove(tokenData: TokenData) {
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      relations: { feedback: true },
+    });
+    Utils.checkEntity(user.feedback, 'Отзыв не найден');
+    const feedback = user.feedback;
+    user.feedback = null;
+    await this.userRepository.save(user);
+    await this.feedbackRepository.remove(feedback);
+    return JSON.stringify(HttpStatus.OK);
   }
 }
