@@ -22,5 +22,5 @@ RUN yarn build
 
 EXPOSE 3001
 
-CMD ["bash", "-c", "./wait-for-it.sh postgres:5432 -- yarn start:prod"]
+CMD ["bash", "-c", "./wait-for-it.sh postgres:5433 -- yarn start:prod"]
 
