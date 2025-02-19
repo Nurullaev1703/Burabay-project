@@ -40,6 +40,22 @@ services:
         ports:
             - "5433:5433"
 
+    # Nginx сервис для работы SSL
+    nginx:
+        image: nginx:latest
+        container_name: nginx
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf # Монтируем nginx.conf
+            - ./nginx/certs:/etc/nginx/certs # Монтируем каталог сертификатов
+            - ./nginx/conf.d:/etc/nginx/conf.d # Монтируем каталог конфигураций
+        ports:
+            - "80:80" # HTTP
+            - "443:443" # HTTPS
+        depends_on:
+            - frontend
+        networks:
+            - app-network
+
 networks:
     app-network:
         driver: bridge
