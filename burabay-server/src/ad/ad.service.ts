@@ -64,7 +64,7 @@ export class AdService {
   /* Метод для получения всех Объявлений.
      Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
-  async findAll(filter?: AdFilter) {
+  async findAll(tokenData: TokenData, filter?: AdFilter) {
     let ads: Ad[];
     if (filter.categoryNames) {
       const categoryNamesArr = filter.categoryNames.split(',');
@@ -77,6 +77,7 @@ export class AdService {
           breaks: true,
           address: true,
           subcategory: { category: true },
+          usersFavorited: true,
         },
         order: {
           createdAt: 'DESC',
@@ -91,16 +92,24 @@ export class AdService {
           breaks: true,
           address: true,
           subcategory: { category: true },
+          usersFavorited: true,
         },
         order: {
           createdAt: 'DESC',
         },
       });
     }
+    const result = ads.map((ad) => {
+      const isFavourite =
+        ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
+      delete ad.usersFavorited;
+      return { ...ad, isFavourite };
+    });
     if (filter.adName) {
       ads = this._searchAd(filter.adName, ads);
     }
-    return ads;
+
+    return result;
   }
 
   /* Метод для получения всех Объявлений у Организации */
@@ -162,6 +171,8 @@ export class AdService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
     const favCount = ad.usersFavorited.length;
+    const isFavourite =
+      ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
     delete ad.usersFavorited;
     if (tokenData) {
       const user = await this.userRepository.findOne({
@@ -175,7 +186,7 @@ export class AdService {
       }
     }
 
-    return { ...ad, favCount };
+    return { ...ad, favCount, isFavourite };
   }
 
   /* Добавление Объявление в список избранного Пользователя по его токену. */

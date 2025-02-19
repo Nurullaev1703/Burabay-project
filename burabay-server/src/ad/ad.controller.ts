@@ -18,8 +18,8 @@ export class AdController {
   }
 
   @Get()
-  findAll(@Query() filter: AdFilter) {
-    return this.adService.findAll(filter);
+  findAll(@Query() filter: AdFilter, @Request() req: AuthRequest) {
+    return this.adService.findAll(req.user, filter);
   }
 
   @Get('by-org/:orgId')
