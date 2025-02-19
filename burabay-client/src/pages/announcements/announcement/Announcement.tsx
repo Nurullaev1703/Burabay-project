@@ -27,8 +27,9 @@ import { ModalDelete } from "./ui/ModalDelete";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
 import { ReviewsInfo } from "./ui/ReviewsInfo";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import VerticalIcon from "../../../app/icons/vertical.svg";
+import { apiService } from "../../../services/api/ApiService";
 
 interface Props {
   announcement: AnnouncementType;
@@ -57,6 +58,12 @@ export const Announcement: FC<Props> = function Announcement({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const addToFavourite = async () => {
+    const response = await apiService.get({
+      url: `/ad/favorite/${announcement.id}`
+    });
+  }
 
   return (
     <section className="bg-background">
@@ -141,9 +148,9 @@ export const Announcement: FC<Props> = function Announcement({
               : t("free")}
           </h1>
           {roleService.getValue() === ROLE_TYPE.TOURIST && (
-            <Link>
+            <div onClick={addToFavourite}>
               <img src={FavouriteFocusedIcon} alt="Избранное" />
-            </Link>
+            </div>
           )}
         </div>
         <h1 className="font-medium text-[22px]">{announcement.title}</h1>

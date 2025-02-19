@@ -249,7 +249,7 @@ const imageChange = async (data: File) => {
         </li>
         {user?.role === "турист" && (
           <li className={`border-t  ${COLORS_BORDER.gray300}`}>
-            <Link className="flex py-3" to={"/"}>
+            <Link className="flex py-3" to={"/favorites"}>
               <img src={FavouriteIcon} alt={t("saved")} className="mr-2" />
               <span>{t("saved")}</span>
             </Link>

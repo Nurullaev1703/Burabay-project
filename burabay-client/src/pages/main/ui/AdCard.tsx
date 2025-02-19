@@ -6,8 +6,9 @@ import { Typography } from "../../../shared/ui/Typography";
 import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import maptracker from "../../../app/icons/main/maptracker.svg";
 import StarIcon from "../../../app/icons/main/star.svg";
-// import FavouriteIcon from "../../../app/icons/favourite.svg";
+import FavouriteIcon from "../../../app/icons/favourite.svg";
 import { Link } from "@tanstack/react-router";
+import { apiService } from "../../../services/api/ApiService";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
@@ -15,7 +16,12 @@ interface Props {
   ref?: (node: HTMLLIElement | null) => void;
 }
 
-export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width,ref }) {
+export const AdCard: FC<Props> = function AdCard({
+  ad,
+  isOrganization,
+  width,
+  ref,
+}) {
   const [carouselItems, _] = useState(
     ad.images.map((image, index) => {
       return {
@@ -24,8 +30,16 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width,ref
       };
     })
   );
+  const addToFavourite = async () => {
+    const response = await apiService.get({
+      url: `/ad/favorite/${ad.id}`,
+    });
+  };
   return (
-    <li className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`} ref={ref}>
+    <li
+      className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`}
+      ref={ref}
+    >
       <Link
         to="/announcements/$announcementId"
         params={{ announcementId: ad.id }}
@@ -53,8 +67,9 @@ export const AdCard: FC<Props> = function AdCard({ ad, isOrganization, width,ref
               ? (ad.price || 0).toLocaleString("ru-RU") + " ₸"
               : "Бесплатно"}
           </Typography>
-          {/* TODO раскомментить, когда будет избранное */}
-          {/* {!isOrganization && <img src={FavouriteIcon} alt="" />} */}
+          {!isOrganization && (
+            <img src={FavouriteIcon} alt="" onClick={addToFavourite} />
+          )}
         </div>
         <Typography size={14} weight={400} className="line-clamp-1">
           {ad.title}
