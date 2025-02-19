@@ -2,47 +2,44 @@ version: "3.8"
 
 services:
     # Сервис для бэкенда
-    backend:
+    backend-test:
         build:
             context: .
             dockerfile: Dockerfile.backend
         env_file:
             - burabay-server/.env.docker
         depends_on:
-            - postgres
+            - postgres-test
         ports:
-            - "3000:3000"
+            - "3001:3001"
         networks:
             - app-network
-        command: ["bash", "-c", "./wait-for-it.sh postgres:5432 -- yarn start:prod"]
+        command: ["bash", "-c", "./wait-for-it.sh postgres-test:5432 -- yarn start:prod"]
 
     # Сервис для фронтенда
-    frontend:
+    frontend-test:
         build:
             context: .
             dockerfile: Dockerfile.frontend
         env_file:
             - burabay-client/.env
         ports:
-            - "5173:5173"
+            - "5174:5174"
         depends_on:
-            - backend
+            - backend-test
         networks:
             - app-network
 
     # Сервис для PostgreSQL базы данных
-    postgres:
+    postgres-test:
         image: postgres:latest
         env_file:
             - burabay-server/.env.docker
         networks:
             - app-network
         ports:
-            - "5432:5432"
+            - "5433:5432"
 
 networks:
     app-network:
         driver: bridge
-
-volumes:
-    postgres-data:

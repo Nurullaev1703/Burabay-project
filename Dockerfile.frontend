@@ -18,8 +18,6 @@ COPY burabay-client .
 # RUN yarn build
 
 # Открываем порт для фронтенда
-EXPOSE 5173
+EXPOSE 5174
 
-# TODO Изменить команду на запуск прод приложения.
-# Запускаем приложение
 CMD ["yarn", "dev", "--host"] 
