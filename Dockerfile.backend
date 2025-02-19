@@ -15,12 +15,12 @@ RUN chmod +x ./wait-for-it.sh
 
 RUN apk add --no-cache bash
 
-ENV POSTGRES_HOST=postgres
+ENV POSTGRES_HOST=postgres-test
 
 RUN yarn build
 
 
 EXPOSE 3001
 
-CMD ["bash", "-c", "./wait-for-it.sh postgres:5433 -- yarn start:prod"]
+CMD ["bash", "-c", "./wait-for-it.sh postgres-test:5432 -- yarn start:prod"]
 
