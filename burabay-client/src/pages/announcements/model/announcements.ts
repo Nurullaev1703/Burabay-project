@@ -91,6 +91,7 @@ export interface Announcement {
   adultsNumber: number;
   kidsNumber: number;
   kidsMinAge: number;
+  isFavourite: boolean;
   petsAllowed: boolean;
   isBookable: boolean;
   price: number;

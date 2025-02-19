@@ -15,6 +15,7 @@ import {
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import EyeIcon from "../../../app/icons/announcements/eye.svg";
 import FavouriteIcon from "../../../app/icons/announcements/favourite.svg";
+import FavouriteActiveIcon from "../../../app/icons/announcements/favourite-active.svg";
 import EditIcon from "../../../app/icons/edit.svg";
 import DeleteIcon from "../../../app/icons/delete.svg";
 import StarIcon from "../../../app/icons/announcements/star.svg";
@@ -53,6 +54,7 @@ export const Announcement: FC<Props> = function Announcement({
       };
     })
   );
+  const [isFavourite, setIsFavourite] = useState<boolean>(announcement.isFavourite || false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isAdActions, setIsAdActions] = useState<boolean>(false);
   useEffect(() => {
@@ -63,6 +65,7 @@ export const Announcement: FC<Props> = function Announcement({
     const response = await apiService.get({
       url: `/ad/favorite/${announcement.id}`
     });
+    (isFavourite) ? setIsFavourite(false) : setIsFavourite(true)
   }
 
   return (
@@ -149,7 +152,7 @@ export const Announcement: FC<Props> = function Announcement({
           </h1>
           {roleService.getValue() === ROLE_TYPE.TOURIST && (
             <div onClick={addToFavourite}>
-              <img src={FavouriteFocusedIcon} alt="Избранное" />
+              <img src={((isFavourite) ? FavouriteActiveIcon : FavouriteFocusedIcon)} alt="Избранное" />
             </div>
           )}
         </div>

@@ -7,8 +7,10 @@ import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import maptracker from "../../../app/icons/main/maptracker.svg";
 import StarIcon from "../../../app/icons/main/star.svg";
 import FavouriteIcon from "../../../app/icons/favourite.svg";
+import FavouriteActiveIcon from "../../../app/icons/favourite-active.svg";
 import { Link } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
+import { queryClient } from "../../../ini/InitializeApp";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
@@ -22,6 +24,7 @@ export const AdCard: FC<Props> = function AdCard({
   width,
   ref,
 }) {
+  const [isFavourite, setIsFavourite] = useState<boolean>(ad.isFavourite || false);
   const [carouselItems, _] = useState(
     ad.images.map((image, index) => {
       return {
@@ -34,6 +37,8 @@ export const AdCard: FC<Props> = function AdCard({
     const response = await apiService.get({
       url: `/ad/favorite/${ad.id}`,
     });
+    (isFavourite) ? setIsFavourite(false) : setIsFavourite(true);
+    await queryClient.refetchQueries({queryKey: ['ad/favorite/list']});
   };
   return (
     <li
@@ -68,7 +73,7 @@ export const AdCard: FC<Props> = function AdCard({
               : "Бесплатно"}
           </Typography>
           {!isOrganization && (
-            <img src={FavouriteIcon} alt="" onClick={addToFavourite} />
+            <img src={((isFavourite) ? FavouriteActiveIcon : FavouriteIcon)} alt="" onClick={addToFavourite} />
           )}
         </div>
         <Typography size={14} weight={400} className="line-clamp-1">
