@@ -147,7 +147,30 @@ export class AdService {
   async findAllFavorite(tokenData: TokenData) {
     const user = await this.userRepository.findOne({
       where: { id: tokenData.id },
-      relations: { favorites: { organization: true } },
+      relations: {
+        favorites: { organization: true, subcategory: { category: true } },
+      },
+      select: {
+        favorites: {
+          id: true,
+          title: true,
+          price: true,
+          images: true,
+          avgRating: true,
+          reviewCount: true,
+          address: {
+            specialName: true,
+            address: true,
+          },
+          organization: {
+            id: true,
+            name: true,
+            isBanned: true,
+            isConfirmed: true,
+          },
+          subcategory: { name: true, category: { imgPath: true } },
+        },
+      },
     });
     Utils.checkEntity(user, 'Пользователь не найден');
     Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
