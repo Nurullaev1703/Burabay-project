@@ -1,6 +1,7 @@
 services:
     # Сервис для бэкенда
     backend:
+        container_name: backend
         build:
             context: .
             dockerfile: Dockerfile.backend
@@ -16,6 +17,7 @@ services:
 
     # Сервис для фронтенда
     frontend:
+        container_name: frontend
         build:
             context: .
             dockerfile: Dockerfile.frontend
@@ -30,6 +32,7 @@ services:
 
     # Сервис для PostgreSQL базы данных
     postgres:
+        container_name: postgres
         image: postgres:latest
         env_file:
             - burabay-server/.env.docker
