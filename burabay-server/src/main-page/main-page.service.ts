@@ -111,7 +111,7 @@ export class MainPageService {
     });
     const result = ads.map((ad) => ({
       ...ad,
-      isFavorite: ad.usersFavorited.some((user) => user.id === tokenData.id),
+      isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id),
     }));
 
     // Поиск по названию
