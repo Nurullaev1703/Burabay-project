@@ -26,13 +26,8 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        'http://localhost:3001',
-        'http://localhost:5174',
-        'http://localhost:5173',
-        'http://91.215.139.89:5173',
-        'http://91.215.139.89:5174',
-        'http://192.168.100.222:5173',
-        'http://192.168.100.222:5174',
+        'http://burabay-damu.kz',
+        'https://burabay-damu.kz',
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
