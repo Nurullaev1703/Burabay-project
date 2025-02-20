@@ -1,21 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
-import { BookingList, TSelectedBooking } from "./model/booking";
+import {
+  BookingList,
+  BookingPageFilter,
+  TouristBookingList,
+  TSelectedBooking,
+} from "./model/booking";
 
-export function useGetBookings(
-  onlinePayment: boolean | null = false,
-  onSidePayment: boolean | null = false,
-  canceled: boolean | null = false
-) {
+export function useGetBookings(filters?: BookingPageFilter) {
   // Формируем строку параметров запроса
-  const queryParams = new URLSearchParams();
-
-  if (onlinePayment) queryParams.set("onlinePayment", "true");
-  if (onSidePayment) queryParams.set("onSidePayment", "true");
-  if (canceled) queryParams.set("canceled", "true");
+  const onlinePaymentFilter = filters?.onlinePayment || "";
+  const onSidePaymentFilter = filters?.onSidePayment || "";
+  const canceledFilter = filters?.canceled || "";
 
   // Строим URL с параметрами
-  const url = `/booking/org?${queryParams.toString()}`;
+  const url = `/booking/org?onlinePayment=${onlinePaymentFilter}&onSidePayment=${onSidePaymentFilter}&canceled=${canceledFilter}`;
 
   return useQuery({
     queryKey: [url],
@@ -30,25 +29,19 @@ export function useGetBookings(
   });
 }
 
-export function useGetTouristBookings(
-  onlinePayment: boolean | null = false,
-  onSidePayment: boolean | null = false,
-  canceled: boolean | null = false
-) {
+export function useGetTouristBookings(filters?: BookingPageFilter) {
   // Формируем строку параметров запроса
-  const queryParams = new URLSearchParams();
-
-  if (onlinePayment) queryParams.set("onlinePayment", "true");
-  if (onSidePayment) queryParams.set("onSidePayment", "true");
-  if (canceled) queryParams.set("canceled", "true");
+  const onlinePaymentFilter = filters?.onlinePayment || "";
+  const onSidePaymentFilter = filters?.onSidePayment || "";
+  const canceledFilter = filters?.canceled || "";
 
   // Строим URL с параметрами
-  const url = `/booking/?${queryParams.toString()}`;
+  const url = `/booking/?onlinePayment=${onlinePaymentFilter}&onSidePayment=${onSidePaymentFilter}&canceled=${canceledFilter}`;
 
   return useQuery({
     queryKey: [url],
     queryFn: async () => {
-      const response = await apiService.get<BookingList[]>({
+      const response = await apiService.get<TouristBookingList[]>({
         url: url,
       });
       return response.data;

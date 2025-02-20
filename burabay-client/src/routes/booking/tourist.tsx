@@ -1,38 +1,29 @@
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { BookingTourist } from "../../pages/booking/BookingTourist";
 import { Loader } from "../../components/Loader";
 import { useGetTouristBookings } from "../../pages/booking/booking-util";
 import { BookingPage } from "../../pages/booking/toursit/BookingPage";
+import { BookingPageFilter } from "../../pages/booking/model/booking";
 
 export const Route = createFileRoute("/booking/tourist")({
   component: RouteComponent,
+  validateSearch: () => ({}) as BookingPageFilter,
 });
 
 function RouteComponent() {
-  const location = useLocation();
-  
-  /* @ts-ignore */
-  const queryParams = new URLSearchParams(location.search);
+  const filters = Route.useSearch();
 
-  const onlinePayment = queryParams.get("onlinePayment") === "true";
-  const onSidePayment = queryParams.get("onSidePayment") === "true";
-  const canceled = queryParams.get("canceled") === "true";
-
-  const { data = [], isLoading } = useGetTouristBookings(
-    onlinePayment,
-    onSidePayment,
-    canceled
-  );
+  const { data, isLoading } = useGetTouristBookings(filters);
 
   if (isLoading) {
     return <Loader />;
   }
 
-  const hasParams = onlinePayment || onSidePayment || canceled;
+  const hasParams =
+    filters.onlinePayment || filters.onSidePayment || filters.canceled;
 
-  if (data.length === 0 && !hasParams) {
+  if (data?.length === 0 && !hasParams) {
     return <BookingTourist />;
   }
-  /* @ts-ignore */
-  return <BookingPage ads={data} />;
+  return <BookingPage ads={data ?? []} filters={filters} />;
 }

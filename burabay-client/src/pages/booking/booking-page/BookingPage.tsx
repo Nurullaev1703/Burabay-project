@@ -1,32 +1,24 @@
 import { FC, useState } from "react";
 import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
-import { BookingList } from "../model/booking";
+import { BookingList, BookingPageFilter } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 
 interface Props {
   ads: BookingList[];
+  filters: BookingPageFilter;
 }
 
-export const BookingPage: FC<Props> = function BookingPage({ ads }) {
+export const BookingPage: FC<Props> = function BookingPage({ ads, filters }) {
   const { t } = useTranslation();
-  const location = useLocation();
-
-  /* @ts-ignore */
-  const queryParams = new URLSearchParams(location.search);
-  const onlinePayment = queryParams.get("onlinePayment") === "true";
-  const onSidePayment = queryParams.get("onSidePayment") === "true";
-  const canceled = queryParams.get("canceled") === "true";
-
-  const [adsList, _] = useState<BookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
 
-  const filteredAds = adsList
+  const filteredAds = ads
     .map((category) => ({
       ...category,
       ads: category.ads.filter((ad) =>
@@ -37,7 +29,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение
+      event.preventDefault();
     }
   };
 
@@ -56,7 +48,17 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           />
         </div>
         <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+          to={`/booking/filter?${new URLSearchParams(
+            Object.entries(filters)
+              .filter(([_, value]) => value !== undefined) // Убираем undefined
+              .reduce(
+                (acc, [key, value]) => {
+                  acc[key] = String(value); // Преобразуем boolean в строку
+                  return acc;
+                },
+                {} as Record<string, string>
+              )
+          ).toString()}`}
         >
           <img src={FilterIcon} className="mt-4" alt="Фильтр" />
         </Link>
@@ -72,7 +74,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             </span>
             <ul>
               {category.ads.map((ad) => (
-                <li className="py-3 border-b border-[#E4E9EA]">
+                <li className="py-3 border-b border-[#E4E9EA]" key={ad.ad_id}>
                   <Link
                     className="flex justify-between"
                     to={`/booking/${ad.ad_id}/${category.header}`}
@@ -87,11 +89,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                         <span>{ad.title}</span>
                         <div className="max-w-[300px] truncate">
                           {ad.times.slice(0, 5).map((time, index) => {
-                            if (!time) return null; // Пропускаем null значения
+                            if (!time) return null;
 
                             const hasUnderscore = time.includes("_");
                             const formattedTime = time.replace("_", "");
-                            // Убираем год из дат формата "дд.мм.гггг"
                             const updatedTime = formattedTime.replace(
                               /(\d{2}\.\d{2})\.\d{4}/g,
                               "$1"

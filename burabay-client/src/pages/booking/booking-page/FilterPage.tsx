@@ -6,33 +6,27 @@ import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import { Checkbox, FormControlLabel } from "@mui/material";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { roleService } from "../../../services/storage/Factory";
+import { BookingPageFilter } from "../model/booking";
 
-interface FilterType {
-  onlinePayment: boolean;
-  onSidePayment: boolean;
-  canceled: boolean;
+interface Props {
+  filters: BookingPageFilter;
 }
 
-export const FilterPage: FC = function FilterPage() {
+export const FilterPage: FC<Props> = function FilterPage({filters}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   const userRole = roleService.getValue();
-  // Извлекаем параметры фильтров из URL
 
-  /* @ts-ignore */
-  const queryParams = new URLSearchParams(location.search);
-
-  const [filters, setFilters] = useState<FilterType>({
-    onlinePayment: queryParams.get("onlinePayment") === "true",
-    onSidePayment: queryParams.get("onSidePayment") === "true",
-    canceled: queryParams.get("canceled") === "true",
+  const [localFilters, setLocalFilters] = useState<BookingPageFilter>({
+    onlinePayment: filters.onlinePayment ?? false,
+    onSidePayment: filters.onSidePayment ?? false,
+    canceled: filters.canceled ?? false,
   });
 
-  const handleFilterChange = (filterName: keyof FilterType) => {
-    setFilters((prevFilters) => ({
+  const handleFilterChange = (filterName: keyof BookingPageFilter) => {
+    setLocalFilters((prevFilters) => ({
       ...prevFilters,
       [filterName]: !prevFilters[filterName],
     }));
@@ -40,17 +34,15 @@ export const FilterPage: FC = function FilterPage() {
 
   // Применяем фильтры и обновляем URL
   const applyFilters = () => {
-    const searchParams = new URLSearchParams();
-
-    if (filters.onlinePayment) searchParams.set("onlinePayment", "true");
-    if (filters.onSidePayment) searchParams.set("onSidePayment", "true");
-    if (filters.canceled) searchParams.set("canceled", "true");
-
-    // Обновляем URL с новыми фильтрами
     navigate({
-      to: `/booking/${userRole === "турист" ? "tourist" : "business"}?${searchParams.toString()}`,
+      to: `/booking/${userRole === "турист" ? "tourist" : "business"}`,
+      search: (prev) => ({
+        ...prev,
+        ...localFilters,
+      }),
     });
   };
+  
   return (
     <section>
       <Header>
@@ -76,7 +68,7 @@ export const FilterPage: FC = function FilterPage() {
         <FormControlLabel
           control={
             <Checkbox
-              checked={filters.onlinePayment}
+              checked={localFilters.onlinePayment}
               onChange={() => handleFilterChange("onlinePayment")}
             />
           }
@@ -86,7 +78,7 @@ export const FilterPage: FC = function FilterPage() {
         <FormControlLabel
           control={
             <Checkbox
-              checked={filters.onSidePayment}
+              checked={localFilters.onSidePayment}
               onChange={() => handleFilterChange("onSidePayment")}
             />
           }
@@ -96,7 +88,7 @@ export const FilterPage: FC = function FilterPage() {
         <FormControlLabel
           control={
             <Checkbox
-              checked={filters.canceled}
+              checked={localFilters.canceled}
               onChange={() => handleFilterChange("canceled")}
             />
           }

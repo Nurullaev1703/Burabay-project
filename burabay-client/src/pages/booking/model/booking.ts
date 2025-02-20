@@ -53,3 +53,9 @@ export interface SelectedBookingList {
   date?: string;
   dateEnd?: string;
 }
+
+export interface BookingPageFilter {
+  onlinePayment?: boolean | undefined;
+  onSidePayment?: boolean | undefined;
+  canceled?: boolean | undefined;
+}

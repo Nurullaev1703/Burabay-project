@@ -1,10 +1,10 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
-import { TouristBookingList } from "../model/booking";
+import { BookingPageFilter, TouristBookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { formatPrice } from "../../announcements/announcement/Announcement";
@@ -12,21 +12,14 @@ import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
 
 interface Props {
   ads: TouristBookingList[];
+  filters: BookingPageFilter;
 }
 
-export const BookingPage: FC<Props> = function BookingPage({ ads }) {
+export const BookingPage: FC<Props> = function BookingPage({ ads, filters }) {
   const { t } = useTranslation();
-  const location = useLocation();
-    /* @ts-ignore */
-  const queryParams = new URLSearchParams(location.search);
-  const onlinePayment = queryParams.get("onlinePayment") === "true";
-  const onSidePayment = queryParams.get("onSidePayment") === "true";
-  const canceled = queryParams.get("canceled") === "true";
-
-  const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
 
-  const filteredAds = adsList
+  const filteredAds = ads
     .map((category) => ({
       ...category,
       ads: category.ads.filter((ad) =>
@@ -56,7 +49,17 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           />
         </div>
         <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+          to={`/booking/filter?${new URLSearchParams(
+            Object.entries(filters)
+              .filter(([_, value]) => value !== undefined) // Убираем undefined
+              .reduce(
+                (acc, [key, value]) => {
+                  acc[key] = String(value); // Преобразуем boolean в строку
+                  return acc;
+                },
+                {} as Record<string, string>
+              )
+          ).toString()}`}
         >
           <img src={FilterIcon} className="mt-4" alt="Фильтр" />
         </Link>
