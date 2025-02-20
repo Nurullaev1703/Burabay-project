@@ -109,10 +109,9 @@ export class MainPageService {
       skip: mainPageFilter.offset || 0,
       take: mainPageFilter.limit || 10,
     });
-    const userIdSet = new Set(ads.flatMap((ad) => ad.usersFavorited.map((user) => user.id)));
     const result = ads.map((ad) => ({
       ...ad,
-      isFavorite: userIdSet.has(tokenData.id),
+      isFavorite: ad.usersFavorited.some((user) => user.id === tokenData.id),
     }));
 
     // Поиск по названию
