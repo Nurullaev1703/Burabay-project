@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BookingDate } from "../../../pages/announcements/booking-time/BookingDate";
 import { Loader } from "../../../components/Loader";
 import { UseGetAnnouncement } from "../../../pages/announcements/announcement/announcement-util";
-import { UseGetServiceSchedule } from "../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util";
 
 export const Route = createFileRoute(
   "/announcements/booking-date/$announcementId"

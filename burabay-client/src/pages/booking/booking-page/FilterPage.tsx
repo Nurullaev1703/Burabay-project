@@ -21,6 +21,8 @@ export const FilterPage: FC = function FilterPage() {
   const location = useLocation();
   const userRole = roleService.getValue();
   // Извлекаем параметры фильтров из URL
+
+  /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
 
   const [filters, setFilters] = useState<FilterType>({

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { UseGetAnnouncement, UseGetReviews } from '../../../pages/announcements/announcement/announcement-util';
+import { UseGetReviews } from '../../../pages/announcements/announcement/announcement-util';
 import { Loader } from '../../../components/Loader';
 import { ReviewPage } from '../../../pages/reviews/reviewsOrg/review-page/ReviewPage';
 

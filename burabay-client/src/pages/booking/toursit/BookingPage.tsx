@@ -17,6 +17,7 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
+    /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";

@@ -93,9 +93,9 @@ export function UseGetOrganizationAnnouncementsTwo(
   ) {
     return useQuery({
       queryKey: [`ad-organization`, orgId, filters],
-      queryFn: async ({ pageParam = 0 }) => {
+      queryFn: async () => {
         const response = await apiService.get<Announcement[]>({
-          url: `/ad/by-org/${orgId}?adName=${filters?.adName || ""}&offset=${pageParam}&limit=10`,
+          url: `/ad/by-org/${orgId}?adName=${filters?.adName || ""}`,
         });
         return response.data;
       },

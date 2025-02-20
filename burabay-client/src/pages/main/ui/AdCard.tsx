@@ -34,7 +34,7 @@ export const AdCard: FC<Props> = function AdCard({
     })
   );
   const addToFavourite = async () => {
-    const response = await apiService.get({
+    await apiService.get({
       url: `/ad/favorite/${ad.id}`,
     });
     (isFavourite) ? setIsFavourite(false) : setIsFavourite(true);

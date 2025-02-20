@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../../services/api/ApiService";
-import { Announcement, Review, ReviewAnnouncement, ReviewsOrg } from "../model/announcements";
+import { Announcement, ReviewAnnouncement, ReviewsOrg } from "../model/announcements";
 
 export function UseGetAnnouncement(announcementId: string) {
     return useQuery({

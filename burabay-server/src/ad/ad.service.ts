@@ -115,6 +115,10 @@ export class AdService {
   /* Метод для получения всех Объявлений у Организации */
   @CatchErrors()
   async findAllByOrg(orgId: string, filter?: AdFilter) {
+    const queryParams = filter.limit && filter.offset ? {
+      take: filter.limit,
+      skip: filter.offset,
+    } : {}
     let ads = await this.adRepository.find({
       where: {
         organization: { id: orgId },
@@ -132,8 +136,7 @@ export class AdService {
       order: {
         createdAt: 'DESC',
       },
-      skip: filter.offset || 0,
-      take: filter.limit || Infinity,
+      ...queryParams
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
     if (filter.adName) {

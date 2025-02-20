@@ -65,7 +65,9 @@ export const Announcement: FC<Props> = function Announcement({
     const response = await apiService.get({
       url: `/ad/favorite/${announcement.id}`
     });
-    (isFavourite) ? setIsFavourite(false) : setIsFavourite(true)
+    if (response.data) {
+      (isFavourite) ? setIsFavourite(false) : setIsFavourite(true)
+    }
   }
 
   return (

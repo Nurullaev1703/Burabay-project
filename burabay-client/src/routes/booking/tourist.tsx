@@ -10,6 +10,8 @@ export const Route = createFileRoute("/booking/tourist")({
 
 function RouteComponent() {
   const location = useLocation();
+  
+  /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
 
   const onlinePayment = queryParams.get("onlinePayment") === "true";
@@ -31,5 +33,6 @@ function RouteComponent() {
   if (data.length === 0 && !hasParams) {
     return <BookingTourist />;
   }
+  /* @ts-ignore */
   return <BookingPage ads={data} />;
 }
