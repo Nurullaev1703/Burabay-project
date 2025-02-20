@@ -10,6 +10,7 @@ burabay-client/.yarn
 burabay-client/yarn.lock
 burabay-client/src/routeTree.gen.ts
 
+
 nginx/certs
 
 .vscode
