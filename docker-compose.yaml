@@ -11,7 +11,7 @@ services:
         depends_on:
             - postgres-test
         ports:
-            - "3001:3001"
+            - "3000:3000"
         networks:
             - app-network
         command: ["bash", "-c", "./wait-for-it.sh postgres-test:5432 -- yarn start:prod"]
@@ -24,7 +24,7 @@ services:
         env_file:
             - burabay-client/.env
         ports:
-            - "5174:5174"
+            - "5173:5173"
         depends_on:
             - backend-test
         networks:

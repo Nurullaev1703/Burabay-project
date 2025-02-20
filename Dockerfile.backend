@@ -20,7 +20,7 @@ ENV POSTGRES_HOST=postgres-test
 RUN yarn build
 
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["bash", "-c", "./wait-for-it.sh postgres-test:5432 -- yarn start:prod"]
 

@@ -18,6 +18,6 @@ COPY burabay-client .
 # RUN yarn build
 
 # Открываем порт для фронтенда
-EXPOSE 5174
+EXPOSE 5173
 
 CMD ["yarn", "dev", "--host"] 
