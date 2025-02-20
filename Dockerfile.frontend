@@ -1,5 +1,5 @@
 # frontend
-FROM node:22-alpine
+FROM node:22-alpine AS development
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -13,11 +13,28 @@ RUN yarn install --frozen-lockfile
 # Копируем файлы фронтенда
 COPY burabay-client .
 
-# TODO Раскомментить когда все будет работать.
-# Собираем проект фронтенда
-# RUN yarn build
+# Формируем маршруты
+RUN yarn dev & sleep 5 || true
 
-# Открываем порт для фронтенда
-EXPOSE 5174
+# frontend
+FROM node:22-alpine AS build
+# Устанавливаем рабочую директорию
+WORKDIR /app
 
-CMD ["yarn", "dev", "--host"] 
+COPY --from=development /app /app
+# билдим Фронт
+RUN yarn build
+
+# frontend
+FROM node:22-alpine AS production
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+COPY --from=build /app /app
+
+RUN yarn global add serve
+RUN yarn install --production
+
+EXPOSE 5173
+
+CMD ["serve", "-s", "dist", "-l", "5173"]
