@@ -11,9 +11,6 @@ import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad.filter';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
-import { Break } from 'src/breaks/entities/break.entity';
 
 @Injectable()
 export class AdService {
@@ -26,17 +23,10 @@ export class AdService {
     private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
-    // TODO упростить связки с репозиториями при удалении
     private readonly dataSource: DataSource,
-    @InjectRepository(Schedule)
-    private readonly scheduleRepository: Repository<Schedule>,
-    @InjectRepository(BookingBanDate)
-    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
-    @InjectRepository(Break)
-    private readonly breakRepository: Repository<Break>,
   ) {}
 
-  /* Метод для создания Объявления. Принимает айти Категории (Подкатегории) и Организации. */
+  /* Метод для создания Объявления. Принимает айти Подкатегории и Организации. */
   @CatchErrors()
   async create(createAdDto: CreateAdDto) {
     const { organizationId, subcategoryId, ...otherFields } = createAdDto;
@@ -115,10 +105,13 @@ export class AdService {
   /* Метод для получения всех Объявлений у Организации */
   @CatchErrors()
   async findAllByOrg(orgId: string, filter?: AdFilter) {
-    const queryParams = filter.limit && filter.offset ? {
-      take: filter.limit,
-      skip: filter.offset,
-    } : {}
+    const queryParams =
+      filter.limit && filter.offset
+        ? {
+            take: filter.limit,
+            skip: filter.offset,
+          }
+        : {};
     let ads = await this.adRepository.find({
       where: {
         organization: { id: orgId },
@@ -136,7 +129,7 @@ export class AdService {
       order: {
         createdAt: 'DESC',
       },
-      ...queryParams
+      ...queryParams,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
     if (filter.adName) {
