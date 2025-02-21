@@ -41,10 +41,10 @@ export class Booking extends AbstractEntity<Booking> {
   isPaid: boolean;
 
   @Column({ name: 'date_start', nullable: true })
-  dateStart: string;
+  dateStart: Date;
 
   @Column({ name: 'date_end', nullable: true })
-  dateEnd: string;
+  dateEnd: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

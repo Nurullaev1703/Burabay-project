@@ -3,7 +3,7 @@ import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
-import { AdFilter } from './types/ad.filter';
+import { AdFilter } from './types/ad-filter.type';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()

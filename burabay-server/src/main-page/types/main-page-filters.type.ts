@@ -8,4 +8,6 @@ export interface MainPageFilter {
   limit?: number;
   offset?: number;
   category?: string;
+  startDate?: string;
+  endDate?: string;
 }

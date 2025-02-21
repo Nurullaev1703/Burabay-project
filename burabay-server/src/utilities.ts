@@ -44,6 +44,16 @@ export class Utils {
     const instance = new classType();
     return Object.getOwnPropertyNames(instance) as (keyof T)[];
   }
+
+  static stringDateToDate(dateString: string): Date {
+    const [day, month, year] = dateString.split('.').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  static dateToString(date: Date) {
+    const dateString = new Date(date);
+    return `${dateString.getDate()}.${dateString.getMonth() + 1}.${dateString.getFullYear()}`;
+  }
 }
 
 export function CatchErrors() {

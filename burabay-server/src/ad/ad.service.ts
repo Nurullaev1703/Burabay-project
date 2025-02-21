@@ -8,7 +8,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
-import { AdFilter } from './types/ad.filter';
+import { AdFilter } from './types/ad-filter.type';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 
@@ -56,6 +56,7 @@ export class AdService {
   @CatchErrors()
   async findAll(tokenData: TokenData, filter?: AdFilter) {
     let ads: Ad[];
+    // По Подкатегории.
     if (filter.categoryNames) {
       const categoryNamesArr = filter.categoryNames.split(',');
       ads = await this.adRepository.find({
@@ -73,6 +74,7 @@ export class AdService {
           createdAt: 'DESC',
         },
       });
+      // Без Подкатегории.
     } else {
       ads = await this.adRepository.find({
         relations: {
