@@ -39,6 +39,7 @@ export const AdCard: FC<Props> = function AdCard({
     });
     (isFavourite) ? setIsFavourite(false) : setIsFavourite(true);
     await queryClient.refetchQueries({queryKey: ['ad/favorite/list']});
+    await queryClient.refetchQueries({queryKey: ['main-page-announcements']});
   };
   return (
     <li
