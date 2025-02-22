@@ -166,13 +166,19 @@ export class AdService {
             isBanned: true,
             isConfirmed: true,
           },
-          subcategory: { name: true, category: { imgPath: true } },
+          subcategory: { name: true, category: { name: true, imgPath: true } },
         },
       },
     });
     Utils.checkEntity(user, 'Пользователь не найден');
     Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
-    return user.favorites;
+    const result = user.favorites.map((ad) => {
+      return {
+        ...ad,
+        isFavourite: true,
+      };
+    });
+    return result;
   }
 
   /* Метод для получения одного Объявления по id. */
