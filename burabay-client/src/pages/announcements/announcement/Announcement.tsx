@@ -31,6 +31,8 @@ import { ReviewsInfo } from "./ui/ReviewsInfo";
 import { useNavigate } from "@tanstack/react-router";
 import VerticalIcon from "../../../app/icons/vertical.svg";
 import { apiService } from "../../../services/api/ApiService";
+import { queryClient } from "../../../ini/InitializeApp";
+import { FavouriteHint } from "../../../components/favourite-hint/FavouriteHint";
 
 interface Props {
   announcement: AnnouncementType;
@@ -46,6 +48,7 @@ export const Announcement: FC<Props> = function Announcement({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isFavouriteModal, setIsFavouriteModal] = useState<boolean>(false);
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
       return {
@@ -54,7 +57,9 @@ export const Announcement: FC<Props> = function Announcement({
       };
     })
   );
-  const [isFavourite, setIsFavourite] = useState<boolean>(announcement.isFavourite || false);
+  const [isFavourite, setIsFavourite] = useState<boolean>(
+    announcement.isFavourite || false
+  );
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isAdActions, setIsAdActions] = useState<boolean>(false);
   useEffect(() => {
@@ -63,12 +68,20 @@ export const Announcement: FC<Props> = function Announcement({
 
   const addToFavourite = async () => {
     const response = await apiService.get({
-      url: `/ad/favorite/${announcement.id}`
+      url: `/ad/favorite/${announcement.id}`,
     });
     if (response.data) {
-      (isFavourite) ? setIsFavourite(false) : setIsFavourite(true)
+      if (isFavourite) {
+        setIsFavourite(false)
+        setIsFavouriteModal(false)
+      }  else {
+        setIsFavourite(true);
+        setIsFavouriteModal(true)
+      } 
     }
-  }
+    await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
+    await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
+  };
 
   return (
     <section className="bg-background">
@@ -154,7 +167,10 @@ export const Announcement: FC<Props> = function Announcement({
           </h1>
           {roleService.getValue() === ROLE_TYPE.TOURIST && (
             <div onClick={addToFavourite}>
-              <img src={((isFavourite) ? FavouriteActiveIcon : FavouriteFocusedIcon)} alt="Избранное" />
+              <img
+                src={isFavourite ? FavouriteActiveIcon : FavouriteFocusedIcon}
+                alt="Избранное"
+              />
             </div>
           )}
         </div>
@@ -220,6 +236,7 @@ export const Announcement: FC<Props> = function Announcement({
           adId={announcement.id}
         />
       )}
+      {isFavouriteModal && <FavouriteHint />}
     </section>
   );
 };
