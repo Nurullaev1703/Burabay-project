@@ -56,4 +56,7 @@ export class User extends AbstractEntity<User> {
 
   @ManyToMany(() => Notification, (notification) => notification.users)
   notifications: Notification[];
+
+  @Column({ nullable: true })
+  pushToken: string;
 }
