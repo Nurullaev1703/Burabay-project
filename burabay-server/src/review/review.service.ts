@@ -125,8 +125,8 @@ export class ReviewService {
         relations: { answer: true, report: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
-      await manager.remove(review.answer);
-      await manager.remove(review.report);
+      if (review.answer) await manager.remove(review.answer);
+      if (review.report) await manager.remove(review.report);
       await manager.remove(review);
       return JSON.stringify(HttpStatus.OK);
     });
