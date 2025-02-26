@@ -17,7 +17,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 export const TabMenu: FC<Props> = function TabMenu(props) {
   // разбиваем TabMenu на колонки по кол-ву поступивших даных
-  const styles = `columns-${props.data.length} gap-0 flex w-100 ${COLORS_BACKGROUND.blue300} rounded-tabs p-0.5 ${props.className}`;
+  const styles = `columns-${props.data.length} gap-0 flex w-100 ${COLORS_BACKGROUND.almostWhite} rounded-tabs p-0.5 ${props.className}`;
 
   // перериросовка TabMenu при изменении активного индекса
   const renderItem = useCallback(
