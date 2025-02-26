@@ -40,6 +40,17 @@ export class ImagesController {
   }
 
   @Public()
+  @Post('docs/:orgName/:filename')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadDocs(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('orgName') orgName: string,
+    @Param('filename') filename: string,
+  ) {
+    return await this.imageService.savePdf(file, orgName, filename);
+  }
+
+  @Public()
   @Delete('image')
   async deleteImage(@Body() deleteImageDto: DeleteImageDto) {
     return await this.imageService.deleteImage(deleteImageDto);

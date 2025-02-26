@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { mkdir, writeFile } from 'fs/promises';
 import { promises } from 'fs';
 import { DeleteImageDto } from './dto/delete-image.dto';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 import * as sharp from 'sharp';
 import { error } from 'console';
 import { extname } from 'path';
@@ -45,6 +45,23 @@ export class ImagesService {
     }
   }
 
+  @CatchErrors()
+  async savePdf(file: Express.Multer.File, orgName: string, filename: string) {
+    // Проверяем, что файл - это PDF
+    const isPdf =
+      file.mimetype === 'application/pdf' && extname(file.originalname).toLowerCase() === '.pdf';
+
+    if (!isPdf) {
+      return new HttpException('Неверный формат документа', HttpStatus.BAD_REQUEST);
+    }
+    const dirpath = `./public/docs/${orgName}/`;
+    const filepath = `${dirpath}/${filename}.pdf`;
+    await mkdir(dirpath, { recursive: true });
+    await writeFile(filepath, file.buffer);
+    const filepathForFront = filepath.replace('/public', '');
+    return JSON.stringify(filepathForFront.replace('.', ''));
+  }
+
   async saveManyImages(files: Array<Express.Multer.File>, directory: string) {
     try {
       const results = await Promise.all(
@@ -81,7 +98,7 @@ export class ImagesService {
 
   async deleteImage(deleteImageDto: DeleteImageDto) {
     try {
-      await promises.unlink("public/" + deleteImageDto.filepath); // Удаляем файл
+      await promises.unlink('public/' + deleteImageDto.filepath); // Удаляем файл
       return JSON.stringify(`Файл ${deleteImageDto.filepath} успешно удален`);
     } catch (error) {
       throw new HttpException(
