@@ -514,5 +514,9 @@
   "PolitikLearn": "Read the terms of use",
   "OpenSettings": "Open settings",
   "NeedGeo": "We need your location to build a route.",
-  "GeoOn": "Turn on geolocation"
+  "GeoOn": "Turn on geolocation",
+  "aprove": "Allow",
+  "denied": "Prohibit",
+  "aproveNoti": "Allow notifications",
+  "withoutNotiAprove": "Without this we will not be able to send them."
 }

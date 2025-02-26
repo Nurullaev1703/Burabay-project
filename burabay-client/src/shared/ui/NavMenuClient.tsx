@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Main} from "../../app/icons/navbar/main"
 import { Booking} from "../../app/icons/navbar/booking"
 
+
 export const NavMenuClient: FC = function NavMenuClient() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -148,6 +149,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
           </div>
         </li>
       </ul>
+
     </nav>
   );
 };

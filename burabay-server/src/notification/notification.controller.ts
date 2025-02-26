@@ -4,6 +4,7 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
+import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 
 @ApiBearerAuth()
 @ApiTags('Уведомления')
@@ -14,6 +15,11 @@ export class NotificationController {
   @Post('/user')
   createForUser(@Body() createNotificationDto: CreateNotificationDto) {
     return this.notificationService.createForUser(createNotificationDto);
+  }
+
+  @Post('/pushToken')
+  createPushToken(@Body() createPushTokenDto: CreatePushTokenDto, @Request() req: AuthRequest) {
+    return this.notificationService.createPushToken(createPushTokenDto, req.user);
   }
 
   @Post('/all')

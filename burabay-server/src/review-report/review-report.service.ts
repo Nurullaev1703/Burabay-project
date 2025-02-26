@@ -7,30 +7,35 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { Repository } from 'typeorm';
 import { Review } from 'src/review/entities/review.entity';
 import { ReviewReport } from './entities/review-report.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
-export class ReviewReportService {constructor(
+export class ReviewReportService {
+  constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
     @InjectRepository(ReviewReport)
     private readonly reviewReportRepository: Repository<ReviewReport>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   @CatchErrors()
   async create(createReviewReportDto: CreateReviewReportDto, tokenData: TokenData) {
-    const org = await this.organizationRepository.findOne({
-      where: { user: { id: tokenData.id } },
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      relations: { organization: true },
     });
-    Utils.checkEntity(org, 'Орагнизация не найдена');
+    Utils.checkEntity(user.organization, 'Орагнизация не найдена');
     const review = await this.reviewRepository.findOne({
       where: { id: createReviewReportDto.reviewId },
     });
     Utils.checkEntity(review, 'Отзыв не найден');
     const report = this.reviewReportRepository.create({
       review,
-      org,
+      org: user.organization,
       text: createReviewReportDto.text,
       date: new Date(),
     });
