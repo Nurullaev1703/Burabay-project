@@ -7,7 +7,8 @@ import {
 import { RootRouteContext } from "../types/tanstack";
 import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
-import { tokenService } from "../services/storage/Factory";
+import { notificationService, tokenService } from "../services/storage/Factory";
+import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 
 export const AUTH_PATH = [
     "/auth", "/register", "/help","/welcome","/HelpPage"
@@ -25,6 +26,9 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         <>
             <div className="overflow-y-auto container mx-auto relative max-w-fullWidth overflow-x-hidden">
                 <Outlet />
+                {!notificationService.hasValue() && token &&
+                <NotificationModal />
+                }
             </div>
         </>
         )

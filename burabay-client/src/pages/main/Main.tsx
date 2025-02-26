@@ -233,6 +233,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           <RotatingLines strokeColor={COLORS.blue200} width="48px" />
         </div>
       )}
+      
       <NavMenuClient />
     </section>
   );
