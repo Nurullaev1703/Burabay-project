@@ -25,4 +25,5 @@ export class StorageService<T>{
     deleteValue(){
         localStorage.removeItem(this.KEY_STORAGE)
     }
+    
 }
