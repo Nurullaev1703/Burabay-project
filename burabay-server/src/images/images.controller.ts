@@ -4,6 +4,7 @@ import {
   Delete,
   Param,
   Post,
+  Request,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -12,8 +13,9 @@ import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
 import { Public } from 'src/constants';
 import { DeleteImageDto } from './dto/delete-image.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @ApiTags('Images')
 @Controller()
 export class ImagesController {
@@ -39,15 +41,14 @@ export class ImagesController {
     return await this.imageService.saveManyImages(files, directory);
   }
 
-  @Public()
-  @Post('docs/:orgName/:filename')
+  @Post('docs/:filename')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocs(
     @UploadedFile() file: Express.Multer.File,
-    @Param('orgName') orgName: string,
     @Param('filename') filename: string,
+    @Request() req: AuthRequest,
   ) {
-    return await this.imageService.savePdf(file, orgName, filename);
+    return await this.imageService.saveDocument(file, filename, req.user);
   }
 
   @Public()

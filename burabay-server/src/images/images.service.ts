@@ -10,12 +10,15 @@ import { CatchErrors, Utils } from 'src/utilities';
 import * as sharp from 'sharp';
 import { error } from 'console';
 import { extname } from 'path';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ImagesService {
   constructor(
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async saveImage(file: Express.Multer.File, directory: string): Promise<string> {
@@ -46,20 +49,41 @@ export class ImagesService {
   }
 
   @CatchErrors()
-  async savePdf(file: Express.Multer.File, orgName: string, filename: string) {
-    // Проверяем, что файл - это PDF
-    const isPdf =
-      file.mimetype === 'application/pdf' && extname(file.originalname).toLowerCase() === '.pdf';
+  async saveDocument(file: Express.Multer.File, filename: string, tokenData: TokenData) {
+    const allowedMimes = [
+      'application/pdf',
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    ];
 
-    if (!isPdf) {
-      return new HttpException('Неверный формат документа', HttpStatus.BAD_REQUEST);
+    const fileExt = extname(file.originalname).toLowerCase();
+    const allowedExts = ['.pdf', '.doc', '.docx'];
+
+    // Проверяем MIME-типы и расширение файла
+    if (!allowedMimes.includes(file.mimetype) || !allowedExts.includes(fileExt)) {
+      throw new HttpException('Формат файла должен быть PDF, DOC или DOCX', HttpStatus.BAD_REQUEST);
     }
-    const dirpath = `./public/docs/${orgName}/`;
-    const filepath = `${dirpath}/${filename}.pdf`;
+
+    // Получаем пользователя и его организацию
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      relations: { organization: true },
+    });
+
+    Utils.checkEntity(user?.organization, 'Организация не найдена');
+
+    // Безопасное имя организации
+    const safeOrgName = user.organization.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+
+    const dirpath = `./public/docs/${safeOrgName}/`;
+    const filepath = `${dirpath}/${filename}${fileExt}`;
+
     await mkdir(dirpath, { recursive: true });
     await writeFile(filepath, file.buffer);
-    const filepathForFront = filepath.replace('/public', '');
-    return JSON.stringify(filepathForFront.replace('.', ''));
+
+    // Корректируем путь для фронтенда
+    const filepathForFront = filepath.replace(/^\.\/public/, '');
+    return JSON.stringify(filepathForFront);
   }
 
   async saveManyImages(files: Array<Express.Multer.File>, directory: string) {
