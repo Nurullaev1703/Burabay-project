@@ -134,6 +134,7 @@ export class AdminPanelService {
           phoneNumber: true,
         },
         ads: {
+          id: true,
           images: true,
           title: true,
           price: true,
