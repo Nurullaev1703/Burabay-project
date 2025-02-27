@@ -31,6 +31,12 @@ export class AuthenticationController {
   }
 
   @Public()
+  @Post('/admin')
+  adminAuth(@Body() signInDto: SignInDto) {
+    return this.authenticationService.adminAuth(signInDto);
+  }
+
+  @Public()
   @Post('google-login')
   googleLogin(@Body() userInfo: GoogleAuthType) {
     return this.authenticationService.googleLogin(userInfo);

@@ -8,7 +8,7 @@ export class SignInDto {
 
   @IsOptional()
   @IsString()
-  password?: ROLE_TYPE;
+  password?: string;
 
   @IsEmail()
   email: string;
