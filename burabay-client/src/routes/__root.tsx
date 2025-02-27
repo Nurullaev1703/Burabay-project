@@ -4,6 +4,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import device from "current-device";
 import { RootRouteContext } from "../types/tanstack";
 import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
@@ -24,7 +25,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         }
         return(
         <>
-            <div className="overflow-y-auto container mx-auto relative max-w-fullWidth overflow-x-hidden">
+            <div className={`overflow-y-auto mx-auto ${device.type=="desktop" ? "" : "container max-w-fullWidth" } relative overflow-x-hidden`}>
                 <Outlet />
                 {!notificationService.hasValue() && token &&
                 <NotificationModal />
