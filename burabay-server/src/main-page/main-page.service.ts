@@ -69,7 +69,6 @@ export class MainPageService {
     if (mainPageFilter.startDate && mainPageFilter.endDate) {
       const tryStartDate: Date = Utils.stringDateToDate(mainPageFilter.startDate);
       const tryEndDate: Date = Utils.stringDateToDate(mainPageFilter.endDate);
-      console.log(tryStartDate, tryEndDate);
       const bookings = await this.bookingRepository.find({
         relations: { ad: true },
         where: {
@@ -84,7 +83,6 @@ export class MainPageService {
       });
 
       const adsIds = bookings.map((booking) => booking.ad.id);
-      console.log(adsIds);
       if (adsIds.length > 0) {
         whereOptions = {
           ...whereOptions,
