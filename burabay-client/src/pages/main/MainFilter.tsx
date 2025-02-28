@@ -34,16 +34,13 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
   };
   const resetFilters = () => {
     setSelectedFilters({
+      ...selectedFilters,
       minPrice: undefined,
       maxPrice: undefined,
       isHighRating: undefined,
-      subcategories: [],
-      details: [],
+      subcategories: undefined,
+      details: undefined,
       name: undefined,
-    });
-    navigate({
-      to: "/main",
-      search: {},
     });
   };
   return (

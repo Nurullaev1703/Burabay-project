@@ -30,7 +30,6 @@ export class UserController {
   @ApiBearerAuth()
   @Patch('/docs-path')
   async updateOrgDocumentsPath(@Body() dto: UpdateDocsDto, @Request() auth: AuthRequest) {
-    console.log('Auth user:', auth.user);
     return await this.userService.updateOrgDocumentsPath(dto, auth.user);
   }
 

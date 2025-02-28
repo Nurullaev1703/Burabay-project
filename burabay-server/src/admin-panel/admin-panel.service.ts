@@ -160,9 +160,11 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
-    let users: User[], orgs: Organization[];
-    let usersWhereOptions: any = { role: ROLE_TYPE.TOURIST };
-    let orgWhereOptions: any = { user: { role: ROLE_TYPE.BUSINESS } };
+    let users: User[] = [],
+      orgsUsers: User[] = [];
+    let usersWhereOptions: any = { role: ROLE_TYPE.TOURIST },
+      orgWhereOptions: any = { user: { role: ROLE_TYPE.BUSINESS } };
+
     // Фильтр по статусу.
     if (filter.status === UsersFilterStatus.BAN) {
       usersWhereOptions = { ...usersWhereOptions, isBanned: true };
@@ -172,38 +174,46 @@ export class AdminPanelService {
       filter.role = ROLE_TYPE.BUSINESS;
       orgWhereOptions = { ...orgWhereOptions, isConfirmed: false };
     }
+
     // Фильтр по роли.
     if (filter.role === ROLE_TYPE.TOURIST) {
       // Поиск туристов.
       users = await this.userRepository.find({ where: usersWhereOptions });
+      // Поиск по названию среди туристов.
       if (filter.name) {
         const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
         users = searchedUsers;
       }
     } else if (filter.role === ROLE_TYPE.BUSINESS) {
       // Поиск организаций.
-      orgs = await this.organizationRepository.find({
-        where: orgWhereOptions,
+      orgsUsers = await this.userRepository.find({
+        where: { organization: orgWhereOptions },
+        relations: { organization: true },
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgs);
-        orgs = searchedOrgs;
+        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
+        orgsUsers = searchedOrgs;
       }
     } else {
       // Поиск всех пользователей.
-      orgs = await this.organizationRepository.find({
-        where: orgWhereOptions,
+      orgsUsers = await this.userRepository.find({
+        where: { organization: orgWhereOptions },
+        relations: { organization: true },
       });
       users = await this.userRepository.find({ where: usersWhereOptions });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {
-        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(filter.name, users, orgs);
+        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
+          filter.name,
+          users,
+          orgsUsers,
+        );
         users = searchedUsers;
-        orgs = searchedOrgs;
+        orgsUsers = searchedOrgs;
       }
     }
-    return { users, orgs };
+    return { users, orgsUsers };
   }
 
   /** Подтверждение Организации. */
@@ -252,10 +262,10 @@ export class AdminPanelService {
   private _searchUsersOrOrgs(
     name: string,
     users?: User[],
-    orgs?: Organization[],
-  ): { searchedUsers: User[]; searchedOrgs: Organization[] } {
+    orgsUsers?: User[],
+  ): { searchedUsers: User[]; searchedOrgs: User[] } {
     const searchedUsers: User[] = [],
-      searchedOrgs: Organization[] = [];
+      searchedOrgs: User[] = [];
 
     if (users) {
       for (const user of users) {
@@ -266,9 +276,9 @@ export class AdminPanelService {
       }
     }
 
-    if (orgs) {
-      for (const org of orgs) {
-        const simValue = stringSimilarity(org.name, name);
+    if (orgsUsers) {
+      for (const org of orgsUsers) {
+        const simValue = stringSimilarity(org.organization.name, name);
         if (simValue > 0.2) {
           searchedOrgs.push(org);
         }
