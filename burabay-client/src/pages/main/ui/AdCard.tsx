@@ -24,7 +24,9 @@ export const AdCard: FC<Props> = function AdCard({
   width,
   ref,
 }) {
-  const [isFavourite, setIsFavourite] = useState<boolean>(ad.isFavourite || false);
+  const [isFavourite, setIsFavourite] = useState<boolean>(
+    ad.isFavourite || false
+  );
   const [carouselItems, _] = useState(
     ad.images.map((image, index) => {
       return {
@@ -37,9 +39,9 @@ export const AdCard: FC<Props> = function AdCard({
     await apiService.get({
       url: `/ad/favorite/${ad.id}`,
     });
-    (isFavourite) ? setIsFavourite(false) : setIsFavourite(true);
-    await queryClient.refetchQueries({queryKey: ['ad/favorite/list']});
-    await queryClient.refetchQueries({queryKey: ['main-page-announcements']});
+    isFavourite ? setIsFavourite(false) : setIsFavourite(true);
+    await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
+    await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
   };
   return (
     <li
@@ -58,7 +60,7 @@ export const AdCard: FC<Props> = function AdCard({
         <img
           src={baseUrl + ad?.subcategory?.category?.imgPath}
           alt="category"
-          className="w-8 h-8 object-contain scale-75 brightness-200 z-10"
+          className="w-8 h-8 object-contain scale-75 brightness-[5] z-10"
         />
       </div>
       <div className="p-1">
@@ -74,7 +76,11 @@ export const AdCard: FC<Props> = function AdCard({
               : "Бесплатно"}
           </Typography>
           {!isOrganization && (
-            <img src={((isFavourite) ? FavouriteActiveIcon : FavouriteIcon)} alt="" onClick={addToFavourite} />
+            <img
+              src={isFavourite ? FavouriteActiveIcon : FavouriteIcon}
+              alt=""
+              onClick={addToFavourite}
+            />
           )}
         </div>
         <Typography size={14} weight={400} className="line-clamp-1">

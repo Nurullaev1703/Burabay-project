@@ -150,7 +150,7 @@ export const Announcement: FC<Props> = function Announcement({
             <img
               src={baseUrl + announcement.subcategory.category.imgPath}
               alt="Категория"
-              className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen z-100"
+              className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen brightness-[5] z-100"
             />
           </div>
           <Carousel

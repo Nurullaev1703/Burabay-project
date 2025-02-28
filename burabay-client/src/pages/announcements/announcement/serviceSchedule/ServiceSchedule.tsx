@@ -17,6 +17,7 @@ import "dayjs/locale/ru";
 import dayjs from "dayjs";
 import { baseUrl } from "../../../../services/api/ServerData";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
+import DefaultImage from "../../../../app/icons/abstract-bg.svg"
 
 interface Props {
   announcement: Announcement;
@@ -31,7 +32,9 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
   const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
     []
   );
-
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
   // Установка времени с учетом заблокированных
   const handleDateChange = (date: any) => {
     const selectedDate = date?.format("DD.MM.YYYY");
@@ -84,7 +87,8 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultImage)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
