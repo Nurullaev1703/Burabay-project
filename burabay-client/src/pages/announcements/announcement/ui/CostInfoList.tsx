@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import { Link } from "@tanstack/react-router";
@@ -16,7 +16,9 @@ export const CostInfoList: FC<Props> = function CostInfoList({
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
   };
-
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="bg-white p-4 mb-2">
       <h2 className="font-medium text-lg mb-2">{t("cost")}</h2>

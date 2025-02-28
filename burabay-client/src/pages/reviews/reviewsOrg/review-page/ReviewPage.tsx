@@ -14,6 +14,7 @@ import { TextField } from "@mui/material";
 import { Button } from "../../../../shared/ui/Button";
 import { apiService } from "../../../../services/api/ApiService";
 import { queryClient } from "../../../../ini/InitializeApp";
+import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
 
 interface Props {
   review: ReviewAnnouncement;
@@ -27,6 +28,9 @@ interface Answer {
 export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
   const [reviewData, setReviewData] = useState<ReviewAnnouncement>(review);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + reviewData.adImage
+  );
   const [modalAnswer, setModalAnswer] = useState<
     Record<string, "complain" | "answer" | false>
   >({});
@@ -114,7 +118,8 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
       <div className="px-4 flex bg-white py-3 mb-2">
         <img
-          src={baseUrl + reviewData.adImage}
+          src={imageSrc}
+          onError={() => setImageSrc(DefaultIcon)}
           alt={reviewData.adTitle}
           className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
         />
@@ -131,7 +136,8 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
               className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
             ></div>
             <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
-              {reviewData.adReviewCount ? review.adReviewCount : 0} {t("grades")}
+              {reviewData.adReviewCount ? review.adReviewCount : 0}{" "}
+              {t("grades")}
             </span>
           </div>
         </div>

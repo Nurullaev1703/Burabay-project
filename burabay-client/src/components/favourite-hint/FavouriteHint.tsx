@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../shared/ui/colors";
-import FavouriteActiveIcon from "../../app/icons/announcements/favourite-active.svg";
+import FavouriteIcon from "../../app/icons/announcements/favourite.svg";
 import CloseIcon from "../../app/icons/announcements/close-white.svg";
 import { useTranslation } from "react-i18next";
 
@@ -28,8 +28,8 @@ export const FavouriteHint: FC = function FavouriteHint() {
       }`}
     >
       <div className="flex items-center">
-        <img src={FavouriteActiveIcon} alt="Избранное" />
-        <span className={`${COLORS_TEXT.white} mr-2`}>
+          <img src={FavouriteIcon} alt="Избранное" className="brightness-[5]"/>
+        <span className={`${COLORS_TEXT.white} mx-2`}>
           {t("favouriteNotice")}
         </span>
       </div>
