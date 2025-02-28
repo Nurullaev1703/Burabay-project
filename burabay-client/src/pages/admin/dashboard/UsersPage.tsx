@@ -66,12 +66,12 @@ export default function UsersList() {
         const orgsDataAsUsers: User[] = response.data.orgs.map((org) => ({
           id: org.id,
           fullName: org.name,
-          email: org.siteUrl || "",
+          email: org.email || "",
           phoneNumber: "",
           role: "организация",
           picture: org.imgUrl,
           isBanned: org.isBanned,
-          isEmailConfirmed: false,
+          isEmailConfirmed: org.isConfirmed,
         }));
 
         const combinedData: User[] = [...usersData, ...orgsDataAsUsers];
@@ -113,13 +113,12 @@ export default function UsersList() {
   const handleConfirmOrg = async (id: string) => {
     try {
       await apiService.patch({
-        url: `/admin/orgs/${id}/confirm`,
-        dto: { isConfirmed: true },
+        url: `/admin/check-org/${id}`,
       });
 
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.id === id ? { ...user, isEmailConfirmed: true } : user
+          user.id === id ? { ...user, isConfirmed: true } : user
         )
       );
 
