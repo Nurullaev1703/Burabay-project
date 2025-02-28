@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { apiService } from "../../../services/api/ApiService";
+import { baseUrl } from "../../../services/api/ServerData";
 
 interface User {
   id: string;
@@ -317,7 +318,7 @@ export default function UsersList() {
               </div>
               <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
                 <p className="text-black">📄 Справка.docs</p>
-                <a href="#" className="text-blue-500 text-xl">
+                <a href={`${baseUrl}/public/`} className="text-blue-500 text-xl">
                   ⬇️
                 </a>
               </div>

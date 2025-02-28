@@ -10,6 +10,9 @@ export interface Organization {
   rating: number;
   reviewCount: number;
   siteUrl: string;
+  regCouponPath: string;
+  ibanDocPath: string;
+  orgRulePath: string;
 }
 
 export interface Profile {
