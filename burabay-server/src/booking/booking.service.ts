@@ -35,7 +35,6 @@ export class BookingService {
     });
     const dateStart = Utils.stringDateToDate(dateStartDto);
     const dateEnd = Utils.stringDateToDate(dateEndDto);
-    console.log(dateStart, dateEnd);
     const newBooking = this.bookingRepository.create({
       user: user,
       ad: ad,

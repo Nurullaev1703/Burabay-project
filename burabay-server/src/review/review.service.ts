@@ -122,11 +122,20 @@ export class ReviewService {
     return await this.dataSource.transaction(async (manager) => {
       const review = await manager.findOne(Review, {
         where: { id: id },
-        relations: { answer: true, report: true },
+        relations: { answer: true, report: true, ad: { reviews: true } },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
+
       if (review.answer) await manager.remove(review.answer);
       if (review.report) await manager.remove(review.report);
+
+      // Обновить средний рейтинг Объявления.
+      const { ad } = review;
+      const totalRating = ad.reviews.reduce((sum, r) => sum + r.stars, 0) - review.stars;
+      ad.reviewCount = Math.max(0, ad.reviewCount - 1);
+      ad.avgRating = ad.reviewCount > 0 ? Math.round((totalRating / ad.reviewCount) * 10) / 10 : 0;
+      await manager.save(ad);
+
       await manager.remove(review);
       return JSON.stringify(HttpStatus.OK);
     });

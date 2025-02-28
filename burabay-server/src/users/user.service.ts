@@ -2,8 +2,9 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
-import { Utils } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 import { Organization } from './entities/organization.entity';
+import { UpdateDocsDto } from './dto/update-docs.dto';
 
 @Injectable()
 export class UserService {
@@ -14,16 +15,14 @@ export class UserService {
     private readonly organizationRep: Repository<Organization>,
     private readonly dataSource: DataSource,
     private readonly entityManager: EntityManager,
-    
   ) {}
-
 
   async remove(tokenData: TokenData) {
     const user = await this.userRep.findOne({
-      where:{
-        id: tokenData.id
-      }
-    })
+      where: {
+        id: tokenData.id,
+      },
+    });
     await this.entityManager.remove(user);
 
     return JSON.stringify(HttpStatus.OK);
@@ -78,5 +77,20 @@ export class UserService {
           .execute();
       }
     });
+  }
+
+  /* Обновление полей с путями документов Организации. */
+  @CatchErrors()
+  async updateOrgDocumentsPath(dto: UpdateDocsDto, tokenData: TokenData) {
+    const { regCouponPath, ibanDocPath, orgRulePath } = dto;
+    const organization = await this.organizationRep.findOne({
+      where: { user: { id: tokenData.id } },
+    });
+    Utils.checkEntity(organization, 'Органзиация не найдена');
+    if (regCouponPath) organization.regCouponPath = regCouponPath;
+    if (ibanDocPath) organization.ibanDocPath = ibanDocPath;
+    if (orgRulePath) organization.orgRulePath = orgRulePath;
+    await this.organizationRep.save(organization);
+    return JSON.stringify(HttpStatus.OK);
   }
 }
