@@ -106,7 +106,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   
   
   const [isLocationDenied, setIsLocationDenied] = useState(false);
-
+  const role = roleService.getValue();
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
