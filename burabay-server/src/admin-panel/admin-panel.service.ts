@@ -108,6 +108,7 @@ export class AdminPanelService {
         adName: review.ad.title,
         adReviewCount: review.ad.reviewCount,
         adRating: review.ad.avgRating,
+        orgId: review.ad.organization.id,
         orgName: review.ad.organization.name,
         orgImage: review.ad.organization.imgUrl,
         reportText: review.report.text,
@@ -133,6 +134,7 @@ export class AdminPanelService {
           phoneNumber: true,
         },
         ads: {
+          id: true,
           images: true,
           title: true,
           price: true,

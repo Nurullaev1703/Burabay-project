@@ -20,7 +20,7 @@ export function useGetMainPageAnnouncements(filters?:MainPageFilter) {
     queryKey: ["main-page-announcements", filters],
     queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Announcement[]>({
-        url: `/main-pages/ad?category=${categoryFilter}&adName=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating ? "4.5" : ""}&subcategories=${subcategoryFilter}&details=${detailsFilter}&offset=${pageParam}&limit=10`,
+        url: `/main-pages/ad?category=${categoryFilter}&name=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating ? "4.5" : ""}&subcategories=${subcategoryFilter}&details=${detailsFilter}&offset=${pageParam}&limit=10`,
       });
       return response.data;
     },
