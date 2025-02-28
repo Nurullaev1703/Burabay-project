@@ -6,6 +6,10 @@ import { AdCard } from "../../main/ui/AdCard";
 import authBg from "../../../app/icons/bg_auth.png";
 import { Announcement } from "../../announcements/model/announcements";
 import { baseUrl } from "../../../services/api/ServerData";
+import { CoveredImage } from "../../../shared/ui/CoveredImage";
+import defaultImage from "../../../app/icons/abstract-bg.svg";
+
+
 
 const BASE_URL = baseUrl;
 
@@ -50,6 +54,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -194,7 +199,14 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 </div>
                 <div className="border-r border-gray-300 p-4 flex flex-col">
                   <div className="flex items-center gap-3">
-                    <img
+                    <CoveredImage
+                      width="w-10"
+                      height="h-10"
+                      borderRadius="rounded-full"
+                      imageSrc={`${BASE_URL}${review.orgImage}`}
+                      errorImage={defaultImage}
+                    />
+                    {/* <img
                       src={
                         review.orgImage
                           ? `${BASE_URL}${review.orgImage}`
@@ -202,7 +214,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                       }
                       alt={review.orgName ?? "Нет данных"}
                       className="w-10 h-10 rounded-full object-cover"
-                    />
+                    /> */}
 
                     <div>
                       {review.orgName ? (
@@ -253,61 +265,107 @@ export const ComplaintsPage: FC = function ComplaintPage() {
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
-            <button
-              className="absolute top-2 right-2 text-lg"
-              onClick={() => setIsModalOpen(false)}
-            >
-              ×
-            </button>
-            <img
-              src={
-                selectedOrg.imgUrl
-                  ? `${BASE_URL}${selectedOrg.imgUrl}`
-                  : "/placeholder.jpg"
-              }
-              alt={selectedOrg.name}
-              className="w-full h-40 object-cover rounded-md"
-            />
-            <h2 className="text-xl font-bold mt-4">{selectedOrg.name}</h2>
-            <p className="text-gray-600">
+            {/* Верхний блок с кнопками и заголовком */}
+            <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+              {/* Кнопка назад (с изображением) */}
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={() => setIsModalOpen(false)}
+              >
+                <img
+                  src="../../../../public/icons/Close.png"
+                  alt="Назад"
+                  className="w-full h-full"
+                />
+              </button>
+
+              {/* Заголовок "Организация" */}
+              <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
+                Организация
+              </h2>
+
+              {/* Кнопка выхода (с изображением) */}
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={() => setIsModalOpen(false)}
+              >
+                <img
+                  src="../../../../public/icons/Close.png"
+                  alt="Выход"
+                  className="w-full h-full"
+                />
+              </button>
+            </div>
+
+            {/* Контейнер для логотипа организации с центровкой */}
+            <div className="flex justify-center mt-[68px]">
+              <CoveredImage
+                width="w-[128px]"
+                height="h-[128px]"
+                borderRadius="rounded-full"
+                imageSrc={`${BASE_URL}${selectedOrg.imgUrl}`}
+                errorImage={defaultImage}
+              />
+            </div>
+
+            {/* Название организации */}
+            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+              {selectedOrg.name}
+            </h2>
+
+            {/* Описание организации */}
+            <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
               {selectedOrg.description || "Описание отсутствует"}
             </p>
-            <p className="mt-2">
-              <strong>Сайт:</strong>
-              {selectedOrg.website ? (
-                <a
-                  href={selectedOrg.website}
-                  className="text-blue-500"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {selectedOrg.website}
-                </a>
-              ) : (
-                " Не указано"
-              )}
-            </p>
-            <p>
-              <strong>Телефон:</strong> {selectedOrg.phone || "Не указан"}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedOrg.user?.email || "Не указан"}
-            </p>
 
+            {/* Контейнер для сайта, телефона, email с бордерами */}
+            <div className="mt-4">
+              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                <div className="flex flex-col items-start">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
+                    {selectedOrg.website || "Не указано"}
+                  </p>
+                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                    Сайт
+                  </strong>
+                </div>
+              </div>
+
+              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                <div className="flex flex-col items-start">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    {selectedOrg.phone || "Не указан"}
+                  </p>
+                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                    Телефон
+                  </strong>
+                </div>
+              </div>
+
+              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                <div className="flex flex-col items-start">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    {selectedOrg.user?.email || "Не указан"}
+                  </p>
+                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                    Email
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Отображение объявлений */}
             {selectedOrg.ads.length > 0 ? (
               <div className="grid grid-cols-1 gap-4">
                 {selectedOrg.ads.map((ad, index) => (
-                  <AdCard
-                    key={index}
-                    ad={ad}
-                    isOrganization={true}
-                  />
+                  <AdCard key={index} ad={ad} isOrganization={true} />
                 ))}
               </div>
             ) : (
               <p className="text-gray-500">Нет объявлений</p>
             )}
 
+            {/* Кнопки блокировки/разблокировки */}
             <div className="mt-4 flex justify-between">
               <button className="bg-red text-white px-4 py-2 rounded-lg">
                 Заблокировать пользователя
