@@ -19,8 +19,7 @@ import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
 interface Props {
   review: ReviewAnnouncement;
 }
-
-interface Answer {
+export interface Answer {
   reviewId: string;
   text: string;
 }

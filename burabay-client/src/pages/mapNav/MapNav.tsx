@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 import { Map, View } from "ol";
 import "ol/ol.css";
 import { Tile as TileLayer } from "ol/layer";
@@ -62,7 +62,9 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const role = roleService.getValue()
+
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
@@ -72,26 +74,37 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
+  
   useEffect(() => {
     if (window.google && window.google?.maps?.TravelMode) {
       setTravelMode(google.maps.TravelMode.DRIVING);
     }
   }, []);
+  const handleMapLoad = (map: google.maps.Map) => {
+    mapRef.current = map;
+    setMapReady(true);
+  };
 
   const queryParams = new URLSearchParams(location.search as string);
   const adId = queryParams.get("adId");
   useEffect(() => {
-    if (adId) {
-      const selectedAnnouncement = announcements.find(
-        (announcement) => announcement.id === adId
-      );
-      if (selectedAnnouncement) {
-        setAnnouncementInfo(selectedAnnouncement); // Устанавливаем данные объявления
-        setIsFavourite(selectedAnnouncement.isFavourite);
-        setShowAnnouncementModal(true); // Показываем модальное окно
-      }
+    if (!isLoaded || !mapReady || !adId) return;
+  
+    const selectedAnnouncement = announcements.find(
+      (announcement) => String(announcement.id) === adId
+    );
+  
+    if (selectedAnnouncement && mapRef.current) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+      mapRef.current.panTo({
+        lat: selectedAnnouncement.address.latitude,
+        lng: selectedAnnouncement.address.longitude,
+      });
     }
-  }, [adId, announcements]);
+  }, [adId, announcements, isLoaded, mapReady]);
+  
+  
   const [isLocationDenied, setIsLocationDenied] = useState(false);
 
   const [userLocation, setUserLocation] = useState<{
@@ -357,13 +370,22 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
     setSelectedMarker(announcementId);
+  
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === announcementId
     );
+  
     if (selectedAnnouncement) {
       setAnnouncementInfo(selectedAnnouncement);
       setIsFavourite(selectedAnnouncement.isFavourite);
       setShowAnnouncementModal(true);
+  
+      if (selectedAnnouncement.address?.latitude && selectedAnnouncement.address?.longitude && mapRef.current) {
+        mapRef.current.panTo({
+          lat: selectedAnnouncement.address.latitude,
+          lng: selectedAnnouncement.address.longitude,
+        });
+      }
     }
   };
 
@@ -444,6 +466,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             zoomControl: false,
             streetViewControl: false,
           }}
+          onLoad={handleMapLoad}
         >
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
