@@ -33,13 +33,18 @@ export class BookingService {
       where: { id: adId },
       relations: { subcategory: { category: true } },
     });
-    const dateStart = Utils.stringDateToDate(dateStartDto);
-    const dateEnd = Utils.stringDateToDate(dateEndDto);
+    let dateStart, dateEnd;
+    if (dateStart) {
+      dateStart = Utils.stringDateToDate(dateStartDto);
+    }
+    if (dateEnd) {
+      dateEnd = Utils.stringDateToDate(dateEndDto);
+    }
     const newBooking = this.bookingRepository.create({
       user: user,
       ad: ad,
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      dateStart: dateStart ? dateStart : null,
+      dateEnd: dateEnd ? dateEnd : null,
       ...oF,
     });
     const isRent =
