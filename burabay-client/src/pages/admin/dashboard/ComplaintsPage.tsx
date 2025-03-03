@@ -9,8 +9,6 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 
-
-
 const BASE_URL = baseUrl;
 
 interface Review {
@@ -54,7 +52,6 @@ export const ComplaintsPage: FC = function ComplaintPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -119,41 +116,52 @@ export const ComplaintsPage: FC = function ComplaintPage() {
 
   return (
     <div className="relative w-full min-h-screen flex">
-      {/* Фон */}
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25 z-[-1]"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
-
-      {/* Боковая навигация */}
       <div
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
         <SideNav
-          className={`fixed top-0 left-0 h-full transition-all duration-300 ease-linear ${isExpanded ? "w-[312px]" : "w-[94px]"}`}
+          className={`fixed top-0 left-0 h-full transition-all duration-300 ease-linear ${
+            isExpanded ? "w-[312px]" : "w-[94px]"
+          }`}
         />
       </div>
-
-      {/* Основной контент */}
       <div
-        className={`flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ${isExpanded ? "ml-[312px]" : "ml-[94px]"}`}
+        className={`flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ${
+          isExpanded ? "ml-[312px]" : "ml-[94px]"
+        }`}
       >
         {hint && (
           <div
-            className={`fixed top-5 right-5 px-4 py-2 rounded-lg text-white ${hint.type === "success" ? "bg-green-500" : "bg-red-500"}`}
+            className={`fixed top-5 right-5 px-4 py-2 rounded-lg text-white ${
+              hint.type === "success" ? "bg-green-500" : "bg-red-500"
+            }`}
           >
             {hint.message}
           </div>
         )}
-
-        <div className="grid grid-cols-[2fr_2fr_1fr] w-full px-2 bg-white shadow-md pl-[32px] pr-[32px] pb-[32px] pt-[24px] font-semibold rounded-b-[16px]">
-          <div className="text-left border-r border-gray-300 ">Отзыв</div>
-          <div className="text-left border-r border-gray-300">Жалоба</div>
-          <div className="text-left">Действие</div>
+        <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
+          <div className="border-r pl-[32px] h-full flex items-center">
+            <div className="text-left text-[24px] font-normal flex items-center ">
+              Отзыв
+            </div>
+          </div>
+          <div className="border-r pl-[32px] h-full flex items-center border-gray-300">
+            <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
+              Жалобы
+            </div>
+          </div>
+          <div className=" h-full pl-[32px] flex items-center">
+            <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
+              Действие
+            </div>
+          </div>
         </div>
-
         <div className="w-full flex flex-col py-[10px] gap-4">
           {isLoading ? (
             <p className="text-center text-gray-500 mt-4">Загрузка данных...</p>
@@ -161,9 +169,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             reviews.map((review) => (
               <div
                 key={review.reviewId}
-                className="grid grid-cols-[2fr_2fr_1fr] border border-gray-300 max-h-[330px] bg-white rounded-lg shadow-md pl-[32px] pr-[32px] pb-[32px] pt-[24px] "
+                className="grid grid-cols-[1fr_1fr_332px] max-h-[330px] bg-white rounded-lg"
               >
-                <div className="border-r border-gray-300 pr-4 flex flex-col">
+                <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-semibold text-gray-700">
@@ -197,7 +205,8 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                     </div>
                   )}
                 </div>
-                <div className="border-r border-gray-300 p-4 flex flex-col">
+
+                <div className="border-r border-gray-300 p-[32px] flex flex-col">
                   <div className="flex items-center gap-3">
                     <CoveredImage
                       width="w-10"
@@ -206,20 +215,10 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                       imageSrc={`${BASE_URL}${review.orgImage}`}
                       errorImage={defaultImage}
                     />
-                    {/* <img
-                      src={
-                        review.orgImage
-                          ? `${BASE_URL}${review.orgImage}`
-                          : "/default-org.png"
-                      }
-                      alt={review.orgName ?? "Нет данных"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    /> */}
-
                     <div>
                       {review.orgName ? (
                         <p
-                          className="font-semibold cursor-pointer text-blue-500" ////////////////////////////////////////
+                          className="font-semibold cursor-pointer text-blue-500"
                           onClick={() =>
                             fetchOrgInfo(
                               review.orgId ||
@@ -230,9 +229,8 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                           {review.orgName}
                         </p>
                       ) : (
-                        <p>sdf</p>
+                        <p>Нет данных</p>
                       )}
-
                       <p className="text-gray-500 text-sm">
                         {formatDate(review.reportData)}
                       </p>
@@ -242,8 +240,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                     {review.reportText}
                   </p>
                 </div>
-                <div className="flex flex-col items-center space-y-3">
-                  <button className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer">
+
+                <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
+                  <button className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer">
                     Оставить отзыв
                   </button>
                   <button
@@ -257,7 +256,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             ))
           ) : (
             <p className="text-center text-gray-500 mt-4">
-              Нет жалоб на отзывы.
+                            Нет жалоб на отзывы.        
             </p>
           )}
         </div>
@@ -265,9 +264,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
-            {/* Верхний блок с кнопками и заголовком */}
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
-              {/* Кнопка назад (с изображением) */}
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
@@ -278,13 +275,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                   className="w-full h-full"
                 />
               </button>
-
-              {/* Заголовок "Организация" */}
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
-                Организация
+                                Организация          
               </h2>
-
-              {/* Кнопка выхода (с изображением) */}
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
@@ -296,8 +289,6 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 />
               </button>
             </div>
-
-            {/* Контейнер для логотипа организации с центровкой */}
             <div className="flex justify-center mt-[68px]">
               <CoveredImage
                 width="w-[128px]"
@@ -307,56 +298,52 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 errorImage={defaultImage}
               />
             </div>
-
-            {/* Название организации */}
+                        {/* Название организации */}       
             <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-              {selectedOrg.name}
+                            {selectedOrg.name}       
             </h2>
-
-            {/* Описание организации */}
+                        {/* Описание организации */}       
             <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
-              {selectedOrg.description || "Описание отсутствует"}
+                            {selectedOrg.description || "Описание отсутствует"} 
             </p>
-
-            {/* Контейнер для сайта, телефона, email с бордерами */}
+                        {/* Контейнер для сайта, телефона, email с бордерами */}
             <div className="mt-4">
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
-                    {selectedOrg.website || "Не указано"}
+                                        {selectedOrg.website || "Не указано"}   
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Сайт
+                                        Сайт              
                   </strong>
                 </div>
               </div>
-
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                    {selectedOrg.phone || "Не указан"}
+                    {selectedOrg.phone || "Не указан"}     
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Телефон
+                                        Телефон
                   </strong>
                 </div>
               </div>
-
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                    {selectedOrg.user?.email || "Не указан"}
+                                        {selectedOrg.user?.email || "Не указан"}
                   </p>
+                               
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Email
+                                        Email              
                   </strong>
                 </div>
               </div>
             </div>
-
-            {/* Отображение объявлений */}
+                        {/* Отображение объявлений */}       
             {selectedOrg.ads.length > 0 ? (
               <div className="grid grid-cols-1 gap-4">
+                           
                 {selectedOrg.ads.map((ad, index) => (
                   <AdCard key={index} ad={ad} isOrganization={true} />
                 ))}
@@ -364,15 +351,17 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             ) : (
               <p className="text-gray-500">Нет объявлений</p>
             )}
-
-            {/* Кнопки блокировки/разблокировки */}
+                        {/* Кнопки блокировки/разблокировки */}       
             <div className="mt-4 flex justify-between">
+                       
               <button className="bg-red text-white px-4 py-2 rounded-lg">
-                Заблокировать пользователя
+                                Заблокировать пользователя          
               </button>
+                       
               <button className="bg-green-500 text-white px-4 py-2 rounded-lg">
-                Разблокировать
+                                Разблокировать          
               </button>
+                     
             </div>
           </div>
         </div>

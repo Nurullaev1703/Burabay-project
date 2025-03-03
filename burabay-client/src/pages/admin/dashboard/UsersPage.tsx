@@ -218,21 +218,16 @@ export default function UsersList() {
 
   return (
     <div className="relative min-h-screen flex">
-            <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>   
-       {" "}
+      <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>   
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
-           {" "}
       <div className="relative z-50">
-                <SideNav />     {" "}
+        <SideNav />
       </div>
-           {" "}
       <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
-               {" "}
         <div className="fixed top-0 left-[94px] right-0 bg-white shadow-md rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
-                   {" "}
           <input
             type="text"
             placeholder="Поиск"
@@ -243,28 +238,28 @@ export default function UsersList() {
           <div className="relative" ref={roleFilterRef}>
             <button
               type="button"
-              className="p-2 border rounded bg-white"
+              className="w-[264.5px] text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={toggleRoleDropdown}
             >
-               {roleFilter === "all" ? "Все роли" : roleFilter}
+              {roleFilter === "all" ? "Все пользователи" : roleFilter}
             </button>
             {isRoleDropdownOpen && (
-              <div className="absolute mt-1 w-48 bg-white rounded shadow-md z-10 border">
-                <label className="block px-4 py-2 border-b hover:bg-gray-100 cursor-pointer">
+              <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
+                <label className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="roleFilter"
                     value="all"
                     checked={roleFilter === "all"}
                     onChange={() => handleRoleFilterChange("all")}
-                    className="mr-2"
+                    className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                   />
-                  Все роли
+                  Все пользователи
                 </label>
                 {Object.values(ROLE_TYPE).map((role) => (
                   <label
                     key={role}
-                    className="block px-4 py-2 border-b hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <input
                       type="radio"
@@ -272,9 +267,9 @@ export default function UsersList() {
                       value={role}
                       checked={roleFilter === role}
                       onChange={() => handleRoleFilterChange(role)}
-                      className="mr-2"
+                      className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-                     {role}
+                    {role}
                   </label>
                 ))}
               </div>
@@ -283,28 +278,28 @@ export default function UsersList() {
           <div className="relative" ref={statusFilterRef}>
             <button
               type="button"
-              className="p-2 border rounded bg-white"
+              className="w-[264.5px] text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={toggleStatusDropdown}
             >
               {statusFilter === "all" ? "Все статусы" : statusFilter}
             </button>
             {isStatusDropdownOpen && (
-              <div className="absolute mt-1 w-48 bg-white rounded shadow-md z-10 border">
-                <label className="block px-4 py-2 border-b hover:bg-gray-100 cursor-pointer">
+              <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
+                <label className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="statusFilter"
                     value="all"
                     checked={statusFilter === "all"}
                     onChange={() => handleStatusFilterChange("all")}
-                    className="mr-2"
+                    className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                   />
-                   Все статусы 
+                  Все статусы
                 </label>
                 {Object.values(UsersFilterStatus).map((status) => (
                   <label
                     key={status}
-                    className="block px-4 py-2 border-b hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <input
                       type="radio"
@@ -312,34 +307,27 @@ export default function UsersList() {
                       value={status}
                       checked={statusFilter === status}
                       onChange={() => handleStatusFilterChange(status)}
-                      className="mr-2"
+                      className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-                                        {status}                 {" "}
+
+                    {status}
                   </label>
                 ))}
-                             {" "}
               </div>
             )}
-                     {" "}
           </div>
-                 {" "}
         </div>
-               {" "}
         <div className="mt-16">
-                   {" "}
           {loading ? (
             <p className="text-gray-500">Загрузка...</p>
           ) : (
             <div className="grid gap-4">
-                           {" "}
               {filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="p-4 rounded-lg shadow-md flex flex-wrap items-center bg-white border border-gray-300 md:flex-nowrap"
+                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                 >
-                                   {" "}
-                  <div className="flex items-center space-x-4 p-4 flex-1 min-w-[150px] border-r border-gray-300">
-                                       {" "}
+                  <div className="flex items-center h-[84px] space-x-4 pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] border-r border-[#E4E9EA]">
                     <img
                       src={
                         user.picture
@@ -347,31 +335,23 @@ export default function UsersList() {
                           : "https://via.placeholder.com/50"
                       }
                       alt={user.fullName}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-[52px] h-[52px] rounded-full object-cover"
                     />
-                                       {" "}
                     <div>
-                                           {" "}
-                      <h2 className="text-lg font-semibold">{user.fullName}</h2>
-                                           {" "}
-                      <span className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-                                                {user.role}                     {" "}
-                      </span>
-                                           {" "}
+                      <h2 className="text-lg font-roboto">{user.fullName}</h2>
                       <p
-                        className={`text-sm ${user.isBanned ? "text-red-500" : "text-green-500"}`}
+                        className={`text-sm ${user.isBanned ? "text-red-500" : "text-[14px] text-[#39B56B]"}`}
                       >
-                                               {" "}
                         {user.isBanned
                           ? UsersFilterStatus.BAN
                           : user.isEmailConfirmed
                             ? "Подтвержден"
                             : UsersFilterStatus.WAITING}
-                                             {" "}
                       </p>
-                                         {" "}
+                      <span className="text-[12px]  text-[#999999]">
+                        {user.role}
+                      </span>
                     </div>
-                                       {" "}
                     {user.role === "организация" &&
                       user.isEmailConfirmed === false && (
                         <button
@@ -386,54 +366,40 @@ export default function UsersList() {
                               isBanned: user.isBanned ?? false,
                             })
                           }
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
+                          className="bg-white border h-[48px] border-[#39B56B] rounded-[16px] text-[#39B56B] py-[12px] px-[16px]"
                         >
-                                                    Подтвердить                
-                                 {" "}
+                          Подтвердить
                         </button>
                       )}
-                                     {" "}
                   </div>
-                                   {" "}
-                  <div className="p-4 flex-1 min-w-[150px] text-center md:text-left border-r border-gray-300">
-                                       {" "}
-                    <p className="text-black">{user.phoneNumber || "—"}</p>     
-                                 {" "}
-                    <p className="text-sm text-gray-500">Телефон</p>           
-                         {" "}
+                  <div className="pl-[32px] flex-1 min-w-[150px]">
+                    <div className="text-center md:text-left">
+                      <p className="text-[16px] text-black">
+                        {user.phoneNumber || "—"}
+                      </p>
+                      <p className="text-[12px] text-[#999999]">Телефон</p>
+                    </div>
                   </div>
-                                   {" "}
-                  <div className="p-4 flex-1 min-w-[150px] text-center md:text-left">
-                                       {" "}
-                    <p className="text-black">{user.email}</p>                 
-                      <p className="text-sm text-gray-500">Email</p>           
-                         {" "}
+                  <div className="pl-[32px] h-full border-l border-[#E4E9EA] flex-1 min-w-[150px] flex flex-col justify-center text-center md:text-left">
+                    <p className="text-[16px] text-black">
+                      {user.email || "—"}
+                    </p>
+                    <p className="text-[12px] text-[#999999]">Email</p>
                   </div>
-                                 {" "}
                 </div>
               ))}
-                         {" "}
             </div>
           )}
-                 {" "}
         </div>
-             {" "}
       </div>
-           {" "}
       {selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                   {" "}
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-                       {" "}
             <button
               className="absolute top-4 right-4 text-gray-600 hover:text-black text-2xl"
               onClick={() => setSelectedOrg(null)}
-            >
-                            ×            {" "}
-            </button>
-                       {" "}
+            ></button>
             <div className="flex flex-col items-center mb-4">
-                           {" "}
               <img
                 src={
                   selectedOrg.imgUrl
@@ -443,88 +409,60 @@ export default function UsersList() {
                 alt={selectedOrg.name}
                 className="w-16 h-16 rounded-full object-cover"
               />
-                           {" "}
               <h2 className="text-lg font-semibold mt-2">{selectedOrg.name}</h2>
-                           {" "}
-              <p className="text-green-600 text-sm">Ожидание подтверждения</p> 
-                          <p className="text-gray-500 text-sm">Организация</p> 
-                       {" "}
+              <p className="text-green-600 text-sm">Ожидание подтверждения</p>
+              <p className="text-gray-500 text-sm">Организация</p>
             </div>
-                       {" "}
             <div className="mb-4">
-                            <p className="text-gray-700 font-semibold">БИН</p> 
-                          <p className="text-black">{selectedOrg.id}</p>       
-                 {" "}
+              <p className="text-gray-700 font-semibold">БИН</p>
+              <p className="text-black">{selectedOrg.id}</p>
             </div>
-                       {" "}
             <div className="mb-4">
-                           {" "}
               <p className="text-gray-700 font-semibold">
-                                Номер телефона с аккаунтом WhatsApp            
-                 {" "}
+                Номер телефона с аккаунтом WhatsApp
               </p>
-                           {" "}
               <p className="text-black">{selectedOrg.siteUrl || "Не указан"}</p>
-                         {" "}
             </div>
-                       {" "}
             <div className="mb-4 space-y-2">
-                           {" "}
               <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                                <p className="text-black">📄 Талон.docs</p>     
-                         {" "}
+                <p className="text-black">📄 Талон.docs</p>
                 <a href="#" className="text-blue-500 text-xl">
-                                    ⬇️                {" "}
+                  ⬇️
                 </a>
-                             {" "}
               </div>
-                           {" "}
               <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                                <p className="text-black">📄 Справка.docs</p>   
-                           {" "}
+                <p className="text-black">📄 Справка.docs</p>
                 <a
                   href={`${baseUrl}/public/`}
                   className="text-blue-500 text-xl"
                 >
-                                    ⬇️                {" "}
+                  ⬇️
                 </a>
-                             {" "}
               </div>
-                           {" "}
               <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                                <p className="text-black">📄 Устав.docs</p>     
-                         {" "}
+                <p className="text-black">📄 Устав.docs</p>
                 <a href="#" className="text-blue-500 text-xl">
-                                    ⬇️                {" "}
+                  ⬇️
                 </a>
-                             {" "}
               </div>
-                         {" "}
             </div>
-                       {" "}
             <div className="flex flex-col space-y-2">
-                           {" "}
               <button
                 onClick={() => handleConfirmOrg(selectedOrg.id)}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg text-center text-lg font-medium"
               >
-                                ✅ Подтвердить аккаунт              {" "}
+                ✅ Подтвердить аккаунт
               </button>
-                           {" "}
               <button
                 onClick={() => handleRejectOrg(selectedOrg.id)}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg text-center text-lg font-medium"
               >
-                                ❌ Отклонить              {" "}
+                ❌ Отклонить
               </button>
-                         {" "}
             </div>
-                     {" "}
           </div>
-                 {" "}
         </div>
       )}
-         {" "}
     </div>
   );
 }

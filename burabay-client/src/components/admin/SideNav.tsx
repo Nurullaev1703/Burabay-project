@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import logo from "../../../public/icons/logo.png";
-import info from "../../../public/icons/complaints.png";
-import users from "../../../public/icons/users.png";
-import messages from "../../../public/icons/messages.png";
+import info from "../../../public/icons/complaints.svg";
+import users from "../../../public/icons/users.svg";
+import messages from "../../../public/icons/messages.svg";
 import analytics from "../../../public/icons/analytics.png";
 import logout from "../../../public/icons/logout.png";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useMatchRoute } from "@tanstack/react-router";
 
 interface SideNavProps {
   className?: string;
@@ -14,6 +14,7 @@ interface SideNavProps {
 const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
+  const matchRoute = useMatchRoute();
 
   const links = [
     { icon: info, label: "Жалобы", to: "/admin/dashboard/complaints" },
@@ -46,16 +47,28 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
 
       {/* Навигационные ссылки */}
       <nav className="flex flex-col gap-4 mt-8">
-        {links.map((link, index) => (
-          <Link
-            key={index}
-            to={link.to}
-            className="flex items-center py-[12px] px-[16px] cursor-pointer text-white hover:border-white border-[1.05px] border-transparent hover:border-white rounded-[8px] transition-all duration-300 ease-linear"
-          >
-            <img src={link.icon} alt={link.label} className="w-[30px] h-[30px]" />
-            {isExpanded && <span className="text-md font-medium ml-2">{link.label}</span>}
-          </Link>
-        ))}
+        {links.map((link, index) => {
+          const isActive = matchRoute({ to: link.to, fuzzy: true });
+
+          return (
+            <Link
+              key={index}
+              to={link.to}
+              className={`flex items-center py-[12px] px-[16px] cursor-pointer rounded-[8px] transition-all duration-300 ease-linear
+                ${isActive ? "bg-white text-[#0A7D9E]" : "text-white border-transparent hover:border-white border-[1.05px]"}
+              `}
+            >
+              <img
+                src={link.icon}
+                alt={link.label}
+                className={`w-[30px] h-[30px] transition-all duration-300
+                  ${isActive ? "filter invert brightness-0" : ""}
+                `}
+              />
+              {isExpanded && <span className="text-md font-medium ml-2">{link.label}</span>}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Кнопка выхода */}
