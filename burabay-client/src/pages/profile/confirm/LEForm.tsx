@@ -17,7 +17,8 @@ import DeleteIcon from "../../../app/icons/profile/confirm/delete.svg";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "../../../features/auth";
+import { imageService } from "../../../services/api/ImageService";
+// import { useAuth } from "../../../features/auth";
 
 interface FormType {
   iin: string;
@@ -30,6 +31,7 @@ interface FormType {
 export const LEForm: FC = function LEForm() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const {user, setUser} = useAuth();
   const {
     handleSubmit,
     control,
@@ -49,8 +51,6 @@ export const LEForm: FC = function LEForm() {
     showMask: true,
   });
   const navigate = useNavigate();
-  const {user, setUser} = useAuth();
-  console.log(user)
   const handleSubmitForm = async (form: FormType) => {
     setIsLoading(true);
     try {
@@ -59,12 +59,13 @@ export const LEForm: FC = function LEForm() {
       if (form.registerFile) formData.append("registerFile", form.registerFile);
       if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
       if (form.charterFile) formData.append("charterFile", form.charterFile);
-      const responseDocs = await apiService.post<string>({
-        url: `/docs`,
+
+      const responseDocs = await imageService.post<string>({
+        url: `/full-docs`,
         dto: formData,
       });
 
-      if (parseInt(responseDocs.data) !== parseInt(HTTP_STATUS.CREATED))
+      if (!responseDocs.data)
         throw Error("Ошибка при создании");
 
       const responseFilenames = await apiService.patch<string>({
@@ -73,12 +74,19 @@ export const LEForm: FC = function LEForm() {
           regCouponPath: form.registerFile?.name,
           ibanDocPath: form.IBANFile?.name,
           orgRulePath: form.charterFile?.name,
+          iin: form.iin,
+          phoneNumber: "+" + form.phoneNumber.replace(/\D/g, "")
         },
       });
-
-      if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.CREATED))
+      // setUser({
+      //   ...user,
+      //   organization: {
+      //     ...user.organization,
+      //     isConfirmWating: true,
+      //   },
+      // });
+      if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
-
       navigate({ to: "/" });
     } catch (e) {
       console.error(e);
@@ -118,9 +126,7 @@ export const LEForm: FC = function LEForm() {
 
       <DefaultForm
         className="flex flex-col gap-2 p-4"
-        onSubmit={handleSubmit(async (form) => {
-          console.log(form);
-        })}
+        onSubmit={handleSubmit(handleSubmitForm)}
       >
         <Controller
           name="iin"
