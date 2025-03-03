@@ -274,6 +274,7 @@ export class AdminPanelService {
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmed = true;
     org.isConfirmCanceled = false;
+    org.isConfirmWating = false;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -284,6 +285,7 @@ export class AdminPanelService {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmCanceled = true;
+    org.isConfirmWating = false;
     org.isConfirmed = false;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);

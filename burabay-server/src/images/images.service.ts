@@ -133,6 +133,10 @@ export class ImagesService {
       charterFile && writeFile(charterFilePath, charterFile.buffer),
     ]);
 
+    organization.isConfirmWating = true;
+    organization.isConfirmCanceled = false;
+    await this.organizationRepository.save(organization);
+
     return {
       registerFile: registerFilePath ? registerFilePath.replace('.', '') : null,
       IBANFile: IBANFilePath ? IBANFilePath.replace('.', '') : null,

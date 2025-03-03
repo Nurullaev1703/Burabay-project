@@ -48,6 +48,9 @@ export class Organization extends AbstractEntity<Organization> {
   @Column({ name: 'is_confirmed' })
   isConfirmed: boolean;
 
+  @Column({ name: 'is_confirm_waiting', default: false })
+  isConfirmWating: boolean;
+
   @Column({ name: 'is_confirm_canceled', default: false })
   isConfirmCanceled: boolean;
 
