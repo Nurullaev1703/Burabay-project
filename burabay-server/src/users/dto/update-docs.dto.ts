@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsPhoneNumber, IsString } from 'class-validator';
 
 export class UpdateDocsDto {
   @IsString()
@@ -12,4 +12,12 @@ export class UpdateDocsDto {
   @IsString()
   @IsOptional()
   orgRulePath: string;
+
+  @IsString()
+  @IsOptional()
+  iin: string;
+
+  @IsPhoneNumber()
+  @IsOptional()
+  phoneNumber: string;
 }

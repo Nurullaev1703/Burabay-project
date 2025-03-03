@@ -86,6 +86,60 @@ export class ImagesService {
     return JSON.stringify(filepathForFront);
   }
 
+  /* Сохранить три документа для организации. */
+  @CatchErrors()
+  async saveOrgDocs(
+    files: {
+      registerFile?: Express.Multer.File[];
+      IBANFile?: Express.Multer.File[];
+      charterFile?: Express.Multer.File[];
+    },
+    tokenData: TokenData,
+  ) {
+    const organization = await this.organizationRepository.findOneBy({
+      user: { id: tokenData.id },
+    });
+
+    Utils.checkEntity(organization, 'Организация не найдена');
+    console.log('Полученные файлы:', files); // Лог для отладки
+
+    const orgName = organization.name;
+    const safeOrgName = orgName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    const dirpath = `./public/docs/${safeOrgName}/`;
+    await mkdir(dirpath, { recursive: true });
+
+    // Берём файлы из массива
+    const registerFile = files.registerFile?.[0];
+    const IBANFile = files.IBANFile?.[0];
+    const charterFile = files.charterFile?.[0];
+
+    if (registerFile) this.checkDocsExt(registerFile);
+    if (IBANFile) this.checkDocsExt(IBANFile);
+    if (charterFile) this.checkDocsExt(charterFile);
+
+    const registerFilePath = registerFile
+      ? `${dirpath}/registerFile${this.getExt(registerFile)}`
+      : null;
+
+    const IBANFilePath = IBANFile ? `${dirpath}/IBANFile${this.getExt(IBANFile)}` : null;
+
+    const charterFilePath = charterFile
+      ? `${dirpath}/charterFile${this.getExt(charterFile)}`
+      : null;
+
+    await Promise.all([
+      registerFile && writeFile(registerFilePath, registerFile.buffer),
+      IBANFile && writeFile(IBANFilePath, IBANFile.buffer),
+      charterFile && writeFile(charterFilePath, charterFile.buffer),
+    ]);
+
+    return {
+      registerFile: registerFilePath ? registerFilePath.replace('.', '') : null,
+      IBANFile: IBANFilePath ? IBANFilePath.replace('.', '') : null,
+      charterFile: charterFilePath ? charterFilePath.replace('.', '') : null,
+    };
+  }
+
   async saveManyImages(files: Array<Express.Multer.File>, directory: string) {
     try {
       const results = await Promise.all(
@@ -130,5 +184,35 @@ export class ImagesService {
         HttpStatus.NOT_FOUND,
       );
     }
+  }
+
+  /* Проверка документа на формат PDF, DOC, DOCX. */
+  private checkDocsExt(file: Express.Multer.File) {
+    if (!file || !file.originalname) {
+      throw new HttpException('Файл не найден или повреждён', HttpStatus.BAD_REQUEST);
+    }
+
+    const allowedMimes = [
+      'application/pdf',
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    ];
+
+    const allowedExtensions = ['.pdf', '.doc', '.docx'];
+    const fileExt = extname(file.originalname).toLowerCase();
+
+    if (!allowedMimes.includes(file.mimetype) || !allowedExtensions.includes(fileExt)) {
+      throw new HttpException(
+        `Проблема с ${file.originalname}. Формат должен быть PDF, DOC или DOCX`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private getExt(file: Express.Multer.File): string {
+    if (!file || !file.originalname) {
+      throw new Error('Файл не найден или повреждён');
+    }
+    return extname(file.originalname).toLowerCase();
   }
 }
