@@ -65,6 +65,7 @@ export class AdminPanelService {
       tourists,
       orgs,
       totalUsers,
+      adsCount: ads.length,
       ads: this._quickSortAdminPanelAds(adsData),
       ...ga4Data,
     };
