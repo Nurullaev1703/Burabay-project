@@ -50,5 +50,4 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
             throw redirect({to:"/welcome"})
         }
     }
-  },
 });
