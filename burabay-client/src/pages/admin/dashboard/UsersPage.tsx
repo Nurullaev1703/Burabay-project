@@ -2,35 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { apiService } from "../../../services/api/ApiService";
-import { baseUrl } from "../../../services/api/ServerData";
 
 import { ROLE_TYPE } from "../../../../../burabay-server/src/users/types/user-types";
 import { UsersFilterStatus } from "../../../../../burabay-server/src/admin-panel/types/admin-panel-filters.type";
+import { Profile } from "../../profile/model/profile";
+import { baseUrl } from "../../../services/api/ServerData";
 
-interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber?: string;
-  role: string;
-  picture: string;
-  isBanned?: boolean;
-  isEmailConfirmed?: boolean;
-}
-
-interface Org {
-  id: string;
-  name: string;
-  imgUrl: string;
-  description: string;
-  siteUrl: string;
-  isConfirmed: boolean;
-  isBanned: boolean;
-}
 
 export default function UsersList() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<ROLE_TYPE | "all">("all");
@@ -41,7 +22,7 @@ export default function UsersList() {
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-  const [selectedOrg, setSelectedOrg] = useState<Org | null>(null);
+  // const [selectedOrg, setSelectedOrg] = useState<Org | null>(null);
 
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
@@ -49,38 +30,11 @@ export default function UsersList() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await apiService.get<{ users: any[]; orgs: any[] }>({
+        const response = await apiService.get<Profile[]>({
           url: "/admin/users",
         });
-
-        const usersData: User[] = response.data.users.map((user) => ({
-          ...user,
-          role: user.role || ROLE_TYPE.TOURIST,
-        }));
-        const orgsData: Org[] = response.data.orgs.map((org) => ({
-          id: org.id,
-          name: org.name,
-          imgUrl: org.imgUrl,
-          description: org.description || "",
-          siteUrl: org.siteUrl || "",
-          isConfirmed: org.isConfirmed,
-          isBanned: org.isBanned,
-        }));
-
-        const orgsDataAsUsers: User[] = response.data.orgs.map((org) => ({
-          id: org.id,
-          fullName: org.name,
-          email: org.email || "",
-          phoneNumber: "",
-          role: "организация",
-          picture: org.imgUrl,
-          isBanned: org.isBanned,
-          isEmailConfirmed: org.isConfirmed,
-        }));
-
-        const combinedData: User[] = [...usersData, ...orgsDataAsUsers];
-        setUsers(combinedData);
-        setFilteredUsers(combinedData);
+        setUsers(response.data);
+        setFilteredUsers(response.data);
       } catch (error) {
         console.error("Ошибка загрузки данных: ", error);
       } finally {
@@ -112,48 +66,49 @@ export default function UsersList() {
     setFilteredUsers(filtered);
   }, [search, roleFilter, statusFilter, users]);
 
-  const handleConfirmOrg = async (id: string) => {
-    try {
-      await apiService.patch({
-        url: `/admin/check-org/${id}`,
-      });
+  //FIXME переделать с учетом новых приходящих данных
+  // const handleConfirmOrg = async (id: string) => {
+  //   try {
+  //     await apiService.patch({
+  //       url: `/admin/check-org/${id}`,
+  //     });
 
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === id ? { ...user, isConfirmed: true } : user
-        )
-      );
+  //     setUsers((prevUsers) =>
+  //       prevUsers.map((user) =>
+  //         user.id === id ? { ...user, isConfirmed: true } : user
+  //       )
+  //     );
 
-      setSelectedOrg(null);
-    } catch (error) {
-      console.error("Ошибка подтверждения организации: ", error);
-    }
-  };
+  //     setSelectedOrg(null);
+  //   } catch (error) {
+  //     console.error("Ошибка подтверждения организации: ", error);
+  //   }
+  // };
 
-  const handleRejectOrg = async (id: string) => {
-    try {
-      await apiService.patch({
-        url: `/admin/orgs/${id}/reject`,
-        dto: { isConfirmed: false },
-      });
+  // const handleRejectOrg = async (id: string) => {
+  //   try {
+  //     await apiService.patch({
+  //       url: `/admin/orgs/${id}/reject`,
+  //       dto: { isConfirmed: false },
+  //     });
 
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === id ? { ...user, isEmailConfirmed: false } : user
-        )
-      );
+  //     setUsers((prevUsers) =>
+  //       prevUsers.map((user) =>
+  //         user.id === id ? { ...user, isEmailConfirmed: false } : user
+  //       )
+  //     );
 
-      setSelectedOrg(null);
-    } catch (error) {
-      console.error("Ошибка отклонения организации: ", error);
-    }
-  };
+  //     setSelectedOrg(null);
+  //   } catch (error) {
+  //     console.error("Ошибка отклонения организации: ", error);
+  //   }
+  // };
 
-  const handleOpenModal = (org: Org) => {
-    setSelectedOrg(org);
-  };
+  // const handleOpenModal = (org: Org) => {
+  //   setSelectedOrg(org);
+  // };
 
-  const BASE_URL = "http://localhost:3000";
+  const BASE_URL = baseUrl;
 
   const toggleRoleDropdown = () => {
     setIsRoleDropdownOpen(!isRoleDropdownOpen);
@@ -245,7 +200,7 @@ export default function UsersList() {
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
-                <label className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <label className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="roleFilter"
@@ -285,7 +240,7 @@ export default function UsersList() {
             </button>
             {isStatusDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
-                <label className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <label className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="statusFilter"
@@ -299,7 +254,7 @@ export default function UsersList() {
                 {Object.values(UsersFilterStatus).map((status) => (
                   <label
                     key={status}
-                    className="flex items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <input
                       type="radio"
@@ -352,20 +307,20 @@ export default function UsersList() {
                         {user.role}
                       </span>
                     </div>
-                    {user.role === "организация" &&
+                    {user.role === ROLE_TYPE.BUSINESS &&
                       user.isEmailConfirmed === false && (
                         <button
-                          onClick={() =>
-                            handleOpenModal({
-                              id: user.id,
-                              name: user.fullName,
-                              imgUrl: user.picture,
-                              description: "",
-                              siteUrl: user.email,
-                              isConfirmed: user.isEmailConfirmed ?? false,
-                              isBanned: user.isBanned ?? false,
-                            })
-                          }
+                          // onClick={() =>
+                          //   handleOpenModal({
+                          //     id: user.id,
+                          //     name: user.fullName,
+                          //     imgUrl: user.picture,
+                          //     description: "",
+                          //     siteUrl: user.email,
+                          //     isConfirmed: user.isEmailConfirmed ?? false,
+                          //     isBanned: user.isBanned ?? false,
+                          //   })
+                          // }
                           className="bg-white border h-[48px] border-[#39B56B] rounded-[16px] text-[#39B56B] py-[12px] px-[16px]"
                         >
                           Подтвердить
@@ -392,7 +347,7 @@ export default function UsersList() {
           )}
         </div>
       </div>
-      {selectedOrg && (
+      {/* {selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
             <button
@@ -462,7 +417,7 @@ export default function UsersList() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

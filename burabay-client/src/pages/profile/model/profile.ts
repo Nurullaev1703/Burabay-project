@@ -18,6 +18,7 @@ export interface Organization {
 }
 
 export interface Profile {
+  id: string,
   fullName: string;
   email: string;
   isEmailConfirmed: boolean;
@@ -25,4 +26,5 @@ export interface Profile {
   phoneNumber: string;
   picture: string;
   role: ROLE_TYPE;
+  isBanned: boolean
 }

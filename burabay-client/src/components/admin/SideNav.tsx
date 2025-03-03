@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import logo from "../../../public/icons/logo.png";
+import logo from "../../../public/icons/logo.svg";
 import info from "../../../public/icons/complaints.svg";
 import users from "../../../public/icons/users.svg";
 import messages from "../../../public/icons/messages.svg";
-import analytics from "../../../public/icons/analytics.png";
-import logout from "../../../public/icons/logout.png";
+import analytics from "../../../public/icons/analytics.svg";
+import logout from "../../../public/icons/logout.svg";
 import { Link, useNavigate, useMatchRoute } from "@tanstack/react-router";
 
 interface SideNavProps {
@@ -30,19 +30,21 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
 
   return (
     <div
-      className={`side-nav ${className} fixed top-0 left-0 h-full bg-[#0A7D9E] 
-        ${isExpanded ? "w-[312px] px-4 py-[33px]" : "w-[94px] px-4 py-[33px]"} 
-        transition-all duration-300 ease-linear
+      className={`side-nav ${className} overflow-hidden fixed top-0 left-0 h-full bg-[#0A7D9E]  px-4 py-8
+      transition-all duration-300 ease-linear
+      ${isExpanded ? "w-[312px]" : "w-[94px] "} 
       `}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Логотип */}
-      <div className="flex items-center gap-2 justify-center">
-        <div className="flex justify-center items-center w-[62px] h-[29px]">
-          <img src={logo} alt="Logo" />
-        </div>
-        {isExpanded && <span className="text-white text-lg font-semibold">Администратор</span>}
+      <div className="flex items-center gap-2">
+        <img src={logo} alt="Logo" />
+        {isExpanded && (
+          <span className="text-white text-lg font-semibold">
+            Администратор
+          </span>
+        )}
       </div>
 
       {/* Навигационные ссылки */}
@@ -62,10 +64,12 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
                 src={link.icon}
                 alt={link.label}
                 className={`w-[30px] h-[30px] transition-all duration-300
-                  ${isActive ? "filter invert brightness-0" : ""}
+                  ${isActive ? "" : "brightness-[5]"}
                 `}
               />
-              {isExpanded && <span className="text-md font-medium ml-2">{link.label}</span>}
+              {isExpanded && (
+                <span className="text-md font-medium ml-2">{link.label}</span>
+              )}
             </Link>
           );
         })}
@@ -75,9 +79,9 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
       <div className="absolute bottom-4 w-full">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-4 px-4 py-[12px] text-white hover:border-white border-[1.05px] border-transparent hover:border-white rounded-[8px] cursor-pointer w-full"
+          className="flex items-center gap-4 px-4 py-[12px] text-white border border-transparent hover:border-white rounded-[8px] cursor-pointer w-full"
         >
-          <img src={logoutIcon} alt="Выйти" className="w-[30px] h-[30px]" />
+          <img src={logoutIcon} alt="Выйти" className="w-[30px] h-[30px] brightness-[5]" />
           {isExpanded && <span className="text-md font-medium">Выйти</span>}
         </button>
       </div>

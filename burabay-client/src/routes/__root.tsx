@@ -17,6 +17,7 @@ export const AUTH_PATH = [
   "/help",
   "/welcome",
   "/HelpPage",
+  "/admin/auth"
 ];
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({

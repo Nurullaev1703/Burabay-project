@@ -4,6 +4,7 @@ import Header from "../../../components/admin/Header";
 import "../../../app/styles/index.css";
 import authBg from "../../../app/icons/bg_auth.png";
 import { TextField } from "@mui/material";
+import { useAuth } from "../../../features/auth";
 
 interface AuthFormData {
   email: string;
@@ -16,7 +17,7 @@ const AuthPage: React.FC = () => {
     email: "",
     password: "",
   });
-
+  const { setToken } = useAuth()
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ const AuthPage: React.FC = () => {
 
       if (response.ok) {
         setMessage("Регистрация успешна!");
+        const token = await response.json() as string;
+        setToken(token)
         navigate({ to: "/admin/dashboard/complaints" });
       } else {
         setMessage("Ошибка регистрации");

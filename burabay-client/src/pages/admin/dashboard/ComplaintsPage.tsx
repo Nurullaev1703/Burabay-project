@@ -221,8 +221,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                           className="font-semibold cursor-pointer text-blue-500"
                           onClick={() =>
                             fetchOrgInfo(
-                              review.orgId ||
-                                "3db2a1cd-e76f-4144-9f21-3b58f1c72623"
+                              review.orgId
                             )
                           }
                         >
@@ -342,7 +341,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             </div>
                         {/* Отображение объявлений */}       
             {selectedOrg.ads.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                            
                 {selectedOrg.ads.map((ad, index) => (
                   <AdCard key={index} ad={ad} isOrganization={true} />
@@ -352,7 +351,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
               <p className="text-gray-500">Нет объявлений</p>
             )}
                         {/* Кнопки блокировки/разблокировки */}       
-            <div className="mt-4 flex justify-between">
+            <div className="mt-4 flex justify-between mb-8">
                        
               <button className="bg-red text-white px-4 py-2 rounded-lg">
                                 Заблокировать пользователя          

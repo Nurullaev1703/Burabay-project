@@ -89,7 +89,7 @@ export class AdminPanelService {
           title: true,
           reviewCount: true,
           avgRating: true,
-          organization: { name: true, imgUrl: true },
+          organization: { name: true, imgUrl: true, id: true },
         },
         report: {
           text: true,
