@@ -44,7 +44,6 @@ export class AdminPanelService {
       select: {
         id: true,
         title: true,
-        price: true,
         images: true,
         reviewCount: true,
         avgRating: true,
@@ -54,7 +53,6 @@ export class AdminPanelService {
       const result: AdminPanelAd = {
         id: ad.id,
         title: ad.title,
-        price: ad.price,
         reviewCount: ad.reviewCount,
         avgRating: ad.avgRating,
         image: ad.images[0],
