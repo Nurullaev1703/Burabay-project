@@ -18,8 +18,8 @@ import DeleteIcon from "../../../app/icons/profile/confirm/delete.svg";
 interface FormType {
   iin: string;
   phoneNumber: string;
-  registerFile: string;
-  IBANFile: string;
+  registerFile: File | null;
+  IBANFile: File | null;
 }
 
 export const IEForm: FC = function IEForm() {
@@ -33,8 +33,8 @@ export const IEForm: FC = function IEForm() {
     defaultValues: {
       iin: "",
       phoneNumber: "",
-      registerFile: "",
-      IBANFile: "",
+      registerFile: null,
+      IBANFile: null,
     },
   });
   const mask = useMask({

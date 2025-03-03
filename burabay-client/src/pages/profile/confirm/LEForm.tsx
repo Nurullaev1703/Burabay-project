@@ -14,6 +14,10 @@ import { Button } from "../../../shared/ui/Button";
 import FileIcon from "../../../app/icons/profile/confirm/file.svg";
 import FileSuccessIcon from "../../../app/icons/profile/confirm/file-success.svg";
 import DeleteIcon from "../../../app/icons/profile/confirm/delete.svg";
+import { apiService } from "../../../services/api/ApiService";
+import { HTTP_STATUS } from "../../../services/api/ServerData";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "../../../features/auth";
 
 interface FormType {
   iin: string;
@@ -25,7 +29,7 @@ interface FormType {
 
 export const LEForm: FC = function LEForm() {
   const { t } = useTranslation();
-  const [isLoading, _setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     handleSubmit,
     control,
@@ -44,6 +48,42 @@ export const LEForm: FC = function LEForm() {
     replacement: { _: /\d/ },
     showMask: true,
   });
+  const navigate = useNavigate();
+  const {user, setUser} = useAuth();
+  console.log(user)
+  const handleSubmitForm = async (form: FormType) => {
+    setIsLoading(true);
+    try {
+      // Добавление файла
+      const formData = new FormData();
+      if (form.registerFile) formData.append("registerFile", form.registerFile);
+      if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
+      if (form.charterFile) formData.append("charterFile", form.charterFile);
+      const responseDocs = await apiService.post<string>({
+        url: `/docs`,
+        dto: formData,
+      });
+
+      if (parseInt(responseDocs.data) !== parseInt(HTTP_STATUS.CREATED))
+        throw Error("Ошибка при создании");
+
+      const responseFilenames = await apiService.patch<string>({
+        url: `/users/docs-path`,
+        dto: {
+          regCouponPath: form.registerFile?.name,
+          ibanDocPath: form.IBANFile?.name,
+          orgRulePath: form.charterFile?.name,
+        },
+      });
+
+      if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.CREATED))
+        throw Error("Ошибка при создании");
+
+      navigate({ to: "/" });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <section className="min-h-screen bg-background">
