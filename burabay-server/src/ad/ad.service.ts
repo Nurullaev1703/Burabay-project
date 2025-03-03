@@ -26,7 +26,7 @@ export class AdService {
     private readonly dataSource: DataSource,
   ) {}
 
-  /* Метод для создания Объявления. Принимает айти Подкатегории и Организации. */
+  /* Создания Объявления. Принимает айти Подкатегории и Организации. */
   @CatchErrors()
   async create(createAdDto: CreateAdDto) {
     const { organizationId, subcategoryId, ...otherFields } = createAdDto;
@@ -51,7 +51,7 @@ export class AdService {
     return JSON.stringify(newAd.id);
   }
 
-  /* Метод для получения всех Объявлений.
+  /* Получения всех Объявлений.
      Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
   async findAll(tokenData: TokenData, filter?: AdFilter) {
@@ -104,7 +104,7 @@ export class AdService {
     return result;
   }
 
-  /* Метод для получения всех Объявлений у Организации */
+  /* Получения всех Объявлений у Организации */
   @CatchErrors()
   async findAllByOrg(orgId: string, filter?: AdFilter) {
     const queryParams =
@@ -181,7 +181,7 @@ export class AdService {
     return result;
   }
 
-  /* Метод для получения одного Объявления по id. */
+  /* Получения одного Объявления по id. */
   @CatchErrors()
   async findOne(id: string, tokenData?: TokenData) {
     const ad = await this.adRepository.findOne({
@@ -239,7 +239,7 @@ export class AdService {
     return JSON.stringify(HttpStatus.CREATED);
   }
 
-  /* Метод для редактирования Объявления. Принимает айди Объявления. */
+  /* Редактирования Объявления. Принимает айди Объявления. */
   @CatchErrors()
   async update(id: string, updateAdDto: UpdateAdDto) {
     const { subcategoryId, ...oF } = updateAdDto;
@@ -258,7 +258,7 @@ export class AdService {
     return this.adRepository.save(ad);
   }
 
-  /* Метод для удаления Объявления. */
+  /* Удаления Объявления. */
   @CatchErrors()
   async remove(id: string) {
     return await this.dataSource.transaction(async (manager) => {
@@ -287,6 +287,7 @@ export class AdService {
     });
   }
 
+  /* Поиск среди Объявлений. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];
     ads.forEach((ad) => {

@@ -6,6 +6,8 @@ export interface Organization {
   id: string;
   imgUrl: string;
   isConfirmed: boolean;
+  isConfirmCanceled: boolean;
+  isConfirmWating: boolean;
   name: string;
   rating: number;
   reviewCount: number;
