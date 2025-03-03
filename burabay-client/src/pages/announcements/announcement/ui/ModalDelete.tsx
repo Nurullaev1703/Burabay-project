@@ -9,9 +9,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   adId: string
+  isAdmin?: boolean;
 }
 
-export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId }) {
+export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId, isAdmin }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const handleDeleteAd = async() => {
@@ -32,21 +33,21 @@ export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId
       aria-describedby="modal-description"
       sx={{
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: isAdmin ? "center" : "flex-end",
         justifyContent: "center",
         overflow: "auto",
-        maxHeight: "100%",
+        maxHeight: "max-h-100%",
       }}
     >
       <Box
         sx={{
+          height: "fit",
           bgcolor: "background.paper",
           boxShadow: 24,
           p: "24px",
           width: "100%",
           maxWidth: 600,
-          borderTopLeftRadius: 14,
-          borderTopRightRadius: 14,
+          borderRadius: isAdmin ? "14px" : "14px 14px 0 0",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
