@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { apiService } from "../../../services/api/ApiService";
-
-import { ROLE_TYPE } from "../../../../../burabay-server/src/users/types/user-types";
-import { UsersFilterStatus } from "../../../../../burabay-server/src/admin-panel/types/admin-panel-filters.type";
 import { Profile } from "../../profile/model/profile";
 import { baseUrl } from "../../../services/api/ServerData";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { UsersFilterStatus } from "./model/user-filter";
 
 
 export default function UsersList() {
