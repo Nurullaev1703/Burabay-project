@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import NotFoundImg from "../../app/icons/404.svg";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { Button } from "../../shared/ui/Button";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 
 export const NotFound: FC = function NotFound() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { history } = useRouter()
   return (
     <section className="flex flex-col items-center min-h-screen">
       <h1
@@ -23,7 +23,7 @@ export const NotFound: FC = function NotFound() {
 
       <Button
         className="fixed bottom-4 left-3 w-header z-10"
-        onClick={() => navigate({ to: "/" })}
+        onClick={() => history.back()}
       >
         {t("back")}
       </Button>

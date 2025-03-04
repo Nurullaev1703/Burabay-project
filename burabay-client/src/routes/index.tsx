@@ -1,17 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
-// import { useGetProfile } from "../pages/profile/profile-util";
-// import { Loader } from "../components/Loader";
-import { Profile } from "../pages/profile/Profile";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { roleService } from "../services/storage/Factory";
+import { ROLE_TYPE } from "../pages/auth/model/auth-model";
 
 export const Route = createFileRoute("/")({
-    component: RouteInit
+    beforeLoad: RouteInit
 });
 
 function RouteInit() {
-  // const { data, isLoading } = useGetProfile();
-  // if (isLoading) return <Loader />;
-
-  // if (data) {
-        return <Profile/>;
-  // }
+  switch (roleService.getValue()) {
+    case ROLE_TYPE.ADMIN:
+      throw redirect({ to: "/admin/auth" });
+    case ROLE_TYPE.BUSINESS:
+      throw redirect({ to: "/announcements" });
+    case ROLE_TYPE.TOURIST:
+      throw redirect({ to: "/main" });
+    default:
+      throw redirect({ to: "/welcome" });
+  }
 }

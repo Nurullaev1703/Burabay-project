@@ -5,6 +5,7 @@ import "../../../app/styles/index.css";
 import authBg from "../../../app/icons/bg_auth.png";
 import { TextField } from "@mui/material";
 import { useAuth } from "../../../features/auth";
+import { baseUrl } from "../../../services/api/ServerData";
 
 interface AuthFormData {
   email: string;
@@ -33,7 +34,7 @@ const AuthPage: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch("http://localhost:3000/auth/admin/", {
+      const response = await fetch(baseUrl + "/auth/admin/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

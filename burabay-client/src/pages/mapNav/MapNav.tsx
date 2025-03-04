@@ -62,7 +62,6 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
@@ -74,8 +73,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
-  const role = roleService.getValue()
-  
+  const role = roleService.getValue();
+
   useEffect(() => {
     if (window.google && window.google?.maps?.TravelMode) {
       setTravelMode(google.maps.TravelMode.DRIVING);
@@ -90,11 +89,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const adId = queryParams.get("adId");
   useEffect(() => {
     if (!isLoaded || !mapReady || !adId) return;
-  
+
     const selectedAnnouncement = announcements.find(
       (announcement) => String(announcement.id) === adId
     );
-  
+
     if (selectedAnnouncement && mapRef.current) {
       setAnnouncementInfo(selectedAnnouncement);
       setShowAnnouncementModal(true);
@@ -104,8 +103,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       });
     }
   }, [adId, announcements, isLoaded, mapReady]);
-  
-  
+
   const [isLocationDenied, setIsLocationDenied] = useState(false);
 
   const [userLocation, setUserLocation] = useState<{
@@ -267,7 +265,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         );
         if (selectedAnnouncement) {
           setAnnouncementInfo(selectedAnnouncement);
-          setIsFavourite(selectedAnnouncement.isFavourite)
+          setIsFavourite(selectedAnnouncement.isFavourite);
           setShowAnnouncementModal(true); // Показываем модальное окно
         }
       }
@@ -371,17 +369,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
     setSelectedMarker(announcementId);
-  
+
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === announcementId
     );
-  
+
     if (selectedAnnouncement) {
       setAnnouncementInfo(selectedAnnouncement);
       setIsFavourite(selectedAnnouncement.isFavourite);
       setShowAnnouncementModal(true);
-  
-      if (selectedAnnouncement.address?.latitude && selectedAnnouncement.address?.longitude && mapRef.current) {
+
+      if (
+        selectedAnnouncement.address?.latitude &&
+        selectedAnnouncement.address?.longitude &&
+        mapRef.current
+      ) {
         mapRef.current.panTo({
           lat: selectedAnnouncement.address.latitude,
           lng: selectedAnnouncement.address.longitude,
@@ -417,29 +419,26 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     }
   };
   const [isFavourite, setIsFavourite] = useState<boolean>(
-      announcementInfo?.isFavourite || false
-    );
-  
-    const addToFavourite = async () => {
-      if (announcementInfo) {
-        await apiService.get({
-          url: `/ad/favorite/${announcementInfo.id}`,
-        });
-        isFavourite ? setIsFavourite(false) : setIsFavourite(true);
-        await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
-        await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
-      }
-    };
+    announcementInfo?.isFavourite || false
+  );
+
+  const addToFavourite = async () => {
+    if (announcementInfo) {
+      await apiService.get({
+        url: `/ad/favorite/${announcementInfo.id}`,
+      });
+      isFavourite ? setIsFavourite(false) : setIsFavourite(true);
+      await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
+      await queryClient.refetchQueries({
+        queryKey: ["main-page-announcements"],
+      });
+    }
+  };
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
         <div className="flex justify-between items-center text-center">
-          <IconContainer
-            align="start"
-            action={() =>
-              history.back()
-            }
-          >
+          <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} />
           </IconContainer>
           <div className="w-full flex items-center  gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
@@ -602,7 +601,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 >
                   <img
                     src={baseUrl + item.imgPath}
-                    className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-[0]"
+                    className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-[25] z-[0]"
                   />
                 </div>
                 <Typography
@@ -681,7 +680,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-10"
+                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[25] z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>
@@ -698,12 +697,19 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                           ? `${announcementInfo.price} ₸`
                           : t("free")}
                       </Typography>
-                      { 
-                        role == ROLE_TYPE.TOURIST &&  
-                        <IconContainer align="center" action={() => addToFavourite()}>
-                          <img src={isFavourite ? FavouriteActiveIcon : FavouriteIcon} alt="" />
+                      {role == ROLE_TYPE.TOURIST && (
+                        <IconContainer
+                          align="center"
+                          action={() => addToFavourite()}
+                        >
+                          <img
+                            src={
+                              isFavourite ? FavouriteActiveIcon : FavouriteIcon
+                            }
+                            alt=""
+                          />
                         </IconContainer>
-                      }
+                      )}
                     </div>
                     <div className="flex flex-row gap-2">
                       <img src={star} alt="" />
