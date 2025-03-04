@@ -39,7 +39,7 @@ interface Props {
 const initialCenter = [70.31, 53.08]; // Координаты для Борового
 
 export const MapComponent: FC<Props> = ({ adId, announcement }) => {
-  const googleMapsApiKey = "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q";
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLEMAP_API_KEY;
   const googleMapsLayer = new TileLayer({
     source: new XYZ({
       url: `https://mt{0-3}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=en&gl=en&key=${googleMapsApiKey}`,

@@ -37,7 +37,7 @@ export class AdminPanelController {
     return this.adminPanelService.checkOrg(orgId);
   }
 
-  @Patch('check-org/:orgId')
+  @Patch('cancel-org/:orgId')
   async cancelCheckOrg(@Param('orgId') orgId: string) {
     return this.adminPanelService.cancelCheckOrg(orgId);
   }

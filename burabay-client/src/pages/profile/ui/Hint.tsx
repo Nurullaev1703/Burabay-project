@@ -2,6 +2,7 @@ import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import CheckMark from "../../../app/icons/check-mark.svg";
 import WaitingMark from "../../../app/icons/waiting-mark.svg";
+import { useNavigate } from "@tanstack/react-router";
 
 export type accountStatus =
   | "unconfirmed"
@@ -16,6 +17,7 @@ interface Props {
 
 export const Hint: FC<Props> = function Hint({ accountStatus }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   return (
     <div className="mb-2">
       {accountStatus === "unconfirmed" && (
@@ -27,6 +29,7 @@ export const Hint: FC<Props> = function Hint({ accountStatus }) {
               {t("accountConfirm")}
             </span>
             <button
+              onClick={() => navigate({ to: "/profile/confirm" })}
               className={`mt-2.5 font-semibold text-white border-solid border-2 rounded-lg py-1 px-3.5 border-white`}
             >
               {t("details")}

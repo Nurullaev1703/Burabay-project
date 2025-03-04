@@ -25,7 +25,13 @@ export class AuthenticationService {
     private readonly entityManager: EntityManager,
     private readonly emailService: EmailService,
     private jwtService: JwtService,
-  ) {}
+  ) {
+    this.createAdminAccount({
+      email: "burabay-admin@gmail.com",
+      role: ROLE_TYPE.ADMIN,
+      password: "burAdmin2025"
+    })
+  }
 
   // регистрация нового пользователя
   private async _registerTourist(signInDto: SignInDto) {
@@ -299,4 +305,52 @@ export class AuthenticationService {
     await this.entityManager.save(updatedUser);
     return JSON.stringify(HttpStatus.OK);
   }
+
+  async adminAuth(signInDto: SignInDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: signInDto.email,
+        role: ROLE_TYPE.ADMIN,
+      },
+    });
+
+    // если у пользователя есть пароль, то проверяем
+    if (user.password.length) {
+      const isPasswordMatch = await bcrypt.compare(signInDto.password, user.password);
+
+      if (!isPasswordMatch) {
+        return JSON.stringify(HttpStatus.CONFLICT);
+      }
+      const payload: TokenData = { id: user.id };
+      const token = await this.jwtService.signAsync(payload);
+
+      return JSON.stringify(token);
+    }
+  }
+
+
+  private async createAdminAccount(signInDto: SignInDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: signInDto.email
+      }
+    })
+    if (user) {
+      return JSON.stringify(HttpStatus.CONFLICT);
+    }
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(signInDto.password, salt);
+    const newUser = new User({
+      fullName: '',
+      phoneNumber: '',
+      role: ROLE_TYPE.ADMIN,
+      email: signInDto.email,
+      password: hash,
+      isEmailConfirmed: true,
+      picture: '',
+    });
+    await this.entityManager.save(newUser);
+    return JSON.stringify(HttpStatus.CREATED);
+  }
+  
 }

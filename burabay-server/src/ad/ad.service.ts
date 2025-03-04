@@ -8,12 +8,9 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
-import { AdFilter } from './types/ad.filter';
+import { AdFilter } from './types/ad-filter.type';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
-import { Break } from 'src/breaks/entities/break.entity';
 
 @Injectable()
 export class AdService {
@@ -26,17 +23,10 @@ export class AdService {
     private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
-    // TODO упростить связки с репозиториями при удалении
     private readonly dataSource: DataSource,
-    @InjectRepository(Schedule)
-    private readonly scheduleRepository: Repository<Schedule>,
-    @InjectRepository(BookingBanDate)
-    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
-    @InjectRepository(Break)
-    private readonly breakRepository: Repository<Break>,
   ) {}
 
-  /* Метод для создания Объявления. Принимает айти Категории (Подкатегории) и Организации. */
+  /* Создания Объявления. Принимает айти Подкатегории и Организации. */
   @CatchErrors()
   async create(createAdDto: CreateAdDto) {
     const { organizationId, subcategoryId, ...otherFields } = createAdDto;
@@ -61,11 +51,12 @@ export class AdService {
     return JSON.stringify(newAd.id);
   }
 
-  /* Метод для получения всех Объявлений.
+  /* Получения всех Объявлений.
      Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
   async findAll(tokenData: TokenData, filter?: AdFilter) {
     let ads: Ad[];
+    // По Подкатегории.
     if (filter.categoryNames) {
       const categoryNamesArr = filter.categoryNames.split(',');
       ads = await this.adRepository.find({
@@ -83,6 +74,7 @@ export class AdService {
           createdAt: 'DESC',
         },
       });
+      // Без Подкатегории.
     } else {
       ads = await this.adRepository.find({
         relations: {
@@ -112,13 +104,16 @@ export class AdService {
     return result;
   }
 
-  /* Метод для получения всех Объявлений у Организации */
+  /* Получения всех Объявлений у Организации */
   @CatchErrors()
   async findAllByOrg(orgId: string, filter?: AdFilter) {
-    const queryParams = filter.limit && filter.offset ? {
-      take: filter.limit,
-      skip: filter.offset,
-    } : {}
+    const queryParams =
+      filter.limit && filter.offset
+        ? {
+            take: filter.limit,
+            skip: filter.offset,
+          }
+        : {};
     let ads = await this.adRepository.find({
       where: {
         organization: { id: orgId },
@@ -136,7 +131,7 @@ export class AdService {
       order: {
         createdAt: 'DESC',
       },
-      ...queryParams
+      ...queryParams,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
     if (filter.adName) {
@@ -171,16 +166,22 @@ export class AdService {
             isBanned: true,
             isConfirmed: true,
           },
-          subcategory: { name: true, category: { imgPath: true } },
+          subcategory: { name: true, category: { name: true, imgPath: true } },
         },
       },
     });
     Utils.checkEntity(user, 'Пользователь не найден');
     Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
-    return user.favorites;
+    const result = user.favorites.map((ad) => {
+      return {
+        ...ad,
+        isFavourite: true,
+      };
+    });
+    return result;
   }
 
-  /* Метод для получения одного Объявления по id. */
+  /* Получения одного Объявления по id. */
   @CatchErrors()
   async findOne(id: string, tokenData?: TokenData) {
     const ad = await this.adRepository.findOne({
@@ -238,7 +239,7 @@ export class AdService {
     return JSON.stringify(HttpStatus.CREATED);
   }
 
-  /* Метод для редактирования Объявления. Принимает айди Объявления. */
+  /* Редактирования Объявления. Принимает айди Объявления. */
   @CatchErrors()
   async update(id: string, updateAdDto: UpdateAdDto) {
     const { subcategoryId, ...oF } = updateAdDto;
@@ -257,7 +258,7 @@ export class AdService {
     return this.adRepository.save(ad);
   }
 
-  /* Метод для удаления Объявления. */
+  /* Удаления Объявления. */
   @CatchErrors()
   async remove(id: string) {
     return await this.dataSource.transaction(async (manager) => {
@@ -286,6 +287,7 @@ export class AdService {
     });
   }
 
+  /* Поиск среди Объявлений. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];
     ads.forEach((ad) => {

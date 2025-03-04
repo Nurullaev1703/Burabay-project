@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 import { Map, View } from "ol";
 import "ol/ol.css";
 import { Tile as TileLayer } from "ol/layer";
@@ -34,7 +34,8 @@ import defaultImage from "../../app/icons/main/health.svg";
 import defaultAnnoun from "../../app/img/ploshadka.jpeg";
 import ellipse from "../../app/icons/announcements/ellipseMalenkiy.svg";
 import star from "../../app/icons/announcements/StarYellow.svg";
-import flag from "../../app/icons/announcements/falg.svg";
+import FavouriteIcon from "../../app/icons/favourite.svg";
+import FavouriteActiveIcon from "../../app/icons/favourite-active.svg";
 import { Button } from "../../shared/ui/Button";
 import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../shared/ui/CoveredImage";
@@ -44,6 +45,10 @@ import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import whiteCircle from "../../app/icons/EllipseWhite.svg";
+import { ROLE_TYPE } from "../auth/model/auth-model";
+import { apiService } from "../../services/api/ApiService";
+import { queryClient } from "../../ini/InitializeApp";
+import { roleService } from "../../services/storage/Factory";
 
 const containerStyle = {
   width: "100%",
@@ -57,8 +62,11 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q", // Замените на ваш ключ API
+    googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
   const location = useLocation();
   const [directionsResponse, setDirectionsResponse] =
@@ -66,29 +74,44 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
+  const role = roleService.getValue()
+  
   useEffect(() => {
     if (window.google && window.google?.maps?.TravelMode) {
       setTravelMode(google.maps.TravelMode.DRIVING);
     }
   }, []);
+  const handleMapLoad = (map: google.maps.Map) => {
+    mapRef.current = map;
+    setMapReady(true);
+  };
 
   const queryParams = new URLSearchParams(location.search as string);
   const adId = queryParams.get("adId");
   useEffect(() => {
-    if (adId) {
-      const selectedAnnouncement = announcements.find(
-        (announcement) => announcement.id === adId
-      );
-      if (selectedAnnouncement) {
-        setAnnouncementInfo(selectedAnnouncement); // Устанавливаем данные объявления
-        setShowAnnouncementModal(true); // Показываем модальное окно
-      }
+    if (!isLoaded || !mapReady || !adId) return;
+  
+    const selectedAnnouncement = announcements.find(
+      (announcement) => String(announcement.id) === adId
+    );
+  
+    if (selectedAnnouncement && mapRef.current) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+      mapRef.current.panTo({
+        lat: selectedAnnouncement.address.latitude,
+        lng: selectedAnnouncement.address.longitude,
+      });
     }
-  }, [adId, announcements]);
+  }, [adId, announcements, isLoaded, mapReady]);
+  
+  
   const [isLocationDenied, setIsLocationDenied] = useState(false);
 
-
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -113,8 +136,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
     }
   }, []);
-  
-  
+
   const calculateRoute = async (latitude: number, longitude: number) => {
     if (!userLocation) {
       console.error("Геолокация пользователя недоступна!");
@@ -245,6 +267,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         );
         if (selectedAnnouncement) {
           setAnnouncementInfo(selectedAnnouncement);
+          setIsFavourite(selectedAnnouncement.isFavourite)
           setShowAnnouncementModal(true); // Показываем модальное окно
         }
       }
@@ -348,12 +371,22 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
     setSelectedMarker(announcementId);
+  
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === announcementId
     );
+  
     if (selectedAnnouncement) {
       setAnnouncementInfo(selectedAnnouncement);
+      setIsFavourite(selectedAnnouncement.isFavourite);
       setShowAnnouncementModal(true);
+  
+      if (selectedAnnouncement.address?.latitude && selectedAnnouncement.address?.longitude && mapRef.current) {
+        mapRef.current.panTo({
+          lat: selectedAnnouncement.address.latitude,
+          lng: selectedAnnouncement.address.longitude,
+        });
+      }
     }
   };
 
@@ -371,20 +404,32 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
   const isClosed =
     hours == 0 && minutes == 0 ? false : closingTime < currentTime;
-    const openLocationSettings = () => {
-      if (/android/i.test(navigator.userAgent)) {
-        // Открыть настройки геолокации на Android
-        window.location.href = "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
-      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Открыть настройки приложения на iOS
-        window.location.href = "app-settings:";
-      } else {
-        alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+  const openLocationSettings = () => {
+    if (/android/i.test(navigator.userAgent)) {
+      // Открыть настройки геолокации на Android
+      window.location.href =
+        "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
+    } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      // Открыть настройки приложения на iOS
+      window.location.href = "app-settings:";
+    } else {
+      alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+    }
+  };
+  const [isFavourite, setIsFavourite] = useState<boolean>(
+      announcementInfo?.isFavourite || false
+    );
+  
+    const addToFavourite = async () => {
+      if (announcementInfo) {
+        await apiService.get({
+          url: `/ad/favorite/${announcementInfo.id}`,
+        });
+        isFavourite ? setIsFavourite(false) : setIsFavourite(true);
+        await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
+        await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
       }
     };
-    
-    
-    
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -392,9 +437,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           <IconContainer
             align="start"
             action={() =>
-              navigate({
-                to: "/main",
-              })
+              history.back()
             }
           >
             <img src={BackIcon} />
@@ -424,6 +467,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             zoomControl: false,
             streetViewControl: false,
           }}
+          onLoad={handleMapLoad}
         >
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
@@ -558,7 +602,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 >
                   <img
                     src={baseUrl + item.imgPath}
-                    className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-200 z-[0]"
+                    className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-[0]"
                   />
                 </div>
                 <Typography
@@ -626,7 +670,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 </div>
                 <div className="flex flex-row gap-4">
                   <CoveredImage
-                  borderRadius="rounded-lg"
+                    borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
@@ -637,7 +681,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                          className=" rounded-lg absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>
@@ -654,7 +698,12 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                           ? `${announcementInfo.price} ₸`
                           : t("free")}
                       </Typography>
-                      <img src={flag} alt="" />
+                      { 
+                        role == ROLE_TYPE.TOURIST &&  
+                        <IconContainer align="center" action={() => addToFavourite()}>
+                          <img src={isFavourite ? FavouriteActiveIcon : FavouriteIcon} alt="" />
+                        </IconContainer>
+                      }
                     </div>
                     <div className="flex flex-row gap-2">
                       <img src={star} alt="" />
@@ -698,6 +747,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         }
                       }}
                       mode="transparent"
+                      className="max-w-fit"
                     >
                       {`${t("BuildTheRoad")}`}
                     </Button>
@@ -731,21 +781,23 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         </div>
       )}
       {isLocationDenied && (
-  <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
-      <Typography size={16} weight={500} className=" mb-2">{t("GeoOn")}</Typography>
-      <Typography size={14} weight={400} className="text-gray-600 mb-4">
-        {t("NeedGeo")}
-      </Typography>
-      <Button
-        onClick={openLocationSettings}
-        className="px-4 py-2 text-white shadow-md"
-      >
-        {t("OpenSettings")}
-      </Button>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
+            <Typography size={16} weight={500} className=" mb-2">
+              {t("GeoOn")}
+            </Typography>
+            <Typography size={14} weight={400} className="text-gray-600 mb-4">
+              {t("NeedGeo")}
+            </Typography>
+            <Button
+              onClick={openLocationSettings}
+              className="px-4 py-2 text-white shadow-md"
+            >
+              {t("OpenSettings")}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <NavMenuClient />
     </main>

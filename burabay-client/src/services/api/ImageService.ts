@@ -1,3 +1,4 @@
+import { tokenService } from "../storage/Factory";
 import { baseUrl } from "./ServerData";
 
 // Данные необходимые для запроса
@@ -11,6 +12,8 @@ interface RequestResponse<T> extends Pick<Response, "status"> {
 }
 
 class ImageService {
+  bearerToken: Record<string, string> = {};
+
   // стандартный запрос на сервер
   private async _serverRequest<T>(
     options: RequestOptions,
@@ -19,6 +22,9 @@ class ImageService {
     return fetch(baseUrl + options.url, {
       method: method,
       body: options.dto,
+      headers: {
+         Authorization: `Bearer ${tokenService.getValue().token}`
+      },
     }).then(async (response) => {
       const data = await response.json();
       return {

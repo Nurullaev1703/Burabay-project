@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   Announcement,
   Review,
@@ -15,13 +15,16 @@ import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../../auth/model/auth-model";
 import { TextField } from "@mui/material";
+import arrowDown from "../../../../app/icons/arrowDown.svg"
 
 interface Props {
   ad: Announcement;
   review?: ReviewAnnouncement;
+  isAdmin?: boolean;
 }
 
-export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
+export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review , isAdmin}) {
+  const [showReviews, setShowReviews] = useState(!isAdmin);
   const [reviews, _] = useState<Review[]>(
     Array.isArray(review?.reviews) ? review.reviews : []
   );
@@ -37,6 +40,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       [index]: !prevState[index],
     }));
   };
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   return (
     <div className="bg-white p-4 mb-2">
       <div className="flex justify-between mb-4">
@@ -44,9 +50,23 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
           <h2 className="text-[22px] font-medium mr-1">
             {t("С высокой оценкой")}
           </h2>
+          {!isAdmin &&
+          
           <Link className="w-6 h-6 flex justify-center items-center">
             <img src={ArrowIcon} alt="Стрелка" className="mt-0.5" />
           </Link>
+          }
+          {isAdmin && 
+          <button
+          className="w-6 h-6 flex justify-center items-center"
+          onClick={() => setShowReviews(!showReviews)}
+        >
+          <img
+            src={showReviews ? arrowDown : ArrowIcon}
+            className="mt-0.5"
+          />
+        </button>
+          }
         </div>
 
         <div className="flex items-center">
@@ -62,7 +82,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
           </span>
         </div>
       </div>
-
+      {showReviews && (
       <ul className="flex flex-col gap-8">
         {/* Вывод отзывов */}
         {reviews.map((review, index) => (
@@ -172,7 +192,8 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
           </li>
         ))}
       </ul>
-
+      )}
+      {!isAdmin &&
       <Button
         mode="transparent"
         className="mb-4"
@@ -180,6 +201,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review }) {
       >
         {t("viewAllReviews")}
       </Button>
+      }
       {roleService.getValue() === ROLE_TYPE.TOURIST && ad.isBookable && (
         <Button
           onClick={() =>

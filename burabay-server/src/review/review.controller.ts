@@ -12,7 +12,6 @@ export class ReviewController {
 
   @Post()
   create(@Request() req: AuthRequest, @Body() createReviewDto: CreateReviewDto) {
-    console.log(req);
     return this.reviewService.create(createReviewDto, req.user);
   }
 

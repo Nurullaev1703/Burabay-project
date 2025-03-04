@@ -3,10 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
-import { Announcement, Review } from "../model/announcements";
+import {
+  Announcement,
+  ReviewAnnouncement,
+} from "../model/announcements";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../shared/ui/colors";
-import { baseUrl } from "../../../services/api/ServerData";
+import { baseUrl, HTTP_STATUS } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import UnfocusedStarIcon from "../../../app/icons/announcements/unfocused-star.svg";
 import SortIcon from "../../../app/icons/announcements/reviews/sort.svg";
@@ -14,6 +17,10 @@ import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { TextField } from "@mui/material";
 import { SortModal } from "./ui/SortModal";
+import WarningIcon from "../../../app/icons/announcements/reviews/warning.svg";
+import { Answer } from "../../reviews/reviewsOrg/review-page/ReviewPage";
+import { apiService } from "../../../services/api/ApiService";
+import { queryClient } from "../../../ini/InitializeApp";
 
 interface Props {
   announcement: Announcement;
@@ -24,12 +31,19 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   announcement,
   review,
 }) {
-  const [reviews, _] = useState<Review[]>(
-    Array.isArray(review.reviews) ? review.reviews : []
-  );
+  const [modalAnswer, setModalAnswer] = useState<
+    Record<string, "complain" | "answer" | false>
+  >({});
+  const [answerText, setAnswerText] = useState<Answer>({
+    reviewId: "",
+    text: "",
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedReviews, setExpandedReviews] = useState<
     Record<number, boolean>
   >({});
+  const [reviewData, setReviewData] = useState<ReviewAnnouncement>(review);
   const [sortModal, setSortModal] = useState<boolean>(false);
   const [sort, setSort] = useState<"highReview" | "lowReview">("highReview");
   const { t } = useTranslation();
@@ -40,12 +54,67 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
       [index]: !prevState[index],
     }));
   };
+  const handleSubmitAnswer = async (type: "complain" | "answer") => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.post<string>({
+        url: type === "complain" ? "/review-report" : "/review-answers",
+        dto: answerText,
+      });
 
+      if (parseInt(response.data) !== parseInt(HTTP_STATUS.CREATED)) {
+        throw new Error("Не удалось добавить ответ");
+      }
+
+      setReviewData((prev) => {
+        // Создаем копию текущих отзывов
+        const updatedReviews = prev.reviews.map((r) => {
+          if (r.id === answerText.reviewId) {
+            // Создаем новый объект отзыва, чтобы React увидел изменение
+            return {
+              ...r,
+              [type === "complain" ? "report" : "answer"]: {
+                text: answerText.text,
+              },
+            };
+          }
+          return r;
+        });
+
+        return {
+          ...prev,
+          reviews: [...updatedReviews], // Обновляем состояние с новым массивом
+        };
+      });
+
+      // Ждем завершения обновления кэша
+      await queryClient.refetchQueries({
+        queryKey: [`/review/ad/${review.adId}`, `/ad/${review.adId}`],
+      });
+
+      setIsLoading(false);
+      setAnswerText({ reviewId: "", text: "" });
+      closeModal(answerText.reviewId);
+    } catch (e) {
+      console.error("Ошибка:", e);
+      setIsLoading(false);
+    }
+  };
+
+  // Функция для открытия модалки для конкретного отзыва
+  const openModal = (reviewId: string, type: "complain" | "answer") => {
+    setModalAnswer((prev) => ({ ...prev, [reviewId]: type }));
+  };
+
+  // Функция для закрытия модалки
+  const closeModal = (reviewId: string) => {
+    setModalAnswer((prev) => ({ ...prev, [reviewId]: false }));
+  };
   const sortedReviews = useMemo(() => {
-    return [...reviews].sort((a, b) =>
+    return [...reviewData.reviews].sort((a, b) =>
       sort === "highReview" ? b.stars - a.stars : a.stars - b.stars
     );
-  }, [reviews, sort]);
+  }, [reviewData.reviews, sort]);
 
   const addReview = (announcement: Announcement) => {
     navigate({
@@ -216,6 +285,92 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                 </li>
               )}
             </ul>
+
+            <div className="flex justify-between mb-4">
+              <img
+                src={WarningIcon}
+                alt="Опровергнуть"
+                onClick={() => openModal(review.id, "complain")}
+              />
+              <span
+                className={`font-semibold ${COLORS_TEXT.blue200}`}
+                onClick={() => openModal(review.id, "answer")}
+              >
+                {t("answer")}
+              </span>
+            </div>
+            {modalAnswer[review.id] === "answer" && (
+              <div>
+                <TextField
+                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                  variant="outlined"
+                  fullWidth={true}
+                  label={t("yourAnswer")}
+                  placeholder={t("writeAnswer")}
+                  onChange={(e) =>
+                    setAnswerText({
+                      reviewId: review.id,
+                      text: e.target.value,
+                    })
+                  }
+                />
+                <div className="flex justify-between">
+                  <Button
+                    className="mr-2.5"
+                    mode="border"
+                    onClick={() => closeModal(review.id)}
+                  >
+                    {t("cancelBtn")}
+                  </Button>
+                  <Button
+                    onClick={() => handleSubmitAnswer("answer")}
+                    loading={isLoading}
+                  >
+                    {t("answer")}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {modalAnswer[review.id] === "complain" && (
+              <div>
+                <TextField
+                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                  variant="outlined"
+                  fullWidth={true}
+                  label={t("complaint")}
+                  placeholder={t("writeComplaint")}
+                  onChange={(e) =>
+                    setAnswerText({
+                      reviewId: review.id,
+                      text: e.target.value,
+                    })
+                  }
+                  InputLabelProps={{
+                    sx: {
+                      color: "red",
+                      "&.Mui-focused": { color: "red" },
+                    },
+                  }}
+                />
+                <div className="flex justify-between">
+                  <Button
+                    className="mr-2.5"
+                    mode="border"
+                    onClick={() => closeModal(review.id)}
+                  >
+                    {t("cancelBtn")}
+                  </Button>
+                  <Button
+                    onClick={() => handleSubmitAnswer("complain")}
+                    mode="error"
+                    loading={isLoading}
+                  >
+                    {t("complain")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </li>
         ))}
       </ul>

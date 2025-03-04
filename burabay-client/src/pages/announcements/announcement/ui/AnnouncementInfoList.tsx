@@ -10,6 +10,7 @@ import { ROLE_TYPE } from "../../../auth/model/auth-model";
 
 interface Props {
   ad: Announcement;
+  isAdmin?: boolean;
 }
 export const formatPhoneNumber = (number: number | string) => {
   const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
@@ -17,6 +18,7 @@ export const formatPhoneNumber = (number: number | string) => {
 };
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
+  isAdmin
 }) {
   const { t } = useTranslation();
 
@@ -84,6 +86,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
+      {!isAdmin &&
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
@@ -94,6 +97,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
+      }
       <li className="py-3">
         <Link
           to={`/announcements/details/${ad.id}`}

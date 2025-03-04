@@ -6,13 +6,19 @@ export interface Organization {
   id: string;
   imgUrl: string;
   isConfirmed: boolean;
+  isConfirmCanceled: boolean;
+  isConfirmWating: boolean;
   name: string;
   rating: number;
   reviewCount: number;
   siteUrl: string;
+  regCouponPath: string;
+  ibanDocPath: string;
+  orgRulePath: string;
 }
 
 export interface Profile {
+  id: string,
   fullName: string;
   email: string;
   isEmailConfirmed: boolean;
@@ -20,4 +26,5 @@ export interface Profile {
   phoneNumber: string;
   picture: string;
   role: ROLE_TYPE;
+  isBanned: boolean
 }

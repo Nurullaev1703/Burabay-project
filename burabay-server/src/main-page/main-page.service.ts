@@ -1,12 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
-import { AdFilter } from 'src/ad/types/ad.filter';
+import { AdFilter } from 'src/ad/types/ad-filter.type';
 import { Category } from 'src/category/entities/category.entity';
-import { CatchErrors } from 'src/utilities';
+import { CatchErrors, Utils } from 'src/utilities';
 import stringSimilarity from 'string-similarity-js';
-import { Between, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Raw, Repository } from 'typeorm';
+import {
+  Between,
+  In,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Not,
+  Raw,
+  Repository,
+} from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Injectable()
 export class MainPageService {
@@ -15,6 +25,8 @@ export class MainPageService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
   ) {}
 
   async getMainPageAnnouncements(filter?: AdFilter) {
@@ -39,6 +51,7 @@ export class MainPageService {
     return filter.adName ? this._searchAd(filter.adName, announcements) : announcements;
   }
 
+  /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
   @CatchErrors()
   async getMainPageAds(tokenData: TokenData, mainPageFilter?: MainPageFilter) {
     let whereOptions: any = {};
@@ -51,6 +64,57 @@ export class MainPageService {
 
     // Фильтр только с высоким рейтингом
     if (mainPageFilter.isHighRating) whereOptions.avgRating = MoreThan(4.5);
+
+    // Поиск по свободным датам заселения и выезда.
+    if (mainPageFilter.startDate && mainPageFilter.endDate) {
+      const tryStartDate: Date = Utils.stringDateToDate(mainPageFilter.startDate);
+      const tryEndDate: Date = Utils.stringDateToDate(mainPageFilter.endDate);
+      const bookings = await this.bookingRepository.find({
+        relations: { ad: true },
+        where: {
+          dateStart: Between(tryStartDate, tryEndDate),
+          dateEnd: Between(tryStartDate, tryEndDate),
+        },
+        select: {
+          ad: { id: true },
+          dateEnd: true,
+          dateStart: true,
+        },
+      });
+
+      const adsIds = bookings.map((booking) => booking.ad.id);
+      if (adsIds.length > 0) {
+        whereOptions = {
+          ...whereOptions,
+          id: Not(In(adsIds)),
+        };
+      }
+    }
+
+    // Фильтр по дате въезда, без даты выезда.
+    if (mainPageFilter.startDate && !mainPageFilter.endDate) {
+      const tryStartDate: Date = Utils.stringDateToDate(mainPageFilter.startDate);
+      const bookings = await this.bookingRepository.find({
+        relations: { ad: true },
+        where: {
+          dateStart: LessThanOrEqual(tryStartDate),
+          dateEnd: MoreThanOrEqual(tryStartDate),
+        },
+        select: {
+          ad: { id: true },
+          dateEnd: true,
+          dateStart: true,
+        },
+      });
+
+      const adsIds = bookings.map((booking) => booking.ad.id);
+      if (adsIds.length > 0) {
+        whereOptions = {
+          ...whereOptions,
+          id: Not(In(adsIds)),
+        };
+      }
+    }
 
     // фильтр по категориям
     if (mainPageFilter.category) {
@@ -109,10 +173,9 @@ export class MainPageService {
       skip: mainPageFilter.offset || 0,
       take: mainPageFilter.limit || 10,
     });
-    const userIdSet = new Set(ads.flatMap((ad) => ad.usersFavorited.map((user) => user.id)));
     const result = ads.map((ad) => ({
       ...ad,
-      isFavorite: userIdSet.has(tokenData.id),
+      isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id),
     }));
 
     // Поиск по названию
