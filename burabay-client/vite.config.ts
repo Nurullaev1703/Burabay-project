@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), TanStackRouterVite()],
   server: {
     host: true,
-    port: 5174,
+    port: 5173,
     open: true,
     hmr: true,
     proxy: {
