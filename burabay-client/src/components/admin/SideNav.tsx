@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import logo from "../../../public/icons/logo.svg";
-import info from "../../../public/icons/complaints.svg";
-import users from "../../../public/icons/users.svg";
-import messages from "../../../public/icons/messages.svg";
-import analytics from "../../../public/icons/analytics.svg";
-import logout from "../../../public/icons/logout.svg";
+import logo from "../../app/icons/admin/logo.svg";
+import info from "../../app/icons/admin/complaints.svg";
+import users from "../../app/icons/admin/users.svg";
+import messages from "../../app/icons/admin/messages.svg";
+import analytics from "../../app/icons/admin/analytics.svg";
+import logout from "../../app/icons/admin/logout.svg";
 import { Link, useNavigate, useMatchRoute } from "@tanstack/react-router";
 
 interface SideNavProps {
@@ -81,7 +81,11 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
           onClick={handleLogout}
           className="flex items-center gap-4 px-4 py-[12px] text-white border border-transparent hover:border-white rounded-[8px] cursor-pointer w-full"
         >
-          <img src={logoutIcon} alt="Выйти" className="w-[30px] h-[30px] brightness-[5]" />
+          <img
+            src={logoutIcon}
+            alt="Выйти"
+            className="w-[30px] h-[30px] brightness-[5]"
+          />
           {isExpanded && <span className="text-md font-medium">Выйти</span>}
         </button>
       </div>

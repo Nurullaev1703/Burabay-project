@@ -5,7 +5,6 @@ import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
 import {
   Announcement,
-  Review,
   ReviewAnnouncement,
 } from "../model/announcements";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
@@ -39,9 +38,6 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
     reviewId: "",
     text: "",
   });
-  const [reviews, _] = useState<Review[]>(
-    Array.isArray(review.reviews) ? review.reviews : []
-  );
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedReviews, setExpandedReviews] = useState<

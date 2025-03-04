@@ -19,7 +19,7 @@ const AuthPage: React.FC = () => {
   });
   const { setToken } = useAuth()
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [_message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

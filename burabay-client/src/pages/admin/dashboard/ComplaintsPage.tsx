@@ -219,11 +219,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                       {review.orgName ? (
                         <p
                           className="font-semibold cursor-pointer text-blue-500"
-                          onClick={() =>
-                            fetchOrgInfo(
-                              review.orgId
-                            )
-                          }
+                          onClick={() => fetchOrgInfo(review.orgId)}
                         >
                           {review.orgName}
                         </p>
@@ -269,7 +265,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../../public/icons/Close.png"
+                  src="../../../app/icons/admin/Close.png"
                   alt="Назад"
                   className="w-full h-full"
                 />
@@ -282,7 +278,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../../public/icons/Close.png"
+                  src="../../../app/icons/admin/Close.png"
                   alt="Выход"
                   className="w-full h-full"
                 />

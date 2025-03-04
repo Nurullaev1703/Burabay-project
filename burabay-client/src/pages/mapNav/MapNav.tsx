@@ -45,10 +45,10 @@ import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import whiteCircle from "../../app/icons/EllipseWhite.svg";
-import { roleService } from "../../services/storage/Factory";
 import { ROLE_TYPE } from "../auth/model/auth-model";
 import { apiService } from "../../services/api/ApiService";
 import { queryClient } from "../../ini/InitializeApp";
+import { roleService } from "../../services/storage/Factory";
 
 const containerStyle = {
   width: "100%",
@@ -74,6 +74,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
+  const role = roleService.getValue()
   
   useEffect(() => {
     if (window.google && window.google?.maps?.TravelMode) {
