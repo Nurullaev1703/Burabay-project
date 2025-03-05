@@ -60,7 +60,7 @@ export const AdCard: FC<Props> = function AdCard({
         <img
           src={baseUrl + ad?.subcategory?.category?.imgPath}
           alt="category"
-          className="w-8 h-8 object-contain scale-75 brightness-[5] z-10"
+          className="w-8 h-8 object-contain scale-75 brightness-[25] z-10"
         />
       </div>
       <div className="p-1">

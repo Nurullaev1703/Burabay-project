@@ -14,17 +14,21 @@ import { Button } from "../../../shared/ui/Button";
 import FileIcon from "../../../app/icons/profile/confirm/file.svg";
 import FileSuccessIcon from "../../../app/icons/profile/confirm/file-success.svg";
 import DeleteIcon from "../../../app/icons/profile/confirm/delete.svg";
+import { apiService } from "../../../services/api/ApiService";
+import { imageService } from "../../../services/api/ImageService";
+import { HTTP_STATUS } from "../../../services/api/ServerData";
+import { useNavigate } from "@tanstack/react-router";
 
 interface FormType {
   iin: string;
   phoneNumber: string;
-  registerFile: string;
-  IBANFile: string;
+  registerFile: File | null;
+  IBANFile: File | null;
 }
 
 export const IEForm: FC = function IEForm() {
   const { t } = useTranslation();
-  const [isLoading, _setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     handleSubmit,
     control,
@@ -33,8 +37,8 @@ export const IEForm: FC = function IEForm() {
     defaultValues: {
       iin: "",
       phoneNumber: "",
-      registerFile: "",
-      IBANFile: "",
+      registerFile: null,
+      IBANFile: null,
     },
   });
   const mask = useMask({
@@ -42,7 +46,46 @@ export const IEForm: FC = function IEForm() {
     replacement: { _: /\d/ },
     showMask: true,
   });
+  const navigate = useNavigate();
+ const handleSubmitForm = async (form: FormType) => {
+    setIsLoading(true);
+    try {
+      // Добавление файла
+      const formData = new FormData();
+      if (form.registerFile) formData.append("registerFile", form.registerFile);
+      if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
 
+      const responseDocs = await imageService.post<string>({
+        url: `/full-docs`,
+        dto: formData,
+      });
+
+      if (!responseDocs.data)
+        throw Error("Ошибка при создании");
+
+      const responseFilenames = await apiService.patch<string>({
+        url: `/users/docs-path`,
+        dto: {
+          regCouponPath: form.registerFile?.name,
+          ibanDocPath: form.IBANFile?.name,
+          iin: form.iin,
+          phoneNumber: "+" + form.phoneNumber.replace(/\D/g, "")
+        },
+      });
+      // setUser({
+      //   ...user,
+      //   organization: {
+      //     ...user.organization,
+      //     isConfirmWating: true,
+      //   },
+      // });
+      if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
+        throw Error("Ошибка при создании");
+      navigate({ to: "/" });
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <section className="min-h-screen bg-background">
       <Header>
@@ -76,9 +119,7 @@ export const IEForm: FC = function IEForm() {
 
       <DefaultForm
         className="flex flex-col gap-2 p-4"
-        onSubmit={handleSubmit(async (form) => {
-          console.log(form);
-        })}
+        onSubmit={handleSubmit(handleSubmitForm)}
       >
         <Controller
           name="iin"

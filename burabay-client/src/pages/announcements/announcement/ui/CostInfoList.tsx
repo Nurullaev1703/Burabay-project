@@ -7,10 +7,12 @@ import { Announcement } from "../../model/announcements";
 
 interface Props {
   ad: Announcement
+  isAdmin?: boolean
 }
 
 export const CostInfoList: FC<Props> = function CostInfoList({
-  ad
+  ad,
+  isAdmin
 }) {
   const { t } = useTranslation();
   const formatPrice = (value: number) => {
@@ -66,11 +68,13 @@ export const CostInfoList: FC<Props> = function CostInfoList({
             {t("maxKids")}
           </p>
         </li>
-        {ad.petsAllowed && (
+
+        {ad.petsAllowed && !isAdmin && (
           <li className="mb-4">
             <span>{t("permissionWithAnimals")}</span>
           </li>
         )}
+        {!isAdmin &&
         <li>
           <Link
             to={`/announcements/service-schedule/${ad.id}`}
@@ -80,6 +84,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
             <img src={ArrowRight} alt="Стрелка" />
           </Link>
         </li>
+        }
       </ul>
     </div>
   );

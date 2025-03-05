@@ -51,12 +51,12 @@ interface Props {
   announcements: Announcement[];
 }
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
-  const role = roleService.getValue()
+  const role = roleService.getValue();
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY,
   });
   const [directionsResponse, setDirectionsResponse] =
-  useState<google.maps.DirectionsResult | null>(null);
+    useState<google.maps.DirectionsResult | null>(null);
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
@@ -66,7 +66,10 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     }
   }, []);
   const [isLocationDenied, setIsLocationDenied] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,7 +109,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         destination: { lat: longitude, lng: latitude },
         travelMode: travelMode || google.maps.TravelMode.DRIVING,
       });
-      
+
       setDirectionsResponse(results);
     } catch (error) {
       console.error("Ошибка при построении маршрута:", error);
@@ -118,13 +121,12 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
   const [showAnnouncementModal, setShowAnnouncementModal] =
-  useState<boolean>(false); // Для отображения модального окна с объявлением
+    useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
       return { start: null, end: null }; // Возвращаем null если нет расписания
     }
-    
-    
+
     const days = [
       { start: "sunStart", end: "sunEnd" },
       { start: "monStart", end: "monEnd" },
@@ -180,7 +182,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         );
         if (selectedAnnouncement) {
           setAnnouncementInfo(selectedAnnouncement);
-          setIsFavourite(selectedAnnouncement.isFavourite)
+          setIsFavourite(selectedAnnouncement.isFavourite);
           setShowAnnouncementModal(true); // Показываем модальное окно
         }
       }
@@ -218,7 +220,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
 
           zIndex: 0,
         });
-
 
         // Создание стиля для фона
         const backgroundStyle = new Style({
@@ -305,7 +306,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     );
     if (selectedAnnouncement) {
       setAnnouncementInfo(selectedAnnouncement);
-      setIsFavourite(selectedAnnouncement.isFavourite)
+      setIsFavourite(selectedAnnouncement.isFavourite);
       setShowAnnouncementModal(true);
     }
   };
@@ -316,17 +317,18 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   // Проверяем, если время закрытия меньше текущего времени, то заведение закрыто
   const isClosed =
     hours == 0 && minutes == 0 ? false : closingTime < currentTime;
-    const openLocationSettings = () => {
-      if (/android/i.test(navigator.userAgent)) {
-        // Открыть настройки геолокации на Android
-        window.location.href = "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
-      } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Открыть настройки приложения на iOS
-        window.location.href = "app-settings:";
-      } else {
-        alert("Откройте настройки вручную и разрешите доступ к геолокации.");
-      }
-    };
+  const openLocationSettings = () => {
+    if (/android/i.test(navigator.userAgent)) {
+      // Открыть настройки геолокации на Android
+      window.location.href =
+        "intent://settings#Intent;scheme=android.settings.LOCATION_SOURCE_SETTINGS;end";
+    } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      // Открыть настройки приложения на iOS
+      window.location.href = "app-settings:";
+    } else {
+      alert("Откройте настройки вручную и разрешите доступ к геолокации.");
+    }
+  };
   const [isFavourite, setIsFavourite] = useState<boolean>(
     announcementInfo?.isFavourite || false
   );
@@ -338,7 +340,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       });
       isFavourite ? setIsFavourite(false) : setIsFavourite(true);
       await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
-      await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
+      await queryClient.refetchQueries({
+        queryKey: ["main-page-announcements"],
+      });
     }
   };
   return (
@@ -504,7 +508,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-10"
+                          className="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[25] z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>

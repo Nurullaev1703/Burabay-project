@@ -65,6 +65,7 @@ export class AdminPanelService {
       tourists,
       orgs,
       totalUsers,
+      adsCount: ads.length,
       ads: this._quickSortAdminPanelAds(adsData),
       ...ga4Data,
     };
@@ -88,7 +89,7 @@ export class AdminPanelService {
           title: true,
           reviewCount: true,
           avgRating: true,
-          organization: { name: true, imgUrl: true },
+          organization: { name: true, imgUrl: true, id: true },
         },
         report: {
           text: true,
@@ -162,6 +163,17 @@ export class AdminPanelService {
   async getUsers(filter?: UsersFilter) {
     let users: User[] = [],
       orgsUsers: User[] = [];
+    const selectOptions = {
+      id: true,
+      fullName: true,
+      phoneNumber: true,
+      role: true,
+      picture: true,
+      email: true,
+      isEmailConfirmed: true,
+      isBanned: true,
+      pushToken: true,
+    };
     let usersWhereOptions: any = { role: ROLE_TYPE.TOURIST },
       orgWhereOptions: any = { user: { role: ROLE_TYPE.BUSINESS } };
 
@@ -178,7 +190,7 @@ export class AdminPanelService {
     // Фильтр по роли.
     if (filter.role === ROLE_TYPE.TOURIST) {
       // Поиск туристов.
-      users = await this.userRepository.find({ where: usersWhereOptions });
+      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
       // Поиск по названию среди туристов.
       if (filter.name) {
         const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
@@ -189,6 +201,25 @@ export class AdminPanelService {
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
+        select: {
+          ...selectOptions,
+          organization: {
+            id: true,
+            imgUrl: true,
+            name: true,
+            bin: true,
+            regCouponPath: true,
+            ibanDocPath: true,
+            orgRulePath: true,
+            rating: true,
+            reviewCount: true,
+            isConfirmed: true,
+            isConfirmCanceled: true,
+            description: true,
+            siteUrl: true,
+            isBanned: true,
+          },
+        },
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
@@ -199,9 +230,30 @@ export class AdminPanelService {
       // Поиск всех пользователей.
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
-        relations: { organization: true },
+        relations: {
+          organization: true,
+        },
+        select: {
+          ...selectOptions,
+          organization: {
+            id: true,
+            imgUrl: true,
+            name: true,
+            bin: true,
+            regCouponPath: true,
+            ibanDocPath: true,
+            orgRulePath: true,
+            rating: true,
+            reviewCount: true,
+            isConfirmed: true,
+            isConfirmCanceled: true,
+            description: true,
+            siteUrl: true,
+            isBanned: true,
+          },
+        },
       });
-      users = await this.userRepository.find({ where: usersWhereOptions });
+      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
@@ -213,7 +265,7 @@ export class AdminPanelService {
         orgsUsers = searchedOrgs;
       }
     }
-    return { users, orgsUsers };
+    return [...users, ...orgsUsers];
   }
 
   /** Подтверждение Организации. */
@@ -223,6 +275,7 @@ export class AdminPanelService {
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmed = true;
     org.isConfirmCanceled = false;
+    org.isConfirmWating = false;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -233,6 +286,7 @@ export class AdminPanelService {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmCanceled = true;
+    org.isConfirmWating = false;
     org.isConfirmed = false;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);

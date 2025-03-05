@@ -8,6 +8,8 @@ services:
             dockerfile: Dockerfile.backend
         env_file:
             - burabay-server/.env.docker
+        volumes:
+            - public-data:/app/public
         depends_on:
             - postgres-test
         ports:
@@ -43,3 +45,6 @@ services:
 networks:
     app-network:
         driver: bridge
+
+volumes:
+    public-data:
