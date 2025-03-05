@@ -24,7 +24,7 @@ export const AUTH_PATH = [
 ];
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
-  notFoundComponent: () => <NotFound />,
+  // notFoundComponent: () => <NotFound />,
   component: () => {
     const { token, isAuthenticated } = useAuth();
 
