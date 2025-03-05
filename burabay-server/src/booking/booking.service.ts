@@ -165,12 +165,14 @@ export class BookingService {
       ad: { organization: { user: { id: tokenData.id } } },
     };
 
+    // Фильтр по отмененным броням.
     if (filter.canceled) {
       whereOptions = {
         ...whereOptions,
         status: BookingStatus.CANCELED,
       };
     }
+    // Фильтр по типу оплаты.
     if (filter.onSidePayment !== filter.onlinePayment) {
       if (filter.onSidePayment) {
         whereOptions = {
@@ -202,11 +204,17 @@ export class BookingService {
       let header: string;
 
       if (isRent) {
-        const day = b.dateStart.getDay();
-        const month = b.dateStart.getMonth();
-        const year = b.dateStart.getFullYear();
-        date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
-        header = `${day}.${month + 1}.${year}`;
+        // const day = b.dateStart.getDay();
+        // const month = b.dateStart.getMonth();
+        // const year = b.dateStart.getFullYear();
+        date = b.dateStart;
+        // date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
+        // header = `${day}.${month + 1}.${year}`;
+        header = b.dateStart.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+        });
       } else {
         const [day, month, year] = b.date.split('.');
         date = new Date(`${year}-${month}-${day}`);
@@ -246,7 +254,9 @@ export class BookingService {
       }
 
       if (isRent) {
-        group.ads[b.ad.id].times.push(`с ${b.dateStart} до ${b.dateEnd}`);
+        group.ads[b.ad.id].times.push(
+          `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
+        );
       } else {
         group.ads[b.ad.id].times.push(b.time);
       }
