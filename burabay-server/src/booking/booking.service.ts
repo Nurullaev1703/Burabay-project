@@ -326,10 +326,13 @@ export class BookingService {
     const ad_bookins = [];
     if (isRent) {
       for (const b of bookings) {
+        console.log(b.dateStart);
+        console.log(b.dateEnd);
+        console.log(Utils.dateToString(b.dateStart));
         ad_bookins.push({
           bookingId: b.id,
-          dateStart: b.dateStart,
-          dateEnd: b.dateEnd,
+          dateStart: Utils.dateToString(b.dateStart),
+          dateEnd: Utils.dateToString(b.dateEnd),
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
@@ -343,6 +346,8 @@ export class BookingService {
       }
     } else {
       for (const b of bookings) {
+        console.log(b.dateStart);
+        console.log(b.dateEnd);
         ad_bookins.push({
           bookingId: b.id,
           time: b.time,
