@@ -109,11 +109,7 @@ export class BookingService {
 
       if (isRent) {
         date = b.dateStart;
-        header = b.dateStart.toLocaleDateString('ru-RU', {
-          day: '2-digit',
-          month: '2-digit',
-          year: '2-digit',
-        });
+        header = b.dateStart.toLocaleDateString('ru-RU');
       } else {
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
@@ -145,7 +141,7 @@ export class BookingService {
       // Формируем только даты в "time".
       const newTime = {
         time: isRent
-          ? `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
+          ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
           : b.date,
         status: b.status,
         price: b.totalPrice,
@@ -248,6 +244,7 @@ export class BookingService {
         group.ads[b.ad.id] = {
           ad_id: b.ad.id,
           title: b.ad.title,
+          status: b.status,
           img: b.ad.images[0],
           times: [],
         };
