@@ -52,7 +52,7 @@ export class Utils {
 
   static dateToString(date: Date) {
     const dateString = new Date(date);
-    return `${dateString.getDate()}.${dateString.getMonth() + 1}.${dateString.getFullYear()}`;
+    return `${String(dateString.getDate()).padStart(2, '0')}.${String(dateString.getMonth() + 1).padStart(2, '0')}.${dateString.getFullYear()}`;
   }
 }
 

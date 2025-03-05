@@ -25,6 +25,7 @@ export class BookingService {
     private readonly notificationRepository: Repository<Notification>,
   ) {}
 
+  /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
     const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
@@ -33,13 +34,17 @@ export class BookingService {
       where: { id: adId },
       relations: { subcategory: { category: true } },
     });
-    let dateStart, dateEnd;
-    if (dateStart) {
+
+    // Преобразовать строковые даты из DTO в тип js даты.
+    let dateStart: Date, dateEnd: Date;
+    if (dateStartDto) {
       dateStart = Utils.stringDateToDate(dateStartDto);
     }
-    if (dateEnd) {
+    if (dateEndDto) {
       dateEnd = Utils.stringDateToDate(dateEndDto);
     }
+
+    // Создание брони.
     const newBooking = this.bookingRepository.create({
       user: user,
       ad: ad,
@@ -47,27 +52,37 @@ export class BookingService {
       dateEnd: dateEnd ? dateEnd : null,
       ...oF,
     });
+
+    // Является ли объявление арендой.
     const isRent =
       ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+
+    // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
     if (isRent) {
       const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
       newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
     } else {
       newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
     }
+
+    // Сохранение
     await this.bookingRepository.save(newBooking);
     return JSON.stringify(HttpStatus.CREATED);
   }
 
+  /* Получение всех бронирований Пользователя. */
   @CatchErrors()
   async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
     const whereOptions: Record<string, any> = {
       user: { id: tokenData.id },
     };
 
+    // Фильтр отмененных броней.
     if (filter?.canceled) {
       whereOptions.status = BookingStatus.CANCELED;
     }
+
+    // Фильтр по типу оплаты.
     if (filter?.onSidePayment !== filter?.onlinePayment) {
       if (filter?.onSidePayment) whereOptions.paymentType = PaymentType.CASH;
       if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
@@ -78,9 +93,10 @@ export class BookingService {
       relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
     });
 
+    // Группировка по дате.
     const groups: { header: string; ads: any[] }[] = [];
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения
+    today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
       const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
@@ -88,15 +104,15 @@ export class BookingService {
       let header: string;
 
       if (isRent) {
-        date = new Date(b.dateStart);
-        header = date.toLocaleDateString('ru-RU');
+        date = b.dateStart;
+        header = b.dateStart.toLocaleDateString('ru-RU');
       } else {
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
         header = b.date;
       }
 
-      // Проверяем "Сегодня" и "Завтра"
+      // Проверяем "Сегодня" и "Завтра".
       const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
       if (diffDays === 0) header = 'Сегодня';
       if (diffDays === 1) header = 'Завтра';
@@ -118,11 +134,11 @@ export class BookingService {
         group.ads.push(adGroup);
       }
 
-      // Формируем только даты в "time"
+      // Формируем только даты в "time".
       const newTime = {
         time: isRent
           ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
-          : b.date, // Уже в формате "21.02.2025"
+          : b.time,
         status: b.status,
         price: b.totalPrice,
         isPaid: b.isPaid,
@@ -134,18 +150,21 @@ export class BookingService {
     return groups;
   }
 
+  /* Получить все бронирования Организации. */
   @CatchErrors()
   async findAllByOrgId(tokenData: TokenData, filter?: BookingFilter) {
     let whereOptions: object = {
       ad: { organization: { user: { id: tokenData.id } } },
     };
 
+    // Фильтр по отмененным броням.
     if (filter.canceled) {
       whereOptions = {
         ...whereOptions,
         status: BookingStatus.CANCELED,
       };
     }
+    // Фильтр по типу оплаты.
     if (filter.onSidePayment !== filter.onlinePayment) {
       if (filter.onSidePayment) {
         whereOptions = {
@@ -177,11 +196,17 @@ export class BookingService {
       let header: string;
 
       if (isRent) {
-        const day = b.dateStart.getDay();
-        const month = b.dateStart.getMonth();
-        const year = b.dateStart.getFullYear();
-        date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
-        header = `${day}.${month + 1}.${year}`;
+        // const day = b.dateStart.getDay();
+        // const month = b.dateStart.getMonth();
+        // const year = b.dateStart.getFullYear();
+        date = b.dateStart;
+        // date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
+        // header = `${day}.${month + 1}.${year}`;
+        header = b.dateStart.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+        });
       } else {
         const [day, month, year] = b.date.split('.');
         date = new Date(`${year}-${month}-${day}`);
@@ -215,15 +240,19 @@ export class BookingService {
         group.ads[b.ad.id] = {
           ad_id: b.ad.id,
           title: b.ad.title,
+          status: b.status,
           img: b.ad.images[0],
           times: [],
         };
       }
 
       if (isRent) {
-        group.ads[b.ad.id].times.push(`с ${b.dateStart} до ${b.dateEnd}`);
+        group.ads[b.ad.id].times.push(
+          `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
+        );
       } else {
         group.ads[b.ad.id].times.push(b.time);
+        console.log(b.time);
       }
     }
 
@@ -233,6 +262,7 @@ export class BookingService {
     }));
   }
 
+  /* Получить все брони на объявление.  */
   @CatchErrors()
   async getAllByAdId(adId: string, date: string, filter?: BookingFilter) {
     const ad = await this.adRepository.findOne({
@@ -241,11 +271,13 @@ export class BookingService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    // Объявление это аренда?
     const isRent =
       ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
 
     let findDate: string;
 
+    // Получение даты для поиска
     if (date === 'Сегодня') {
       const today = new Date();
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
@@ -259,7 +291,7 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;
     if (isRent) {
-      whereOptions = { ad: { id: adId }, dateStart: findDate };
+      whereOptions = { ad: { id: adId }, dateStart: Utils.stringDateToDate(findDate) };
     } else {
       whereOptions = { ad: { id: adId }, date: findDate };
     }
@@ -296,8 +328,9 @@ export class BookingService {
       for (const b of bookings) {
         ad_bookins.push({
           bookingId: b.id,
-          dateStart: b.dateStart,
-          dateEnd: b.dateEnd,
+          dateStart: Utils.dateToString(b.dateStart),
+          dateEnd: Utils.dateToString(b.dateEnd),
+          days: (b.dateEnd.getTime() - b.dateStart.getTime()) / (1000 * 60 * 60 * 24),
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
@@ -311,6 +344,8 @@ export class BookingService {
       }
     } else {
       for (const b of bookings) {
+        console.log(b.dateStart);
+        console.log(b.dateEnd);
         ad_bookins.push({
           bookingId: b.id,
           time: b.time,

@@ -131,7 +131,7 @@ export class Ad extends AbstractEntity<Ad> {
   @Column({ default: 0 })
   views: number;
 
-  @OneToMany(() => Review, (review) => review.ad)
+  @OneToMany(() => Review, (review) => review.ad, { onDelete: 'CASCADE' })
   reviews: Review[];
 
   @Column({ default: 0 })
