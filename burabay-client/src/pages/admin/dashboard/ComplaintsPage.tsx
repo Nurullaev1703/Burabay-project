@@ -207,19 +207,6 @@ export const ComplaintsPage: FC = function ComplaintPage() {
       clearTimeout(timers.current[reviewId]);
       delete timers.current[reviewId];
     }
-    try {
-      await handleAcceptReview(reviewId);
-      const reviewsResponse = await apiService.get<Review[]>({
-        url: "/admin/reports",
-      });
-      if (reviewsResponse.status === 200) {
-        setReviews(
-          reviewsResponse.data.map((review) => ({ ...review, hint: null }))
-        );
-      }
-    } catch (error) {
-      console.error("Ошибка восстановления отзыва:", error);
-    }
   };
 
   useEffect(() => {
@@ -294,7 +281,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                   review.hint
                     ? review.hint.type === "success"
                       ? "bg-green-200"
-                      : "bg-red-200"
+                      : "bg-red"
                     : "bg-white"
                 }`}
               >
