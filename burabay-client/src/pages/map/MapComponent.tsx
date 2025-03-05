@@ -143,6 +143,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
   }, []);
 
+  console.log(adId)
   const handleSubmit = async () => {
     const arrayAdress = address.split(",");
     const specialName = !arrayAdress[0].includes("улица")

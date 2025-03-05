@@ -28,7 +28,23 @@ interface FormType {
   breaks: Breaks[];
 }
 
+
+
 export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
+   const validateTime = (value: string) => {
+    const isValidFormat = /^\d{2}:\d{2}$/.test(value);
+    if (!isValidFormat) return t("invalidTimeFormat");
+  
+    const [hours, minutes] = value.split(":");
+    const hoursNumber = parseInt(hours, 10);
+    const minutesNumber = parseInt(minutes, 10);
+  
+    if (hoursNumber > 23 || minutesNumber > 59) {
+      return t("invalidTimeRange");
+    }
+  
+    return true; 
+  };
   const navigate = useNavigate();
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
@@ -316,10 +332,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         control={control}
                         rules={{
                           required: t("requiredField"),
-                          validate: (value) => {
-                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                            return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                          },
+                          validate: validateTime,
                         }}
                         render={({ field, fieldState: { error } }) => {
                           const timeMask = useMask({
@@ -348,10 +361,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         control={control}
                         rules={{
                           required: t("requiredField"),
-                          validate: (value) => {
-                            const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                            return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                          },
+                          validate: validateTime,
                         }}
                         render={({ field, fieldState: { error } }) => {
                           const timeMask = useMask({
@@ -401,10 +411,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                   control={control}
                   rules={{
                     required: t("requiredField"),
-                    validate: (value) => {
-                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                    },
+                    validate: validateTime,
                   }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
@@ -437,10 +444,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                   control={control}
                   rules={{
                     required: t("requiredField"),
-                    validate: (value) => {
-                      const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                      return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                    },
+                    validate: validateTime,
                   }}
                   render={({ field, fieldState: { error } }) => {
                     const timeMask = useMask({
