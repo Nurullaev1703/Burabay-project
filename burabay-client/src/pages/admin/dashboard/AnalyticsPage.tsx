@@ -84,12 +84,12 @@ const AnalyticsPage = () => {
               <p>Туристы: {data.tourists}</p>
               <p>Организации: {data.orgs}</p>
             </Block>
-            <ScrollableBlock title="Статистика по странам" className="h-[40vh]">
+            <ScrollableBlock title="Статистика по странам" className="h-[50vh]">
               {Object.entries(data.countries).map(([country, count]) => (
                 <DataRow key={country} label={country} value={count} />
               ))}
             </ScrollableBlock>
-            <ScrollableBlock title="Статистика по языку" className="h-[20vh]">
+            <ScrollableBlock title="Статистика по языку" className="h-[27.4vh]">
               {Object.entries(data.languages).map(([language, count]) => (
                 <DataRow key={language} label={language} value={count} />
               ))}
@@ -102,18 +102,39 @@ const AnalyticsPage = () => {
               <p>Текущее: {data.activeUsersNow}</p>
               <p>Максимальное: {data.peakUsersToday}</p>
             </Block>
-            <ScrollableBlock title="Статистика по городам" className="h-[40vh]">
+            <ScrollableBlock title="Статистика по городам" className="h-[50vh]">
               {Object.entries(data.cities).map(([city, count]) => (
                 <DataRow key={city} label={city} value={count} />
               ))}
             </ScrollableBlock>
             <Block
               title="Переход на Google Analytics"
-              className="h-[20vh] center"
+              className="h-[27.4vh] center flex flex-col gap-8"
             >
-              <button className="w-full md:w-[400px] h-[54px] bg-blue-600 text-white rounded-[32px] text-lg hover:bg-blue-700 transition">
-                Перейти в Google Analytics
-              </button>
+              <div>
+                <div className="flex mb-6">
+                  <div className="mr-[48px]">
+                    <p className="text-[#999999] text-[12px] mb-2">Пароль</p>
+                    <p className="text-4 text-[#000000]">
+                      Burabay_travel@gmail.com
+                    </p>
+                  </div>
+                  <div className="">
+                    <p className="text-[#999999] text-[12px] mb-2">Логин</p>
+                    <p className="text-4 text-[#000000]">Burabay_travel0099</p>
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <a
+                    href="https://analytics.google.com/analytics/web/#/p473411842/reports/intelligenthome"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-[400px] h-[54px] bg-[#0A7D9E] text-white rounded-[32px] text-[16px] flex items-center justify-center"
+                  >
+                    Перейти в Google Analytics
+                  </a>
+                </div>
+              </div>
             </Block>
           </div>
 
@@ -169,7 +190,7 @@ const Block: React.FC<{
   <div
     className={`bg-white p-6 rounded-lg shadow-md ${className} ${center ? "flex flex-col items-center justify-center" : ""}`}
   >
-    <h2 className="text-lg font-semibold mb-4">{title}</h2>
+    <h2 className="text-[22px] mb-4">{title}</h2>
     {children}
   </div>
 );
@@ -196,7 +217,10 @@ const DataRow: React.FC<{ label: string; value: number }> = ({
       {label}: {value}
     </p>
     <progress
-      className="progress-bar w-full h-[2px] bg-gray-300"
+      className="w-full h-[4px] appearance-none overflow-hidden rounded-[9px] bg-gray-300 
+                 [&::-webkit-progress-bar]:bg-[#DDDDDD] [&::-webkit-progress-bar]:h-[]
+                 [&::-webkit-progress-value]:bg-[#0A7D9E] [&::-webkit-progress-value]:rounded-full 
+                 [&::-moz-progress-bar]:bg-[#0A7D9E] [&::-moz-progress-bar]:rounded-full"
       value={value}
       max="100"
     ></progress>

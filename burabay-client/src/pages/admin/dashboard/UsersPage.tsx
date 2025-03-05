@@ -21,6 +21,7 @@ interface User {
 interface Org {
   id: string;
   name: string;
+  email: string;
   imgUrl: string;
   description: string;
   siteUrl: string;
@@ -37,6 +38,9 @@ export default function UsersList() {
   const [statusFilter, setStatusFilter] = useState<UsersFilterStatus | "all">(
     "all"
   );
+  const [offset, setOffset] = useState(0);
+  const limit = 2;
+  const [hasMore, setHasMore] = useState(true);
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -48,39 +52,49 @@ export default function UsersList() {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
       try {
-        const response = await apiService.get<{ users: any[]; orgs: any[] }>({
-          url: "/admin/users",
+        const response = await apiService.get<{
+          users: User[];
+          orgs: Org[];
+          total: number;
+        }>({
+          url: `/admin/users?offset=${offset}&limit=${limit}&search=${search}&role=${roleFilter}&status=${statusFilter}`,
         });
 
-        const usersData: User[] = response.data.users.map((user) => ({
+        const usersData = response.data.users.map((user) => ({
           ...user,
           role: user.role || ROLE_TYPE.TOURIST,
         }));
-        const orgsData: Org[] = response.data.orgs.map((org) => ({
-          id: org.id,
-          name: org.name,
-          imgUrl: org.imgUrl,
-          description: org.description || "",
-          siteUrl: org.siteUrl || "",
-          isConfirmed: org.isConfirmed,
-          isBanned: org.isBanned,
-        }));
 
-        const orgsDataAsUsers: User[] = response.data.orgs.map((org) => ({
-          id: org.id,
-          fullName: org.name,
-          email: org.email || "",
-          phoneNumber: "",
-          role: "организация",
-          picture: org.imgUrl,
-          isBanned: org.isBanned,
-          isEmailConfirmed: org.isConfirmed,
-        }));
+        const orgsDataAsUsers = response.data.orgs.map(
+          ({ id, name, email, imgUrl, isBanned, isConfirmed }) => ({
+            id,
+            fullName: name,
+            email: email ?? "",
+            phoneNumber: "",
+            role: ROLE_TYPE.BUSINESS,
+            picture: imgUrl,
+            isBanned,
+            isEmailConfirmed: isConfirmed,
+          })
+        );
 
-        const combinedData: User[] = [...usersData, ...orgsDataAsUsers];
-        setUsers(combinedData);
-        setFilteredUsers(combinedData);
+        const combinedData = [...usersData, ...orgsDataAsUsers];
+
+        setUsers((prev) =>
+          offset === 0 ? combinedData : [...prev, ...combinedData]
+        );
+
+        const totalUsers = response.data.total;
+        const loadedUsers = offset + combinedData.length;
+        const moreAvailable = totalUsers > loadedUsers;
+
+        console.log("Всего пользователе:", totalUsers);
+        console.log("Уже загружено пользователей:", loadedUsers);
+        console.log("hasMore:", moreAvailable);
+
+        setHasMore(moreAvailable);
       } catch (error) {
         console.error("Ошибка загрузки данных: ", error);
       } finally {
@@ -89,7 +103,7 @@ export default function UsersList() {
     };
 
     fetchUsers();
-  }, []);
+  }, [offset, limit, search, roleFilter, statusFilter]);
 
   useEffect(() => {
     let filtered = users.filter((user) =>
@@ -182,6 +196,10 @@ export default function UsersList() {
     closeRoleDropdown();
   };
 
+  const filteredRoles = Object.values(ROLE_TYPE).filter(
+    (role) => role !== ROLE_TYPE.ADMIN
+  );
+
   const handleStatusFilterChange = (status: UsersFilterStatus | "all") => {
     setStatusFilter(status);
     closeStatusDropdown();
@@ -216,6 +234,17 @@ export default function UsersList() {
     statusFilterRef,
   ]);
 
+  const formatRoleName = (role: string) => {
+    if (role === ROLE_TYPE.BUSINESS) return "Организация";
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
+
+  const handleLoadMore = () => {
+    if (hasMore) {
+      setOffset((prevOffset) => prevOffset + limit);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>   
@@ -241,7 +270,7 @@ export default function UsersList() {
               className="w-[264.5px] text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={toggleRoleDropdown}
             >
-              {roleFilter === "all" ? "Все пользователи" : roleFilter}
+              {roleFilter === "all" ? "Все пользователи" : formatRoleName(roleFilter)}
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -256,7 +285,7 @@ export default function UsersList() {
                   />
                   Все пользователи
                 </label>
-                {Object.values(ROLE_TYPE).map((role) => (
+                {filteredRoles.map((role) => (
                   <label
                     key={role}
                     className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -269,12 +298,13 @@ export default function UsersList() {
                       onChange={() => handleRoleFilterChange(role)}
                       className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-                    {role}
+                    {formatRoleName(role)}
                   </label>
                 ))}
               </div>
             )}
           </div>
+
           <div className="relative" ref={statusFilterRef}>
             <button
               type="button"
@@ -352,25 +382,6 @@ export default function UsersList() {
                         {user.role}
                       </span>
                     </div>
-                    {user.role === "организация" &&
-                      user.isEmailConfirmed === false && (
-                        <button
-                          onClick={() =>
-                            handleOpenModal({
-                              id: user.id,
-                              name: user.fullName,
-                              imgUrl: user.picture,
-                              description: "",
-                              siteUrl: user.email,
-                              isConfirmed: user.isEmailConfirmed ?? false,
-                              isBanned: user.isBanned ?? false,
-                            })
-                          }
-                          className="bg-white border h-[48px] border-[#39B56B] rounded-[16px] text-[#39B56B] py-[12px] px-[16px]"
-                        >
-                          Подтвердить
-                        </button>
-                      )}
                   </div>
                   <div className="pl-[32px] flex-1 min-w-[150px]">
                     <div className="text-center md:text-left">
@@ -391,6 +402,16 @@ export default function UsersList() {
             </div>
           )}
         </div>
+        {hasMore && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleLoadMore}
+              className="bg-[#0A7D9E] text-white px-4 py-2 rounded-md"
+            >
+              Загрузить еще
+            </button>
+          </div>
+        )}
       </div>
       {selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
