@@ -29,7 +29,7 @@ import { IconContainer } from "../../shared/ui/IconContainer";
 
 export const Profile: FC = function Profile() {
   const { t } = useTranslation();
-  const { user,setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState<string>(
     baseUrl +
@@ -41,133 +41,132 @@ export const Profile: FC = function Profile() {
   // Смена лого
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-const convertToJpg = (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+  const convertToJpg = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
 
-        if (!ctx) {
-          reject(new Error("Canvas context is not available"));
-          return;
-        }
+          if (!ctx) {
+            reject(new Error("Canvas context is not available"));
+            return;
+          }
 
-        // Устанавливаем размеры canvas
-        canvas.width = img.width;
-        canvas.height = img.height;
+          // Устанавливаем размеры canvas
+          canvas.width = img.width;
+          canvas.height = img.height;
 
-        // Рендерим изображение на canvas
-        ctx.drawImage(img, 0, 0);
+          // Рендерим изображение на canvas
+          ctx.drawImage(img, 0, 0);
 
-        // Конвертируем canvas в Blob в формате JPEG
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error("Failed to create blob from canvas"));
-              return;
-            }
-            // Создаём новый файл на основе Blob
-            const jpgFile = new File(
-              [blob],
-              file.name.replace(/\.[^.]+$/, ".jpg"),
-              {
-                type: "image/jpeg",
+          // Конвертируем canvas в Blob в формате JPEG
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create blob from canvas"));
+                return;
               }
-            );
-            resolve(jpgFile);
-          },
-          "image/jpeg",
-          1 // Качество от 0 до 1
-        );
+              // Создаём новый файл на основе Blob
+              const jpgFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, ".jpg"),
+                {
+                  type: "image/jpeg",
+                }
+              );
+              resolve(jpgFile);
+            },
+            "image/jpeg",
+            1 // Качество от 0 до 1
+          );
+        };
+
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = event.target?.result as string;
       };
 
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = event.target?.result as string;
-    };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
 
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-};
+  const imageChange = async (data: File) => {
+    if (data) {
+      setIsLoading(true);
 
-const imageChange = async (data: File) => {
-  if (data) {
-    setIsLoading(true);
+      try {
+        // Преобразование файла в формат JPG
+        const convertedFile = await convertToJpg(data);
 
-    try {
-      // Преобразование файла в формат JPG
-      const convertedFile = await convertToJpg(data);
+        const formData = new FormData();
+        formData.append("file", convertedFile);
 
-      const formData = new FormData();
-      formData.append("file", convertedFile);
+        if (user?.organization?.imgUrl.includes("/image")) {
+          // Удаление предыдущего изображения
+          await apiService.delete({
+            url: "/image",
+            dto: {
+              filepath: user?.organization?.imgUrl,
+            },
+          });
+        } else if (user?.picture.includes("/image")) {
+          await apiService.delete({
+            url: "/image",
+            dto: {
+              filepath: user?.picture,
+            },
+          });
+        }
 
-      if (user?.organization?.imgUrl.includes("/image")) {
-        // Удаление предыдущего изображения
-        await apiService.delete({
-          url: "/image",
-          dto: {
-            filepath: user?.organization?.imgUrl,
-          },
+        // Загрузка нового изображения
+        const response = await imageService.post<string>({
+          url: "/image/profile",
+          dto: formData,
         });
-      } else if (user?.picture.includes("/image")) {
-        await apiService.delete({
-          url: "/image",
-          dto: {
-            filepath: user?.picture,
-          },
-        });
-      }
 
-      // Загрузка нового изображения
-      const response = await imageService.post<string>({
-        url: "/image/profile",
-        dto: formData,
-      });
-
-      if (user?.role === "бизнес") {
-        await apiService.patch({
-          url: "/profile",
-          dto: {
+        if (user?.role === "бизнес") {
+          await apiService.patch({
+            url: "/profile",
+            dto: {
+              organization: {
+                imgUrl: response.data,
+              },
+            },
+          });
+          setUser({
+            ...user,
             organization: {
+              ...user.organization,
               imgUrl: response.data,
             },
-          },
-        });
-        setUser({
-          ...user,
-          organization: {
-            ...user.organization,
-            imgUrl: response.data,
-          },
-        });
-      } else if (user?.role === "турист") {
-        await apiService.patch({
-          url: "/profile",
-          dto: {
+          });
+        } else if (user?.role === "турист") {
+          await apiService.patch({
+            url: "/profile",
+            dto: {
+              picture: response.data,
+            },
+          });
+          setUser({
+            ...user,
             picture: response.data,
-          },
-        });
-        setUser({
-          ...user,
-          picture: response.data,
-        });
+          });
+        }
+
+        setImgSrc(baseUrl + response.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        setIsLoading(false);
       }
-
-      setImgSrc(baseUrl + response.data);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setIsLoading(false);
+    } else {
+      console.error("No file selected");
     }
-  } else {
-    console.error("No file selected");
-  }
-};
-
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -189,6 +188,8 @@ const imageChange = async (data: File) => {
     } else if (user?.role === "бизнес") {
       if (!user?.organization?.isConfirmed) {
         setAccountStatus("unconfirmed");
+      } else if (user?.organization.isConfirmWating) {
+        setAccountStatus("waiting");
       } else {
         setAccountStatus("done");
       }
@@ -213,8 +214,11 @@ const imageChange = async (data: File) => {
             className={`rounded-full absolute
               ${imgSrc.startsWith(baseUrl) ? "top-0 left-0 object-cover w-full h-full" : ""}`}
           />
-          <IconContainer className="absolute bottom-0 right-0 rounded-full bg-[#0A7D9E]" align="center">
-            <img src={ChangeImageIcon} alt="" className="w-6 h-6"/>
+          <IconContainer
+            className="absolute bottom-0 right-0 rounded-full bg-[#0A7D9E]"
+            align="center"
+          >
+            <img src={ChangeImageIcon} alt="" className="w-6 h-6" />
           </IconContainer>
           <input
             type="file"

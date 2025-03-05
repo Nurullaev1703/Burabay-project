@@ -82,14 +82,17 @@ export class UserService {
   /* Обновление полей с путями документов Организации. */
   @CatchErrors()
   async updateOrgDocumentsPath(dto: UpdateDocsDto, tokenData: TokenData) {
-    const { regCouponPath, ibanDocPath, orgRulePath } = dto;
+    const { regCouponPath, ibanDocPath, orgRulePath, iin, phoneNumber } = dto;
     const organization = await this.organizationRep.findOne({
+      relations: { user: true },
       where: { user: { id: tokenData.id } },
     });
     Utils.checkEntity(organization, 'Органзиация не найдена');
     if (regCouponPath) organization.regCouponPath = regCouponPath;
     if (ibanDocPath) organization.ibanDocPath = ibanDocPath;
     if (orgRulePath) organization.orgRulePath = orgRulePath;
+    if (iin) organization.bin = iin;
+    if (phoneNumber) organization.user.phoneNumber = phoneNumber;
     await this.organizationRep.save(organization);
     return JSON.stringify(HttpStatus.OK);
   }

@@ -1,4 +1,3 @@
-
 import {
   createRootRouteWithContext,
   Outlet,
@@ -10,12 +9,18 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 import { notificationService, tokenService } from "../services/storage/Factory";
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
+import { NotFound } from "../pages/not-found/NotFound";
 
 export const AUTH_PATH = [
-    "/auth", "/register", "/help","/welcome","/HelpPage"
-]
+  "/auth",
+  "/register",
+  "/help",
+  "/welcome",
+  "/HelpPage",
+];
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
+    notFoundComponent: () => <NotFound />,
     component: () => {
         const {token, isAuthenticated} = useAuth()
         
@@ -45,4 +50,5 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
             throw redirect({to:"/welcome"})
         }
     }
+  },
 });

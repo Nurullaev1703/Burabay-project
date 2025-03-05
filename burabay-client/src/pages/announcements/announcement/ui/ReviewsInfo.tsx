@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   Announcement,
   Review,
@@ -40,6 +40,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, review , isAdmi
       [index]: !prevState[index],
     }));
   };
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   return (
     <div className="bg-white p-4 mb-2">
       <div className="flex justify-between mb-4">

@@ -23,10 +23,11 @@ import {
 import { baseUrl } from "../../../services/api/ServerData";
 import { Select } from "ol/interaction";
 import defaultImage from "../../../app/icons/main/health.svg";
-import defaultAnnoun from "../../../app/img/ploshadka.jpeg";
+import defaultAnnoun from "../../../app/icons/abstract-bg.svg";
 import ellipse from "../../../app/icons/announcements/ellipseMalenkiy.svg";
 import star from "../../../app/icons/announcements/StarYellow.svg";
-import flag from "../../../app/icons/announcements/falg.svg";
+import FavouriteIcon from "../../../app/icons/favourite.svg";
+import FavouriteActiveIcon from "../../../app/icons/favourite-active.svg";
 import { Button } from "../../../shared/ui/Button";
 import cancelBlack from "../../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
@@ -36,6 +37,10 @@ import { useTranslation } from "react-i18next";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import whiteCircle from "../../../app/icons/EllipseWhite.svg";
 import { DirectionsRenderer } from "@react-google-maps/api";
+import { roleService } from "../../../services/storage/Factory";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { apiService } from "../../../services/api/ApiService";
+import { queryClient } from "../../../ini/InitializeApp";
 
 const containerStyle = {
   width: "100%",
@@ -45,13 +50,13 @@ const containerStyle = {
 interface Props {
   announcements: Announcement[];
 }
-
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
+  const role = roleService.getValue()
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCLVQH3hDuec-HJXPMBuEChJ1twbVP1D6Q",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY,
   });
   const [directionsResponse, setDirectionsResponse] =
-    useState<google.maps.DirectionsResult | null>(null);
+  useState<google.maps.DirectionsResult | null>(null);
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
@@ -101,7 +106,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         destination: { lat: longitude, lng: latitude },
         travelMode: travelMode || google.maps.TravelMode.DRIVING,
       });
-
+      
       setDirectionsResponse(results);
     } catch (error) {
       console.error("Ошибка при построении маршрута:", error);
@@ -113,12 +118,13 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
   const [showAnnouncementModal, setShowAnnouncementModal] =
-    useState<boolean>(false); // Для отображения модального окна с объявлением
+  useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
     if (!announcementInfo?.schedule) {
       return { start: null, end: null }; // Возвращаем null если нет расписания
     }
-
+    
+    
     const days = [
       { start: "sunStart", end: "sunEnd" },
       { start: "monStart", end: "monEnd" },
@@ -174,6 +180,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         );
         if (selectedAnnouncement) {
           setAnnouncementInfo(selectedAnnouncement);
+          setIsFavourite(selectedAnnouncement.isFavourite)
           setShowAnnouncementModal(true); // Показываем модальное окно
         }
       }
@@ -298,6 +305,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
     );
     if (selectedAnnouncement) {
       setAnnouncementInfo(selectedAnnouncement);
+      setIsFavourite(selectedAnnouncement.isFavourite)
       setShowAnnouncementModal(true);
     }
   };
@@ -319,6 +327,20 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         alert("Откройте настройки вручную и разрешите доступ к геолокации.");
       }
     };
+  const [isFavourite, setIsFavourite] = useState<boolean>(
+    announcementInfo?.isFavourite || false
+  );
+
+  const addToFavourite = async () => {
+    if (announcementInfo) {
+      await apiService.get({
+        url: `/ad/favorite/${announcementInfo.id}`,
+      });
+      isFavourite ? setIsFavourite(false) : setIsFavourite(true);
+      await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
+      await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
+    }
+  };
   return (
     <main className="min-h-screen">
       <Header pb="0">
@@ -469,9 +491,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                     <Typography className="mb-2">{t("allDay")}</Typography>
                   )}
                 </div>
-                <div className="flex flex-row gap-4">
+                <div className="flex flex-row gap-4 items-center">
                   <CoveredImage
-                  borderRadius="rounded-lg"
+                    borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
                     width="w-40"
                     height="h-40"
@@ -482,7 +504,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                         className={`mt-2 ml-2 relative w-7 h-7 flex items-center rounded-full ${categoryBgColors[announcementInfo.subcategory.category.name]}`}
                       >
                         <img
-                          className="absolute top-3.5 left-3.5 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-200 z-10"
+                          className="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 brightness-[5] z-10"
                           src={`${baseUrl}${announcementInfo.subcategory.category.imgPath || ""}`}
                         />
                       </div>
@@ -499,7 +521,19 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                           ? `${announcementInfo.price} ₸`
                           : t("free")}
                       </Typography>
-                      <img src={flag} alt="" />
+                      {role == ROLE_TYPE.TOURIST && (
+                        <IconContainer
+                          align="center"
+                          action={() => addToFavourite()}
+                        >
+                          <img
+                            src={
+                              isFavourite ? FavouriteActiveIcon : FavouriteIcon
+                            }
+                            alt=""
+                          />
+                        </IconContainer>
+                      )}
                     </div>
                     <div className="flex flex-row gap-2">
                       <img src={star} alt="" />
@@ -543,6 +577,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                         }
                       }}
                       mode="transparent"
+                      className="text-blue200 max-w-fit"
                     >
                       {`${t("BuildTheRoad")}`}
                     </Button>
@@ -581,21 +616,23 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         </Button>
       </div>
       {isLocationDenied && (
-  <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
-      <Typography size={16} weight={500} className=" mb-2">{t("GeoOn")}</Typography>
-      <Typography size={14} weight={400} className="text-gray-600 mb-4">
-        {t("NeedGeo")}
-      </Typography>
-      <Button
-        onClick={openLocationSettings}
-        className="px-4 py-2 text-white shadow-md"
-      >
-        {t("OpenSettings")}
-      </Button>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 w-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white w-[350px] p-6 rounded-lg shadow-lg text-center">
+            <Typography size={16} weight={500} className=" mb-2">
+              {t("GeoOn")}
+            </Typography>
+            <Typography size={14} weight={400} className="text-gray-600 mb-4">
+              {t("NeedGeo")}
+            </Typography>
+            <Button
+              onClick={openLocationSettings}
+              className="px-4 py-2 text-white shadow-md"
+            >
+              {t("OpenSettings")}
+            </Button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
