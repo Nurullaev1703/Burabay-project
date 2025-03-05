@@ -38,9 +38,6 @@ export default function UsersList() {
   const [statusFilter, setStatusFilter] = useState<UsersFilterStatus | "all">(
     "all"
   );
-  const [offset, setOffset] = useState(0);
-  const limit = 2;
-  const [hasMore, setHasMore] = useState(true);
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -54,47 +51,25 @@ export default function UsersList() {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const response = await apiService.get<{
-          users: User[];
-          orgs: Org[];
-          total: number;
-        }>({
-          url: `/admin/users?offset=${offset}&limit=${limit}&search=${search}&role=${roleFilter}&status=${statusFilter}`,
+        console.log("Запрос к API:", `/admin/users`);
+
+        const response = await apiService.get<User[]>({
+          url: `/admin/users?search=${search}&role=${roleFilter}&status=${statusFilter}`,
         });
 
-        const usersData = response.data.users.map((user) => ({
+        console.log("Ответ API:", response.data);
+
+        if (!Array.isArray(response.data)) {
+          console.error("апи не массив!", response.data);
+          return;
+        }
+
+        const usersData = response.data.map((user) => ({
           ...user,
           role: user.role || ROLE_TYPE.TOURIST,
         }));
 
-        const orgsDataAsUsers = response.data.orgs.map(
-          ({ id, name, email, imgUrl, isBanned, isConfirmed }) => ({
-            id,
-            fullName: name,
-            email: email ?? "",
-            phoneNumber: "",
-            role: ROLE_TYPE.BUSINESS,
-            picture: imgUrl,
-            isBanned,
-            isEmailConfirmed: isConfirmed,
-          })
-        );
-
-        const combinedData = [...usersData, ...orgsDataAsUsers];
-
-        setUsers((prev) =>
-          offset === 0 ? combinedData : [...prev, ...combinedData]
-        );
-
-        const totalUsers = response.data.total;
-        const loadedUsers = offset + combinedData.length;
-        const moreAvailable = totalUsers > loadedUsers;
-
-        console.log("Всего пользователе:", totalUsers);
-        console.log("Уже загружено пользователей:", loadedUsers);
-        console.log("hasMore:", moreAvailable);
-
-        setHasMore(moreAvailable);
+        setUsers(usersData);
       } catch (error) {
         console.error("Ошибка загрузки данных: ", error);
       } finally {
@@ -103,7 +78,7 @@ export default function UsersList() {
     };
 
     fetchUsers();
-  }, [offset, limit, search, roleFilter, statusFilter]);
+  }, [search, roleFilter, statusFilter]);
 
   useEffect(() => {
     let filtered = users.filter((user) =>
@@ -239,12 +214,6 @@ export default function UsersList() {
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
-  const handleLoadMore = () => {
-    if (hasMore) {
-      setOffset((prevOffset) => prevOffset + limit);
-    }
-  };
-
   return (
     <div className="relative min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>   
@@ -270,7 +239,9 @@ export default function UsersList() {
               className="w-[264.5px] text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={toggleRoleDropdown}
             >
-              {roleFilter === "all" ? "Все пользователи" : formatRoleName(roleFilter)}
+              {roleFilter === "all"
+                ? "Все пользователи"
+                : formatRoleName(roleFilter)}
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -352,7 +323,7 @@ export default function UsersList() {
             <p className="text-gray-500">Загрузка...</p>
           ) : (
             <div className="grid gap-4">
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <div
                   key={user.id}
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
@@ -402,16 +373,6 @@ export default function UsersList() {
             </div>
           )}
         </div>
-        {hasMore && (
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={handleLoadMore}
-              className="bg-[#0A7D9E] text-white px-4 py-2 rounded-md"
-            >
-              Загрузить еще
-            </button>
-          </div>
-        )}
       </div>
       {selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
