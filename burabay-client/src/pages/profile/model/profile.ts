@@ -15,6 +15,7 @@ export interface Organization {
   regCouponPath: string;
   ibanDocPath: string;
   orgRulePath: string;
+  bin: string;
 }
 
 export interface Profile {

@@ -73,7 +73,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
     null
   );
-  const role = roleService.getValue();
 
   useEffect(() => {
     if (window.google && window.google?.maps?.TravelMode) {
