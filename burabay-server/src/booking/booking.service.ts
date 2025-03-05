@@ -25,6 +25,7 @@ export class BookingService {
     private readonly notificationRepository: Repository<Notification>,
   ) {}
 
+  /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
     const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
@@ -33,13 +34,17 @@ export class BookingService {
       where: { id: adId },
       relations: { subcategory: { category: true } },
     });
-    let dateStart, dateEnd;
-    if (dateStart) {
+
+    // Преобразовать строковые даты из DTO в тип js даты.
+    let dateStart: Date, dateEnd: Date;
+    if (dateStartDto) {
       dateStart = Utils.stringDateToDate(dateStartDto);
     }
-    if (dateEnd) {
+    if (dateEndDto) {
       dateEnd = Utils.stringDateToDate(dateEndDto);
     }
+
+    // Создание брони.
     const newBooking = this.bookingRepository.create({
       user: user,
       ad: ad,
@@ -47,14 +52,23 @@ export class BookingService {
       dateEnd: dateEnd ? dateEnd : null,
       ...oF,
     });
+
+    // Является ли объявление арендой.
     const isRent =
       ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+
+    // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
     if (isRent) {
       const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
       newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
     } else {
       newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
+      console.log(ad.priceForChild);
+      console.log(ad.price);
+      console.log(newBooking.totalPrice);
     }
+
+    // Сохранение
     await this.bookingRepository.save(newBooking);
     return JSON.stringify(HttpStatus.CREATED);
   }

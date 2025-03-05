@@ -21,7 +21,7 @@ export class BookingController {
   }
 
   @Get()
-  findAllByUser(@Request() req: AuthRequest, @Query() filter: BookingFilter) {
+  findAllByUser(@Request() req: AuthRequest, @Query() filter?: BookingFilter) {
     return this.bookingService.findAllByUserId(req.user, filter);
   }
 
