@@ -28,6 +28,7 @@ async function bootstrap() {
       const allowedOrigins = [
         'http://burabay-damu.kz',
         'https://burabay-damu.kz',
+        'http://localhost:3000',
         'http://91.215.139.89:5173',
       ];
       if (!origin || allowedOrigins.includes(origin)) {

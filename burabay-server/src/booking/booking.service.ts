@@ -252,7 +252,6 @@ export class BookingService {
         );
       } else {
         group.ads[b.ad.id].times.push(b.time);
-        console.log(b.time);
       }
     }
 
@@ -344,8 +343,6 @@ export class BookingService {
       }
     } else {
       for (const b of bookings) {
-        console.log(b.dateStart);
-        console.log(b.dateEnd);
         ad_bookins.push({
           bookingId: b.id,
           time: b.time,
