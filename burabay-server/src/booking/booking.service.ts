@@ -73,15 +73,19 @@ export class BookingService {
     return JSON.stringify(HttpStatus.CREATED);
   }
 
+  /* Получение всех бронирований Пользователя. */
   @CatchErrors()
   async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
     const whereOptions: Record<string, any> = {
       user: { id: tokenData.id },
     };
 
+    // Фильтр отмененных броней.
     if (filter?.canceled) {
       whereOptions.status = BookingStatus.CANCELED;
     }
+
+    // Фильтр по типу оплаты.
     if (filter?.onSidePayment !== filter?.onlinePayment) {
       if (filter?.onSidePayment) whereOptions.paymentType = PaymentType.CASH;
       if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
@@ -92,25 +96,31 @@ export class BookingService {
       relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
     });
 
+    // Группировка по дате.
     const groups: { header: string; ads: any[] }[] = [];
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения
+    today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
       const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
+      console.log(isRent);
       let date: Date;
       let header: string;
 
       if (isRent) {
-        date = new Date(b.dateStart);
-        header = date.toLocaleDateString('ru-RU');
+        date = b.dateStart;
+        header = b.dateStart.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+        });
       } else {
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
         header = b.date;
       }
 
-      // Проверяем "Сегодня" и "Завтра"
+      // Проверяем "Сегодня" и "Завтра".
       const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
       if (diffDays === 0) header = 'Сегодня';
       if (diffDays === 1) header = 'Завтра';
@@ -132,11 +142,11 @@ export class BookingService {
         group.ads.push(adGroup);
       }
 
-      // Формируем только даты в "time"
+      // Формируем только даты в "time".
       const newTime = {
         time: isRent
-          ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
-          : b.date, // Уже в формате "21.02.2025"
+          ? `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
+          : b.date,
         status: b.status,
         price: b.totalPrice,
         isPaid: b.isPaid,
@@ -148,6 +158,7 @@ export class BookingService {
     return groups;
   }
 
+  /* Получить все бронирования Организации. */
   @CatchErrors()
   async findAllByOrgId(tokenData: TokenData, filter?: BookingFilter) {
     let whereOptions: object = {
