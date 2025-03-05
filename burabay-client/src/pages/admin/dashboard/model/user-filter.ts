@@ -37,7 +37,7 @@ export function useGetUsers(filters: UsersFilter) {
     queryKey: ["admin-users", filters],
     queryFn: async () => {
       const response = await apiService.get<Profile[]>({
-        url: `/admin/users?search=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}`,
+        url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}`,
       });
       return response.data;
     },
