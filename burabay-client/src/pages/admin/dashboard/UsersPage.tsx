@@ -34,6 +34,10 @@ const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
       },
     });
   };
+  const resolveDocUrl = (docPath: string | null) => {
+    if (!docPath) return "#";  // Если документа нет — делаем заглушку
+    return `${BASE_URL}/public${docPath}`;
+  };
   const getDocumentUrl = (path: string | null) => {
     if (!path) return null;
     return `${baseUrl}${path.replace(/^\/+/, "")}`;
@@ -326,12 +330,12 @@ const handleConfirmUser = () => {
         <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
       )}
           <a
-            href={`${BASE_URL}${selectedOrganization.orgRulePath}`}
+            href={resolveDocUrl(selectedOrganization.orgRulePath)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
-            Устав организации
+
           </a>
         </div>
       </div>
