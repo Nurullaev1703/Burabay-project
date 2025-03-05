@@ -102,76 +102,108 @@ export const ComplaintsPage: FC = function ComplaintPage() {
           ? {
               ...review,
               hint: {
-                message:
-                  "Отзыв будет удален через 15 секунд. Нажмите Отменить, чтобы восстановить.",
+                message: "Отзыв будет удален через 15 секунд",
                 type: "success",
               },
-              delayedRemoval: true, // Устанавливаем флаг delayedRemoval
-              status: "deleted", // Устанавливаем статус "deleted"
+              delayedRemoval: true,
+              status: "deleted",
             }
           : review
       )
     );
+
+    if (timers.current[reviewId]) {
+      clearTimeout(timers.current[reviewId]);
+    }
+
     timers.current[reviewId] = setTimeout(async () => {
-      // Устанавливаем таймер на удаление через 15 секунд
       try {
         const response = await apiService.delete({
           url: `/review/${reviewId}`,
-        }); // Выполняем фактическое удаление
+        });
         if (response.status === 200) {
-          setReviews(
-            (prevReviews) =>
-              prevReviews.filter((review) => review.reviewId !== reviewId) // Удаляем отзыв из списка после успешного удаления с сервера
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
           );
         }
       } catch (error) {
         console.error("Ошибка удаления отзыва:", error);
-        setReviews(
-          (
-            prevReviews // В случае ошибки, откатываем состояние delayedRemoval и hint
-          ) =>
-            prevReviews.map((review) =>
-              review.reviewId === reviewId
-                ? {
-                    ...review,
-                    hint: {
-                      message: "Ошибка при удалении отзыва",
-                      type: "error",
-                    },
-                    delayedRemoval: false,
-                    status: undefined,
-                  }
-                : review
-            )
-        );
-      } finally {
-        delete timers.current[reviewId]; // Очищаем таймер
-      }
-    }, 15000);
-  };
-
-  const handleAcceptReview = async (reviewId: string) => {
-    try {
-      const response = await apiService.patch({
-        url: `/admin/check-review/${reviewId}`,
-        dto: {},
-      });
-      if (response.status === 200) {
         setReviews((prevReviews) =>
           prevReviews.map((review) =>
             review.reviewId === reviewId
               ? {
                   ...review,
-                  hint: { message: "Отзыв успешно проверен", type: "success" },
-                  status: "accepted",
+                  hint: {
+                    message: "Ошибка при удалении отзыва",
+                    type: "error",
+                  },
+                  delayedRemoval: false,
+                  status: undefined,
                 }
               : review
           )
         );
+      } finally {
+        delete timers.current[reviewId];
       }
-    } catch (error) {
-      console.error("Ошибка принятия отзыва:", error);
+    }, 10000);
+  };
+
+  const handleAcceptReview = async (reviewId: string) => {
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.reviewId === reviewId
+          ? {
+              ...review,
+              hint: {
+                message:
+                  "Отзыв будет принят через 15 секунд. Нажмите Отменить, чтобы восстановить.",
+                type: "success",
+              },
+              delayedRemoval: true,
+              status: "accepted",
+            }
+          : review
+      )
+    );
+
+    if (timers.current[reviewId]) {
+      clearTimeout(timers.current[reviewId]);
     }
+
+    timers.current[reviewId] = setTimeout(async () => {
+      try {
+        const response = await apiService.patch({
+          url: `/admin/check-review/${reviewId}`,
+          dto: {},
+        });
+        if (response.status === 200) {
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
+          );
+          delete timers.current[reviewId];
+        }
+      } catch (error) {
+        console.error("Ошибка принятия отзыва:", error);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.reviewId === reviewId
+              ? {
+                  ...review,
+                  hint: {
+                    message: "Ошибка при принятии отзыва",
+                    type: "error",
+                  },
+                  delayedRemoval: false,
+                  status: undefined,
+                }
+              : review
+          )
+        );
+      } finally {
+        delete timers.current[reviewId];
+      }
+    }, 10000);
   };
 
   const fetchOrgInfo = async (orgId: string) => {
@@ -190,7 +222,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     }
   };
 
-  const handleCancelHint = async (reviewId: string) => {
+  const handleCancelHint = (reviewId: string) => {
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
         review.reviewId === reviewId
@@ -208,28 +240,6 @@ export const ComplaintsPage: FC = function ComplaintPage() {
       delete timers.current[reviewId];
     }
   };
-
-  useEffect(() => {
-    reviews.forEach((review) => {
-      if (review.status) {
-        if (!timers.current[review.reviewId]) {
-          timers.current[review.reviewId] = setTimeout(() => {
-            setReviews((prevReviews) =>
-              prevReviews.filter((r) => r.reviewId !== review.reviewId)
-            );
-            delete timers.current[review.reviewId];
-          }, 15000);
-        }
-      } else if (timers.current[review.reviewId]) {
-        clearTimeout(timers.current[review.reviewId]);
-        delete timers.current[review.reviewId];
-      }
-    });
-
-    return () => {
-      Object.values(timers.current).forEach(clearTimeout);
-    };
-  }, [reviews]);
 
   return (
     <div className="relative w-full min-h-screen flex">
@@ -280,7 +290,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-lg ${
                   review.hint
                     ? review.hint.type === "success"
-                      ? "bg-green-200"
+                      ? "bg-green-100"
                       : "bg-red"
                     : "bg-white"
                 }`}
