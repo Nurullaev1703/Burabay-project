@@ -422,7 +422,7 @@ export const Booking: FC = function Booking() {
           onClick={() => handleSubmit(saveBooking)()}
           loading={isLoading}
         >
-          {t("pay")}
+          {t("send")}
         </Button>
       </div>
     </section>
