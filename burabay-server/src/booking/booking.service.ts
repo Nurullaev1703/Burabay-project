@@ -268,6 +268,7 @@ export class BookingService {
     }));
   }
 
+  /* Получить все брони на объявление.  */
   @CatchErrors()
   async getAllByAdId(adId: string, date: string, filter?: BookingFilter) {
     const ad = await this.adRepository.findOne({
@@ -276,11 +277,13 @@ export class BookingService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    // Объявление это аренда?
     const isRent =
       ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
 
     let findDate: string;
 
+    // Получение даты для поиска
     if (date === 'Сегодня') {
       const today = new Date();
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
@@ -294,7 +297,7 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;
     if (isRent) {
-      whereOptions = { ad: { id: adId }, dateStart: findDate };
+      whereOptions = { ad: { id: adId }, dateStart: Utils.stringDateToDate(findDate) };
     } else {
       whereOptions = { ad: { id: adId }, date: findDate };
     }
