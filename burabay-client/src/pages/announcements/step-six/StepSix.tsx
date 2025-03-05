@@ -47,7 +47,20 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       duration: announcement?.duration || "",
     },
   });
-
+  const validateTime = (value: string) => {
+    const isValidFormat = /^\d{2}:\d{2}$/.test(value);
+    if (!isValidFormat) return t("invalidTimeFormat");
+  
+    const [hours, minutes] = value.split(":");
+    const hoursNumber = parseInt(hours, 10);
+    const minutesNumber = parseInt(minutes, 10);
+  
+    if (hoursNumber > 23 || minutesNumber > 59) {
+      return t("invalidTimeRange");
+    }
+  
+    return true; 
+  };
   const fullDay = watch("isFullDay");
   const isDuration = watch("isDuration");
   const serviceTime = watch("startTime");
@@ -67,10 +80,12 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       return true;
     }
     if (isDuration) {
-      // Если второй свитч активен, кнопка невалидна, если duration пустое
-      return !!duration; // duration должно быть заполнено
+      // Если второй свитч активен, кнопка невалидна, если duration пустое или невалидно
+      return !!duration && validateTime(duration) === true; // Проверяем duration
     }
-    return serviceTime.length > 0;
+    // Проверяем, что все времена в servicesTime валидны
+    const areAllTimesValid = servicesTime.every((time) => validateTime(time) === true);
+    return serviceTime.length > 0 && areAllTimesValid;
   };
 
   // Добавление времени
@@ -96,8 +111,8 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
   // При отвода фокуса от поля
   const handleBlur = () => {
-    const isValidTime = /^\d{2}:\d{2}$/.test(tempTime);
-
+    const isValidTime = validateTime(tempTime) === true; // Используем validateTime
+  
     if (isCreating && tempTime) {
       if (!isValidTime) {
         setError(true); // Устанавливаем ошибку
@@ -110,7 +125,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       setTempTime(""); // Сбрасываем временное значение
       setError(false); // Убираем ошибку, если формат корректный
     }
-
+  
     if (editingIndex !== null) {
       if (!isValidTime) {
         setError(true); // Устанавливаем ошибку
@@ -257,8 +272,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                     control={control}
                     rules={{
                       validate: (value: any) => {
-                        const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                        return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+                        return validateTime(value); // Используем validateTime
                       },
                     }}
                     render={() => {
@@ -318,12 +332,11 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                 >
                   {editingIndex === index ? (
                     <Controller
-                      rules={{
-                        validate: (value: any) => {
-                          const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                          return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
-                        },
-                      }}
+                    rules={{
+                      validate: (value: any) => {
+                        return validateTime(value); // Используем validateTime
+                      },
+                    }}
                       name={`startTime.${index}`}
                       control={control}
                       defaultValue={time}
@@ -409,9 +422,8 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
             control={control}
             rules={{
               required: t("requiredField"),
-              validate: (value) => {
-                const isValidTime = /^\d{2}:\d{2}$/.test(value);
-                return isValidTime || t("invalidTimeFormat"); // Сообщение об ошибке
+              validate: (value: any) => {
+                return validateTime(value); // Используем validateTime
               },
             }}
             render={({ field, fieldState: { error } }) => {

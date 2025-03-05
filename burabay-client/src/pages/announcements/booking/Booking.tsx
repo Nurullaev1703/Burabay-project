@@ -55,7 +55,7 @@ export const Booking: FC = function Booking() {
     }
     return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
   };
-  
+
   const { handleSubmit, watch, control, setValue } = useForm<FormType>({
     defaultValues: {
       adId: announcement.id,
@@ -64,7 +64,7 @@ export const Booking: FC = function Booking() {
       date: date || null,
       time: time || null,
       isChildRate: false,
-      paymentType: "online",
+      paymentType: "cash",
       dateStart: dateStart || null,
       dateEnd: dateEnd || null,
     },
@@ -83,7 +83,7 @@ export const Booking: FC = function Booking() {
       });
 
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
-        navigate({to: `/announcements/${announcement.id}`})
+        navigate({ to: `/announcements/${announcement.id}` });
       } else {
         console.error(response.data);
       }
@@ -350,9 +350,39 @@ export const Booking: FC = function Booking() {
       <div className="px-4 flex flex-col">
         <span className="text-[22px] font-medium mb-2">{t("total")}</span>
         <span className={`font-bold ${COLORS_TEXT.blue200} text-[28px]`}>
-          {isChildRate
-            ? formatPrice(announcement.priceForChild)
-            : formatPrice(announcement.price)}
+          {(() => {
+            // Если даты заезда и отъезда указаны
+            if (dateStart && dateEnd) {
+              // Преобразуем даты в формат Date
+              const parseDate = (dateString: string) => {
+                const [day, month, year] = dateString.split(".").map(Number);
+                return new Date(year, month - 1, day);
+              };
+
+              const start = parseDate(dateStart);
+              const end = parseDate(dateEnd);
+
+              // Вычисляем разницу в миллисекундах и переводим в дни
+              const diffInMs = end.getTime() - start.getTime();
+              const totalDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24)); // Округляем вверх
+
+              // Выбираем стоимость в зависимости от тарифа (взрослый или детский)
+              const dailyPrice = isChildRate
+                ? announcement.priceForChild
+                : announcement.price;
+
+              // Рассчитываем общую стоимость
+              const totalCost = totalDays * dailyPrice;
+
+              // Форматируем и возвращаем стоимость
+              return formatPrice(totalCost);
+            }
+
+            // Если даты не указаны, возвращаем стоимость за один день
+            return formatPrice(
+              isChildRate ? announcement.priceForChild : announcement.price
+            );
+          })()}
         </span>
       </div>
 
