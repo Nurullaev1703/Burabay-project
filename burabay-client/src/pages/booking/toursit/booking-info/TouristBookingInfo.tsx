@@ -20,9 +20,28 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
   announcement,
   bookings,
 }) {
-  const [bookingsState, _] = useState<TSelectedBooking>(bookings);
+  const [bookingsState, _] = useState<TSelectedBooking>(
+    bookings || { bookings: [] }
+  ); // Установка значения по умолчанию
   const [isCancel, setIsCancel] = useState<boolean>(false);
   const { t } = useTranslation();
+
+  // Проверка на undefined
+  if (!bookingsState || !bookingsState.bookings) {
+    return <div>{t("noBookingsAvailable")}</div>; // Сообщение, если данные отсутствуют
+  }
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return t("noDateAvailable"); // Сообщение, если дата отсутствует
+
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   return (
     <>
       {bookings.type === "Аренда" ? (
@@ -48,37 +67,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("totalDuration")}</span>
                   <span>
-                    {(() => {
-                      const parseDate = (dateString?: string) => {
-                        if (!dateString) return null;
-                        const [day, month, year] = dateString
-                          .split(".")
-                          .map(Number);
-                        return new Date(year, month - 1, day);
-                      };
-
-                      const getDaySuffix = (days: number) => {
-                        if (days % 10 === 1 && days % 100 !== 11)
-                          return t("daysV2"); // "дня"
-                        if (
-                          [2, 3, 4].includes(days % 10) &&
-                          ![12, 13, 14].includes(days % 100)
-                        ) {
-                          return t("daysV2"); // "дня"
-                        }
-                        return t("daysV1"); // "дней"
-                      };
-
-                      const start = parseDate(bookingsState.date);
-                      const end = parseDate(b.dateEnd);
-
-                      if (!start || !end) return t("noDate");
-
-                      const diffInMs = end.getTime() - start.getTime();
-                      const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-                      return `${diffInDays} ${getDaySuffix(diffInDays)}`;
-                    })()}
+                   {b.days}
                   </span>
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
@@ -110,8 +99,10 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   </a>
                 </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link className="flex justify-between"
-                    to={`/mapNav?adId=${announcement.id}`}>
+                  <Link
+                    className="flex justify-between"
+                    to={`/mapNav?adId=${announcement.id}`}
+                  >
                     <span>{t("locationOnMap")}</span>
                     <img src={ArrowBottomIcon} alt="Перейти" />
                   </Link>
@@ -189,8 +180,9 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   </a>
                 </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link className="flex justify-between"
-                  to={`/mapNav?adId=${announcement.id}`}
+                  <Link
+                    className="flex justify-between"
+                    to={`/mapNav?adId=${announcement.id}`}
                   >
                     <span>{t("locationOnMap")}</span>
                     <img src={ArrowBottomIcon} alt="Перейти" />
