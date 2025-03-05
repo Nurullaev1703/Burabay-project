@@ -63,9 +63,6 @@ export class BookingService {
       newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
     } else {
       newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
-      console.log(ad.priceForChild);
-      console.log(ad.price);
-      console.log(newBooking.totalPrice);
     }
 
     // Сохранение
@@ -103,7 +100,6 @@ export class BookingService {
 
     for (const b of bookings) {
       const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
-      console.log(isRent);
       let date: Date;
       let header: string;
 
@@ -142,7 +138,7 @@ export class BookingService {
       const newTime = {
         time: isRent
           ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
-          : b.date,
+          : b.time,
         status: b.status,
         price: b.totalPrice,
         isPaid: b.isPaid,
@@ -256,6 +252,7 @@ export class BookingService {
         );
       } else {
         group.ads[b.ad.id].times.push(b.time);
+        console.log(b.time);
       }
     }
 
