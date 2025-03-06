@@ -131,7 +131,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                 {ad.title}
                               </span>
                               <div className="flex justify-between w-full">
-                                <div className="mr-8">
+                                <div className="mr-2">
                                   <span className="mr-2">
                                     {time.paymentType === "online"
                                       ? t("onlinePayment")
