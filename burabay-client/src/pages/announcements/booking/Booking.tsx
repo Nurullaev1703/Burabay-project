@@ -83,7 +83,7 @@ export const Booking: FC = function Booking() {
       });
 
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
-        navigate({ to: `/announcements/${announcement.id}` });
+        navigate({ to: `/booking/tourist` });
       } else {
         console.error(response.data);
       }
