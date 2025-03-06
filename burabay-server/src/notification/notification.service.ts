@@ -109,11 +109,6 @@ export class NotificationService {
   @CatchErrors()
   async findForUser(tokenData: TokenData){
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
-    const notifications = await this.notificationRepository.find({
-      order: { createdAt: 'DESC' },
-      where: { users: { id: user.id } },
-      relations: { users: true },
-    });
 
     const notificationsfilter = await this.notificationRepository.find({
       order: { createdAt: 'DESC' },
@@ -125,15 +120,11 @@ export class NotificationService {
       notification.users.length === 0 ||
       notification.users.some(u => u.id === user.id)
     );
-    
-
-    console.log("уведы без пользователя: ", filterNotifications)
 
     const mapNotifications = filterNotifications.map(notifications => ({
       ...notifications,
       users: notifications.users ? notifications.users.map(user => user.email) : [],
     }));
-    console.log("итог: ",mapNotifications)
 
     return mapNotifications
   }

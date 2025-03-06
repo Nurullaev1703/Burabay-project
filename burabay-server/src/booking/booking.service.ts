@@ -424,7 +424,7 @@ export class BookingService {
       booking.status = BookingStatus.CANCELED;
       await manager.save(booking);
       const notification = await manager.create(Notification, {
-        user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
+        users: [{ id: booking.user.id }],
         type: NotificationType.NEGATIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
         createdAt: new Date(),
