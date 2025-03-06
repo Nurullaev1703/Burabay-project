@@ -25,7 +25,10 @@ export function useGetNotification(){
             const notification = await apiService.get<Notification[]>({
               url: `/notification/user/`,
           });
-            return {notification: notification.data , profile: profile.data }
+          const notificationAll = await apiService.get<Notification[]>({
+            url: `/notification/all/`,
+          })
+            return {notification: notification.data , profile: profile.data , notificationAll: notificationAll.data }
         }
     })
 }
