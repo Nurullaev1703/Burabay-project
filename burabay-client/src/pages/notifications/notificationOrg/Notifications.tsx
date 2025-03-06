@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const Notifications: FC<Props> = function Notifications({
-  notifications,
+  notifications
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,6 +29,8 @@ export const Notifications: FC<Props> = function Notifications({
     };
     return typeToColorMap[type] || "bg-transparent";
   };
+
+  
 
   return (
     <div className="min-h-screen relative">
@@ -129,6 +131,7 @@ export const Notifications: FC<Props> = function Notifications({
           </div>
         </>
       )}
+      
 
       <NavMenuOrg />
     </div>

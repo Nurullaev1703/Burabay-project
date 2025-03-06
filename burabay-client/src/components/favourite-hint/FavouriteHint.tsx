@@ -28,7 +28,7 @@ export const FavouriteHint: FC = function FavouriteHint() {
       }`}
     >
       <div className="flex items-center">
-          <img src={FavouriteIcon} alt="Избранное" className="brightness-[5]"/>
+        <img src={FavouriteIcon} alt="Избранное" className="brightness-[25]" />
         <span className={`${COLORS_TEXT.white} mx-2`}>
           {t("favouriteNotice")}
         </span>

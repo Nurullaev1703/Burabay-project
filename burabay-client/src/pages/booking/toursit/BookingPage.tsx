@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
-import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
+import ArrowRightIcon from "../../../app/icons/arrow-right.svg";
 import { TouristBookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
@@ -61,62 +61,64 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           <img src={FilterIcon} className="mt-4" alt="Фильтр" />
         </Link>
       </div>
+      <ul className="px-4 mt-4 mb-32">
+  {filteredAds.map((category, index) => (
+    <li key={index} className="flex flex-col mb-8">
+      <span className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}>
+        {t(category.header)}
+      </span>
+      <ul>
+        {category.ads.map((ad) => {
+          // Группируем брони по уникальным значениям time
+          const groupedTimes = ad.times.reduce((acc, time) => {
+            if (!time.time) return acc;
 
-      <ul className="px-4 mt-4">
-        {filteredAds.map((category, index) => (
-          <li key={index} className="flex flex-col mb-8">
-            <span
-              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
-            >
-              {t(category.header)}
-            </span>
-            <ul>
-              {category.ads.map((ad) => (
-                <>
-                  {ad.times.map((time) => (
-                    <li
-                      key={ad.ad_id}
-                      className="py-3 border-b border-[#E4E9EA]"
-                    >
-                      <Link to={`/booking/${ad.ad_id}/${category.header}`}>
-                        <div className="mb-2">
-                          {ad.times.slice(0, 5).map((time, index) => {
-                            if (!time.time) return null;
+            // Если time уже есть в аккумуляторе, добавляем бронь в массив
+            if (acc[time.time]) {
+              acc[time.time].push(time);
+            } else {
+              // Иначе создаем новую запись
+              acc[time.time] = [time];
+            }
+            return acc;
+          }, {} as Record<string, typeof ad.times>);
 
-                            const hasUnderscore = time.time.includes("_");
-                            const formattedTime = time.time.replace("_", "");
-                            const updatedTime = formattedTime.replace(
-                              /(\d{2}\.\d{2})\.\d{4}/g,
-                              "$1"
-                            );
-
-                            return (
-                              <div className="flex justify-between">
-                                <span
-                                  key={index}
-                                  className={`font-bold ${
-                                    hasUnderscore
-                                      ? COLORS_TEXT.red
-                                      : COLORS_TEXT.blue200
-                                  } ${time.status === "отменено" ? COLORS_TEXT.gray100 : ""}`}
-                                >
-                                  {updatedTime}
-                                  {index < Math.min(5, ad.times.length) - 1 &&
-                                    ", "}
-                                </span>
-                                <span
-                                  className={`${COLORS_TEXT.red} font-bold`}
-                                >
-                                  {time.status === "отменено"
-                                    ? t("cancelStatus")
-                                    : ""}
-                                </span>
-                              </div>
-                            );
-                          })}
-                          {ad.times.length > 5 && " ..."}
-                        </div>
-                        <div className="flex justify-between">
+          return (
+            <>
+              {Object.entries(groupedTimes).map(([timeKey, times]) => (
+                <li key={timeKey} className="py-3 border-b border-[#E4E9EA]">
+                  <Link to={`/booking/${ad.ad_id}/${category.header}`}>
+                    <div className="mb-2">
+                      <div className="flex justify-between">
+                        <span
+                          className={`font-bold ${
+                            timeKey.includes("_")
+                              ? COLORS_TEXT.red
+                              : COLORS_TEXT.blue200
+                          } ${
+                            times[0].status === "отменено"
+                              ? COLORS_TEXT.gray100
+                              : ""
+                          }`}
+                        >
+                          {timeKey.replace("_", "").replace(
+                            /(\d{2}\.\d{2})\.\d{4}/g,
+                            "$1"
+                          )}
+                        </span>
+                        <span className={`${COLORS_TEXT.red} font-bold`}>
+                          {times[0].status === "отменено"
+                            ? t("cancelStatus")
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      {times.map((time, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-between mt-6"
+                        >
                           <div className="flex">
                             <img
                               src={baseUrl + ad.img}
@@ -135,7 +137,11 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                       : t("onSidePayment")}
                                   </span>
                                   <span
-                                    className={`text-sm ${time.isPaid ? COLORS_TEXT.access : COLORS_TEXT.red}`}
+                                    className={`text-sm ${
+                                      time.isPaid
+                                        ? COLORS_TEXT.access
+                                        : COLORS_TEXT.red
+                                    }`}
                                   >
                                     {time.isPaid ? t("paid") : t("waiting")}
                                   </span>
@@ -146,17 +152,20 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               </div>
                             </div>
                           </div>
-                          <img src={ArrowBottomIcon} alt="Подробнее" />
+                          <img src={ArrowRightIcon} alt="Подробнее" />
                         </div>
-                      </Link>
-                    </li>
-                  ))}
-                </>
+                      ))}
+                    </div>
+                  </Link>
+                </li>
               ))}
-            </ul>
-          </li>
-        ))}
+            </>
+          );
+        })}
       </ul>
+    </li>
+  ))}
+</ul>
 
       <NavMenuClient />
     </section>

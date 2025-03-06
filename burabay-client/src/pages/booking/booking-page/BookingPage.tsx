@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
-import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
+import ArrowRightIcon from "../../../app/icons/arrow-right.svg";
 import { BookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
@@ -62,7 +62,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
         </Link>
       </div>
 
-      <ul className="px-4 mt-4">
+      <ul className="px-4 mt-4 mb-32">
         {filteredAds.map((category, index) => (
           <li key={index} className="flex flex-col mb-8">
             <span
@@ -117,7 +117,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       </div>
                     </div>
 
-                    <img src={ArrowBottomIcon} alt="Подробнее" />
+                    <img src={ArrowRightIcon} alt="Подробнее" />
                   </Link>
                 </li>
               ))}

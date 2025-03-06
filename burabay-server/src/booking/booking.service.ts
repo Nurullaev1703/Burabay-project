@@ -134,11 +134,15 @@ export class BookingService {
         group.ads.push(adGroup);
       }
 
-      // Формируем только даты в "time".
+      let newTimeField;
+      if (isRent) {
+        newTimeField = `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`;
+      } else {
+        if (b.time) newTimeField = b.time;
+        else newTimeField = b.date;
+      }
       const newTime = {
-        time: isRent
-          ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
-          : b.time,
+        time: newTimeField,
         status: b.status,
         price: b.totalPrice,
         isPaid: b.isPaid,
@@ -251,7 +255,8 @@ export class BookingService {
           `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
         );
       } else {
-        group.ads[b.ad.id].times.push(b.time);
+        if (b.time) group.ads[b.ad.id].times.push(b.time);
+        else group.ads[b.ad.id].times.push(b.date);
       }
     }
 
@@ -285,7 +290,11 @@ export class BookingService {
       today.setDate(today.getDate() + 1);
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
     } else {
-      findDate = date;
+      const parts = date.split('.');
+      if (parts.length === 3 && parts[2].length === 2) {
+        parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
+      }
+      findDate = parts.join('.');
     }
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;

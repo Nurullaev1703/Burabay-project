@@ -7,6 +7,8 @@ services:
             dockerfile: Dockerfile.backend
         env_file:
             - burabay-server/.env.docker
+        volumes:
+            - public-data:/app/public
         depends_on:
             - postgres
         ports:
@@ -38,28 +40,15 @@ services:
             - burabay-server/.env.docker
         networks:
             - app-network
-        ports:
-            - "5432:5432"
-
-    # Nginx сервис для работы SSL
-    nginx:
-        image: nginx:latest
-        container_name: nginx
         volumes:
-            - ./nginx/nginx.conf:/etc/nginx/nginx.conf # Монтируем nginx.conf
-            - ./nginx/certs:/etc/nginx/certs # Монтируем каталог сертификатов
-            - ./nginx/conf.d:/etc/nginx/conf.d # Монтируем каталог конфигураций
+            - postgres-data:/var/lib/postgresql/data
         ports:
-            - "80:80" # HTTP
-            - "443:443" # HTTPS
-        depends_on:
-            - frontend
-        networks:
-            - app-network
+            - "5433:5432"
 
 networks:
     app-network:
         driver: bridge
 
 volumes:
+    public-data:
     postgres-data:

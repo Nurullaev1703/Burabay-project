@@ -64,7 +64,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
                 src={link.icon}
                 alt={link.label}
                 className={`w-[30px] h-[30px] transition-all duration-300
-                  ${isActive ? "" : "brightness-[5]"}
+                  ${isActive ? "" : "brightness-[25]"}
                 `}
               />
               {isExpanded && (
@@ -84,7 +84,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
           <img
             src={logoutIcon}
             alt="Выйти"
-            className="w-[30px] h-[30px] brightness-[5]"
+            className="w-[30px] h-[30px] brightness-[25]"
           />
           {isExpanded && <span className="text-md font-medium">Выйти</span>}
         </button>

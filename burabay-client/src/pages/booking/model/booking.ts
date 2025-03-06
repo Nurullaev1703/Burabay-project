@@ -42,6 +42,7 @@ export interface TouristBookingList {
 export interface SelectedBookingList {
   bookingId: string;
   rate: string;
+  days?: number;
   avatar: string;
   isPaid: boolean;
   name: string;

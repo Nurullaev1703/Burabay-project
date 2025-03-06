@@ -72,12 +72,12 @@ export const Announcement: FC<Props> = function Announcement({
     });
     if (response.data) {
       if (isFavourite) {
-        setIsFavourite(false)
-        setIsFavouriteModal(false)
-      }  else {
+        setIsFavourite(false);
+        setIsFavouriteModal(false);
+      } else {
         setIsFavourite(true);
-        setIsFavouriteModal(true)
-      } 
+        setIsFavouriteModal(true);
+      }
     }
     await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
     await queryClient.refetchQueries({ queryKey: ["main-page-announcements"] });
@@ -150,7 +150,7 @@ export const Announcement: FC<Props> = function Announcement({
             <img
               src={baseUrl + announcement.subcategory.category.imgPath}
               alt="Категория"
-              className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen brightness-[5] z-100"
+              className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen brightness-[25] z-100"
             />
           </div>
           <Carousel

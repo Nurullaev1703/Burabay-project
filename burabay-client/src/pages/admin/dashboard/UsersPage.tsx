@@ -1,184 +1,99 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
-import { apiService } from "../../../services/api/ApiService";
-import { Profile } from "../../profile/model/profile";
 import { baseUrl } from "../../../services/api/ServerData";
+import { RoleType, useGetUsers, UsersFilter, UsersFilterStatus } from "./model/user-filter";
+import { useNavigate } from "@tanstack/react-router";
+import { Organization, Profile } from "../../profile/model/profile";
+import { Typography } from "../../../shared/ui/Typography";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
-import { UsersFilterStatus } from "./model/user-filter";
 
 
-export default function UsersList() {
-  const [users, setUsers] = useState<Profile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<ROLE_TYPE | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<UsersFilterStatus | "all">(
-    "all"
-  );
+interface Props {
+  filters: UsersFilter;
+  profile: Profile
+}
 
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-
-  // const [selectedOrg, setSelectedOrg] = useState<Org | null>(null);
+export default function UsersList({ filters}: Props) {
+  const navigate = useNavigate();
+  const { data: users = [], isLoading } = useGetUsers(filters);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
 
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
+  const updateFilters = (newFilters: Partial<UsersFilter>) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        ...newFilters,
+      },
+    });
+  };
+  const resolveDocUrl = (docPath: string | null) => {
+    if (!docPath) return "#";  // Если документа нет — делаем заглушку
+    return `${BASE_URL}/public${docPath}`;
+  };
+  const getDocumentUrl = (path: string | null) => {
+    if (!path) return null;
+    return `${baseUrl}${path.replace(/^\/+/, "")}`;
+  };
+  
+  const openConfirmModal = (organization: Organization) => {
+    setSelectedOrganization(organization);
+    setIsConfirmModalOpen(true);
+};
+const closeConfirmModal = () => {
+    setSelectedOrganization(null);
+    setIsConfirmModalOpen(false);
+};
+  
+const handleConfirmUser = () => {
+  if (!selectedOrganization) return;
+  console.log(`Подтвердили организацию с id: ${selectedOrganization.id}`);
+  closeConfirmModal();
+};
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await apiService.get<Profile[]>({
-          url: "/admin/users",
-        });
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-      } catch (error) {
-        console.error("Ошибка загрузки данных: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    let filtered = users.filter((user) =>
-      user.fullName.toLowerCase().includes(search.toLowerCase())
-    );
-
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((user) => user.role === roleFilter);
+  const closeDropdownsOnClickOutside = (event: MouseEvent) => {
+    if (
+      roleFilterRef.current &&
+      !roleFilterRef.current.contains(event.target as Node)
+    ) {
+      setIsRoleDropdownOpen(false);
     }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((user) => {
-        if (statusFilter === UsersFilterStatus.BAN) return user.isBanned;
-        if (statusFilter === UsersFilterStatus.WAITING)
-          return user.isEmailConfirmed === false;
-        return false;
-      });
-    }
-
-    setFilteredUsers(filtered);
-  }, [search, roleFilter, statusFilter, users]);
-
-  //FIXME переделать с учетом новых приходящих данных
-  // const handleConfirmOrg = async (id: string) => {
-  //   try {
-  //     await apiService.patch({
-  //       url: `/admin/check-org/${id}`,
-  //     });
-
-  //     setUsers((prevUsers) =>
-  //       prevUsers.map((user) =>
-  //         user.id === id ? { ...user, isConfirmed: true } : user
-  //       )
-  //     );
-
-  //     setSelectedOrg(null);
-  //   } catch (error) {
-  //     console.error("Ошибка подтверждения организации: ", error);
-  //   }
-  // };
-
-  // const handleRejectOrg = async (id: string) => {
-  //   try {
-  //     await apiService.patch({
-  //       url: `/admin/orgs/${id}/reject`,
-  //       dto: { isConfirmed: false },
-  //     });
-
-  //     setUsers((prevUsers) =>
-  //       prevUsers.map((user) =>
-  //         user.id === id ? { ...user, isEmailConfirmed: false } : user
-  //       )
-  //     );
-
-  //     setSelectedOrg(null);
-  //   } catch (error) {
-  //     console.error("Ошибка отклонения организации: ", error);
-  //   }
-  // };
-
-  // const handleOpenModal = (org: Org) => {
-  //   setSelectedOrg(org);
-  // };
-
-  const BASE_URL = baseUrl;
-
-  const toggleRoleDropdown = () => {
-    setIsRoleDropdownOpen(!isRoleDropdownOpen);
-    if (isStatusDropdownOpen) {
+    if (
+      statusFilterRef.current &&
+      !statusFilterRef.current.contains(event.target as Node)
+    ) {
       setIsStatusDropdownOpen(false);
     }
   };
-
-  const toggleStatusDropdown = () => {
-    setIsStatusDropdownOpen(!isStatusDropdownOpen);
-    if (isRoleDropdownOpen) {
-      setIsRoleDropdownOpen(false);
-    }
-  };
-
-  const closeRoleDropdown = () => {
-    setIsRoleDropdownOpen(false);
-  };
-
-  const closeStatusDropdown = () => {
-    setIsStatusDropdownOpen(false);
-  };
-
-  const handleRoleFilterChange = (role: ROLE_TYPE | "all") => {
-    setRoleFilter(role);
-    closeRoleDropdown();
-  };
-
-  const handleStatusFilterChange = (status: UsersFilterStatus | "all") => {
-    setStatusFilter(status);
-    closeStatusDropdown();
-  };
+  
 
   useEffect(() => {
-    const handleClickOutside = (event: any) => {
-      if (
-        isRoleDropdownOpen &&
-        roleFilterRef.current &&
-        !roleFilterRef.current.contains(event.target)
-      ) {
-        closeRoleDropdown();
-      }
-      if (
-        isStatusDropdownOpen &&
-        statusFilterRef.current &&
-        !statusFilterRef.current.contains(event.target)
-      ) {
-        closeStatusDropdown();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", closeDropdownsOnClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", closeDropdownsOnClickOutside);
     };
-  }, [
-    isRoleDropdownOpen,
-    isStatusDropdownOpen,
-    roleFilterRef,
-    statusFilterRef,
-  ]);
+  }, []);
+
+  const BASE_URL = baseUrl;
 
   return (
     <div className="relative min-h-screen flex">
-      <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>   
+      <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
       <div className="relative z-50">
         <SideNav />
+      
       </div>
       <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
         <div className="fixed top-0 left-[94px] right-0 bg-white shadow-md rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
@@ -186,44 +101,44 @@ export default function UsersList() {
             type="text"
             placeholder="Поиск"
             className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] w-full"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={filters.name ?? ""}
+            onChange={(e) => updateFilters({ name: e.target.value })}
           />
+
           <div className="relative" ref={roleFilterRef}>
             <button
               type="button"
               className="w-[264.5px] text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
-              onClick={toggleRoleDropdown}
+              onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
             >
-              {roleFilter === "all" ? "Все пользователи" : roleFilter}
+              {filters.role ?? "Все пользователи"}
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
-                <label className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="roleFilter"
-                    value="all"
-                    checked={roleFilter === "all"}
-                    onChange={() => handleRoleFilterChange("all")}
+                    checked={!filters.role}
+                    onChange={() => updateFilters({ role: undefined })}
                     className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                   />
                   Все пользователи
                 </label>
-                {Object.values(ROLE_TYPE).map((role) => (
+                {Object.values(RoleType).map((roleValue) => (
                   <label
-                    key={role}
+                    key={roleValue}
                     className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <input
                       type="radio"
                       name="roleFilter"
-                      value={role}
-                      checked={roleFilter === role}
-                      onChange={() => handleRoleFilterChange(role)}
+                      value={roleValue}
+                      checked={filters.role === roleValue}
+                      onChange={() => updateFilters({ role: roleValue })}
                       className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-                    {role}
+                    {roleValue}
                   </label>
                 ))}
               </div>
@@ -233,19 +148,18 @@ export default function UsersList() {
             <button
               type="button"
               className="w-[264.5px] text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
-              onClick={toggleStatusDropdown}
+              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
-              {statusFilter === "all" ? "Все статусы" : statusFilter}
+              {filters.status ?? "Все статусы"}
             </button>
             {isStatusDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
-                <label className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
                     type="radio"
                     name="statusFilter"
-                    value="all"
-                    checked={statusFilter === "all"}
-                    onChange={() => handleStatusFilterChange("all")}
+                    checked={!filters.status}
+                    onChange={() => updateFilters({ status: undefined })}
                     className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                   />
                   Все статусы
@@ -253,17 +167,16 @@ export default function UsersList() {
                 {Object.values(UsersFilterStatus).map((status) => (
                   <label
                     key={status}
-                    className="items-center block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <input
                       type="radio"
                       name="statusFilter"
                       value={status}
-                      checked={statusFilter === status}
-                      onChange={() => handleStatusFilterChange(status)}
+                      checked={filters.status === status}
+                      onChange={() => updateFilters({ status })}
                       className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-
                     {status}
                   </label>
                 ))}
@@ -272,151 +185,178 @@ export default function UsersList() {
           </div>
         </div>
         <div className="mt-16">
-          {loading ? (
+          {isLoading ? (
             <p className="text-gray-500">Загрузка...</p>
           ) : (
-            <div className="grid gap-4">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
-                >
-                  <div className="flex items-center h-[84px] space-x-4 pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] border-r border-[#E4E9EA]">
-                    <img
-                      src={
-                        user.picture
-                          ? `${BASE_URL}${user.picture}`
-                          : "https://via.placeholder.com/50"
-                      }
-                      alt={user.fullName}
-                      className="w-[52px] h-[52px] rounded-full object-cover"
-                    />
-                    <div>
-                      <h2 className="text-lg font-roboto">{user.fullName}</h2>
-                      <p
-                        className={`text-sm ${user.isBanned ? "text-red-500" : "text-[14px] text-[#39B56B]"}`}
-                      >
-                        {user.isBanned
-                          ? UsersFilterStatus.BAN
-                          : user.isEmailConfirmed
-                            ? "Подтвержден"
-                            : UsersFilterStatus.WAITING}
-                      </p>
-                      <span className="text-[12px]  text-[#999999]">
-                        {user.role}
-                      </span>
-                    </div>
-                    {user.role === ROLE_TYPE.BUSINESS &&
-                      user.isEmailConfirmed === false && (
-                        <button
-                          // onClick={() =>
-                          //   handleOpenModal({
-                          //     id: user.id,
-                          //     name: user.fullName,
-                          //     imgUrl: user.picture,
-                          //     description: "",
-                          //     siteUrl: user.email,
-                          //     isConfirmed: user.isEmailConfirmed ?? false,
-                          //     isBanned: user.isBanned ?? false,
-                          //   })
-                          // }
-                          className="bg-white border h-[48px] border-[#39B56B] rounded-[16px] text-[#39B56B] py-[12px] px-[16px]"
-                        >
-                          Подтвердить
-                        </button>
-                      )}
-                  </div>
-                  <div className="pl-[32px] flex-1 min-w-[150px]">
-                    <div className="text-center md:text-left">
-                      <p className="text-[16px] text-black">
-                        {user.phoneNumber || "—"}
-                      </p>
-                      <p className="text-[12px] text-[#999999]">Телефон</p>
-                    </div>
-                  </div>
-                  <div className="pl-[32px] h-full border-l border-[#E4E9EA] flex-1 min-w-[150px] flex flex-col justify-center text-center md:text-left">
-                    <p className="text-[16px] text-black">
-                      {user.email || "—"}
-                    </p>
-                    <p className="text-[12px] text-[#999999]">Email</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+<div className="grid gap-4">
+  {users.map((user) => (
+    <div
+    key={user.organization?.id || user.id}
+      className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
+    >
+      <div className="flex items-center h-[84px] space-x-4 pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] border-r border-[#E4E9EA]">
+        <img
+          src={
+            user.picture
+              ? `${BASE_URL}${user.picture}`
+              : "https://via.placeholder.com/50"
+          }
+          alt={user.fullName}
+          className="w-[52px] h-[52px] rounded-full object-cover"
+        />
+        <div>
+          <h2 className="text-lg font-roboto">{user.fullName}</h2>
+          <p
+            className={`text-sm ${
+              user.isBanned
+                ? "text-red-500"
+                : "text-[14px] text-[#39B56B]"
+            }`}
+          >
+            {user.isBanned
+              ? UsersFilterStatus.BAN
+              : user.role === ROLE_TYPE.BUSINESS
+                ? user.organization?.isConfirmed
+                  ? "Подтвержден"
+                  : UsersFilterStatus.WAITING
+                : user.isEmailConfirmed
+                  ? "Подтвержден"
+                  : UsersFilterStatus.WAITING}
+          </p>
+          <span className="text-[12px] text-[#999999]">{user.role}</span>
+        </div>
+      </div>
+
+      <div className="pl-[32px] flex-1">
+        <p>{user.phoneNumber || "—"}</p>
+        <p className="text-[#999]">Телефон</p>
+      </div>
+
+      {/* Кнопка подтверждения только для организаций (business) */}
+      {user.role === ROLE_TYPE.BUSINESS && !user.organization?.isConfirmed && (
+        <button
+          className="ml-auto text-[#0A7D9E] underline cursor-pointer"
+          onClick={() => openConfirmModal(user.organization!)}
+        >
+          Подтвердить
+        </button>
+      )}
+
+      {user.role === ROLE_TYPE.TOURIST && !user.isEmailConfirmed && (
+        <button
+          className="ml-auto text-[#0A7D9E] underline cursor-pointer"
+          onClick={() => openConfirmModal}
+        >
+          Подтвердить
+        </button>
+      )}
+
+    </div>
+  ))}
+</div>
+
           )}
         </div>
       </div>
-      {/* {selectedOrg && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              className="absolute top-4 right-4 text-gray-600 hover:text-black text-2xl"
-              onClick={() => setSelectedOrg(null)}
-            ></button>
-            <div className="flex flex-col items-center mb-4">
-              <img
-                src={
-                  selectedOrg.imgUrl
-                    ? `${BASE_URL}${selectedOrg.imgUrl}`
-                    : "https://via.placeholder.com/70"
-                }
-                alt={selectedOrg.name}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <h2 className="text-lg font-semibold mt-2">{selectedOrg.name}</h2>
-              <p className="text-green-600 text-sm">Ожидание подтверждения</p>
-              <p className="text-gray-500 text-sm">Организация</p>
-            </div>
-            <div className="mb-4">
-              <p className="text-gray-700 font-semibold">БИН</p>
-              <p className="text-black">{selectedOrg.id}</p>
-            </div>
-            <div className="mb-4">
-              <p className="text-gray-700 font-semibold">
-                Номер телефона с аккаунтом WhatsApp
-              </p>
-              <p className="text-black">{selectedOrg.siteUrl || "Не указан"}</p>
-            </div>
-            <div className="mb-4 space-y-2">
-              <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                <p className="text-black">📄 Талон.docs</p>
-                <a href="#" className="text-blue-500 text-xl">
-                  ⬇️
-                </a>
-              </div>
-              <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                <p className="text-black">📄 Справка.docs</p>
-                <a
-                  href={`${baseUrl}/public/`}
-                  className="text-blue-500 text-xl"
-                >
-                  ⬇️
-                </a>
-              </div>
-              <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                <p className="text-black">📄 Устав.docs</p>
-                <a href="#" className="text-blue-500 text-xl">
-                  ⬇️
-                </a>
-              </div>
-            </div>
-            <div className="flex flex-col space-y-2">
-              <button
-                onClick={() => handleConfirmOrg(selectedOrg.id)}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg text-center text-lg font-medium"
-              >
-                ✅ Подтвердить аккаунт
-              </button>
-              <button
-                onClick={() => handleRejectOrg(selectedOrg.id)}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg text-center text-lg font-medium"
-              >
-                ❌ Отклонить
-              </button>
-            </div>
-          </div>
+      {isConfirmModalOpen && selectedOrganization && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+      <div className="flex items-center space-x-4 mb-4">
+        <img
+          src={`${BASE_URL}${selectedOrganization.imgUrl}`}
+          alt="Organization Logo"
+          className="w-12 h-12 rounded-full object-cover"
+        />
+        <div>
+          <Typography className="text-xl font-bold">{selectedOrganization.name}</Typography>
+          <Typography className="text-green-600 text-sm">Ожидание подтверждения</Typography>
+          <Typography className="text-gray-500 text-sm">Организация</Typography>
         </div>
-      )} */}
+      </div>
+
+      <div>
+        <Typography>{"Номер телефона"}</Typography>
+        <Typography>{""}</Typography>
+      </div>
+
+      <div className="mb-2">
+        <Typography className="text-gray-500 text-sm">БИН</Typography>
+        <Typography className="font-medium">{selectedOrganization.bin}</Typography>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <img src="/icons/document.svg" alt="doc" />
+          {selectedOrganization.regCouponPath ? (
+          <a
+  href={selectedOrganization.regCouponPath ?? "#"}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-blue-600 underline"
+>
+  {selectedOrganization.regCouponPath?.split('/').pop() || "Документ"}
+</a>
+      ) : (
+        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
+      )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <img src="/icons/document.svg" alt="doc" />
+          {selectedOrganization.ibanDocPath ? (
+          <a
+  href={selectedOrganization.ibanDocPath ?? "#"}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-blue-600 underline"
+>
+  {selectedOrganization.ibanDocPath?.split('/').pop() || "Документ"}
+</a>
+      ) : (
+        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
+      )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <img src="/icons/document.svg" alt="doc" />
+          {selectedOrganization.orgRulePath ? (
+          <a
+  href={selectedOrganization.orgRulePath ?? "#"}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-blue-600 underline"
+>
+  {selectedOrganization.orgRulePath?.split('/').pop() || "Документ"}
+</a>
+      ) : (
+        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
+      )}
+          <a
+            href={resolveDocUrl(selectedOrganization.orgRulePath)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <button
+          onClick={() => handleConfirmUser}
+          className="w-full py-3 bg-green-500 text-white rounded-lg font-medium"
+        >
+          Подтвердить аккаунт
+        </button>
+        <button
+          onClick={closeConfirmModal}
+          className="w-full py-3 bg-red text-white rounded-lg font-medium"
+        >
+          Отклонить
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

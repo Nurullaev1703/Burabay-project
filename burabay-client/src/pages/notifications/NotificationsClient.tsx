@@ -12,10 +12,12 @@ import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 interface Props {
   notifications: Notification[];
   user: Profile;
+
 }
 
 export const NotificationsClient: FC<Props> = function Notifications({
   notifications,
+
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ export const NotificationsClient: FC<Props> = function Notifications({
     };
     return typeToColorMap[type] || "bg-transparent";
   };
+
 
   return (
     <div className="min-h-screen relative">

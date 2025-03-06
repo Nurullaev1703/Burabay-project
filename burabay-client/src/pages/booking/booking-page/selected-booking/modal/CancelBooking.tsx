@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../../../../shared/ui/Button";
 import { apiService } from "../../../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../../../services/api/ServerData";
-import { useNavigate } from "@tanstack/react-router";
 import { queryClient } from "../../../../../ini/InitializeApp";
 
 interface Props {
@@ -19,7 +18,6 @@ export const CancelBooking: FC<Props> = function CancelBooking({
   onClose,
 }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const cancelBooking = async (idBooking: string = bookingId) => {
     try {
       const response = await apiService.patch<HTTP_STATUS>({
@@ -27,7 +25,7 @@ export const CancelBooking: FC<Props> = function CancelBooking({
       });
       if (parseInt(response.data) === parseInt(HTTP_STATUS.OK)) {
         await queryClient.invalidateQueries({ queryKey: [`/booking/org`] });
-        navigate({ to: "/booking/business" });
+        history.back();
       } else {
         console.log("Ошибка чечни");
       }
@@ -72,7 +70,7 @@ export const CancelBooking: FC<Props> = function CancelBooking({
             mode="red"
             onClick={() => cancelBooking(bookingId)}
           >
-            {t("cancel")}
+            {t("cancelBooking")}
           </Button>
           <Button className="mb-4" onClick={onClose}>
             {t("changeMind")}
