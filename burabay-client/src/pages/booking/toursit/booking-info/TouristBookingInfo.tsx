@@ -30,18 +30,13 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
   if (!bookingsState || !bookingsState.bookings) {
     return <div>{t("noBookingsAvailable")}</div>; // Сообщение, если данные отсутствуют
   }
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return t("noDateAvailable"); // Сообщение, если дата отсутствует
-
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const getDaySuffix = (days: number | undefined = 0) => {
+    if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "день"
+    if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
+      return t("daysV2");
+    }
+    return t("daysV1");
   };
-
   return (
     <>
       {bookings.type === "Аренда" ? (
@@ -67,7 +62,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("totalDuration")}</span>
                   <span>
-                   {b.days}
+                    {b.days} {getDaySuffix(b.days)}
                   </span>
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
@@ -114,7 +109,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   onClick={() => setIsCancel(true)}
                   mode="red"
                 >
-                  {t("cancel")}
+                  {t("cancelBooking")}
                 </Button>
               )}
               <CancelBooking
