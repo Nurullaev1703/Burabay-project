@@ -252,7 +252,6 @@ export class BookingService {
         );
       } else {
         group.ads[b.ad.id].times.push(b.time);
-        console.log(b.time);
       }
     }
 
@@ -280,17 +279,25 @@ export class BookingService {
     // Получение даты для поиска
     if (date === 'Сегодня') {
       const today = new Date();
+      console.log(`Сегодня ${today}`);
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
     } else if (date === 'Завтра') {
       const today = new Date();
       today.setDate(today.getDate() + 1);
+      console.log(`Завтра ${today}`);
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
     } else {
-      findDate = date;
+      const parts = date.split('.');
+      if (parts.length === 3 && parts[2].length === 2) {
+        parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
+      }
+      findDate = parts.join('.');
     }
+    console.log(findDate);
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;
     if (isRent) {
+      console.log(Utils.stringDateToDate(findDate));
       whereOptions = { ad: { id: adId }, dateStart: Utils.stringDateToDate(findDate) };
     } else {
       whereOptions = { ad: { id: adId }, date: findDate };
@@ -344,8 +351,6 @@ export class BookingService {
       }
     } else {
       for (const b of bookings) {
-        console.log(b.dateStart);
-        console.log(b.dateEnd);
         ad_bookins.push({
           bookingId: b.id,
           time: b.time,
