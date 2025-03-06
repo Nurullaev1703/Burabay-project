@@ -3,10 +3,12 @@ import SideNav from "../../../components/admin/SideNav";
 import { apiService } from "../../../services/api/ApiService";
 import authBg from "../../../app/icons/bg_auth.png";
 import message from "../../../app/icons/Message.png";
+import { Loader } from "../../../components/Loader";
 
 interface Notification {
   id: string;
   message: string;
+  createdAt: string;
 }
 
 interface Message {
@@ -32,15 +34,29 @@ export default function MessagesPage() {
         url: "/notification/all",
       });
 
-      const notificationsAsMessages = response.data.map((notif) => ({
-        id: notif.id,
-        text: notif.message,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        date: new Date().toISOString().split("T")[0],
-      }));
+      if (!Array.isArray(response.data)) {
+        console.error(
+          "Ошибка: Ожидался массив уведомлений, но получено другое значение",
+          response.data
+        );
+        return;
+      }
+
+      const notificationsAsMessages = response.data
+        .map((notif) => ({
+          id: notif.id,
+          text: notif.message,
+          time: new Date(notif.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          date: new Date(notif.createdAt).toISOString().split("T")[0],
+        }))
+        .sort(
+          (a, b) =>
+            new Date(a.date + " " + a.time).getTime() -
+            new Date(b.date + " " + b.time).getTime()
+        );
 
       setMessages(groupMessagesByDate(notificationsAsMessages));
     } catch (error) {
@@ -60,12 +76,35 @@ export default function MessagesPage() {
         dto: { type: "позитивное", message: newMessage },
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer ТВОЙ_ТОКЕН", // Укажи свой токен
+          Authorization: "Bearer ТВОЙ_ТОКЕН",
         },
       });
 
-      setNewMessage(""); // ✅ Очищаем инпут
-      fetchNotifications(); // ✅ Загружаем обновленный список с сервера
+      const newMsg: Message = {
+        id: Date.now().toString(),
+        text: newMessage,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        date: new Date().toISOString().split("T")[0],
+      };
+
+      setMessages((prevMessages) => {
+        const updatedMessages = { ...prevMessages };
+        if (!updatedMessages[newMsg.date]) {
+          updatedMessages[newMsg.date] = [];
+        }
+        updatedMessages[newMsg.date].push(newMsg);
+        updatedMessages[newMsg.date].sort(
+          (a, b) =>
+            new Date(a.date + " " + a.time).getTime() -
+            new Date(b.date + " " + b.time).getTime()
+        );
+        return updatedMessages;
+      });
+
+      setNewMessage("");
       scrollToBottom();
     } catch (error) {
       console.error("Ошибка отправки уведомления: ", error);
@@ -86,6 +125,9 @@ export default function MessagesPage() {
       (acc, message) => {
         if (!acc[message.date]) acc[message.date] = [];
         acc[message.date].push(message);
+        acc[message.date].sort(
+          (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+        );
         return acc;
       },
       {} as Record<string, Message[]>
@@ -106,33 +148,35 @@ export default function MessagesPage() {
       <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
         <div className="flex-1 overflow-y-auto max-h-[calc(100vh-120px)] p-6 pt-0">
           {loading ? (
-            <p className="text-center text-gray-200">Загрузка уведомлений...</p>
+            <Loader />
           ) : (
-            Object.entries(messages).map(([date, messages]) => (
-              <div key={date} className="mb-6">
-                <div className="text-center text-lg font-semibold text-black mb-4">
-                  {date}
+            Object.entries(messages)
+              .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+              .map(([date, messages]) => (
+                <div key={date} className="mb-6">
+                  <div className="text-center text-lg font-semibold text-black mb-4">
+                    {date}
+                  </div>
+                  <div className="flex flex-col items-start gap-4">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className="relative w-full max-w-[1200px] backdrop-blur-md bg-white bg-opacity-90 p-4 rounded-xl flex flex-col justify-between shadow-md break-words"
+                      >
+                        <div className="text-lg font-medium text-black">
+                          Burabay администратор
+                        </div>
+                        <div className="text-black break-words overflow-hidden">
+                          {msg.text}
+                        </div>
+                        <div className="absolute bottom-2 right-4 text-sm text-gray-600">
+                          {msg.time}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col items-start gap-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="relative w-full max-w-[1200px] backdrop-blur-md bg-white bg-opacity-90 p-4 rounded-xl flex flex-col justify-between shadow-md break-words"
-                    >
-                      <div className="text-lg font-medium text-black">
-                        Burabay администратор
-                      </div>
-                      <div className="text-black break-words overflow-hidden">
-                        {msg.text}
-                      </div>
-                      <div className="absolute bottom-2 right-4 text-sm text-gray-600">
-                        {msg.time}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
+              ))
           )}
           <div ref={messagesEndRef} />
         </div>

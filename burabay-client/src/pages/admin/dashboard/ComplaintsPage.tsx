@@ -280,37 +280,41 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col py-[10px] gap-4">
+        <div className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 68px)' }}>
           {isLoading ? (
             <p className="text-center text-gray-500 mt-4">Загрузка данных...</p>
           ) : reviews.length > 0 ? (
             reviews.map((review) => (
               <div
                 key={review.reviewId}
-                className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-lg ${
+                className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
                   review.hint
                     ? review.hint.type === "success"
-                      ? "bg-green-100"
-                      : "bg-red"
+                      ? "bg-[#59C183]"
+                      : "bg-[#FF5959]"
                     : "bg-white"
                 }`}
               >
                 {review.status ? (
-                  <div className="col-span-3 flex items-center justify-between px-4 py-2">
-                    <div
-                      className={`p-2 rounded ${
-                        review.status === "deleted"
-                          ? "bg-red-200"
-                          : "bg-green-200"
-                      }`}
-                    >
+                  <div
+                    className={`col-span-3 flex items-center justify-between rounded-[16px] px-4 py-2 ${
+                      review.status === "deleted"
+                        ? "bg-[#FF5959]"
+                        : "bg-[#59C183]"
+                    }`}
+                  >
+                    <div className="p-2 text-white rounded">
                       {review.status === "deleted"
                         ? "Комментарий удален"
                         : "Комментарий оставлен"}
                     </div>
                     <button
                       onClick={() => handleCancelHint(review.reviewId)}
-                      className="bg-gray-200 p-2 rounded"
+                      className={`p-2 text-white rounded bg-inherit ${
+                        review.status === "deleted"
+                          ? "bg-[#FF5959]"
+                          : "bg-[#59C183]"
+                      }`}
                     >
                       Отменить
                     </button>
@@ -327,12 +331,20 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                         </p>
                         <RatingStars rating={review.reviewStars} />
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-700">
-                          {review.adName}
-                        </p>
-                        <div className="text-[16px] text-yellow-500 flex items-center">
-                          ⭐ {review.adRating} ({review.adReviewCount})
+
+                      <div className="flex items-center">
+                        <img
+                          src={`${BASE_URL}${review.adImage}`}
+                          alt="Фото отзыва"
+                          className="w-[52px] h-[52px] rounded-md object-cover"
+                        />
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-700">
+                            {review.adName}
+                          </p>
+                          <div className="text-[16px] text-yellow-500 flex items-center">
+                            ⭐ {review.adRating} ({review.adReviewCount})
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -342,7 +354,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                         {review.reviewImages.map((img, idx) => (
                           <img
                             key={idx}
-                            src={`<span class="math-inline">\{BASE\_URL\}</span>{img}`}
+                            src={`${BASE_URL}${img}`} // Исправлено
                             alt="Фото отзыва"
                             className="w-[80px] h-[80px] rounded-md object-cover"
                           />
@@ -356,13 +368,16 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                   <>
                     <div className="border-r border-gray-300 p-[32px] flex flex-col">
                       <div className="flex items-center gap-3">
-                        <CoveredImage
-                          width="w-10"
-                          height="h-10"
-                          borderRadius="rounded-full"
-                          imageSrc={`<span class="math-inline">\{BASE\_URL\}</span>{review.orgImage}`}
-                          errorImage={defaultImage}
+                        <img
+                          src={`${BASE_URL}${review.orgImage}`}
+                          alt="Лого"
+                          className="w-[40px] h-[40px] rounded-full bg-gray-200"
+                          onError={(e) =>
+                            (e.currentTarget.src =
+                              "../../../app/icons/abstract-bg.svg")
+                          }
                         />
+
                         <div>
                           {review.orgName ? (
                             <p
@@ -447,7 +462,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 width="w-[128px]"
                 height="h-[128px]"
                 borderRadius="rounded-full"
-                imageSrc={`<span class="math-inline">\{BASE\_URL\}</span>{selectedOrg.imgUrl}`}
+                imageSrc={`${BASE_URL}${selectedOrg.imgUrl}`}
                 errorImage={defaultImage}
               />
             </div>

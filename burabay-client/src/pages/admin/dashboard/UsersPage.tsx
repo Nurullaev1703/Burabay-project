@@ -12,6 +12,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { Organization, Profile } from "../../profile/model/profile";
 import { Typography } from "../../../shared/ui/Typography";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
+import defaultImage from "../../../app/icons/abstract-bg.svg?url";
+import { apiService } from "../../../services/api/ApiService";
 
 interface Props {
   filters: UsersFilter;
@@ -25,12 +27,17 @@ export default function UsersList({ filters }: Props) {
     useState<Organization | null>(null);
 
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isConfirmActionModalOpen, setIsConfirmActionModalOpen] =
+    useState(false);
   const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "confirm" | "reject" | null
+  >(null);
+
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
       to: "/admin/dashboard/users",
@@ -40,10 +47,12 @@ export default function UsersList({ filters }: Props) {
       },
     });
   };
+
   const resolveDocUrl = (docPath: string | null) => {
-    if (!docPath) return "#"; // Если документа нет — делаем заглушку
-    return `${BASE_URL}/public${docPath}`;
+    if (!docPath) return "#";
+    return `${baseUrl}/public${docPath}`;
   };
+
   const getDocumentUrl = (path: string | null) => {
     if (!path) return null;
     return `${baseUrl}${path.replace(/^\/+/, "")}`;
@@ -53,15 +62,29 @@ export default function UsersList({ filters }: Props) {
     setSelectedOrganization(organization);
     setIsConfirmModalOpen(true);
   };
+
   const closeConfirmModal = () => {
     setSelectedOrganization(null);
     setIsConfirmModalOpen(false);
   };
 
+  const openConfirmActionModal = (action: "confirm" | "reject") => {
+    setConfirmAction(action);
+    setIsConfirmActionModalOpen(true);
+  };
+
+  const closeConfirmActionModal = () => {
+    setConfirmAction(null);
+    setIsConfirmActionModalOpen(false);
+  };
+
+  // Corrected handleConfirmUser function
   const handleConfirmUser = () => {
-    if (!selectedOrganization) return;
-    console.log(`Подтвердили организацию с id: ${selectedOrganization.id}`);
-    closeConfirmModal();
+    openConfirmActionModal("confirm");
+  };
+
+  const handleRejectUser = () => {
+    openConfirmActionModal("reject");
   };
 
   const closeDropdownsOnClickOutside = (event: MouseEvent) => {
@@ -87,6 +110,30 @@ export default function UsersList({ filters }: Props) {
   }, []);
 
   const BASE_URL = baseUrl;
+
+  const confirmActionHandler = async () => {
+    if (!selectedOrganization) return;
+
+    try {
+      const orgId = selectedOrganization.id;
+      const url = confirmAction === "confirm"
+        ? `/admin/check-org/${orgId}`
+        : `/admin/cancel-info/${orgId}`;
+
+      const response = await apiService.patch({ url });
+
+      if (response.status !== 200) {
+        throw new Error(`Ошибка при выполнении действия: ${response.status}`);
+      }
+
+      console.log(`Успешно выполнили действие для организации с id: ${orgId}`);
+    } catch (error) {
+      console.error("Ошибка при выполнении действия:", error);
+    }
+
+    closeConfirmActionModal();
+    closeConfirmModal();
+  };
 
   return (
     <div className="relative min-h-screen flex">
@@ -202,11 +249,13 @@ export default function UsersList({ filters }: Props) {
                       src={
                         user.picture
                           ? `${BASE_URL}${user.picture}`
-                          : "https://via.placeholder.com/50"
+                          : `${BASE_URL}${user.organization?.imgUrl}`
                       }
                       alt={user.fullName}
-                      className="w-[52px] h-[52px] rounded-full object-cover"
+                      className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
+                      onError={(e) => (e.currentTarget.src = defaultImage)}
                     />
+
                     <div>
                       <h2 className="text-lg font-roboto">{user.fullName}</h2>
                       <p
@@ -230,15 +279,21 @@ export default function UsersList({ filters }: Props) {
                         {user.role}
                       </span>
                     </div>
-                    {user.role === ROLE_TYPE.BUSINESS &&
-                      !user.organization?.isConfirmed && (
+                    {user.role === ROLE_TYPE.BUSINESS && (
+                      user.organization?.isConfirmed ? (
+                        <div className="flex ">
+                          <span className="ml-auto text-[#0A7D9E] mr-4">Подтвержден </span>
+                          <img src="../../../../public/confirmed.svg"></img>
+                        </div>
+                      ) : (
                         <button
                           className="ml-auto text-[#0A7D9E] underline cursor-pointer"
                           onClick={() => openConfirmModal(user.organization!)}
                         >
                           Подтвердить
                         </button>
-                      )}
+                      )
+                    )}
                   </div>
 
                   <div className="flex-1">
@@ -277,7 +332,7 @@ export default function UsersList({ filters }: Props) {
                 <img
                   src={`${BASE_URL}${selectedOrganization.imgUrl}`}
                   alt="Organization Logo"
-                  className="w-[52px] h-[52] rounded-full object-cover"
+                  className="w-[52px] h-[52px] rounded-full object-cover"
                 />
                 <div>
                   <Typography className="">
@@ -309,7 +364,7 @@ export default function UsersList({ filters }: Props) {
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
                 <p className="text-[#999999] ">{"Номер телефона"}</p>
-                <Typography>{"77777"}</Typography>
+                <Typography>{"Не указан"}</Typography>
               </div>
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-3">
@@ -391,16 +446,66 @@ export default function UsersList({ filters }: Props) {
 
             <div className="mt-6 space-y-4">
               <button
-                onClick={() => handleConfirmUser}
+                onClick={handleConfirmUser}
                 className="w-full pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#39B56B] text-white rounded-[32px] font-medium"
               >
                 Подтвердить аккаунт
               </button>
               <button
-                onClick={closeConfirmModal}
+                onClick={handleRejectUser}
                 className="w-full pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#FF5959] text-white rounded-[32px] font-medium"
               >
                 Отклонить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isConfirmActionModalOpen && confirmAction && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div
+            className="bg-white rounded-[16px] w-[390px] min-w-[390px] max-w-[744px] p-4 flex flex-col gap-2"
+            style={{ height: "200px" }}
+          >
+            <Typography className="mb-4 text-[18px] text-center text-bold">
+              {confirmAction === "confirm"
+                ? "Подтвердить аккаунт?"
+                : "Отклонить аккаунт?"}
+            </Typography>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={confirmActionHandler}
+                className={`pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] ${
+                  confirmAction === "confirm"
+                    ? "bg-[#39B56B] text-white"
+                    : "bg-[#FF5959] text-white"
+                }`}
+                style={{
+                  fontFamily: "Roboto",
+                  fontWeight: 500,
+                  fontSize: "18px",
+                  lineHeight: "20px",
+                  letterSpacing: "0.4px",
+                  textAlign: "center",
+                }}
+              >
+                {confirmAction === "confirm" ? "Подтвердить" : "Отклонить"}
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={closeConfirmActionModal}
+                className="pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] bg-[#0A7D9E] text-white"
+                style={{
+                  fontFamily: "Roboto",
+                  fontWeight: 500,
+                  fontSize: "18px",
+                  lineHeight: "20px",
+                  letterSpacing: "0.4px",
+                  textAlign: "center",
+                }}
+              >
+                Отмена
               </button>
             </div>
           </div>
