@@ -82,17 +82,6 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                     {formatPrice(b.price)}
                   </span>
                 </li>
-                <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                  <div className="flex flex-col">
-                    <span>{formatPhoneNumber(b.user_number)}</span>
-                    <span className={`${COLORS_TEXT.gray100} text-sm`}>
-                      {t("contactPhone")}
-                    </span>
-                  </div>
-                  <a href={`tel:${b.user_number}`}>
-                    <img src={PhoneIcon} alt="Звонить" />
-                  </a>
-                </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
                   <Link
                     className="flex justify-between"
