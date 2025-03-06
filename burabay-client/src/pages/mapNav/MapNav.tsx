@@ -30,8 +30,8 @@ import {
 import cancel from "../../app/icons/announcements/xCancel.svg";
 import { baseUrl } from "../../services/api/ServerData";
 import { Select } from "ol/interaction";
-import defaultImage from "../../app/icons/main/health.svg";
-import defaultAnnoun from "../../app/img/ploshadka.jpeg";
+import defaultImage from "../../app/icons/abstract-bg.svg";
+import defaultAnnoun from "../../app/icons/abstract-bg.svg";
 import ellipse from "../../app/icons/announcements/ellipseMalenkiy.svg";
 import star from "../../app/icons/announcements/StarYellow.svg";
 import FavouriteIcon from "../../app/icons/favourite.svg";

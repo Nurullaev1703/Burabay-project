@@ -62,7 +62,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
         </Link>
       </div>
 
-      <ul className="px-4 mt-4">
+      <ul className="px-4 mt-4 mb-32">
         {filteredAds.map((category, index) => (
           <li key={index} className="flex flex-col mb-8">
             <span

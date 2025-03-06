@@ -63,9 +63,6 @@ export class BookingService {
       newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
     } else {
       newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
-      console.log(ad.priceForChild);
-      console.log(ad.price);
-      console.log(newBooking.totalPrice);
     }
 
     // Сохранение
@@ -103,17 +100,12 @@ export class BookingService {
 
     for (const b of bookings) {
       const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
-      console.log(isRent);
       let date: Date;
       let header: string;
 
       if (isRent) {
         date = b.dateStart;
-        header = b.dateStart.toLocaleDateString('ru-RU', {
-          day: '2-digit',
-          month: '2-digit',
-          year: '2-digit',
-        });
+        header = b.dateStart.toLocaleDateString('ru-RU');
       } else {
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
@@ -145,8 +137,8 @@ export class BookingService {
       // Формируем только даты в "time".
       const newTime = {
         time: isRent
-          ? `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
-          : b.date,
+          ? `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`
+          : b.time,
         status: b.status,
         price: b.totalPrice,
         isPaid: b.isPaid,
@@ -248,6 +240,7 @@ export class BookingService {
         group.ads[b.ad.id] = {
           ad_id: b.ad.id,
           title: b.ad.title,
+          status: b.status,
           img: b.ad.images[0],
           times: [],
         };
@@ -259,6 +252,7 @@ export class BookingService {
         );
       } else {
         group.ads[b.ad.id].times.push(b.time);
+        console.log(b.time);
       }
     }
 
@@ -334,8 +328,9 @@ export class BookingService {
       for (const b of bookings) {
         ad_bookins.push({
           bookingId: b.id,
-          dateStart: b.dateStart,
-          dateEnd: b.dateEnd,
+          dateStart: Utils.dateToString(b.dateStart),
+          dateEnd: Utils.dateToString(b.dateEnd),
+          days: (b.dateEnd.getTime() - b.dateStart.getTime()) / (1000 * 60 * 60 * 24),
           time: b.time,
           name: b.name,
           avatar: b.user.picture,
@@ -349,6 +344,8 @@ export class BookingService {
       }
     } else {
       for (const b of bookings) {
+        console.log(b.dateStart);
+        console.log(b.dateEnd);
         ad_bookins.push({
           bookingId: b.id,
           time: b.time,

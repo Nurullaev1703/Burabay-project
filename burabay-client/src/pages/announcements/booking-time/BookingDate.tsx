@@ -33,33 +33,62 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
 
-  // Обработчик выбора даты
-  const handleDateChange = (date: any | null) => {
+  const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;
-
+  
     const formattedDate = date.format("DD.MM.YYYY");
-
+  
     if (activeField === "start") {
       setSelectedDateStart(formattedDate);
-      setActiveField("end"); // Переключаем на выбор "Дата отъезда"
+
+      if (selectedDateEnd) {
+        const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
+        if (date.isAfter(endDate)) {
+          setSelectedDateEnd(null);
+        }
+      }
+  
+      setActiveField("end");
     } else {
+      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
+  
+      if (date.isBefore(startDate)) {
+        return;
+      }
+  
       setSelectedDateEnd(formattedDate);
     }
   };
+  
 
-  // Проверка, чтобы отключить дни раньше текущей даты или вне диапазона
-  const shouldDisableDate = (date: any) => {
-    if (date.isBefore(dayjs(), "day")) return true;
-
-    if (activeField === "end" && selectedDateStart) {
-      // Отключаем даты до выбранной "Дата заезда"
-      return date.isBefore(dayjs(selectedDateStart, "DD.MM.YYYY"), "day");
+  const shouldDisableDate = (date: dayjs.Dayjs) => {
+    const today = dayjs().startOf("day");
+  
+    if (date.isBefore(today)) {
+      return true; 
     }
-
+  
+    if (activeField === "end" && selectedDateStart) {
+      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY").startOf("day");
+      return date.isBefore(startDate);
+    }
+  
     return false;
   };
+  
 
   const saveTime = async () => {
+    if (!selectedDateStart || !selectedDateEnd) {
+      return;
+    }
+  
+    const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
+    const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
+  
+    if (endDate.isBefore(startDate)) {
+      return;
+    }
+  
     navigate({
       to: "/announcements/booking",
       state: {
@@ -69,6 +98,7 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       } as Record<string, unknown>,
     });
   };
+  
 
   return (
     <section>

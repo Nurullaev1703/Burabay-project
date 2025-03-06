@@ -22,7 +22,7 @@ import {
 } from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
 import { Select } from "ol/interaction";
-import defaultImage from "../../../app/icons/main/health.svg";
+import defaultImage from "../../../app/icons/abstract-bg.svg";
 import defaultAnnoun from "../../../app/icons/abstract-bg.svg";
 import ellipse from "../../../app/icons/announcements/ellipseMalenkiy.svg";
 import star from "../../../app/icons/announcements/StarYellow.svg";

@@ -45,6 +45,13 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
     user_number: "",
   });
   const { t } = useTranslation();
+  const getDaySuffix = (days: number | undefined = 0) => {
+    if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "день"
+    if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
+      return t("daysV2"); 
+    }
+    return t("daysV1"); 
+  };
   return (
     <section>
       <Header>
@@ -184,37 +191,9 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                     <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                       <span className="text-sm">{t("totalDuration")}</span>
                       <span>
-                        {(() => {
-                          const parseDate = (dateString?: string) => {
-                            if (!dateString) return null;
-                            const [day, month, year] = dateString
-                              .split(".")
-                              .map(Number);
-                            return new Date(year, month - 1, day);
-                          };
-
-                          const getDaySuffix = (days: number) => {
-                            if (days % 10 === 1 && days % 100 !== 11)
-                              return t("daysV2"); // "дня"
-                            if (
-                              [2, 3, 4].includes(days % 10) &&
-                              ![12, 13, 14].includes(days % 100)
-                            ) {
-                              return t("daysV2"); // "дня"
-                            }
-                            return t("daysV1"); // "дней"
-                          };
-
-                          const start = parseDate(booking.date);
-                          const end = parseDate(b.dateEnd);
-
-                          if (!start || !end) return t("noDate");
-
-                          const diffInMs = end.getTime() - start.getTime();
-                          const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-                          return `${diffInDays} ${getDaySuffix(diffInDays)}`;
-                        })()}
+                        <span>
+                        {b.days} {getDaySuffix(b.days)}
+                        </span>
                       </span>
                     </li>
                     <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
@@ -268,7 +247,9 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
       )}
 
       {/* РОЛЬ ТУРИСТА */}
-      {userRole === "турист" && <TouristBookingInfo announcement={announcement} bookings={booking} />}
+      {userRole === "турист" && (
+        <TouristBookingInfo announcement={announcement} bookings={booking} />
+      )}
 
       {showModal && (
         <BookingModal
