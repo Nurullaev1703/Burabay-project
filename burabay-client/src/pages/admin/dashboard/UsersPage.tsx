@@ -2,29 +2,35 @@ import { useRef, useEffect, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
-import { RoleType, useGetUsers, UsersFilter, UsersFilterStatus } from "./model/user-filter";
+import {
+  RoleType,
+  useGetUsers,
+  UsersFilter,
+  UsersFilterStatus,
+} from "./model/user-filter";
 import { useNavigate } from "@tanstack/react-router";
 import { Organization, Profile } from "../../profile/model/profile";
 import { Typography } from "../../../shared/ui/Typography";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
 
-
 interface Props {
   filters: UsersFilter;
-  profile: Profile
+  profile: Profile;
 }
 
-export default function UsersList({ filters}: Props) {
+export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
   const { data: users = [], isLoading } = useGetUsers(filters);
-  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
 
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
+  const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
       to: "/admin/dashboard/users",
@@ -35,29 +41,28 @@ const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
     });
   };
   const resolveDocUrl = (docPath: string | null) => {
-    if (!docPath) return "#";  // Если документа нет — делаем заглушку
+    if (!docPath) return "#"; // Если документа нет — делаем заглушку
     return `${BASE_URL}/public${docPath}`;
   };
   const getDocumentUrl = (path: string | null) => {
     if (!path) return null;
     return `${baseUrl}${path.replace(/^\/+/, "")}`;
   };
-  
+
   const openConfirmModal = (organization: Organization) => {
     setSelectedOrganization(organization);
     setIsConfirmModalOpen(true);
-};
-const closeConfirmModal = () => {
+  };
+  const closeConfirmModal = () => {
     setSelectedOrganization(null);
     setIsConfirmModalOpen(false);
-};
-  
-const handleConfirmUser = () => {
-  if (!selectedOrganization) return;
-  console.log(`Подтвердили организацию с id: ${selectedOrganization.id}`);
-  closeConfirmModal();
-};
+  };
 
+  const handleConfirmUser = () => {
+    if (!selectedOrganization) return;
+    console.log(`Подтвердили организацию с id: ${selectedOrganization.id}`);
+    closeConfirmModal();
+  };
 
   const closeDropdownsOnClickOutside = (event: MouseEvent) => {
     if (
@@ -73,7 +78,6 @@ const handleConfirmUser = () => {
       setIsStatusDropdownOpen(false);
     }
   };
-  
 
   useEffect(() => {
     document.addEventListener("mousedown", closeDropdownsOnClickOutside);
@@ -93,7 +97,6 @@ const handleConfirmUser = () => {
       ></div>
       <div className="relative z-50">
         <SideNav />
-      
       </div>
       <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
         <div className="fixed top-0 left-[94px] right-0 bg-white shadow-md rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
@@ -188,175 +191,221 @@ const handleConfirmUser = () => {
           {isLoading ? (
             <p className="text-gray-500">Загрузка...</p>
           ) : (
-<div className="grid gap-4">
-  {users.map((user) => (
-    <div
-    key={user.organization?.id || user.id}
-      className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
-    >
-      <div className="flex items-center h-[84px] space-x-4 pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] border-r border-[#E4E9EA]">
-        <img
-          src={
-            user.picture
-              ? `${BASE_URL}${user.picture}`
-              : "https://via.placeholder.com/50"
-          }
-          alt={user.fullName}
-          className="w-[52px] h-[52px] rounded-full object-cover"
-        />
-        <div>
-          <h2 className="text-lg font-roboto">{user.fullName}</h2>
-          <p
-            className={`text-sm ${
-              user.isBanned
-                ? "text-red-500"
-                : "text-[14px] text-[#39B56B]"
-            }`}
-          >
-            {user.isBanned
-              ? UsersFilterStatus.BAN
-              : user.role === ROLE_TYPE.BUSINESS
-                ? user.organization?.isConfirmed
-                  ? "Подтвержден"
-                  : UsersFilterStatus.WAITING
-                : user.isEmailConfirmed
-                  ? "Подтвержден"
-                  : UsersFilterStatus.WAITING}
-          </p>
-          <span className="text-[12px] text-[#999999]">{user.role}</span>
-        </div>
-      </div>
+            <div className="grid gap-4">
+              {users.map((user) => (
+                <div
+                  key={user.organization?.id || user.id}
+                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
+                >
+                  <div className="flex items-center h-[84px] space-x-4 pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] border-r border-[#E4E9EA]">
+                    <img
+                      src={
+                        user.picture
+                          ? `${BASE_URL}${user.picture}`
+                          : "https://via.placeholder.com/50"
+                      }
+                      alt={user.fullName}
+                      className="w-[52px] h-[52px] rounded-full object-cover"
+                    />
+                    <div>
+                      <h2 className="text-lg font-roboto">{user.fullName}</h2>
+                      <p
+                        className={`text-sm ${
+                          user.isBanned
+                            ? "text-red-500"
+                            : "text-[14px] text-[#39B56B]"
+                        }`}
+                      >
+                        {user.isBanned
+                          ? UsersFilterStatus.BAN
+                          : user.role === ROLE_TYPE.BUSINESS
+                            ? user.organization?.isConfirmed
+                              ? "Подтвержден"
+                              : UsersFilterStatus.WAITING
+                            : user.isEmailConfirmed
+                              ? "Подтвержден"
+                              : UsersFilterStatus.WAITING}
+                      </p>
+                      <span className="text-[12px] text-[#999999]">
+                        {user.role}
+                      </span>
+                    </div>
+                    {user.role === ROLE_TYPE.BUSINESS &&
+                      !user.organization?.isConfirmed && (
+                        <button
+                          className="ml-auto text-[#0A7D9E] underline cursor-pointer"
+                          onClick={() => openConfirmModal(user.organization!)}
+                        >
+                          Подтвердить
+                        </button>
+                      )}
+                  </div>
 
-      <div className="pl-[32px] flex-1">
-        <p>{user.phoneNumber || "—"}</p>
-        <p className="text-[#999]">Телефон</p>
-      </div>
+                  <div className="flex-1">
+                    <div className="pl-[32px] flex-1">
+                      <p>{user.phoneNumber || "—"}</p>
+                      <p className="text-[#999]">Телефон</p>
+                    </div>
+                  </div>
+                  <div className="border-l h-full border-grey pl-[32px] flex-1 flex items-center">
+                    <div>
+                      <p>{user.email || "—"}</p>
+                      <p className="text-[#999]">email</p>
+                    </div>
+                  </div>
 
-      {/* Кнопка подтверждения только для организаций (business) */}
-      {user.role === ROLE_TYPE.BUSINESS && !user.organization?.isConfirmed && (
-        <button
-          className="ml-auto text-[#0A7D9E] underline cursor-pointer"
-          onClick={() => openConfirmModal(user.organization!)}
-        >
-          Подтвердить
-        </button>
-      )}
-
-      {user.role === ROLE_TYPE.TOURIST && !user.isEmailConfirmed && (
-        <button
-          className="ml-auto text-[#0A7D9E] underline cursor-pointer"
-          onClick={() => openConfirmModal}
-        >
-          Подтвердить
-        </button>
-      )}
-
-    </div>
-  ))}
-</div>
-
+                  {user.role === ROLE_TYPE.TOURIST &&
+                    !user.isEmailConfirmed && (
+                      <button
+                        className="ml-auto text-[#0A7D9E] underline cursor-pointer"
+                        onClick={() => openConfirmModal}
+                      >
+                        Подтвердить
+                      </button>
+                    )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
       {isConfirmModalOpen && selectedOrganization && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-      <div className="flex items-center space-x-4 mb-4">
-        <img
-          src={`${BASE_URL}${selectedOrganization.imgUrl}`}
-          alt="Organization Logo"
-          className="w-12 h-12 rounded-full object-cover"
-        />
-        <div>
-          <Typography className="text-xl font-bold">{selectedOrganization.name}</Typography>
-          <Typography className="text-green-600 text-sm">Ожидание подтверждения</Typography>
-          <Typography className="text-gray-500 text-sm">Организация</Typography>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white h-[636px] p-4 rounded-lg shadow-lg w-[90%] max-w-md">
+            <div className="space-y-[8px]">
+              <div className="flex items-center space-y-2 space-x-4 mb-4">
+                <img
+                  src={`${BASE_URL}${selectedOrganization.imgUrl}`}
+                  alt="Organization Logo"
+                  className="w-[52px] h-[52] rounded-full object-cover"
+                />
+                <div>
+                  <Typography className="">
+                    {selectedOrganization.name}
+                  </Typography>
+                  <p className="text-[#39B56B] text-[14px]">
+                    Ожидание подтверждения
+                  </p>
+                  <p className="text-[#999999] text-[12px]">Организация</p>
+                </div>
+                <button
+                  className="h-[44px] w-[44px]"
+                  onClick={closeConfirmModal}
+                >
+                  <img
+                    src="../../../../public/Close.png"
+                    alt="Назад"
+                    className="w-full h-full"
+                  />
+                </button>
+              </div>
+
+              <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <p className="text-[#999999] text-sm">БИН</p>
+                <Typography className="font-medium">
+                  {selectedOrganization.bin}
+                </Typography>
+              </div>
+
+              <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <p className="text-[#999999] ">{"Номер телефона"}</p>
+                <Typography>{"77777"}</Typography>
+              </div>
+
+              <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-3">
+                <div className="flex items-center space-x-2">
+                  <img src="../../../../public/document.svg" alt="doc" />
+                  <div>
+                    <p className="text-[12px] text-[#999999] w-full">
+                      Талон о гос.регистрации ИП
+                    </p>
+                    {selectedOrganization.regCouponPath ? (
+                      <a
+                        href={selectedOrganization.regCouponPath ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black"
+                      >
+                        {selectedOrganization.regCouponPath?.split("/").pop() ||
+                          "Документ"}
+                      </a>
+                    ) : (
+                      <Typography className="text-red-500 text-sm">
+                        Документ не загружен
+                      </Typography>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <img src="../../../../public/document.svg" alt="doc" />
+                  <div className="">
+                    <p className="text-[12px] text-[#999999]">Справка IBAN</p>
+                    {selectedOrganization.ibanDocPath ? (
+                      <a
+                        href={selectedOrganization.ibanDocPath ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black"
+                      >
+                        {selectedOrganization.ibanDocPath?.split("/").pop() ||
+                          "Документ"}
+                      </a>
+                    ) : (
+                      <Typography className="text-red-500 text-sm">
+                        Документ не загружен
+                      </Typography>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <img src="../../../../public/document.svg" alt="doc" />
+                  <div>
+                    <p className="text-[12px] text-[#999999]">
+                      Устав организации
+                    </p>
+                    {selectedOrganization.orgRulePath ? (
+                      <a
+                        href={selectedOrganization.orgRulePath ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {selectedOrganization.orgRulePath?.split("/").pop() ||
+                          "Документ"}
+                      </a>
+                    ) : (
+                      <Typography className="text-red-500 text-sm">
+                        Документ не загружен
+                      </Typography>
+                    )}
+                  </div>
+                  <a
+                    href={resolveDocUrl(selectedOrganization.orgRulePath)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  ></a>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <button
+                onClick={() => handleConfirmUser}
+                className="w-full pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#39B56B] text-white rounded-[32px] font-medium"
+              >
+                Подтвердить аккаунт
+              </button>
+              <button
+                onClick={closeConfirmModal}
+                className="w-full pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#FF5959] text-white rounded-[32px] font-medium"
+              >
+                Отклонить
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div>
-        <Typography>{"Номер телефона"}</Typography>
-        <Typography>{""}</Typography>
-      </div>
-
-      <div className="mb-2">
-        <Typography className="text-gray-500 text-sm">БИН</Typography>
-        <Typography className="font-medium">{selectedOrganization.bin}</Typography>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <img src="/icons/document.svg" alt="doc" />
-          {selectedOrganization.regCouponPath ? (
-          <a
-  href={selectedOrganization.regCouponPath ?? "#"}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="text-blue-600 underline"
->
-  {selectedOrganization.regCouponPath?.split('/').pop() || "Документ"}
-</a>
-      ) : (
-        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
       )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <img src="/icons/document.svg" alt="doc" />
-          {selectedOrganization.ibanDocPath ? (
-          <a
-  href={selectedOrganization.ibanDocPath ?? "#"}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="text-blue-600 underline"
->
-  {selectedOrganization.ibanDocPath?.split('/').pop() || "Документ"}
-</a>
-      ) : (
-        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
-      )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <img src="/icons/document.svg" alt="doc" />
-          {selectedOrganization.orgRulePath ? (
-          <a
-  href={selectedOrganization.orgRulePath ?? "#"}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="text-blue-600 underline"
->
-  {selectedOrganization.orgRulePath?.split('/').pop() || "Документ"}
-</a>
-      ) : (
-        <Typography className="text-red-500 text-sm">Документ не загружен</Typography>
-      )}
-          <a
-            href={resolveDocUrl(selectedOrganization.orgRulePath)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
-          >
-
-          </a>
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <button
-          onClick={() => handleConfirmUser}
-          className="w-full py-3 bg-green-500 text-white rounded-lg font-medium"
-        >
-          Подтвердить аккаунт
-        </button>
-        <button
-          onClick={closeConfirmModal}
-          className="w-full py-3 bg-red text-white rounded-lg font-medium"
-        >
-          Отклонить
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 }
