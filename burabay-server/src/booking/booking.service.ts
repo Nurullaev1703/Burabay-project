@@ -294,7 +294,6 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;
     if (isRent) {
-      console.log(Utils.stringDateToDate(findDate));
       whereOptions = { ad: { id: adId }, dateStart: Utils.stringDateToDate(findDate) };
     } else {
       whereOptions = { ad: { id: adId }, date: findDate };
