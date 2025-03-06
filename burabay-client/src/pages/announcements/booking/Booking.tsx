@@ -16,6 +16,7 @@ import { Radio, Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { apiService } from "../../../services/api/ApiService";
+import defaultImage from "../../../app/icons/abstract-bg.svg"
 
 export type PaymentType = "online" | "cash";
 
@@ -122,7 +123,8 @@ export const Booking: FC = function Booking() {
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={announcement.images[0 ] ? baseUrl + announcement.images[0] : defaultImage }
+            onError={defaultImage}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />

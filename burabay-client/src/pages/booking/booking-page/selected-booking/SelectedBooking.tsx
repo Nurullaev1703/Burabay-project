@@ -18,6 +18,7 @@ import { roleService } from "../../../../services/storage/Factory";
 import { TouristBookingInfo } from "../../toursit/booking-info/TouristBookingInfo";
 import { Link } from "@tanstack/react-router";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
+import defaultImage from "../../../../app/icons/abstract-bg.svg"
 
 interface Props {
   announcement: Announcement;
@@ -92,7 +93,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           >
             <div className="flex items-center">
               <img
-                src={baseUrl + announcement.images[0]}
+                src={announcement.images[0] ? baseUrl + announcement.images[0] : defaultImage}
                 alt={announcement.title}
                 className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
               />
