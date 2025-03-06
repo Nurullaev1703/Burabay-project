@@ -279,12 +279,10 @@ export class BookingService {
     // Получение даты для поиска
     if (date === 'Сегодня') {
       const today = new Date();
-      console.log(`Сегодня ${today}`);
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
     } else if (date === 'Завтра') {
       const today = new Date();
       today.setDate(today.getDate() + 1);
-      console.log(`Завтра ${today}`);
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
     } else {
       const parts = date.split('.');
@@ -293,7 +291,6 @@ export class BookingService {
       }
       findDate = parts.join('.');
     }
-    console.log(findDate);
     Utils.checkEntity(ad, 'Объявление не найдено');
     let whereOptions: any;
     if (isRent) {
