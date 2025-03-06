@@ -56,7 +56,7 @@ export const Booking: FC = function Booking() {
     return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
   };
 
-  const { handleSubmit, watch, control, setValue } = useForm<FormType>({
+  const { handleSubmit, watch, control, setValue , formState: { isValid } } = useForm<FormType>({
     defaultValues: {
       adId: announcement.id,
       name: user?.fullName || "Безымянный",
@@ -450,6 +450,7 @@ export const Booking: FC = function Booking() {
           className="w-header z-10"
           type="submit"
           onClick={() => handleSubmit(saveBooking)()}
+          disabled={!isValid || isLoading}
           loading={isLoading}
         >
           {t("send")}
