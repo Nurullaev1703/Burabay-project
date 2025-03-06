@@ -47,17 +47,21 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
     }
   };
 
-  // Проверка, чтобы отключить дни раньше текущей даты или вне диапазона
-  const shouldDisableDate = (date: any) => {
-    if (date.isBefore(dayjs(), "day")) return true;
-
-    if (activeField === "end" && selectedDateStart) {
-      // Отключаем даты до выбранной "Дата заезда"
-      return date.isBefore(dayjs(selectedDateStart, "DD.MM.YYYY"), "day");
+  const shouldDisableDate = (date: dayjs.Dayjs) => {
+    const today = dayjs().startOf("day");
+  
+    if (date.isBefore(today)) {
+      return true; 
     }
-
+  
+    if (activeField === "end" && selectedDateStart) {
+      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY").startOf("day");
+      return date.isBefore(startDate);
+    }
+  
     return false;
   };
+  
 
   const saveTime = async () => {
     navigate({
