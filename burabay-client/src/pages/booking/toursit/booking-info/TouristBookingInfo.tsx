@@ -10,6 +10,7 @@ import { CancelBooking } from "../../booking-page/selected-booking/modal/CancelB
 import { Announcement } from "../../../announcements/model/announcements";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import { Link } from "@tanstack/react-router";
+import { Typography } from "../../../../shared/ui/Typography";
 
 interface Props {
   announcement: Announcement;
@@ -123,7 +124,11 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("bookingTime")}</span>
+                  {announcement.isFullDay ? (
+                    <Typography size={14}>{t("aroundClockDays")}</Typography>
+                  ) : (
                   <span>{b.time}</span>
+                  )}
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("cost")}</span>
