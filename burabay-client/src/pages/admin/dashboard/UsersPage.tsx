@@ -38,10 +38,6 @@ const [_selectedUserId, _setSelectedUserId] = useState<string | null>(null);
     if (!docPath) return "#";  // Если документа нет — делаем заглушку
     return `${BASE_URL}/public${docPath}`;
   };
-  const getDocumentUrl = (path: string | null) => {
-    if (!path) return null;
-    return `${baseUrl}${path.replace(/^\/+/, "")}`;
-  };
   
   const openConfirmModal = (organization: Organization) => {
     setSelectedOrganization(organization);
