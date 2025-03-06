@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
-import ArrowBottomIcon from "../../../app/icons/profile/settings/arrow-bottom.svg";
+import ArrowRightIcon from "../../../app/icons/arrow-right.svg";
 import { TouristBookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
@@ -152,7 +152,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               </div>
                             </div>
                           </div>
-                          <img src={ArrowBottomIcon} alt="Подробнее" />
+                          <img src={ArrowRightIcon} alt="Подробнее" />
                         </div>
                       ))}
                     </div>
