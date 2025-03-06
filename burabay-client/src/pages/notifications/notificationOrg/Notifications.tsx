@@ -12,10 +12,12 @@ import { Profile } from "../../profile/model/profile";
 interface Props {
   notifications: Notification[];
   user: Profile;
+  notificationsAll: Notification[];
 }
 
 export const Notifications: FC<Props> = function Notifications({
   notifications,
+  notificationsAll
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,6 +31,10 @@ export const Notifications: FC<Props> = function Notifications({
     };
     return typeToColorMap[type] || "bg-transparent";
   };
+  const allNotifications = [...notifications, ...notificationsAll].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  
 
   return (
     <div className="min-h-screen relative">
@@ -38,7 +44,7 @@ export const Notifications: FC<Props> = function Notifications({
         alt=""
       />
 
-      {notifications.length > 0 ? (
+      {notifications.length > 0 && notificationsAll.length > 0 ? (
         <div className="relative z-10 min-h-screen py-4 px-4 mb-20">
           {/* Отображение даты */}
           <div className="flex justify-center items-center">
@@ -56,7 +62,7 @@ export const Notifications: FC<Props> = function Notifications({
             </Typography>
           </div>
 
-          {notifications.map((notification) => (
+          {allNotifications.map((notification) => (
             <div
               key={notification.id}
               className="bg-[#FFFFFFBF] rounded-[18px] p-3 mt-2 flex items-start gap-3"
@@ -129,6 +135,7 @@ export const Notifications: FC<Props> = function Notifications({
           </div>
         </>
       )}
+      
 
       <NavMenuOrg />
     </div>
