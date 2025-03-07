@@ -37,6 +37,7 @@ export default function UsersList({ filters }: Props) {
   const [confirmAction, setConfirmAction] = useState<
     "confirm" | "reject" | null
   >(null);
+  const [visibleUsersCount, setVisibleUsersCount] = useState(2);
 
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
@@ -78,7 +79,6 @@ export default function UsersList({ filters }: Props) {
     setIsConfirmActionModalOpen(false);
   };
 
-  // Corrected handleConfirmUser function
   const handleConfirmUser = () => {
     openConfirmActionModal("confirm");
   };
@@ -116,9 +116,10 @@ export default function UsersList({ filters }: Props) {
 
     try {
       const orgId = selectedOrganization.id;
-      const url = confirmAction === "confirm"
-        ? `/admin/check-org/${orgId}`
-        : `/admin/cancel-info/${orgId}`;
+      const url =
+        confirmAction === "confirm"
+          ? `/admin/check-org/${orgId}`
+          : `/admin/cancel-info/${orgId}`;
 
       const response = await apiService.patch({ url });
 
@@ -133,6 +134,14 @@ export default function UsersList({ filters }: Props) {
 
     closeConfirmActionModal();
     closeConfirmModal();
+  };
+
+  function capitalizeFirstLetter(string: string): string {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  const loadMoreUsers = () => {
+    setVisibleUsersCount((prevCount) => prevCount + 20);
   };
 
   return (
@@ -161,7 +170,9 @@ export default function UsersList({ filters }: Props) {
               className="w-[264.5px] text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
             >
-              {filters.role ?? "Все пользователи"}
+              {filters.role
+                ? capitalizeFirstLetter(filters.role)
+                : "Все пользователи"}
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -175,22 +186,24 @@ export default function UsersList({ filters }: Props) {
                   />
                   Все пользователи
                 </label>
-                {Object.values(RoleType).map((roleValue) => (
-                  <label
-                    key={roleValue}
-                    className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="roleFilter"
-                      value={roleValue}
-                      checked={filters.role === roleValue}
-                      onChange={() => updateFilters({ role: roleValue })}
-                      className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
-                    />
-                    {roleValue}
-                  </label>
-                ))}
+                {Object.values(RoleType)
+                  .filter((roleValue) => roleValue !== "admin")
+                  .map((roleValue) => (
+                    <label
+                      key={roleValue}
+                      className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="roleFilter"
+                        value={roleValue}
+                        checked={filters.role === roleValue}
+                        onChange={() => updateFilters({ role: roleValue })}
+                        className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
+                      />
+                      {capitalizeFirstLetter(roleValue)}
+                    </label>
+                  ))}
               </div>
             )}
           </div>
@@ -200,7 +213,9 @@ export default function UsersList({ filters }: Props) {
               className="w-[264.5px] text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
-              {filters.status ?? "Все статусы"}
+              {filters.status
+                ? capitalizeFirstLetter(filters.status)
+                : "Все статусы"}
             </button>
             {isStatusDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -227,7 +242,7 @@ export default function UsersList({ filters }: Props) {
                       onChange={() => updateFilters({ status })}
                       className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
-                    {status}
+                    {capitalizeFirstLetter(status)}
                   </label>
                 ))}
               </div>
@@ -239,7 +254,7 @@ export default function UsersList({ filters }: Props) {
             <p className="text-gray-500">Загрузка...</p>
           ) : (
             <div className="grid gap-4">
-              {users.map((user) => (
+              {users.slice(0, visibleUsersCount).map((user) => (
                 <div
                   key={user.organization?.id || user.id}
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
@@ -279,10 +294,12 @@ export default function UsersList({ filters }: Props) {
                         {user.role}
                       </span>
                     </div>
-                    {user.role === ROLE_TYPE.BUSINESS && (
-                      user.organization?.isConfirmed ? (
+                    {user.role === ROLE_TYPE.BUSINESS &&
+                      (user.organization?.isConfirmed ? (
                         <div className="flex ">
-                          <span className="ml-auto text-[#0A7D9E] mr-4">Подтвержден </span>
+                          <span className="ml-auto text-[#0A7D9E] mr-4">
+                            Подтвержден{" "}
+                          </span>
                           <img src="../../../../public/confirmed.svg"></img>
                         </div>
                       ) : (
@@ -292,8 +309,7 @@ export default function UsersList({ filters }: Props) {
                         >
                           Подтвердить
                         </button>
-                      )
-                    )}
+                      ))}
                   </div>
 
                   <div className="flex-1">
@@ -320,6 +336,16 @@ export default function UsersList({ filters }: Props) {
                     )}
                 </div>
               ))}
+              {visibleUsersCount < users.length && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={loadMoreUsers}
+                    className="bg-[#0A7D9E] text-white px-4 py-2 rounded-lg"
+                  >
+                    Загрузить еще
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

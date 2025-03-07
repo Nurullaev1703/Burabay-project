@@ -8,6 +8,8 @@ import { Announcement } from "../../announcements/model/announcements";
 import { baseUrl } from "../../../services/api/ServerData";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
+import { Loader } from "../../../components/Loader";
+import noComp from "../../../app/icons/noComp.svg?url";
 
 const BASE_URL = baseUrl;
 
@@ -57,6 +59,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -102,7 +105,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет удален через 15 секунд",
+                message: "Отзыв будет удален через 10 секунд",
                 type: "success",
               },
               delayedRemoval: true,
@@ -157,7 +160,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
               ...review,
               hint: {
                 message:
-                  "Отзыв будет принят через 15 секунд. Нажмите Отменить, чтобы восстановить.",
+                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
                 type: "success",
               },
               delayedRemoval: true,
@@ -241,6 +244,10 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     }
   };
 
+  const loadMoreReviews = () => {
+    setVisibleReviewsCount((prevCount) => prevCount + 20);
+  };
+
   return (
     <div className="relative w-full min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
@@ -280,152 +287,170 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 68px)' }}>
+        <div
+          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 68px)" }}
+        >
           {isLoading ? (
-            <p className="text-center text-gray-500 mt-4">Загрузка данных...</p>
+            <Loader/>
           ) : reviews.length > 0 ? (
-            reviews.map((review) => (
-              <div
-                key={review.reviewId}
-                className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
-                  review.hint
-                    ? review.hint.type === "success"
-                      ? "bg-[#59C183]"
-                      : "bg-[#FF5959]"
-                    : "bg-white"
-                }`}
-              >
-                {review.status ? (
-                  <div
-                    className={`col-span-3 flex items-center justify-between rounded-[16px] px-4 py-2 ${
-                      review.status === "deleted"
-                        ? "bg-[#FF5959]"
-                        : "bg-[#59C183]"
-                    }`}
-                  >
-                    <div className="p-2 text-white rounded">
-                      {review.status === "deleted"
-                        ? "Комментарий удален"
-                        : "Комментарий оставлен"}
-                    </div>
-                    <button
-                      onClick={() => handleCancelHint(review.reviewId)}
-                      className={`p-2 text-white rounded bg-inherit ${
+            <>
+              {reviews.slice(0, visibleReviewsCount).map((review) => (
+                <div
+                  key={review.reviewId}
+                  className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
+                    review.hint
+                      ? review.hint.type === "success"
+                        ? "bg-[#59C183]"
+                        : "bg-[#FF5959]"
+                      : "bg-white"
+                  }`}
+                >
+                  {review.status ? (
+                    <div
+                      className={`col-span-3 flex items-center justify-between rounded-[16px] px-4 py-2 ${
                         review.status === "deleted"
                           ? "bg-[#FF5959]"
                           : "bg-[#59C183]"
                       }`}
                     >
-                      Отменить
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700">
-                          {review.username}
-                        </p>
-                        <p className="text-gray-500 text-sm">
-                          {formatDate(review.reviewDate)}
-                        </p>
-                        <RatingStars rating={review.reviewStars} />
+                      <div className="p-2 text-white rounded">
+                        {review.status === "deleted"
+                          ? "Комментарий удален"
+                          : "Комментарий оставлен"}
                       </div>
-
-                      <div className="flex items-center">
-                        <img
-                          src={`${BASE_URL}${review.adImage}`}
-                          alt="Фото отзыва"
-                          className="w-[52px] h-[52px] rounded-md object-cover"
-                        />
-                        <div className="text-right">
+                      <button
+                        onClick={() => handleCancelHint(review.reviewId)}
+                        className={`p-2 text-white rounded bg-inherit ${
+                          review.status === "deleted"
+                            ? "bg-[#FF5959]"
+                            : "bg-[#59C183]"
+                        }`}
+                      >
+                        Отменить
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
+                      <div className="flex justify-between items-start">
+                        <div>
                           <p className="text-sm font-semibold text-gray-700">
-                            {review.adName}
+                            {review.username}
                           </p>
-                          <div className="text-[16px] text-yellow-500 flex items-center">
-                            ⭐ {review.adRating} ({review.adReviewCount})
+                          <p className="text-gray-500 text-sm">
+                            {formatDate(review.reviewDate)}
+                          </p>
+                          <RatingStars rating={review.reviewStars} />
+                        </div>
+
+                        <div className="flex items-center">
+                          <img
+                            src={`${BASE_URL}${review.adImage}`}
+                            alt="Фото отзыва"
+                            className="w-[52px] h-[52px] rounded-md object-cover"
+                          />
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-700">
+                              {review.adName}
+                            </p>
+                            <div className="text-[16px] text-yellow-500 flex items-center">
+                              ⭐ {review.adRating} ({review.adReviewCount})
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <p className="text-gray-600 mt-2">{review.reviewText}</p>
-                    {review.reviewImages && (
-                      <div className="flex gap-2 mt-2">
-                        {review.reviewImages.map((img, idx) => (
-                          <img
-                            key={idx}
-                            src={`${BASE_URL}${img}`} // Исправлено
-                            alt="Фото отзыва"
-                            className="w-[80px] h-[80px] rounded-md object-cover"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!review.status && (
-                  <>
-                    <div className="border-r border-gray-300 p-[32px] flex flex-col">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={`${BASE_URL}${review.orgImage}`}
-                          alt="Лого"
-                          className="w-[40px] h-[40px] rounded-full bg-gray-200"
-                          onError={(e) =>
-                            (e.currentTarget.src =
-                              "../../../app/icons/abstract-bg.svg")
-                          }
-                        />
-
-                        <div>
-                          {review.orgName ? (
-                            <p
-                              className="font-semibold cursor-pointer text-blue-500"
-                              onClick={() =>
-                                fetchOrgInfo(
-                                  review.orgId ||
-                                    "3db2a1cd-e76f-4144-9f21-3b58f1c72623"
-                                )
-                              }
-                            >
-                              {review.orgName}
-                            </p>
-                          ) : (
-                            <p>Нет данных</p>
-                          )}
-                          <p className="text-gray-500 text-sm">
-                            {formatDate(review.reportData)}
-                          </p>
+                      <p className="text-gray-600 mt-2">{review.reviewText}</p>
+                      {review.reviewImages && (
+                        <div className="flex gap-2 mt-2">
+                          {review.reviewImages.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={`${BASE_URL}${img}`}
+                              alt="Фото отзыва"
+                              className="w-[80px] h-[80px] rounded-md object-cover"
+                            />
+                          ))}
                         </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        {review.reportText}
-                      </p>
+                      )}
                     </div>
+                  )}
 
-                    <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
-                      <button
-                        onClick={() => handleAcceptReview(review.reviewId)}
-                        className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                      >
-                        Оставить отзыв
-                      </button>
-                      <button
-                        onClick={() => handleDeleteReview(review.reviewId)}
-                        className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                      >
-                        Удалить отзыв
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))
+                  {!review.status && (
+                    <>
+                      <div className="border-r border-gray-300 p-[32px] flex flex-col">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={`${BASE_URL}${review.orgImage}`}
+                            alt="Лого"
+                            className="w-[40px] h-[40px] rounded-full bg-gray-200"
+                            onError={(e) =>
+                              (e.currentTarget.src =
+                                "../../../app/icons/abstract-bg.svg")
+                            }
+                          />
+
+                          <div>
+                            {review.orgName ? (
+                              <p
+                                className="font-semibold cursor-pointer text-blue-500"
+                                onClick={() =>
+                                  fetchOrgInfo(
+                                    review.orgId ||
+                                      "3db2a1cd-e76f-4144-9f21-3b58f1c72623"
+                                  )
+                                }
+                              >
+                                {review.orgName}
+                              </p>
+                            ) : (
+                              <p>Нет данных</p>
+                            )}
+                            <p className="text-gray-500 text-sm">
+                              {formatDate(review.reportData)}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2">
+                          {review.reportText}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
+                        <button
+                          onClick={() => handleAcceptReview(review.reviewId)}
+                          className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                        >
+                          Оставить отзыв
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review.reviewId)}
+                          className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                        >
+                          Удалить отзыв
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {visibleReviewsCount < reviews.length && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={loadMoreReviews}
+                    className="bg-[#0A7D9E] text-white px-4 py-2 rounded-lg"
+                  >
+                    Загрузить еще
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
-            <p className="text-center text-gray-500 mt-4">
-              Нет жалоб на отзывы.
-            </p>
+            <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
+              <div className="flex flex-col items-center bg-white/75 backdrop-blur-[10px] justify-center h-[278px] w-[358px] rounded-lg shadow-lg pointer-events-auto">
+                <img src={noComp} alt="Нет жалоб" className="w-[150px] h-[150px] mb-4" />
+                <p className="text-center text-black text-lg">Нет жалоб на отзывы</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
