@@ -17,10 +17,30 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const matchRoute = useMatchRoute();
 
   const links = [
-    { icon: info, label: "Жалобы", to: "/admin/dashboard/complaints" },
-    { icon: users, label: "Пользователи", to: "/admin/dashboard/users" },
-    { icon: messages, label: "Сообщения", to: "/admin/dashboard/messages" },
-    { icon: analytics, label: "Аналитика", to: "/admin/dashboard/analytics" },
+    {
+      icon: info,
+      label: "Жалобы",
+      to: "/admin/dashboard/complaints",
+      hasNotifications: true,
+    },
+    {
+      icon: users,
+      label: "Пользователи",
+      to: "/admin/dashboard/users",
+      hasNotifications: true,
+    },
+    {
+      icon: messages,
+      label: "Сообщения",
+      to: "/admin/dashboard/messages",
+      hasNotifications: true,
+    },
+    {
+      icon: analytics,
+      label: "Аналитика",
+      to: "/admin/dashboard/analytics",
+      hasNotifications: true,
+    },
   ];
   const logoutIcon = logout;
 
@@ -60,13 +80,18 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
                 ${isActive ? "bg-white text-[#0A7D9E]" : "text-white border-transparent hover:border-white border-[1.05px]"}
               `}
             >
-              <img
-                src={link.icon}
-                alt={link.label}
-                className={`w-[30px] h-[30px] transition-all duration-300
-                  ${isActive ? "" : "brightness-[25]"}
-                `}
-              />
+              <div className="relative">
+                <img
+                  src={link.icon}
+                  alt={link.label}
+                  className={`w-[30px] h-[30px] transition-all duration-300
+                    ${isActive ? "" : "brightness-[25]"}
+                  `}
+                />
+                {link.hasNotifications && (
+                  <span className="absolute top-0 right-0 w-[6px] h-[6px] bg-red-500 rounded-full"></span>
+                )}
+              </div>
               {isExpanded && (
                 <span className="text-md font-medium ml-2">{link.label}</span>
               )}
