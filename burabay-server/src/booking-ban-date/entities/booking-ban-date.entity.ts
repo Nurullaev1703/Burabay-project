@@ -16,4 +16,7 @@ export class BookingBanDate extends AbstractEntity<BookingBanDate> {
 
   @Column({ type: 'text', array: true, nullable: true })
   times: string[];
+
+  @Column({ name: 'is_by_booking', default: false })
+  isByBooking: boolean;
 }
