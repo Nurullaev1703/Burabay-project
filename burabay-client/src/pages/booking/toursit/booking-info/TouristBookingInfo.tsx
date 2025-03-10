@@ -171,7 +171,7 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   onClick={() => setIsCancel(true)}
                   mode="red"
                 >
-                  {t("cancel")}
+                  {t("cancelBooking")}
                 </Button>
               )}
               <CancelBooking

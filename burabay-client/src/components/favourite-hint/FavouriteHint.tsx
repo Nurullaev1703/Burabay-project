@@ -22,18 +22,19 @@ export const FavouriteHint: FC = function FavouriteHint() {
 
   return (
     <div
-      ref={notificationNode}
-      className={`${COLORS_BACKGROUND.blue200} flex justify-between items-center p-2.5 rounded-lg absolute w-11/12 left-4 transition-all duration-500 z-40 ${
-        isVisible ? "top-20 opacity-100" : "-top-20 opacity-0"
-      }`}
-    >
-      <div className="flex items-center">
-        <img src={FavouriteIcon} alt="Избранное" className="brightness-[25]" />
-        <span className={`${COLORS_TEXT.white} mx-2`}>
-          {t("favouriteNotice")}
-        </span>
-      </div>
-      <img src={CloseIcon} alt="Закрыть" onClick={() => setIsVisible(false)} />
+    ref={notificationNode}
+    className={`${COLORS_BACKGROUND.blue200} flex justify-between items-center p-2.5 rounded-lg fixed w-11/12 max-w-md left-1/2 transform -translate-x-1/2 transition-all duration-500 z-40 ${
+      isVisible ? "top-20 opacity-100" : "-top-20 opacity-0"
+    }`}
+  >
+    <div className="flex items-center">
+      <img src={FavouriteIcon} alt="Избранное" className="brightness-[25]" />
+      <span className={`${COLORS_TEXT.white} mx-2`}>
+        {t("favouriteNotice")}
+      </span>
     </div>
+    <img src={CloseIcon} alt="Закрыть" onClick={() => setIsVisible(false)} />
+  </div>
+  
   );
 };

@@ -322,8 +322,8 @@ export const AddReview: FC = function AddReview() {
             },
           });
           if (response.data) {
-            await queryClient.refetchQueries({ queryKey: [`/review/ad/${announcement.id}`] });
-            navigate({ to: `/announcements/${announcement.id}` });
+            await queryClient.refetchQueries({ queryKey: [`/review/ad/${announcement.id}`, `/ad/${announcement.id}`] });
+            history.back();
           }
           setIsLoading(false);
         })}
