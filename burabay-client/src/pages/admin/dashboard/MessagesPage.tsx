@@ -145,23 +145,25 @@ export default function MessagesPage() {
         <SideNav />
       </div>
 
-      <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
-        <div className="flex-1 overflow-y-auto max-h-[calc(100vh-120px)] p-6 pt-0">
+      <div className="relative z-10 flex flex-col w-full p-4 ml-[94px]">
+        <div className="flex-1 overflow-y-auto max-h-[calc(100vh-120px)] pt-0">
           {loading ? (
             <Loader />
           ) : (
             Object.entries(messages)
               .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
               .map(([date, messages]) => (
-                <div key={date} className="mb-6">
-                  <div className="text-center text-lg font-semibold text-black mb-4">
-                    {date}
+                <div key={date} className="mb-4">
+                  <div className="flex justify-center items-center">
+                    <div className="flex justify-center items-center text-center w-[88px] h-[24px] text-[14px] rounded-xl bg-[#FFFFFF80]/50 font-semibold text-[#999999] mb-4">
+                      {date}
+                    </div>
                   </div>
                   <div className="flex flex-col items-start gap-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className="relative w-full max-w-[1200px] backdrop-blur-md bg-white bg-opacity-90 p-4 rounded-xl flex flex-col justify-between shadow-md break-words"
+                        className="relative w-full max-w-[1200px] backdrop-blur-[10px] bg-[#FFFFFFBF]/75 p-4 rounded-xl flex flex-col justify-between break-words"
                       >
                         <div className="text-lg font-medium text-black">
                           Burabay администратор
@@ -181,7 +183,7 @@ export default function MessagesPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="sticky bottom-0 left-0 right-0 flex items-center max-w-[2200px] p-4 bg-white backdrop-blur-lg shadow-md rounded-xl">
+        <div className="sticky bottom-0 left-0 right-0 flex items-center max-w-[2200px] p-4 bg-white backdrop-blur-lg rounded-xl">
           <input
             type="text"
             className="flex-1 max-w-[100%] px-4 py-2 border border-[#EDECEA] rounded-lg bg-[#FAF9F7]"

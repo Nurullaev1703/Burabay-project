@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { apiService } from "../../../services/api/ApiService";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
@@ -33,6 +33,8 @@ const AnalyticsPage = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [visibleAdsCount, setVisibleAdsCount] = useState(20);
+  const [isAscending, setIsAscending] = useState(false);
+  const [isCitiesAscending, setIsCitiesAscending] = useState(false);
 
   useEffect(() => {
     apiService
@@ -46,7 +48,7 @@ const AnalyticsPage = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  });
 
   const loadMoreAds = () => {
     setVisibleAdsCount((prevCount) => prevCount + 20);
@@ -67,6 +69,14 @@ const AnalyticsPage = () => {
       </div>
     );
   }
+
+  const handleFilterClick = () => {
+    setIsAscending(!isAscending);
+  };
+
+  const handleCitiesFilterClick = () => {
+    setIsCitiesAscending(!isCitiesAscending);
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -104,10 +114,26 @@ const AnalyticsPage = () => {
                 </div>
               </div>
             </Block>
-            <ScrollableBlock title="Статистика по странам" className="h-[50vh]">
-              {Object.entries(data.countries).map(([country, count]) => (
-                <DataRow key={country} label={country} value={count} />
-              ))}
+            <ScrollableBlock
+              title="Статистика по странам"
+              className="h-[50vh]"
+              isFilterable={true}
+              onFilterClick={handleFilterClick}
+              isAscending={isAscending}
+            >
+              {data &&
+                data.countries &&
+                Object.entries(data.countries)
+                  .sort((a, b) => {
+                    if (isAscending) {
+                      return a[1] - b[1];
+                    } else {
+                      return b[1] - a[1];
+                    }
+                  })
+                  .map(([country, count]) => (
+                    <DataRow key={country} label={country} value={count} />
+                  ))}
             </ScrollableBlock>
             <ScrollableBlock title="Статистика по языку" className="h-[27.4vh]">
               {Object.entries(data.languages).map(([language, count]) => (
@@ -133,14 +159,32 @@ const AnalyticsPage = () => {
                 </div>
               </div>
             </Block>
-            <ScrollableBlock title="Статистика по городам" className="h-[50vh]">
-              {Object.entries(data.cities).map(([city, count]) => (
-                <DataRow
-                  key={city}
-                  label={city === "(not set)" ? "Не установлено" : city}
-                  value={Number(count)} // Преобразуем count в число
-                />
-              ))}
+            <ScrollableBlock
+              title="Статистика по городам"
+              className="h-[50vh]"
+              isFilterable={true}
+              onFilterClick={handleCitiesFilterClick}
+              isAscending={isCitiesAscending}
+            >
+              {data &&
+                data.cities &&
+                Object.entries(data.cities)
+                  .sort((a, b) => {
+                    const countA = Number(a[1]);
+                    const countB = Number(b[1]);
+                    if (isCitiesAscending) {
+                      return countA - countB;
+                    } else {
+                      return countB - countA;
+                    }
+                  })
+                  .map(([city, count]) => (
+                    <DataRow
+                      key={city}
+                      label={city === "(not set)" ? "Не установлено" : city}
+                      value={Number(count)}
+                    />
+                  ))}
             </ScrollableBlock>
             <Block
               title="Переход на Google Analytics"
@@ -246,11 +290,40 @@ const ScrollableBlock: React.FC<{
   title: string;
   children: React.ReactNode;
   className?: string;
-}> = ({ title, children, className }) => (
+  isFilterable?: boolean;
+  onFilterClick?: () => void;
+  isAscending?: boolean;
+}> = ({
+  title,
+  children,
+  className,
+  isFilterable = false,
+  onFilterClick,
+  isAscending,
+}) => (
   <div
     className={`bg-white p-6 rounded-lg shadow-md overflow-auto ${className}`}
   >
-    <h2 className="text-lg font-semibold mb-4">{title}</h2>
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      {isFilterable && onFilterClick && (
+        <button onClick={onFilterClick}>
+          <img
+            src={
+              isAscending
+                ? "../../../../public/up.svg"
+                : "../../../../public/down.svg"
+            }
+            alt={
+              isAscending
+                ? "Сортировка по возрастанию"
+                : "Сортировка по убыванию"
+            }
+            className="w-5 h-5"
+          />
+        </button>
+      )}
+    </div>
     {children}
   </div>
 );
@@ -265,9 +338,9 @@ const DataRow: React.FC<{ label: string; value: number }> = ({
     </p>
     <progress
       className="w-full h-[4px] appearance-none overflow-hidden rounded-[9px] bg-gray-300 
-                 [&::-webkit-progress-bar]:bg-[#DDDDDD] [&::-webkit-progress-bar]:h-[]
-                 [&::-webkit-progress-value]:bg-[#0A7D9E] [&::-webkit-progress-value]:rounded-full 
-                 [&::-moz-progress-bar]:bg-[#0A7D9E] [&::-moz-progress-bar]:rounded-full"
+                    [&::-webkit-progress-bar]:bg-[#DDDDDD] [&::-webkit-progress-bar]:h-[]
+                    [&::-webkit-progress-value]:bg-[#0A7D9E] [&::-webkit-progress-value]:rounded-full 
+                    [&::-moz-progress-bar]:bg-[#0A7D9E] [&::-moz-progress-bar]:rounded-full"
       value={value}
       max="100"
     ></progress>

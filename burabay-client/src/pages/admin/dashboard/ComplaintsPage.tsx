@@ -259,17 +259,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        <SideNav
-          className={`fixed top-0 left-0 h-full transition-all duration-300 ease-linear ${
-            isExpanded ? "w-[312px]" : "w-[94px]"
-          }`}
-        />
+        <SideNav />
       </div>
-      <div
-        className={`flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ${
-          isExpanded ? "ml-[312px]" : "ml-[94px]"
-        }`}
-      >
+      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
         <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
           <div className="border-r pl-[32px] h-full flex items-center">
             <div className="text-left text-[24px] font-normal flex items-center ">

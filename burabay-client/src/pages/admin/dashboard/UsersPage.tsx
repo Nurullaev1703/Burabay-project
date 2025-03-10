@@ -154,8 +154,8 @@ export default function UsersList({ filters }: Props) {
       <div className="relative z-50">
         <SideNav />
       </div>
-      <div className="relative z-10 flex flex-col w-full p-6 ml-[94px]">
-        <div className="fixed top-0 left-[94px] right-0 bg-white shadow-md rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
+      <div className="relative z-10 flex flex-col w-full p-4 mt-4 ml-[94px]">
+        <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
           <input
             type="text"
             placeholder="Поиск"
@@ -298,7 +298,7 @@ export default function UsersList({ filters }: Props) {
                       (user.organization?.isConfirmed ? (
                         <div className="flex ">
                           <span className="ml-auto text-[#0A7D9E] mr-4">
-                            Подтвержден{" "}
+                            Подтвержден
                           </span>
                           <img src="../../../../public/confirmed.svg"></img>
                         </div>
