@@ -40,7 +40,12 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
   const { t } = useTranslation();
 
-  const [dates, setDates] = useState<string[]>(announcement?.bookingBanDate?.map(item => format(new Date(item.date), "dd.MM.yyyy")) || []);
+  const [dates, setDates] = useState<string[]>(
+    announcement?.bookingBanDate
+      ?.filter(item => item.date && !isNaN(new Date(item.date).getTime()))  // фильтруем нормальные даты
+      ?.map(item => format(new Date(item.date), "dd.MM.yyyy")) || []
+  );
+
   const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>(transformData(announcement?.bookingBanDate || []) || {});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModals, setShowModals] = useState<Record<string, boolean>>({});
@@ -59,20 +64,25 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
   };
   function transformData(data: BookingBanDate[]): TransformedData {
     return data.reduce<TransformedData>((acc, item) => {
-      if (!acc[format(new Date(item.date), "dd.MM.yyyy")]) {
-        acc[format(new Date(item.date), "dd.MM.yyyy")] = {
+      if (!item.date || isNaN(new Date(item.date).getTime())) {
+        console.warn("Некорректная дата в bookingBanDate:", item);
+        return acc;
+      }
+  
+      const formattedDate = format(new Date(item.date), "dd.MM.yyyy");
+  
+      if (!acc[formattedDate]) {
+        acc[formattedDate] = {
           allDay: item.allDay,
-          times: [...item.times], // Копируем массив, чтобы избежать мутаций
+          times: [...item.times],
         };
       } else {
-        // Обновляем массив `times`, если уже есть запись с такой датой
-        acc[format(new Date(item.date), "dd.MM.yyyy")].times.push(
-          ...item.times
-        );
+        acc[formattedDate].times.push(...item.times);
       }
       return acc;
     }, {});
   }
+  
   const toggleTimeSelection = (time: string) => {
     if (selectedDate) {
       setSelectedTimes((prevSelectedTimes) => {

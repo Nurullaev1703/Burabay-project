@@ -50,6 +50,15 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     (announcement?.details as Record<string, boolean>) || {}
   );
+  const invalidPhonePrefixes = [
+    "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", // вообще не используются
+    "333", "444", "555", "666", "888", "999", "000",               // зарезервированы или не назначены
+    "123", "321", "234", "432", "345", "543",                             // не выделены операторам
+    "700", // В некоторых базах 700 — фейковый или тестовый
+    "709", // Резерв, не выдан операторам
+    "911", // Спецслужбы в некоторых странах (в РФ такого кода у операторов нет)
+  ];
+  
   const handleToggle = (item: string) => {
     setToggles((prev) => ({
       ...prev,
@@ -535,8 +544,23 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               rules={{
                 required: t("requiredField"),
                 validate: (value: string) => {
+                  const cleanedNumber = value.replace(/\D/g, "");
+                  if (cleanedNumber.length !== 11) {
+                    return t("invalidNumber"); 
+                  }
+            
+                  const prefix = cleanedNumber.substring(1, 4);
+                  if (invalidPhonePrefixes.includes(prefix)) {
+                    return "Такого номера не существует"; 
+                  }
+            
+                  return true;
                   const phoneRegex = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
                   return phoneRegex.test(value) || t("invalidNumber");
+                },
+                pattern: {
+                  value: /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/,
+                  message: "Неверный формат номера телефона",
                 },
               }}
               render={({ field, fieldState: { error } }) => (

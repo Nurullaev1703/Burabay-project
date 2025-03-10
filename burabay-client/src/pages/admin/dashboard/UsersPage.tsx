@@ -53,12 +53,6 @@ export default function UsersList({ filters }: Props) {
     if (!docPath) return "#";
     return `${baseUrl}/public${docPath}`;
   };
-
-  const getDocumentUrl = (path: string | null) => {
-    if (!path) return null;
-    return `${baseUrl}${path.replace(/^\/+/, "")}`;
-  };
-
   const openConfirmModal = (organization: Organization) => {
     setSelectedOrganization(organization);
     setIsConfirmModalOpen(true);

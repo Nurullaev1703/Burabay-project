@@ -15,7 +15,7 @@ function GetNotification() {
   if (data) {
     return (
       <>
-        <Notifications user={data.profile} notifications={data.notification} notificationsAll={data.notificationAll} />
+        <Notifications user={data.profile} notifications={data.notification} />
       </>
     )
   }

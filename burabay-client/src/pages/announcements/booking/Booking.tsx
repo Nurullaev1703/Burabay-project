@@ -16,6 +16,7 @@ import { Radio, Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { apiService } from "../../../services/api/ApiService";
+import defaultImage from "../../../app/icons/abstract-bg.svg"
 
 export type PaymentType = "online" | "cash";
 
@@ -56,7 +57,7 @@ export const Booking: FC = function Booking() {
     return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
   };
 
-  const { handleSubmit, watch, control, setValue } = useForm<FormType>({
+  const { handleSubmit, watch, control, setValue , formState: { isValid } } = useForm<FormType>({
     defaultValues: {
       adId: announcement.id,
       name: user?.fullName || "Безымянный",
@@ -83,7 +84,7 @@ export const Booking: FC = function Booking() {
       });
 
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
-        navigate({ to: `/announcements/${announcement.id}` });
+        navigate({ to: `/booking/tourist` });
       } else {
         console.error(response.data);
       }
@@ -122,7 +123,8 @@ export const Booking: FC = function Booking() {
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={announcement.images[0 ] ? baseUrl + announcement.images[0] : defaultImage }
+            onError={defaultImage}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -450,6 +452,7 @@ export const Booking: FC = function Booking() {
           className="w-header z-10"
           type="submit"
           onClick={() => handleSubmit(saveBooking)()}
+          disabled={!isValid || isLoading}
           loading={isLoading}
         >
           {t("send")}

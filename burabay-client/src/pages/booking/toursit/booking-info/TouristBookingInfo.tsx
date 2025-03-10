@@ -3,13 +3,12 @@ import { useTranslation } from "react-i18next";
 import { TSelectedBooking } from "../../model/booking";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
 import { formatPrice } from "../../../announcements/announcement/Announcement";
-import { formatPhoneNumber } from "../../../announcements/announcement/ui/AnnouncementInfoList";
-import PhoneIcon from "../../../../app/icons/announcements/phone.svg";
 import { Button } from "../../../../shared/ui/Button";
 import { CancelBooking } from "../../booking-page/selected-booking/modal/CancelBooking";
 import { Announcement } from "../../../announcements/model/announcements";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import { Link } from "@tanstack/react-router";
+import { Typography } from "../../../../shared/ui/Typography";
 
 interface Props {
   announcement: Announcement;
@@ -82,17 +81,6 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                     {formatPrice(b.price)}
                   </span>
                 </li>
-                <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                  <div className="flex flex-col">
-                    <span>{formatPhoneNumber(b.user_number)}</span>
-                    <span className={`${COLORS_TEXT.gray100} text-sm`}>
-                      {t("contactPhone")}
-                    </span>
-                  </div>
-                  <a href={`tel:${b.user_number}`}>
-                    <img src={PhoneIcon} alt="Звонить" />
-                  </a>
-                </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
                   <Link
                     className="flex justify-between"
@@ -134,7 +122,11 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("bookingTime")}</span>
+                  {announcement.isFullDay ? (
+                    <Typography size={14}>{t("aroundClockDays")}</Typography>
+                  ) : (
                   <span>{b.time}</span>
+                  )}
                 </li>
                 <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
                   <span className="text-sm">{t("cost")}</span>
@@ -162,17 +154,6 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                   <span>
                     {b.rate === "Взрослый" ? t("adults") : t("child")}
                   </span>
-                </li>
-                <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                  <div className="flex flex-col">
-                    <span>{formatPhoneNumber(b.user_number)}</span>
-                    <span className={`${COLORS_TEXT.gray100} text-sm`}>
-                      {t("contactPhone")}
-                    </span>
-                  </div>
-                  <a href={`tel:${b.user_number}`}>
-                    <img src={PhoneIcon} alt="Звонить" />
-                  </a>
                 </li>
                 <li className="py-3.5 border-b border-[#E4E9EA]">
                   <Link

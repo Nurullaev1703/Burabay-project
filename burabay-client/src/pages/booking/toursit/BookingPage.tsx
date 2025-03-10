@@ -9,6 +9,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { formatPrice } from "../../announcements/announcement/Announcement";
 import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
+import defaultImage from "../../../app/icons/abstract-bg.svg"
 
 interface Props {
   ads: TouristBookingList[];
@@ -121,7 +122,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                         >
                           <div className="flex">
                             <img
-                              src={baseUrl + ad.img}
+                              src={ad.img ? baseUrl + ad.img : defaultImage}
                               alt={ad.title}
                               className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                             />
