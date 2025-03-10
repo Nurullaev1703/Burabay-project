@@ -39,7 +39,7 @@ import FavouriteActiveIcon from "../../app/icons/favourite-active.svg";
 import { Button } from "../../shared/ui/Button";
 import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../shared/ui/CoveredImage";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { MapFilter } from "../announcements/announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
@@ -62,7 +62,7 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const [center , setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
+  const [center , _setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
@@ -414,36 +414,37 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     }
   };
   useEffect(() => {
-    console.log(announcementsName)
-    if (!isLoaded || !mapReady || !filters.adId || !filters.adName) return;
-
+    if (!isLoaded || !mapReady || (!filters.adId && !filters.adName)) return;
+  
     const selectedAnnouncement = announcements.find(
-      (announcement) => (announcement.id) === filters.adId
+      (announcement) => announcement.id === filters.adId
     );
-    const selectedName = announcements.find(
+  
+    const selectedByName = announcements.find(
       (announcement) =>
         filters.adName &&
-        announcement.title.toLowerCase().includes(filters.adName.toLowerCase())
+        announcement.title.toLowerCase().includes(filters.adName.toLowerCase()) 
     );
-    
-
+  
     if (selectedAnnouncement && mapRef.current) {
       setAnnouncementInfo(selectedAnnouncement);
       setShowAnnouncementModal(true);
-      setCenter({
+      
+      mapRef.current.panTo({
         lat: selectedAnnouncement.address.longitude,
         lng: selectedAnnouncement.address.latitude,
       });
-    }
-    if(selectedName && mapRef.current) {
-      setAnnouncementInfo(selectedName);
+    } else if (selectedByName && mapRef.current) {
+      setAnnouncementInfo(selectedByName);
       setShowAnnouncementModal(true);
-      setCenter({
-        lat: selectedName.address.longitude,
-        lng: selectedName.address.latitude
-      })
+    
+      mapRef.current.panTo({
+        lat: selectedByName.address.longitude,
+        lng: selectedByName.address.latitude,
+      });
     }
-  }, [filters.adId, filters.adName, announcementsName, announcements, isLoaded, mapReady ]);
+  }, [filters.adId, filters.adName, announcements, isLoaded, mapReady]);
+  
   
   return (
     <main className="min-h-screen">
