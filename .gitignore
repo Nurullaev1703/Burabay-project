@@ -12,6 +12,10 @@ burabay-client/src/routeTree.gen.ts
 
 
 nginx/certs
+.dockerignore
+docker-compose.yaml
+Dockerfile.backend
+Dockerfile.frontend
 
 .vscode
 

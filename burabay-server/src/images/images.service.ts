@@ -101,7 +101,6 @@ export class ImagesService {
     });
 
     Utils.checkEntity(organization, 'Организация не найдена');
-    console.log('Полученные файлы:', files); // Лог для отладки
 
     const orgName = organization.name;
     const safeOrgName = orgName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');

@@ -12,7 +12,6 @@ import {
   tokenService,
 } from "../services/storage/Factory";
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
-import { NotFound } from "../pages/not-found/NotFound";
 
 export const AUTH_PATH = [
   "/auth",
@@ -33,12 +32,12 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
       return <InitPage />;
     }
       // запрещаем переходы на Десктоп кроме админа
-    if (
-      device.type == "desktop" &&
-      !location.pathname.includes("/admin")
-    ) {
-      return <NotFound />;
-    }
+    // if (
+    //   device.type == "desktop" &&
+    //   !location.pathname.includes("/admin")
+    // ) {
+    //   return <NotFound />;
+    // }
     return (
       <>
         <div

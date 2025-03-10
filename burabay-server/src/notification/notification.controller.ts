@@ -28,8 +28,8 @@ export class NotificationController {
   }
 
   @Get('/all')
-  findForAll() {
-    return this.notificationService.findForAll();
+  findForAll(@Request() req: AuthRequest) {
+    return this.notificationService.findForAll(req.user);
   }
 
   @Get('/user')
