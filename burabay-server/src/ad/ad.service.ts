@@ -94,15 +94,16 @@ export class AdService {
         },
       });
     }
+    if (filter.adName) {
+      ads = this._searchAd(filter.adName, ads);
+    }
     const result = ads.map((ad) => {
       const isFavourite =
         ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
       delete ad.usersFavorited;
       return { ...ad, isFavourite };
     });
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
+
 
     return result;
   }
