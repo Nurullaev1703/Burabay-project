@@ -57,6 +57,7 @@ export const Announcement: FC<Props> = function Announcement({
       };
     })
   );
+  const role = roleService.getValue();
   const [isFavourite, setIsFavourite] = useState<boolean>(
     announcement.isFavourite || false
   );
@@ -87,7 +88,14 @@ export const Announcement: FC<Props> = function Announcement({
     <section className="bg-background">
       <Header>
         <div className="flex justify-between items-center text-center relative">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer
+            align="start"
+            action={() =>
+              role === "бизнес"
+                ? navigate({ to: `/announcements` })
+                : navigate({ to: `/main` })
+            }
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
