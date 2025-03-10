@@ -33,6 +33,15 @@ export class AdController {
     return this.adService.findOne(id, req.user);
   }
 
+  @Get('check-dates/:adId/:startDate/:endDate')
+  checkDates(
+    @Param('adId') adId: string,
+    @Param('startDate') startDate: string,
+    @Param('endDate') endDate: string,
+  ) {
+    return this.adService.checkDates(adId, startDate, endDate);
+  }
+
   @Get('favorite/list')
   findAllFavorite(@Request() req: AuthRequest) {
     return this.adService.findAllFavorite(req.user);
