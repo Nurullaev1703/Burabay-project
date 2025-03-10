@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import { apiService } from "../../../services/api/ApiService";
 import { RatingStars } from "../../../shared/ui/RatingStars";
@@ -8,6 +8,8 @@ import { Announcement } from "../../announcements/model/announcements";
 import { baseUrl } from "../../../services/api/ServerData";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
+import { Loader } from "../../../components/Loader";
+import noComp from "../../../app/icons/noComp.svg?url";
 
 const BASE_URL = baseUrl;
 
@@ -29,6 +31,8 @@ interface Review {
   id: string;
   organization: Organization;
   orgId: string;
+  delayedRemoval?: boolean;
+  status?: "deleted" | "accepted";
 }
 
 interface Organization {
@@ -43,15 +47,19 @@ interface Organization {
 }
 
 export const ComplaintsPage: FC = function ComplaintPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<
+    (Review & {
+      hint: { message: string; type: "success" | "error" } | null;
+      delayedRemoval?: boolean;
+      status?: "deleted" | "accepted";
+    })[]
+  >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [hint, setHint] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const timers = useRef<Record<string, NodeJS.Timeout>>({});
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -61,7 +69,14 @@ export const ComplaintsPage: FC = function ComplaintPage() {
         });
 
         if (response.status === 200) {
-          setReviews(response.data);
+          setReviews(
+            response.data.map((review) => ({
+              ...review,
+              hint: null,
+              delayedRemoval: false,
+              status: undefined,
+            }))
+          );
         } else {
           console.error("Ошибка загрузки данных:", response);
         }
@@ -84,18 +99,114 @@ export const ComplaintsPage: FC = function ComplaintPage() {
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    try {
-      const response = await apiService.delete({ url: `/review/${reviewId}` });
-      if (response.status === 200) {
-        setReviews(reviews.filter((review) => review.reviewId !== reviewId));
-        setHint({ message: "Отзыв успешно удален", type: "success" });
-      } else {
-        setHint({ message: "Ошибка при удалении отзыва", type: "error" });
-      }
-    } catch (error) {
-      setHint({ message: "Ошибка при удалении отзыва", type: "error" });
-      console.error("Ошибка удаления отзыва:", error);
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.reviewId === reviewId
+          ? {
+              ...review,
+              hint: {
+                message: "Отзыв будет удален через 10 секунд",
+                type: "success",
+              },
+              delayedRemoval: true,
+              status: "deleted",
+            }
+          : review
+      )
+    );
+
+    if (timers.current[reviewId]) {
+      clearTimeout(timers.current[reviewId]);
     }
+
+    timers.current[reviewId] = setTimeout(async () => {
+      try {
+        const response = await apiService.delete({
+          url: `/review/${reviewId}`,
+        });
+        if (response.status === 200) {
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
+          );
+        }
+      } catch (error) {
+        console.error("Ошибка удаления отзыва:", error);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.reviewId === reviewId
+              ? {
+                  ...review,
+                  hint: {
+                    message: "Ошибка при удалении отзыва",
+                    type: "error",
+                  },
+                  delayedRemoval: false,
+                  status: undefined,
+                }
+              : review
+          )
+        );
+      } finally {
+        delete timers.current[reviewId];
+      }
+    }, 10000);
+  };
+
+  const handleAcceptReview = async (reviewId: string) => {
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.reviewId === reviewId
+          ? {
+              ...review,
+              hint: {
+                message:
+                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
+                type: "success",
+              },
+              delayedRemoval: true,
+              status: "accepted",
+            }
+          : review
+      )
+    );
+
+    if (timers.current[reviewId]) {
+      clearTimeout(timers.current[reviewId]);
+    }
+
+    timers.current[reviewId] = setTimeout(async () => {
+      try {
+        const response = await apiService.patch({
+          url: `/admin/check-review/${reviewId}`,
+          dto: {},
+        });
+        if (response.status === 200) {
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
+          );
+          delete timers.current[reviewId];
+        }
+      } catch (error) {
+        console.error("Ошибка принятия отзыва:", error);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.reviewId === reviewId
+              ? {
+                  ...review,
+                  hint: {
+                    message: "Ошибка при принятии отзыва",
+                    type: "error",
+                  },
+                  delayedRemoval: false,
+                  status: undefined,
+                }
+              : review
+          )
+        );
+      } finally {
+        delete timers.current[reviewId];
+      }
+    }, 10000);
   };
 
   const fetchOrgInfo = async (orgId: string) => {
@@ -114,6 +225,29 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     }
   };
 
+  const handleCancelHint = (reviewId: string) => {
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.reviewId === reviewId
+          ? {
+              ...review,
+              hint: null,
+              status: undefined,
+              delayedRemoval: false,
+            }
+          : review
+      )
+    );
+    if (timers.current[reviewId]) {
+      clearTimeout(timers.current[reviewId]);
+      delete timers.current[reviewId];
+    }
+  };
+
+  const loadMoreReviews = () => {
+    setVisibleReviewsCount((prevCount) => prevCount + 20);
+  };
+
   return (
     <div className="relative w-full min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
@@ -125,26 +259,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        <SideNav
-          className={`fixed top-0 left-0 h-full transition-all duration-300 ease-linear ${
-            isExpanded ? "w-[312px]" : "w-[94px]"
-          }`}
-        />
+        <SideNav />
       </div>
-      <div
-        className={`flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ${
-          isExpanded ? "ml-[312px]" : "ml-[94px]"
-        }`}
-      >
-        {hint && (
-          <div
-            className={`fixed top-5 right-5 px-4 py-2 rounded-lg text-white ${
-              hint.type === "success" ? "bg-green-500" : "bg-red-500"
-            }`}
-          >
-            {hint.message}
-          </div>
-        )}
+      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
         <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
           <div className="border-r pl-[32px] h-full flex items-center">
             <div className="text-left text-[24px] font-normal flex items-center ">
@@ -162,97 +279,170 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col py-[10px] gap-4">
+        <div
+          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 68px)" }}
+        >
           {isLoading ? (
-            <p className="text-center text-gray-500 mt-4">Загрузка данных...</p>
+            <Loader/>
           ) : reviews.length > 0 ? (
-            reviews.map((review) => (
-              <div
-                key={review.reviewId}
-                className="grid grid-cols-[1fr_1fr_332px] max-h-[330px] bg-white rounded-lg"
-              >
-                <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-700">
-                        {review.username}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        {formatDate(review.reviewDate)}
-                      </p>
-                      <RatingStars rating={review.reviewStars} />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-gray-700">
-                        {review.adName}
-                      </p>
-                      <div className="text-[16px] text-yellow-500 flex items-center">
-                        ⭐ {review.adRating} ({review.adReviewCount})
+            <>
+              {reviews.slice(0, visibleReviewsCount).map((review) => (
+                <div
+                  key={review.reviewId}
+                  className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
+                    review.hint
+                      ? review.hint.type === "success"
+                        ? "bg-[#59C183]"
+                        : "bg-[#FF5959]"
+                      : "bg-white"
+                  }`}
+                >
+                  {review.status ? (
+                    <div
+                      className={`col-span-3 flex items-center justify-between rounded-[16px] px-4 py-2 ${
+                        review.status === "deleted"
+                          ? "bg-[#FF5959]"
+                          : "bg-[#59C183]"
+                      }`}
+                    >
+                      <div className="p-2 text-white rounded">
+                        {review.status === "deleted"
+                          ? "Комментарий удален"
+                          : "Комментарий оставлен"}
                       </div>
+                      <button
+                        onClick={() => handleCancelHint(review.reviewId)}
+                        className={`p-2 text-white rounded bg-inherit ${
+                          review.status === "deleted"
+                            ? "bg-[#FF5959]"
+                            : "bg-[#59C183]"
+                        }`}
+                      >
+                        Отменить
+                      </button>
                     </div>
-                  </div>
-                  <p className="text-gray-600 mt-2">{review.reviewText}</p>
-                  {review.reviewImages && (
-                    <div className="flex gap-2 mt-2">
-                      {review.reviewImages.map((img, idx) => (
-                        <img
-                          key={idx}
-                          src={`${BASE_URL}${img}`}
-                          alt="Фото отзыва"
-                          className="w-[80px] h-[80px] rounded-md object-cover"
-                        />
-                      ))}
+                  ) : (
+                    <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700">
+                            {review.username}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            {formatDate(review.reviewDate)}
+                          </p>
+                          <RatingStars rating={review.reviewStars} />
+                        </div>
+
+                        <div className="flex items-center">
+                          <img
+                            src={`${BASE_URL}${review.adImage}`}
+                            alt="Фото отзыва"
+                            className="w-[52px] h-[52px] rounded-md object-cover"
+                          />
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-700">
+                              {review.adName}
+                            </p>
+                            <div className="text-[16px] text-yellow-500 flex items-center">
+                              ⭐ {review.adRating} ({review.adReviewCount})
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mt-2">{review.reviewText}</p>
+                      {review.reviewImages && (
+                        <div className="flex gap-2 mt-2">
+                          {review.reviewImages.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={`${BASE_URL}${img}`}
+                              alt="Фото отзыва"
+                              className="w-[80px] h-[80px] rounded-md object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
 
-                <div className="border-r border-gray-300 p-[32px] flex flex-col">
-                  <div className="flex items-center gap-3">
-                    <CoveredImage
-                      width="w-10"
-                      height="h-10"
-                      borderRadius="rounded-full"
-                      imageSrc={`${BASE_URL}${review.orgImage}`}
-                      errorImage={defaultImage}
-                    />
-                    <div>
-                      {review.orgName ? (
-                        <p
-                          className="font-semibold cursor-pointer text-blue-500"
-                          onClick={() => fetchOrgInfo(review.orgId)}
-                        >
-                          {review.orgName}
+                  {!review.status && (
+                    <>
+                      <div className="border-r border-gray-300 p-[32px] flex flex-col">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={`${BASE_URL}${review.orgImage}`}
+                            alt="Лого"
+                            className="w-[40px] h-[40px] rounded-full bg-gray-200"
+                            onError={(e) =>
+                              (e.currentTarget.src =
+                                "../../../app/icons/abstract-bg.svg")
+                            }
+                          />
+
+                          <div>
+                            {review.orgName ? (
+                              <p
+                                className="font-semibold cursor-pointer text-blue-500"
+                                onClick={() =>
+                                  fetchOrgInfo(
+                                    review.orgId ||
+                                      "3db2a1cd-e76f-4144-9f21-3b58f1c72623"
+                                  )
+                                }
+                              >
+                                {review.orgName}
+                              </p>
+                            ) : (
+                              <p>Нет данных</p>
+                            )}
+                            <p className="text-gray-500 text-sm">
+                              {formatDate(review.reportData)}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2">
+                          {review.reportText}
                         </p>
-                      ) : (
-                        <p>Нет данных</p>
-                      )}
-                      <p className="text-gray-500 text-sm">
-                        {formatDate(review.reportData)}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    {review.reportText}
-                  </p>
-                </div>
+                      </div>
 
-                <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
-                  <button className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer">
-                    Оставить отзыв
-                  </button>
+                      <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
+                        <button
+                          onClick={() => handleAcceptReview(review.reviewId)}
+                          className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                        >
+                          Оставить отзыв
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review.reviewId)}
+                          className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                        >
+                          Удалить отзыв
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {visibleReviewsCount < reviews.length && (
+                <div className="flex justify-center mt-4">
                   <button
-                    onClick={() => handleDeleteReview(review.reviewId)}
-                    className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                    onClick={loadMoreReviews}
+                    className="bg-[#0A7D9E] text-white px-4 py-2 rounded-lg"
                   >
-                    Удалить отзыв
+                    Загрузить еще
                   </button>
                 </div>
-              </div>
-            ))
+              )}
+            </>
           ) : (
-            <p className="text-center text-gray-500 mt-4">
-                            Нет жалоб на отзывы.        
-            </p>
+            <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
+              <div className="flex flex-col items-center bg-white/75 backdrop-blur-[10px] justify-center h-[278px] w-[358px] rounded-lg shadow-lg pointer-events-auto">
+                <img src={noComp} alt="Нет жалоб" className="w-[150px] h-[150px] mb-4" />
+                <p className="text-center text-black text-lg">Нет жалоб на отзывы</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -265,20 +455,20 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../app/icons/admin/Close.png"
+                  src="../../../../public/icons/Close.png"
                   alt="Назад"
                   className="w-full h-full"
                 />
               </button>
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
-                                Организация          
+                Организация
               </h2>
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../app/icons/admin/Close.png"
+                  src="../../../../public/icons/Close.png"
                   alt="Выход"
                   className="w-full h-full"
                 />
@@ -293,52 +483,46 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 errorImage={defaultImage}
               />
             </div>
-                        {/* Название организации */}       
             <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-                            {selectedOrg.name}       
+              {selectedOrg.name}
             </h2>
-                        {/* Описание организации */}       
             <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
-                            {selectedOrg.description || "Описание отсутствует"} 
+              {selectedOrg.description || "Описание отсутствует"}
             </p>
-                        {/* Контейнер для сайта, телефона, email с бордерами */}
             <div className="mt-4">
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
-                                        {selectedOrg.website || "Не указано"}   
+                    {selectedOrg.website || "Не указано"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                                        Сайт              
+                    Сайт
                   </strong>
                 </div>
               </div>
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                    {selectedOrg.phone || "Не указан"}     
+                    {selectedOrg.phone || "Не указано"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                                        Телефон
+                    Телефон
                   </strong>
                 </div>
               </div>
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
                   <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                                        {selectedOrg.user?.email || "Не указан"}
+                    {selectedOrg.user?.email || "Не указан"}
                   </p>
-                               
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                                        Email              
+                    Email
                   </strong>
                 </div>
               </div>
             </div>
-                        {/* Отображение объявлений */}       
             {selectedOrg.ads.length > 0 ? (
-              <div className="grid grid-cols-3 gap-4">
-                           
+              <div className="grid grid-cols-1 gap-4">
                 {selectedOrg.ads.map((ad, index) => (
                   <AdCard key={index} ad={ad} isOrganization={true} />
                 ))}
@@ -346,17 +530,13 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             ) : (
               <p className="text-gray-500">Нет объявлений</p>
             )}
-                        {/* Кнопки блокировки/разблокировки */}       
-            <div className="mt-4 flex justify-between mb-8">
-                       
+            <div className="mt-4 flex justify-between">
               <button className="bg-red text-white px-4 py-2 rounded-lg">
-                                Заблокировать пользователя          
+                Заблокировать пользователя
               </button>
-                       
               <button className="bg-green-500 text-white px-4 py-2 rounded-lg">
-                                Разблокировать          
+                Разблокировать
               </button>
-                     
             </div>
           </div>
         </div>
