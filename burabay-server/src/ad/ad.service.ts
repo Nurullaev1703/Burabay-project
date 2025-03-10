@@ -3,7 +3,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
@@ -11,6 +11,7 @@ import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad-filter.type';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Injectable()
 export class AdService {
@@ -23,6 +24,8 @@ export class AdService {
     private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -286,6 +289,34 @@ export class AdService {
       await manager.remove(ad);
       return JSON.stringify(HttpStatus.OK);
     });
+  }
+
+  /* Проверка свободного диапазона для Бронирования. */
+  @CatchErrors()
+  async checkDates(adId: string, startDateDto: string, endDateDto: string) {
+    // Форматирование переданных дат в тип даты.
+    const startDate = Utils.stringDateToDate(startDateDto);
+    const endDate = Utils.stringDateToDate(endDateDto);
+    // Получение всех броней в указанном диапазоне.
+    const bookings = await this.bookingRepository.find({
+      where: {
+        ad: { id: adId },
+        dateStart: LessThanOrEqual(endDate),
+        dateEnd: MoreThanOrEqual(startDate),
+      },
+    });
+    // Если брони в указанном диапазоне не были найдены,то вернуть true, иначе вернуть занятные даты.
+    if (bookings.length === 0) {
+      return true;
+    } else {
+      return {
+        message: 'Даты заняты',
+        dates: bookings.map(
+          (booking) =>
+            `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
+        ),
+      };
+    }
   }
 
   /* Поиск среди Объявлений. */

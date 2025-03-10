@@ -401,7 +401,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [isFavourite, setIsFavourite] = useState<boolean>(
     announcementInfo?.isFavourite || false
   );
-
   const addToFavourite = async () => {
     if (announcementInfo) {
       await apiService.get({
@@ -716,7 +715,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         >
                           <img
                             src={
-                              isFavourite ? FavouriteActiveIcon : FavouriteIcon
+                              isFavourite ? FavouriteIcon : FavouriteActiveIcon
                             }
                             alt=""
                           />

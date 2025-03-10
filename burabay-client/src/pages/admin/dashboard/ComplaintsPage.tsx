@@ -262,29 +262,31 @@ export const ComplaintsPage: FC = function ComplaintPage() {
         <SideNav />
       </div>
       <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
-        <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
-          <div className="border-r pl-[32px] h-full flex items-center">
-            <div className="text-left text-[24px] font-normal flex items-center ">
-              Отзыв
+        {reviews.length > 0 && (
+          <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
+            <div className="border-r pl-[32px] h-full flex items-center">
+              <div className="text-left text-[24px] font-normal flex items-center ">
+                Отзыв
+              </div>
+            </div>
+            <div className="border-r pl-[32px] h-full flex items-center border-gray-300">
+              <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
+                Жалобы
+              </div>
+            </div>
+            <div className=" h-full pl-[32px] flex items-center">
+              <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
+                Действие
+              </div>
             </div>
           </div>
-          <div className="border-r pl-[32px] h-full flex items-center border-gray-300">
-            <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
-              Жалобы
-            </div>
-          </div>
-          <div className=" h-full pl-[32px] flex items-center">
-            <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
-              Действие
-            </div>
-          </div>
-        </div>
+        )}
         <div
           className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto"
           style={{ maxHeight: "calc(100vh - 68px)" }}
         >
           {isLoading ? (
-            <Loader/>
+            <Loader />
           ) : reviews.length > 0 ? (
             <>
               {reviews.slice(0, visibleReviewsCount).map((review) => (
@@ -438,9 +440,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
-              <div className="flex flex-col items-center bg-white/75 backdrop-blur-[10px] justify-center h-[278px] w-[358px] rounded-lg shadow-lg pointer-events-auto">
+              <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
                 <img src={noComp} alt="Нет жалоб" className="w-[150px] h-[150px] mb-4" />
-                <p className="text-center text-black text-lg">Нет жалоб на отзывы</p>
+                <p className="text-center text-black text-lg">Жалоб пока нет</p>
               </div>
             </div>
           )}
