@@ -48,6 +48,7 @@ export interface MapFilter {
   category?: string;
   limit?: number;
   offset?: number;
+  adId?: string
   
 }
 export function UseGetAnnouncements(filters?: MapFilter) {

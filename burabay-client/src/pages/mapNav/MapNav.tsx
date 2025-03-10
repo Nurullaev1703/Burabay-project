@@ -62,12 +62,12 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+  const [center , setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
-  const location = useLocation();
   const [directionsResponse, setDirectionsResponse] =
     useState<google.maps.DirectionsResult | null>(null);
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
@@ -84,24 +84,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setMapReady(true);
   };
 
-  const queryParams = new URLSearchParams(location.search as string);
-  const adId = queryParams.get("adId");
-  useEffect(() => {
-    if (!isLoaded || !mapReady || !adId) return;
 
-    const selectedAnnouncement = announcements.find(
-      (announcement) => String(announcement.id) === adId
-    );
 
-    if (selectedAnnouncement && mapRef.current) {
-      setAnnouncementInfo(selectedAnnouncement);
-      setShowAnnouncementModal(true);
-      mapRef.current.panTo({
-        lat: selectedAnnouncement.address.latitude,
-        lng: selectedAnnouncement.address.longitude,
-      });
-    }
-  }, [adId, announcements, isLoaded, mapReady]);
 
   const [isLocationDenied, setIsLocationDenied] = useState(false);
   const role = roleService.getValue();
@@ -226,10 +210,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setActiveCategory(filters?.categoryNames || "");
   }, []);
 
-  const center = {
-    lat: 53.08271195503471,
-    lng: 70.30456742278163,
-  };
+
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -246,7 +227,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         vectorLayer,
       ],
       view: new View({
-        center: fromLonLat([70.30456742278163, 53.08271195503471]),
+        center: fromLonLat([53.08271195503471, 70.30456742278163 ]),
         zoom: 14,
       }),
     });
@@ -384,8 +365,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         mapRef.current
       ) {
         mapRef.current.panTo({
-          lat: selectedAnnouncement.address.latitude,
-          lng: selectedAnnouncement.address.longitude,
+          lat: selectedAnnouncement.address.longitude,
+          lng: selectedAnnouncement.address.latitude,
         });
       }
     }
@@ -433,6 +414,38 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       });
     }
   };
+  useEffect(() => {
+    console.log(announcementsName)
+    if (!isLoaded || !mapReady || !filters.adId || !filters.adName) return;
+
+    const selectedAnnouncement = announcements.find(
+      (announcement) => (announcement.id) === filters.adId
+    );
+    const selectedName = announcements.find(
+      (announcement) =>
+        filters.adName &&
+        announcement.title.toLowerCase().includes(filters.adName.toLowerCase())
+    );
+    
+
+    if (selectedAnnouncement && mapRef.current) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+      setCenter({
+        lat: selectedAnnouncement.address.longitude,
+        lng: selectedAnnouncement.address.latitude,
+      });
+    }
+    if(selectedName && mapRef.current) {
+      setAnnouncementInfo(selectedName);
+      setShowAnnouncementModal(true);
+      setCenter({
+        lat: selectedName.address.longitude,
+        lng: selectedName.address.latitude
+      })
+    }
+  }, [filters.adId, filters.adName, announcementsName, announcements, isLoaded, mapReady ]);
+  
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
