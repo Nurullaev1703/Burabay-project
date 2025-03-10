@@ -290,21 +290,6 @@ export class AdService {
     });
   }
 
-  /* Поиск среди Объявлений. */
-  private _searchAd(name: string, ads: Ad[]): Ad[] {
-    const searchedAds = [];
-    ads.forEach((ad) => {
-      const simValue = stringSimilarity(ad.title, name);
-      if (simValue > 0.2)
-        searchedAds.push({
-          prod: ad,
-          simValue: simValue,
-        });
-    });
-    searchedAds.sort((a, b) => b.simValue - a.simValue);
-    return searchedAds.map((ad) => ad.prod);
-  }
-
   /* Проверка свободного диапазона для Бронирования. */
   @CatchErrors()
   async checkDates(adId: string, startDateDto: string, endDateDto: string) {
@@ -331,5 +316,20 @@ export class AdService {
         ),
       };
     }
+  }
+
+  /* Поиск среди Объявлений. */
+  private _searchAd(name: string, ads: Ad[]): Ad[] {
+    const searchedAds = [];
+    ads.forEach((ad) => {
+      const simValue = stringSimilarity(ad.title, name);
+      if (simValue > 0.2)
+        searchedAds.push({
+          prod: ad,
+          simValue: simValue,
+        });
+    });
+    searchedAds.sort((a, b) => b.simValue - a.simValue);
+    return searchedAds.map((ad) => ad.prod);
   }
 }
