@@ -124,6 +124,28 @@ export default function UsersList({ filters }: Props) {
       }
 
       console.log(`Успешно выполнили действие для организации с id: ${orgId}`);
+
+      const notificationResponse = await apiService.post({
+        url: "/notification/user",
+        dto: {
+          email: users.find((user) => user.organization?.id === orgId)?.email,
+          title:
+            confirmAction === "confirm"
+              ? "Профиль подтвержден"
+              : "Подтверждение отклонено",
+          type: confirmAction === "confirm" ? "позитивное" : "негативное",
+          message:
+            confirmAction === "confirm"
+              ? "Отправленные вами документы для подтверждения профиля приняты аодминистратором"
+              : "Отправленные вами документы для подтверждения профиля отклонены администратором",
+        },
+      });
+
+      if (notificationResponse.status !== 200) {
+        throw new Error(
+          `Ошибка при отправке уведомления: ${notificationResponse.status}`
+        );
+      }
     } catch (error) {
       console.error("Ошибка при выполнении действия:", error);
     }

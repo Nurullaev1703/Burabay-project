@@ -16,6 +16,7 @@ export interface Organization {
   ibanDocPath: string;
   orgRulePath: string;
   bin: string;
+  email: string;
 }
 
 export interface Profile {
