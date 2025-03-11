@@ -64,7 +64,7 @@ export class BookingService {
 
       // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
       if (isRent) {
-        const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
         newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
       } else {
         newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
@@ -94,8 +94,8 @@ export class BookingService {
           const bookingBanDateDto: CreateBookingBanDateDto = {
             adId: adId,
             date: oF.date,
-            times: [oF.time],
-            allDay: false,
+            times: ad.isFullDay ? null : [oF.time],
+            allDay: ad.isFullDay,
             isByBooking: true,
           };
           await this.bookingBanDateService.create([bookingBanDateDto]);

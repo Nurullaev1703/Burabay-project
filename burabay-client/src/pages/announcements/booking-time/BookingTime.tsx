@@ -48,7 +48,11 @@ export const BookingTime: FC<Props> = function BookingTime({
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
-
+  const isDateBlocked = (date: dayjs.Dayjs): boolean => {
+    return serviceSchedule?.some(({ date: blockedDate, allDay }) => 
+      allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
+    ) ?? false;
+  };
   // Установка времени с учетом заблокированных
   const handleDateChange = (date: any) => {
     setSelectedTime("");
@@ -145,7 +149,7 @@ export const BookingTime: FC<Props> = function BookingTime({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
-            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")}
+            shouldDisableDate={(date: dayjs.Dayjs) => date.isBefore(dayjs(), "day") || isDateBlocked(date)}
             sx={{
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {

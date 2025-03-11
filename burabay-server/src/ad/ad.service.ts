@@ -335,7 +335,7 @@ export class AdService {
   async checkDates(adId: string) {
     const ad = await this.adRepository.findOne({
       where: { id: adId },
-      relations: { bookingBanDate: true, bookings: true },
+      relations: { bookings: true },
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
     const bookedDates = [];

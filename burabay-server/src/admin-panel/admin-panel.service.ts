@@ -11,6 +11,7 @@ import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
 import { AnalyticsService } from './analytics.service';
+import { BookingStatus } from 'src/booking/types/booking.types';
 
 @Injectable()
 export class AdminPanelService {
@@ -56,7 +57,7 @@ export class AdminPanelService {
         reviewCount: ad.reviewCount,
         avgRating: ad.avgRating,
         image: ad.images[0],
-        bookingCount: ad.bookings.length,
+        bookingCount: ad.bookings.filter((b) => b.status === BookingStatus.DONE).length,
       };
       return result;
     });

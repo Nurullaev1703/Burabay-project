@@ -45,6 +45,10 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
+  const isButtonDisabled =
+    !selectedDateStart ||
+    !selectedDateEnd ||
+    selectedDateStart === selectedDateEnd;
 
   const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;
@@ -78,7 +82,7 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
       bannedDates?.some(({ startDate, endDate }) => {
         const start = dayjs(startDate, "DD.MM.YYYY").startOf("day");
         const end = dayjs(endDate, "DD.MM.YYYY").endOf("day");
-        return date.isBetween(start, end, null, "[]"); 
+        return date.isBetween(start, end, null, "[]");
       }) ?? false
     );
   };
@@ -114,7 +118,11 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   };
 
   const saveTime = async () => {
-    if (!selectedDateStart || !selectedDateEnd) {
+    if (
+      !selectedDateStart ||
+      !selectedDateEnd ||
+      selectedDateStart === selectedDateEnd
+    ) {
       return;
     }
 
@@ -297,6 +305,7 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
       )}
       {/* Кнопка */}
       <Button
+        disabled={isButtonDisabled}
         onClick={saveTime}
         className="fixed bottom-6 left-3 w-header mt-8 z-10"
       >
