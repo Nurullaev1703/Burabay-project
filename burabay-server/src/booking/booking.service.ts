@@ -468,4 +468,31 @@ export class BookingService {
       return JSON.stringify(HttpStatus.OK);
     });
   }
+
+  @CatchErrors()
+  async bookingConfirm(id: string) {
+    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+    Utils.checkEntity(booking, 'Объявление не найдено');
+    booking.status = BookingStatus.CONFIRM;
+    await this.bookingRepository.save(booking);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  @CatchErrors()
+  async bookingPayed(id: string) {
+    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+    Utils.checkEntity(booking, 'Объявление не найдено');
+    booking.status = BookingStatus.PAYED;
+    await this.bookingRepository.save(booking);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  @CatchErrors()
+  async bookingDone(id: string) {
+    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+    Utils.checkEntity(booking, 'Объявление не найдено');
+    booking.status = BookingStatus.DONE;
+    await this.bookingRepository.save(booking);
+    return JSON.stringify(HttpStatus.OK);
+  }
 }
