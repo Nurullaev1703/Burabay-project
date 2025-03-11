@@ -1,4 +1,4 @@
-import { FC,  useState } from "react";
+import { FC, useState } from "react";
 import { Announcement } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -18,26 +18,22 @@ import { baseUrl } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
-import dayjs from "dayjs";
-// import { apiService } from "../../../services/api/ApiService";
-import DefaultIcon from "../../../app/icons/abstract-bg.svg"
+import dayjs, { Dayjs } from "dayjs";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 
 interface Props {
   announcement: Announcement;
+  bannedDates?: TDates[];
 }
 
-// interface Response {
-//   message?: "Даты заняты";
-//   dates?: TDates[];
-//   statusCode?: number;
-// }
+interface TDates {
+  startDate: string;
+  endDate: string;
+}
 
-// interface TDates {
-//   startDate: string;
-//   endDate: string;
-// }
-
-export const BookingDate: FC<Props> = ({ announcement }) => {
+export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   const { t } = useTranslation();
   const [selectedDateStart, setSelectedDateStart] = useState<string | null>(
     null
@@ -46,8 +42,6 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
   const [errorMessage, _setErrorMessage] = useState<string | null>(null);
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
-  // const [isValid, setIsValid] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
@@ -79,16 +73,41 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
     }
   };
 
-  const shouldDisableDate = (date: dayjs.Dayjs) => {
+  const isDateBanned = (date: Dayjs): boolean => {
+    return (
+      bannedDates?.some(({ startDate, endDate }) => {
+        const start = dayjs(startDate, "DD.MM.YYYY").startOf("day");
+        const end = dayjs(endDate, "DD.MM.YYYY").endOf("day");
+        return date.isBetween(start, end, null, "[]"); 
+      }) ?? false
+    );
+  };
+
+  // Функция проверки, можно ли выбрать эту дату
+  const shouldDisableDate = (date: Dayjs): boolean => {
     const today = dayjs().startOf("day");
 
-    if (date.isBefore(today)) {
-      return true;
-    }
-
+    if (date.isBefore(today)) return true;
+    if (activeField === "start" && isDateBanned(date)) return true;
     if (activeField === "end" && selectedDateStart) {
-      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY").startOf("day");
-      return date.isBefore(startDate);
+      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
+      const endDate = date;
+
+      return (
+        bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
+          const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
+            "day"
+          );
+          const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
+
+          return (
+            bannedStartDate.isBetween(startDate, endDate, null, "[]") || // Если запрещённый период внутри выбора
+            bannedEndDate.isBetween(startDate, endDate, null, "[]") || // Если запрещённый конец внутри выбора
+            (startDate.isBefore(bannedStartDate) &&
+              endDate.isAfter(bannedEndDate)) // Если выбор охватывает запрещённый диапазон
+          );
+        }) ?? false
+      );
     }
 
     return false;
@@ -115,42 +134,6 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       } as Record<string, unknown>,
     });
   };
-
-  // const checkDatesAvailability = async () => {
-  //   if (!selectedDateStart || !selectedDateEnd) return;
-
-  //   try {
-  //     setIsLoading(true);
-  //     setErrorMessage(null);
-  //     const response = await apiService.get<Response>({
-  //       url: `/ad/check-dates/${announcement.id}/${selectedDateStart}/${selectedDateEnd}`,
-  //     });
-  //     if (response.data.message === "Даты заняты") {
-  //       setErrorMessage(t("datesBooked"));
-  //       setIsValid(false);
-  //     } else if (response.data.statusCode === 429) {
-  //       setErrorMessage(t("tooManyRequests"));
-  //     } else {
-  //       setIsValid(true);
-  //       setIsLoading(false);
-  //     }
-  //   } catch (error: any) {
-  //     if (error.response?.status === 429) {
-  //       setErrorMessage(t("tooManyRequests"));
-  //     } else {
-  //       setErrorMessage("Произошла ошибка. Попробуйте снова.");
-  //     }
-  //     setIsValid(false);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (selectedDateStart && selectedDateEnd) {
-  //     checkDatesAvailability();
-  //   }
-  // }, [selectedDateStart, selectedDateEnd]);
 
   return (
     <section>
@@ -315,8 +298,6 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       {/* Кнопка */}
       <Button
         onClick={saveTime}
-        // disabled={!isValid}
-        // loading={isLoading}
         className="fixed bottom-6 left-3 w-header mt-8 z-10"
       >
         {t("toBook")}
