@@ -22,6 +22,7 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import ImageCard from "./ui/ImageCard";
 import { imageService } from "../../services/api/ImageService";
 import { baseUrl } from "../../services/api/ServerData";
+import { ImageViewModal } from "./reviews/ui/ImageViewModal";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
@@ -50,15 +51,38 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     (announcement?.details as Record<string, boolean>) || {}
   );
+  // состояния для регулировки модалки с изображениями
+  const [imageModal, setImageModal] = useState<boolean>(false);
+  const [imageIndex, setImageIndex] = useState<number>(0);
   const invalidPhonePrefixes = [
-    "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", // вообще не используются
-    "333", "444", "555", "666", "888", "999", "000",               // зарезервированы или не назначены
-    "123", "321", "234", "432", "345", "543",                             // не выделены операторам
+    "200",
+    "201",
+    "202",
+    "203",
+    "204",
+    "205",
+    "206",
+    "207",
+    "208",
+    "209", // вообще не используются
+    "333",
+    "444",
+    "555",
+    "666",
+    "888",
+    "999",
+    "000", // зарезервированы или не назначены
+    "123",
+    "321",
+    "234",
+    "432",
+    "345",
+    "543", // не выделены операторам
     "700", // В некоторых базах 700 — фейковый или тестовый
     "709", // Резерв, не выдан операторам
     "911", // Спецслужбы в некоторых странах (в РФ такого кода у операторов нет)
   ];
-  
+
   const handleToggle = (item: string) => {
     setToggles((prev) => ({
       ...prev,
@@ -166,26 +190,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-      console.log(`✅ Изображение ${imageUrl} удалено с сервера`);
+      console.log(`Изображение ${imageUrl} удалено с сервера`);
     } catch (error) {
-      console.error("❌ Ошибка при удалении изображения:", error);
+      console.error(error);
     }
   };
 
   const handleImageUpload = async (index: number, files: FileList) => {
-    setImages((prevImages) => {
-      const updatedImages = [...prevImages];
-
-      const oldImage = updatedImages[index];
-
-      // Если заменяем загруженное изображение — удаляем его с сервера
-      if (oldImage?.file === null && oldImage.preview) {
-        deleteImageFromServer(oldImage.preview);
-      }
-
-      return updatedImages;
-    });
-
     const newFiles = Array.from(files).slice(0, MAX_IMAGES);
 
     // Преобразуем файлы в JPEG
@@ -209,12 +220,12 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
       // Вставляем новые фото в нужное место
       updatedImages.splice(index, 1, ...newImages);
-      if (updatedImages.length < MAX_IMAGES) { 
+      if (updatedImages.length < MAX_IMAGES) {
         updatedImages.push({
           file: null,
           preview: "",
           serverPreview: "",
-        })
+        });
       }
 
       return updatedImages;
@@ -248,9 +259,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
         return response.data;
       }
-      return []
+      return [];
     } catch (error) {
-      return []
+      return [];
     }
   };
 
@@ -360,12 +371,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   ...form,
                   phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
                   images: [
-                    ...images.map(item => { 
-                      if (item.serverPreview.replace(baseUrl, "").length) {
-                        return item.serverPreview.replace(baseUrl, "");
-                      }
-                    }).filter(item => item != null),
-                    ...newImages as string[]
+                    ...images
+                      .map((item) => {
+                        if (item.serverPreview.replace(baseUrl, "").length) {
+                          return item.serverPreview.replace(baseUrl, "");
+                        }
+                      })
+                      .filter((item) => item != null),
+                    ...(newImages as string[]),
                   ],
                   details: toggles,
                 },
@@ -504,11 +517,39 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                         onImageUpload={(files) =>
                           handleImageUpload(index, files)
                         }
+                        onClick={() => {
+                          setImageIndex(index);
+                          setImageModal(true);
+                        }}
                       />
                     </li>
                   ))}
                 </ul>
               </DndProvider>
+              {imageModal && (
+                <ImageViewModal
+                  images={images.filter(item => item.preview).map((image, index) => {
+                    return {
+                      index: index,
+                      imgUrl: image.preview,
+                    };
+                  })}
+                  open={imageModal}
+                  onClose={() => setImageModal(false)}
+                  firstItem={imageIndex}
+                  onDelete={() => {
+                    if(images[imageIndex].serverPreview) {
+                      deleteImageFromServer(images[imageIndex].serverPreview);
+                    }
+                    setImages((prevImages) =>
+                      update(prevImages, {
+                        $splice: [[imageIndex, 1]],
+                      })
+                    );
+                    setImageModal(false);
+                  }}
+                />
+              )}
               <Typography
                 className="mt-2"
                 size={14}
@@ -546,17 +587,15 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 validate: (value: string) => {
                   const cleanedNumber = value.replace(/\D/g, "");
                   if (cleanedNumber.length !== 11) {
-                    return t("invalidNumber"); 
+                    return t("invalidNumber");
                   }
-            
+
                   const prefix = cleanedNumber.substring(1, 4);
                   if (invalidPhonePrefixes.includes(prefix)) {
-                    return "Такого номера не существует"; 
+                    return "Такого номера не существует";
                   }
-            
+
                   return true;
-                  const phoneRegex = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
-                  return phoneRegex.test(value) || t("invalidNumber");
                 },
                 pattern: {
                   value: /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/,

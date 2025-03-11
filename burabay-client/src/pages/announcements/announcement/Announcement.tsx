@@ -86,7 +86,7 @@ export const Announcement: FC<Props> = function Announcement({
 
   return (
     <section className="bg-background">
-      <Header>
+      <Header className="fixed top-0 left-0 w-full z-[100] bg-white px-4 py-3">
         <div className="flex justify-between items-center text-center relative">
           <IconContainer
             align="start"
@@ -150,7 +150,7 @@ export const Announcement: FC<Props> = function Announcement({
         </div>
       </Header>
 
-      <div className="px-4 bg-white pb-4 mb-2">
+      <div className="px-4 bg-white pb-4 mb-2 mt-[37px]">
         <div className="relative">
           <div
             className={`absolute w-7 h-7 rounded-full ${categoryBgColors[announcement.subcategory.category.name]} z-10 right-2.5 top-2.5`}

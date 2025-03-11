@@ -6,7 +6,7 @@ import { Typography } from "../../../../shared/ui/Typography";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../../shared/ui/colors";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import CloseIcon from "../../../../app/icons/announcements/reviews/close.svg";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { baseUrl } from "../../../../services/api/ServerData";
 import { Announcement } from "../../model/announcements";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
@@ -23,6 +23,8 @@ import { Button } from "../../../../shared/ui/Button";
 import FocusedStarIcon from "../../../../app/icons/announcements/reviews/focused-star.svg";
 import UnFocusedStarIcon from "../../../../app/icons/announcements/reviews/unfocused-star.svg";
 import { queryClient } from "../../../../ini/InitializeApp";
+import DefaultImage from "../../../../app/icons/abstract-bg.svg";
+import { ImageViewModal } from "../ui/ImageViewModal";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
@@ -43,6 +45,12 @@ export const AddReview: FC = function AddReview() {
   const { t } = useTranslation();
   const { announcement } = location.state as Record<string, Announcement>;
   const [reviewImages, _] = useState([]);
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
+  // состояния для регулировки модалки с изображениями
+  const [imageModal, setImageModal] = useState<boolean>(false);
+  const [imageIndex, setImageIndex] = useState<number>(0);
   const {
     handleSubmit,
     control,
@@ -55,8 +63,6 @@ export const AddReview: FC = function AddReview() {
       stars: 0,
     },
   });
-  const navigate = useNavigate();
-
   const MAX_IMAGES = 10;
   const [images, setImages] = useState<ImageData[]>(() => {
     // Массив изображений, пришедших с сервера
@@ -139,7 +145,7 @@ export const AddReview: FC = function AddReview() {
       reader.readAsDataURL(file);
     });
   };
-  
+
   const deleteImageFromServer = async (imageUrl: string) => {
     try {
       await apiService.delete({
@@ -155,52 +161,50 @@ export const AddReview: FC = function AddReview() {
   const handleImageUpload = async (index: number, files: FileList) => {
     setImages((prevImages) => {
       const updatedImages = [...prevImages];
-  
+
       const oldImage = updatedImages[index];
-  
+
       // Если заменяем загруженное изображение — удаляем его с сервера
       if (oldImage?.file === null && oldImage.preview) {
         deleteImageFromServer(oldImage.preview);
       }
-  
+
       return updatedImages;
     });
-  
+
     const newFiles = Array.from(files).slice(0, MAX_IMAGES);
-  
+
     // Преобразуем файлы в JPEG
     const convertedFiles = await Promise.all(
       newFiles.map((file) => convertToJpg(file))
     );
-  
+
     const newImages = convertedFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file), // Локальное превью
       serverPreview: "", // Пока не загружено на сервер
     }));
-  
+
     setImages((prevImages) => {
       let updatedImages = [...prevImages];
-  
+
       // Очищаем старый preview, если заменяем фото
       if (updatedImages[index]?.preview) {
         URL.revokeObjectURL(updatedImages[index].preview);
       }
-  
+
       // Вставляем новые фото в нужное место
       updatedImages.splice(index, 1, ...newImages);
-  
+
       // 🔥 Гарантируем, что есть пустая карточка
       if (updatedImages.length < MAX_IMAGES) {
         updatedImages.push({ file: null, preview: "", serverPreview: "" });
       }
-  
+
       return updatedImages;
     });
   };
-  
 
-  // 🔥 Функция загрузки фото на сервер (при нажатии "Продолжить")
   const handleUpload = async () => {
     const formData = new FormData();
 
@@ -211,7 +215,7 @@ export const AddReview: FC = function AddReview() {
     });
 
     try {
-      const response = await imageService.post<{ urls: string[] }>({
+      const response = await imageService.post<string[]>({
         url: "/images/reviews",
         dto: formData,
       });
@@ -220,8 +224,8 @@ export const AddReview: FC = function AddReview() {
         setImages((prevImages) =>
           prevImages.map((_img, i) => ({
             file: null, // Файл больше не нужен
-            preview: response.data.urls[i], // Меняем blob на серверный URL
-            serverPreview: response.data.urls[i], // Сохраняем ссылку с сервера
+            preview: response.data[i], // Меняем blob на серверный URL
+            serverPreview: response.data[i], // Сохраняем ссылку с сервера
           }))
         );
 
@@ -285,7 +289,8 @@ export const AddReview: FC = function AddReview() {
       <div className="mx-4 my-2 bg-white py-4 px-3 rounded-lg">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultImage)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -322,7 +327,7 @@ export const AddReview: FC = function AddReview() {
             },
           });
           if (response.data) {
-            await queryClient.refetchQueries({ queryKey: [`/review/ad/${announcement.id}`, `/ad/${announcement.id}`] });
+            await queryClient.refetchQueries({ queryKey: [`/review/ad/`] });
             history.back();
           }
           setIsLoading(false);
@@ -402,11 +407,41 @@ export const AddReview: FC = function AddReview() {
                     moveCard={moveCard}
                     isLast={index == images.length - 1}
                     onImageUpload={(files) => handleImageUpload(index, files)}
+                    onClick={() => {
+                      setImageIndex(index);
+                      setImageModal(true);
+                    }}
                   />
                 </li>
               ))}
             </ul>
           </DndProvider>
+          {imageModal && (
+            <ImageViewModal
+              images={images
+                .filter((item) => item.preview)
+                .map((image, index) => {
+                  return {
+                    index: index,
+                    imgUrl: image.preview,
+                  };
+                })}
+              open={imageModal}
+              onClose={() => setImageModal(false)}
+              firstItem={imageIndex}
+              onDelete={() => {
+                if (images[imageIndex].serverPreview) {
+                  deleteImageFromServer(images[imageIndex].serverPreview);
+                }
+                setImages((prevImages) =>
+                  update(prevImages, {
+                    $splice: [[imageIndex, 1]],
+                  })
+                );
+                setImageModal(false);
+              }}
+            />
+          )}
           <Typography
             className="mt-2"
             size={14}

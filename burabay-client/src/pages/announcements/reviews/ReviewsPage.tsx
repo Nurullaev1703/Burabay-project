@@ -19,7 +19,9 @@ import { Answer } from "../../reviews/reviewsOrg/review-page/ReviewPage";
 import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
 import { roleService } from "../../../services/storage/Factory";
-import DefaultIcon from "../../../app/icons/abstract-bg.svg"
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import { ImageViewModal } from "./ui/ImageViewModal";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
 interface Props {
   announcement: Announcement;
   review: any;
@@ -36,6 +38,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
     reviewId: "",
     text: "",
   });
+  // состояния для регулировки модалки с изображениями
+  const [imageModal, setImageModal] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [imageIndex, setImageIndex] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedReviews, setExpandedReviews] = useState<
@@ -126,7 +132,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
   return (
     <section className="bg-background min-h-screen">
-      <Header>
+      <Header className="fixed top-0 left-0 z-[100] bg-white w-full py-3 px-4">
         <div className="flex justify-between items-center text-center">
           <IconContainer
             align="start"
@@ -151,7 +157,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         </div>
       </Header>
 
-      <div className="p-4 bg-white mb-2">
+      <div className="p-4 bg-white mb-2 mt-[36px]">
         <div className="flex">
           <img
             src={imageSrc}
@@ -248,7 +254,15 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
             <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
               {review.images.map((image, index) => (
-                <li key={index} className="w-20 h-20 flex-shrink-0">
+                <li
+                  key={index}
+                  className="w-20 h-20 flex-shrink-0"
+                  onClick={() => {
+                    setSelectedImages(review.images);
+                    setImageIndex(index);
+                    setImageModal(true);
+                  }}
+                >
                   <img
                     src={baseUrl + image}
                     alt="Изображение"
@@ -257,6 +271,19 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                 </li>
               ))}
             </ul>
+            {imageModal && (
+              <ImageViewModal
+                images={selectedImages.map((image, index) => {
+                  return {
+                    index: index,
+                    imgUrl: baseUrl + image,
+                  };
+                })}
+                open={imageModal}
+                onClose={() => setImageModal(false)}
+                firstItem={imageIndex}
+              />
+            )}
 
             <ul>
               {review.answer && (
@@ -382,13 +409,15 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
           </li>
         ))}
       </ul>
-
-      <Button
-        className="fixed bottom-6 left-4 w-header mt-8 z-10"
-        onClick={() => addReview(announcement)}
-      >
-        {t("writeReview")}
-      </Button>
+      { 
+        role === ROLE_TYPE.TOURIST && 
+        <Button
+          className="fixed bottom-6 left-4 w-header mt-8 z-10"
+          onClick={() => addReview(announcement)}
+        >
+          {t("writeReview")}
+        </Button>
+      }
 
       {sortModal && (
         <SortModal
