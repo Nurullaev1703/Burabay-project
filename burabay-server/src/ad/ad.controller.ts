@@ -34,7 +34,7 @@ export class AdController {
     return this.adService.findOne(id, req.user);
   }
 
-  @Get('check-dates/:adId/:startDate/:endDate')
+  @Get('check-dates/:adId')
   @Throttle({ default: { limit: 24, ttl: 1800000 } })
   checkDates(@Param('adId') adId: string) {
     return this.adService.checkDates(adId);
