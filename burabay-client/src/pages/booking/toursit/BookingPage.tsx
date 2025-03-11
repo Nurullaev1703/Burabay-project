@@ -22,8 +22,11 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
+  const inProgress = queryParams.get("inProgress") === "true";
+  const confirmed = queryParams.get("confirm") === "true";
+  const completed = queryParams.get("done") === "true";
   const canceled = queryParams.get("canceled") === "true";
-  const isFilterActive = onlinePayment || onSidePayment || canceled;
+  const isFilterActive = onlinePayment || onSidePayment || canceled || inProgress || confirmed || completed;
   const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
 

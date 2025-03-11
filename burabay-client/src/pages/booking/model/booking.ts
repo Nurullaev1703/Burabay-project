@@ -15,7 +15,7 @@ interface TouristBookingAd {
 
 interface TouristBookingTime {
   time: string;
-  status: "в процессе" | "отменено";
+  status: "в процессе" | "отменено" | "оплачено" | "исполнено" | "подтверждено";
   price: number;
   isPaid: boolean;
   paymentType: "online" | "cash";

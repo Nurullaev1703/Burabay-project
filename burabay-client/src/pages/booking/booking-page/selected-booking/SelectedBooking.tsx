@@ -16,9 +16,10 @@ import { CancelBooking } from "./modal/CancelBooking";
 import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
 import { TouristBookingInfo } from "../../toursit/booking-info/TouristBookingInfo";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
+import { apiService } from "../../../../services/api/ApiService";
 
 interface Props {
   announcement: Announcement;
@@ -29,6 +30,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
 }) {
+  const navigate = useNavigate()
   const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isCancel, setIsCancel] = useState<boolean>(false);
@@ -236,6 +238,18 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                         </a>
                       </li>
                     </ul>
+                    <Button
+                    onClick={async() => {
+                      await apiService.patch({
+                        url: `/booking/${booking.bookings[0].bookingId}/confirm`
+                      }) 
+                      navigate({
+                        to: "/booking/business"
+                      })
+                       
+                    }}>
+                      {t("accept")}
+                    </Button>
                     {b.status !== "отменено" && (
                       <Button
                         className="mb-4"
