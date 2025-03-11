@@ -527,5 +527,7 @@
   "aprove": "Разрешить",
   "denied": "Запретить",
   "aproveNoti": "Разрешите уведомления",
-  "withoutNotiAprove": "Без этого мы не сможем их отправлять"
+  "withoutNotiAprove": "Без этого мы не сможем их отправлять",
+  "confirmStatus": "Подтверждено",
+  "doneStatus": "Выполнено"
 }

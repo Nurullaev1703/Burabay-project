@@ -523,5 +523,7 @@
   "aprove": "Allow",
   "denied": "Prohibit",
   "aproveNoti": "Allow notifications",
-  "withoutNotiAprove": "Without this we will not be able to send them."
+  "withoutNotiAprove": "Without this we will not be able to send them.",
+  "confirmStatus": "Confirmed",
+  "doneStatus": "Done"
 }
