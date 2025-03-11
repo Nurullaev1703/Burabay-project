@@ -36,7 +36,7 @@ export class BookingBanDateService {
   async findAllByAd(adId: string) {
     try {
       const bbd = await this.bookingBanDateRepository.find({
-        where: { ad: { id: adId }, isByBooking: false },
+        where: { ad: { id: adId } },
       });
       Utils.checkEntity(bbd, 'Запрещенные для брони даты не найдены');
       return bbd;

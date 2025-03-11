@@ -94,8 +94,8 @@ export class BookingService {
           const bookingBanDateDto: CreateBookingBanDateDto = {
             adId: adId,
             date: oF.date,
-            times: [oF.time],
-            allDay: false,
+            times: ad.isFullDay ? null : [oF.time],
+            allDay: ad.isFullDay,
             isByBooking: true,
           };
           await this.bookingBanDateService.create([bookingBanDateDto]);
