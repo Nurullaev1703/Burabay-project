@@ -321,11 +321,11 @@ export const BookingBan: FC<Props> = function BookingBan({
                     const banDateId = announcement?.bookingBanDate[0]?.id;
                     try {
                       await apiService.delete({
-                        url: `/booking-ban-date/${banDateId}`, // Укажи правильный эндпоинт
-                        dto: { date }, // Передаем дату в теле запроса
+                        url: `/booking-ban-date/${banDateId}`, 
+                        dto: { date }, 
                       });
 
-                      // Если запрос успешен, обновляем локальное состояние
+
                       setDates((prev) => prev.filter((item) => item !== date));
                     } catch (error) {
                       console.error("Ошибка при удалении даты:", error);
