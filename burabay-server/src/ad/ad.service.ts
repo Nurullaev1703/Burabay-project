@@ -104,7 +104,6 @@ export class AdService {
       return { ...ad, isFavourite };
     });
 
-
     return result;
   }
 
