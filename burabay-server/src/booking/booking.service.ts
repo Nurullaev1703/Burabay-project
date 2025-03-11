@@ -10,64 +10,99 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
+import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.service';
+import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 
 @Injectable()
 export class BookingService {
   constructor(
     private dataSource: DataSource,
+    private bookingBanDateService: BookingBanDateService,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
-    @InjectRepository(Notification)
-    private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(BookingBanDate)
+    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
   ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
-    const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
-    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
-    const ad = await this.adRepository.findOne({
-      where: { id: adId },
-      relations: { subcategory: { category: true } },
+    return await this.dataSource.transaction(async () => {
+      const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      const ad = await this.adRepository.findOne({
+        where: { id: adId },
+        relations: { subcategory: { category: true } },
+      });
+
+      // Преобразовать строковые даты из DTO в тип js даты.
+      let dateStart: Date, dateEnd: Date;
+      if (dateStartDto) {
+        dateStart = Utils.stringDateToDate(dateStartDto);
+      }
+      if (dateEndDto) {
+        dateEnd = Utils.stringDateToDate(dateEndDto);
+      }
+
+      // Создание брони.
+      const newBooking = this.bookingRepository.create({
+        user: user,
+        ad: ad,
+        dateStart: dateStart ? dateStart : null,
+        dateEnd: dateEnd ? dateEnd : null,
+        ...oF,
+      });
+
+      // Является ли объявление арендой.
+      const isRent =
+        ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+
+      // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
+      if (isRent) {
+        const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
+      } else {
+        newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
+      }
+
+      // Сохранение
+      await this.bookingRepository.save(newBooking);
+
+      // Проверить наличие запрета даты бронирвоания.
+      // Если на весь день, то ничего не делать.
+      // Если не на весь день, до добавить время к запрету.
+      // Если запрета нет, то создать его на нужное время.
+      if (!isRent) {
+        const findBookingBanDate = await this.bookingBanDateRepository.findOne({
+          where: {
+            ad: { id: adId },
+            date: oF.date,
+          },
+        });
+        // Запрет есть.
+        if (findBookingBanDate) {
+          // Запрет не на весь день.
+          if (!findBookingBanDate.allDay) findBookingBanDate.times.push(oF.time);
+          await this.bookingBanDateRepository.save(findBookingBanDate);
+        } else {
+          // Запрета нет. Создать его.
+          const bookingBanDateDto: CreateBookingBanDateDto = {
+            adId: adId,
+            date: oF.date,
+            times: [oF.time],
+            allDay: false,
+            isByBooking: true,
+          };
+          await this.bookingBanDateService.create([bookingBanDateDto]);
+        }
+      }
+      return JSON.stringify(HttpStatus.CREATED);
     });
-
-    // Преобразовать строковые даты из DTO в тип js даты.
-    let dateStart: Date, dateEnd: Date;
-    if (dateStartDto) {
-      dateStart = Utils.stringDateToDate(dateStartDto);
-    }
-    if (dateEndDto) {
-      dateEnd = Utils.stringDateToDate(dateEndDto);
-    }
-
-    // Создание брони.
-    const newBooking = this.bookingRepository.create({
-      user: user,
-      ad: ad,
-      dateStart: dateStart ? dateStart : null,
-      dateEnd: dateEnd ? dateEnd : null,
-      ...oF,
-    });
-
-    // Является ли объявление арендой.
-    const isRent =
-      ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
-
-    // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
-    if (isRent) {
-      const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
-      newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
-    } else {
-      newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
-    }
-
-    // Сохранение
-    await this.bookingRepository.save(newBooking);
-    return JSON.stringify(HttpStatus.CREATED);
   }
 
   /* Получение всех бронирований Пользователя. */
@@ -404,7 +439,7 @@ export class BookingService {
       });
       Utils.checkEntity(booking, 'Бронирование не найдено');
       await manager.remove(booking);
-      const notification = await manager.create(Notification, {
+      const notification = manager.create(Notification, {
         user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
       });
@@ -423,7 +458,7 @@ export class BookingService {
       Utils.checkEntity(booking, 'Бронирование не найдено');
       booking.status = BookingStatus.CANCELED;
       await manager.save(booking);
-      const notification = await manager.create(Notification, {
+      const notification = manager.create(Notification, {
         users: [{ id: booking.user.id }],
         type: NotificationType.NEGATIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,

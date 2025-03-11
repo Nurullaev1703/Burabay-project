@@ -104,7 +104,6 @@ export class AdService {
       return { ...ad, isFavourite };
     });
 
-
     return result;
   }
 
@@ -216,7 +215,7 @@ export class AdService {
         await this.adRepository.save(ad);
       }
     }
-
+    ad.bookingBanDate = ad.bookingBanDate.filter((bd) => bd.isByBooking === false);
     return { ...ad, favCount, isFavourite };
   }
 
