@@ -15,6 +15,7 @@ import { Button } from "../../../../shared/ui/Button";
 import { apiService } from "../../../../services/api/ApiService";
 import { queryClient } from "../../../../ini/InitializeApp";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
+import { ImageViewModal } from "../../../announcements/reviews/ui/ImageViewModal";
 
 interface Props {
   review: ReviewAnnouncement;
@@ -30,6 +31,10 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + reviewData.adImage
   );
+  // состояния для регулировки модалки с изображениями
+  const [imageModal, setImageModal] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [imageIndex, setImageIndex] = useState<number>(0);
   const [modalAnswer, setModalAnswer] = useState<
     Record<string, "complain" | "answer" | false>
   >({});
@@ -65,7 +70,12 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
         ...prev,
         reviews: prev.reviews.map((r) =>
           r.id === answerText.reviewId
-            ? { ...r, [type === "complain" ? "report" : "answer"]: { text: answerText.text } }
+            ? {
+                ...r,
+                [type === "complain" ? "report" : "answer"]: {
+                  text: answerText.text,
+                },
+              }
             : r
         ),
       }));
@@ -93,8 +103,8 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
   return (
     <section className="bg-background min-h-screen">
-      <Header>
-        <div className="flex justify-between items-center text-center">
+      <Header className="fixed top-0 left-0 w-full z-[100] bg-white px-4 py-3">
+        <div className="flex justify-between items-center text-center ">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -115,7 +125,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
         </div>
       </Header>
 
-      <div className="px-4 flex bg-white py-3 mb-2">
+      <div className="px-4 flex bg-white py-3 mb-2 mt-[36px]">
         <img
           src={imageSrc}
           onError={() => setImageSrc(DefaultIcon)}
@@ -205,7 +215,15 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
             <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-3">
               {review.images.map((image, index) => (
-                <li key={index} className="w-20 h-20 flex-shrink-0">
+                <li
+                  key={index}
+                  className="w-20 h-20 flex-shrink-0"
+                  onClick={() => {
+                    setImageIndex(index);
+                    setSelectedImages(review.images);
+                    setImageModal(true);
+                  }}
+                >
                   <img
                     src={baseUrl + image}
                     alt="Изображение"
@@ -335,6 +353,19 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
             )}
           </li>
         ))}
+        {imageModal && (
+          <ImageViewModal
+            images={selectedImages.map((image, index) => {
+              return {
+                index: index,
+                imgUrl: baseUrl + image,
+              };
+            })}
+            open={imageModal}
+            onClose={() => setImageModal(false)}
+            firstItem={imageIndex}
+          />
+        )}
       </ul>
     </section>
   );

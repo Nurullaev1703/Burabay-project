@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import locationImg from "../../app/icons/main/location.png";
@@ -65,6 +65,28 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
     },
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   );
+
+  // попытка сброса фильтров при использовании нативных жестов возврата назад
+  const handlePopState = () => {
+    setActiveCategory(null);
+    navigate({
+      to: "/main",
+      search: {
+        category: "",
+        adName: filters.adName,
+      },
+    });
+  }
+  useEffect(() => {
+    if (filters.category) {
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }
+  }, [navigate, filters])
+  
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
       <div className="flex justify-between items-center text-center px-4 pt-2 pb-1 bg-white">

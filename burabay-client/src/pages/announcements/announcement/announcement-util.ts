@@ -20,7 +20,7 @@ export function UseGetAnnouncement(announcementId: string) {
 
 export function UseGetReviews(announcementId: string) {
   return useQuery({
-    queryKey: [`/review/ad/${announcementId}`],
+    queryKey: [`/review/ad/`, announcementId],
     queryFn: async () => {
       const response = await apiService.get<ReviewAnnouncement>({
         url: `/review/ad/${announcementId}`,
