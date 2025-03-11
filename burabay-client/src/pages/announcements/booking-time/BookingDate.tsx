@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC,  useState } from "react";
 import { Announcement } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -19,23 +19,23 @@ import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
-import { apiService } from "../../../services/api/ApiService";
+// import { apiService } from "../../../services/api/ApiService";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg"
 
 interface Props {
   announcement: Announcement;
 }
 
-interface Response {
-  message?: "Даты заняты";
-  dates?: TDates[];
-  statusCode?: number;
-}
+// interface Response {
+//   message?: "Даты заняты";
+//   dates?: TDates[];
+//   statusCode?: number;
+// }
 
-interface TDates {
-  startDate: string;
-  endDate: string;
-}
+// interface TDates {
+//   startDate: string;
+//   endDate: string;
+// }
 
 export const BookingDate: FC<Props> = ({ announcement }) => {
   const { t } = useTranslation();
@@ -45,9 +45,9 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
   const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isValid, setIsValid] = useState<boolean>(false);
+  const [errorMessage, _setErrorMessage] = useState<string | null>(null);
+  // const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const [isValid, setIsValid] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
