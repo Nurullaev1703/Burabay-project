@@ -1,5 +1,5 @@
-import { FC, useState } from "react";
-import { Announcement} from "../model/announcements";
+import { FC, useEffect, useState } from "react";
+import { Announcement } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -19,9 +19,22 @@ import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import { apiService } from "../../../services/api/ApiService";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg"
 
 interface Props {
   announcement: Announcement;
+}
+
+interface Response {
+  message?: "Даты заняты";
+  dates?: TDates[];
+  statusCode?: number;
+}
+
+interface TDates {
+  startDate: string;
+  endDate: string;
 }
 
 export const BookingDate: FC<Props> = ({ announcement }) => {
@@ -32,12 +45,18 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
   const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isValid, setIsValid] = useState<boolean>(false);
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
 
   const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;
-  
+
     const formattedDate = date.format("DD.MM.YYYY");
-  
+
     if (activeField === "start") {
       setSelectedDateStart(formattedDate);
 
@@ -47,48 +66,46 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
           setSelectedDateEnd(null);
         }
       }
-  
+
       setActiveField("end");
     } else {
       const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
-  
+
       if (date.isBefore(startDate)) {
         return;
       }
-  
+
       setSelectedDateEnd(formattedDate);
     }
   };
-  
 
   const shouldDisableDate = (date: dayjs.Dayjs) => {
     const today = dayjs().startOf("day");
-  
+
     if (date.isBefore(today)) {
-      return true; 
+      return true;
     }
-  
+
     if (activeField === "end" && selectedDateStart) {
       const startDate = dayjs(selectedDateStart, "DD.MM.YYYY").startOf("day");
       return date.isBefore(startDate);
     }
-  
+
     return false;
   };
-  
 
   const saveTime = async () => {
     if (!selectedDateStart || !selectedDateEnd) {
       return;
     }
-  
+
     const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
     const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
-  
+
     if (endDate.isBefore(startDate)) {
       return;
     }
-  
+
     navigate({
       to: "/announcements/booking",
       state: {
@@ -98,7 +115,42 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       } as Record<string, unknown>,
     });
   };
-  
+
+  // const checkDatesAvailability = async () => {
+  //   if (!selectedDateStart || !selectedDateEnd) return;
+
+  //   try {
+  //     setIsLoading(true);
+  //     setErrorMessage(null);
+  //     const response = await apiService.get<Response>({
+  //       url: `/ad/check-dates/${announcement.id}/${selectedDateStart}/${selectedDateEnd}`,
+  //     });
+  //     if (response.data.message === "Даты заняты") {
+  //       setErrorMessage(t("datesBooked"));
+  //       setIsValid(false);
+  //     } else if (response.data.statusCode === 429) {
+  //       setErrorMessage(t("tooManyRequests"));
+  //     } else {
+  //       setIsValid(true);
+  //       setIsLoading(false);
+  //     }
+  //   } catch (error: any) {
+  //     if (error.response?.status === 429) {
+  //       setErrorMessage(t("tooManyRequests"));
+  //     } else {
+  //       setErrorMessage("Произошла ошибка. Попробуйте снова.");
+  //     }
+  //     setIsValid(false);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (selectedDateStart && selectedDateEnd) {
+  //     checkDatesAvailability();
+  //   }
+  // }, [selectedDateStart, selectedDateEnd]);
 
   return (
     <section>
@@ -128,7 +180,8 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -254,11 +307,16 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
           </button>
         </div>
       </div>
-
+      {errorMessage && (
+        <div className="text-red-500 text-sm text-center mt-2">
+          {errorMessage}
+        </div>
+      )}
       {/* Кнопка */}
       <Button
         onClick={saveTime}
-        disabled={!selectedDateStart || !selectedDateEnd}
+        // disabled={!isValid}
+        // loading={isLoading}
         className="fixed bottom-6 left-3 w-header mt-8 z-10"
       >
         {t("toBook")}
