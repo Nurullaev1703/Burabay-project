@@ -47,7 +47,7 @@ export function UseGetBannedDates(announcementId: string) {
     queryKey: [`/ad/check-dates/${announcementId}`],
     queryFn: async () => {
       const response = await apiService.get<any>({
-        url: `/ad/check-dates/${announcementId}/{startDate}/{endDate}`,
+        url: `/ad/check-dates/${announcementId}`,
       });
       return response.data;
     },
