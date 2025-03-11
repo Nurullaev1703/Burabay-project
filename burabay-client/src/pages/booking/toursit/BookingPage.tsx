@@ -9,8 +9,8 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { formatPrice } from "../../announcements/announcement/Announcement";
 import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
-import defaultImage from "../../../app/icons/abstract-bg.svg"
-
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
 interface Props {
   ads: TouristBookingList[];
 }
@@ -18,12 +18,15 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
-    /* @ts-ignore */
+  /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
+  const inProgress = queryParams.get("inProgress") === "true";
+  const confirmed = queryParams.get("confirm") === "true";
+  const completed = queryParams.get("done") === "true";
   const canceled = queryParams.get("canceled") === "true";
-
+  const isFilterActive = onlinePayment || onSidePayment || canceled || inProgress || confirmed || completed;
   const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
 
@@ -59,114 +62,135 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
         <Link
           to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
         >
-          <img src={FilterIcon} className="mt-4" alt="Фильтр" />
+          <img
+            src={isFilterActive ? ActiveFilterIcon : FilterIcon}
+            className="mt-4"
+            alt="Фильтр"
+          />
         </Link>
       </div>
       <ul className="px-4 mt-4 mb-32">
-  {filteredAds.map((category, index) => (
-    <li key={index} className="flex flex-col mb-8">
-      <span className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}>
-        {t(category.header)}
-      </span>
-      <ul>
-        {category.ads.map((ad) => {
-          // Группируем брони по уникальным значениям time
-          const groupedTimes = ad.times.reduce((acc, time) => {
-            if (!time.time) return acc;
+        {filteredAds.map((category, index) => (
+          <li key={index} className="flex flex-col mb-8">
+            <span
+              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
+            >
+              {t(category.header)}
+            </span>
+            <ul>
+              {category.ads.map((ad) => {
+                // Группируем брони по уникальным значениям time
+                const groupedTimes = ad.times.reduce(
+                  (acc, time) => {
+                    if (!time.time) return acc;
 
-            // Если time уже есть в аккумуляторе, добавляем бронь в массив
-            if (acc[time.time]) {
-              acc[time.time].push(time);
-            } else {
-              // Иначе создаем новую запись
-              acc[time.time] = [time];
-            }
-            return acc;
-          }, {} as Record<string, typeof ad.times>);
+                    // Если time уже есть в аккумуляторе, добавляем бронь в массив
+                    if (acc[time.time]) {
+                      acc[time.time].push(time);
+                    } else {
+                      // Иначе создаем новую запись
+                      acc[time.time] = [time];
+                    }
+                    return acc;
+                  },
+                  {} as Record<string, typeof ad.times>
+                );
 
-          return (
-            <>
-              {Object.entries(groupedTimes).map(([timeKey, times]) => (
-                <li key={timeKey} className="py-3 border-b border-[#E4E9EA]">
-                  <Link to={`/booking/${ad.ad_id}/${category.header}`}>
-                    <div className="mb-2">
-                      <div className="flex justify-between">
-                        <span
-                          className={`font-bold ${
-                            timeKey.includes("_")
-                              ? COLORS_TEXT.red
-                              : COLORS_TEXT.blue200
-                          } ${
-                            times[0].status === "отменено"
-                              ? COLORS_TEXT.gray100
-                              : ""
-                          }`}
-                        >
-                          {timeKey.replace("_", "").replace(
-                            /(\d{2}\.\d{2})\.\d{4}/g,
-                            "$1"
-                          )}
-                        </span>
-                        <span className={`${COLORS_TEXT.red} font-bold`}>
-                          {times[0].status === "отменено"
-                            ? t("cancelStatus")
-                            : ""}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      {times.map((time, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between mt-6"
-                        >
-                          <div className="flex">
-                            <img
-                              src={ad.img ? baseUrl + ad.img : defaultImage}
-                              alt={ad.title}
-                              className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                            />
-                            <div className="flex flex-col">
-                              <span className="max-w-[266px] truncate">
-                                {ad.title}
+                return (
+                  <>
+                    {Object.entries(groupedTimes).map(([timeKey, times]) => (
+                      <li
+                        key={timeKey}
+                        className="py-3 border-b border-[#E4E9EA]"
+                      >
+                        <Link to={`/booking/${ad.ad_id}/${category.header}`}>
+                          <div className="mb-2">
+                            <div className="flex justify-between">
+                              <span
+                                className={`font-bold ${
+                                  timeKey.includes("_")
+                                    ? COLORS_TEXT.red
+                                    : COLORS_TEXT.blue200
+                                } ${
+                                  times[0].status === "отменено"
+                                    ? COLORS_TEXT.gray100
+                                    : ""
+                                }`}
+                              >
+                                {timeKey
+                                  .replace("_", "")
+                                  .replace(/(\d{2}\.\d{2})\.\d{4}/g, "$1")}
                               </span>
-                              <div className="flex justify-between w-full">
-                                <div className="mr-8">
-                                  <span className="mr-2">
-                                    {time.paymentType === "online"
-                                      ? t("onlinePayment")
-                                      : t("onSidePayment")}
-                                  </span>
-                                  <span
-                                    className={`text-sm ${
-                                      time.isPaid
-                                        ? COLORS_TEXT.access
-                                        : COLORS_TEXT.red
-                                    }`}
-                                  >
-                                    {time.isPaid ? t("paid") : t("waiting")}
-                                  </span>
-                                </div>
-                                <span className={`${COLORS_TEXT.blue200}`}>
-                                  {formatPrice(time.price)}
-                                </span>
-                              </div>
+                              <span className={`${COLORS_TEXT.red} font-bold`}>
+                                {times[0].status === "отменено"
+                                  ? t("cancelStatus")
+                                  : ""}
+                              </span>
                             </div>
                           </div>
-                          <img src={ArrowRightIcon} alt="Подробнее" />
-                        </div>
-                      ))}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </>
-          );
-        })}
+                          <div>
+                            {times.map((time, index) => {
+                              const [imageSrc, setImageSrc] = useState<string>(
+                                baseUrl + ad.img
+                              );
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex justify-between mt-6"
+                                >
+                                  <div className="flex">
+                                    <img
+                                      src={imageSrc}
+                                      onError={() => setImageSrc(DefaultIcon)}
+                                      alt={ad.title}
+                                      className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="max-w-[266px] truncate">
+                                        {ad.title}
+                                      </span>
+                                      <div className="flex justify-between w-full">
+                                        <div className="mr-8">
+                                          <span className="mr-2">
+                                            {time.paymentType === "online"
+                                              ? t("onlinePayment")
+                                              : t("onSidePayment")}
+                                          </span>
+                                          <span
+                                            className={`text-sm ${
+                                              time.isPaid
+                                                ? COLORS_TEXT.access
+                                                : COLORS_TEXT.red
+                                            }`}
+                                          >
+                                            {time.isPaid
+                                              ? t("paid")
+                                              : t("waiting")}
+                                          </span>
+                                        </div>
+                                        <span
+                                          className={`${COLORS_TEXT.blue200}`}
+                                        >
+                                          {formatPrice(time.price)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <img src={ArrowRightIcon} alt="Подробнее" />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </>
+                );
+              })}
+            </ul>
+          </li>
+        ))}
       </ul>
-    </li>
-  ))}
-</ul>
 
       <NavMenuClient />
     </section>

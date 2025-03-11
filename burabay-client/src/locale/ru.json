@@ -205,6 +205,8 @@
   "castle": "Замок",
   "fortress": "Крепость",
   "apply": "Применить",
+  "datesBooked": "Даты заняты. Выберите другую дату.",
+  "tooManyRequests": "Слишком много запросов. Попробуйте позже.",
   "archaeologicalSite": "Археологический объект",
   "resortSightseeingTour": "Тур по достопримечательностям курорта",
   "abylaiKhanGladeTour": "Тур на поляну Абылай-Хана",

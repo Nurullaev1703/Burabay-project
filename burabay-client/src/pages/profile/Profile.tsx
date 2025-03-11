@@ -186,10 +186,10 @@ export const Profile: FC = function Profile() {
         setAccountStatus("done");
       }
     } else if (user?.role === "бизнес") {
-      if (!user?.organization?.isConfirmed) {
-        setAccountStatus("unconfirmed");
-      } else if (user?.organization.isConfirmWating) {
+      if (user?.organization?.isConfirmWating) {
         setAccountStatus("waiting");
+      } else if (!user?.organization?.isConfirmed) { 
+        setAccountStatus("unconfirmed");
       } else {
         setAccountStatus("done");
       }
@@ -197,6 +197,7 @@ export const Profile: FC = function Profile() {
       setAccountStatus("unconfirmed");
     }
   }, []);
+  
 
   return (
     <section className="px-4 mb-nav">

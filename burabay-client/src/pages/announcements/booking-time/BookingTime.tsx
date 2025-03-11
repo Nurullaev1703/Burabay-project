@@ -19,6 +19,7 @@ import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 
 interface Props {
   announcement: Announcement;
@@ -44,6 +45,9 @@ export const BookingTime: FC<Props> = function BookingTime({
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const navigate = useNavigate();
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
 
   // Установка времени с учетом заблокированных
   const handleDateChange = (date: any) => {
@@ -110,7 +114,8 @@ export const BookingTime: FC<Props> = function BookingTime({
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -140,7 +145,7 @@ export const BookingTime: FC<Props> = function BookingTime({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
-            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")} 
+            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")}
             sx={{
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {
