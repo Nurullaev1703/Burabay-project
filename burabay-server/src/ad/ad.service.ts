@@ -12,6 +12,7 @@ import { AdFilter } from './types/ad-filter.type';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 
 @Injectable()
 export class AdService {
@@ -26,6 +27,8 @@ export class AdService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
+    @InjectRepository(BookingBanDate)
+    private readonly bookingBanDatesRepository: Repository<BookingBanDate>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -292,7 +295,7 @@ export class AdService {
 
   /* Проверка свободного диапазона для Бронирования. */
   @CatchErrors()
-  async checkDates(adId: string, startDateDto: string, endDateDto: string) {
+  async _checkDates(adId: string, startDateDto: string, endDateDto: string) {
     // Форматирование переданных дат в тип даты.
     const startDate = Utils.stringDateToDate(startDateDto);
     const endDate = Utils.stringDateToDate(endDateDto);
@@ -304,18 +307,59 @@ export class AdService {
         dateEnd: MoreThanOrEqual(startDate),
       },
     });
+    // Получение всех Booking Ban Dates с указанной датой.
+    const bookingBanDates = await this.bookingBanDatesRepository.find({
+      where: { ad: { id: adId }, date: Utils.dateToString(startDate) },
+    });
+
     // Если брони в указанном диапазоне не были найдены,то вернуть true, иначе вернуть занятные даты.
-    if (bookings.length === 0) {
+    if (bookings.length === 0 && bookingBanDates.length === 0) {
       return true;
     } else {
       return {
         message: 'Даты заняты',
         dates: bookings.map(
-          (booking) =>
-            `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
+          (booking) => {
+            return {
+              startDate: Utils.dateToString(booking.dateStart),
+              endDate: Utils.dateToString(booking.dateEnd),
+            };
+          },
+          // `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
         ),
       };
     }
+  }
+
+  @CatchErrors()
+  async checkDates(adId: string) {
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: { bookingBanDate: true, bookings: true },
+    });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    const bookedDates = [];
+    ad.bookings.forEach((booking) => {
+      console.log(booking);
+      if (!booking.date) {
+        bookedDates.push({
+          startDate: Utils.dateToString(booking.dateStart),
+          endDate: Utils.dateToString(booking.dateEnd),
+        });
+      } else {
+        bookedDates.push({
+          startDate: booking.date,
+        });
+      }
+    });
+    // ad.bookingBanDate.forEach((bookingBanDate) => {
+    //   // if (bookingBanDate.isByBooking) {
+    //   bookedDates.push({
+    //     startDate: bookingBanDate.date,
+    //   });
+    //   // }
+    // });
+    return bookedDates;
   }
 
   /* Поиск среди Объявлений. */

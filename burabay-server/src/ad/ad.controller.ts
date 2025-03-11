@@ -35,13 +35,9 @@ export class AdController {
   }
 
   @Get('check-dates/:adId/:startDate/:endDate')
-  @Throttle({ default: { limit: 8, ttl: 1800000 } })
-  checkDates(
-    @Param('adId') adId: string,
-    @Param('startDate') startDate: string,
-    @Param('endDate') endDate: string,
-  ) {
-    return this.adService.checkDates(adId, startDate, endDate);
+  @Throttle({ default: { limit: 24, ttl: 1800000 } })
+  checkDates(@Param('adId') adId: string) {
+    return this.adService.checkDates(adId);
   }
 
   @Get('favorite/list')
