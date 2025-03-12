@@ -15,6 +15,7 @@ import { RotatingLines } from "react-loader-spinner";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/back-icon.svg";
 import FilterIcon from "../../app/icons/main/filter.svg";
+import FilterActiveIcon from "../../app/icons/main/filter-active.svg";
 import { MainPageFilter } from "./model/mainpage-types";
 
 interface Props {
@@ -76,7 +77,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         adName: filters.adName,
       },
     });
-  }
+  };
   useEffect(() => {
     if (filters.category) {
       window.addEventListener("popstate", handlePopState);
@@ -85,8 +86,8 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         window.removeEventListener("popstate", handlePopState);
       };
     }
-  }, [navigate, filters])
-  
+  }, [navigate, filters]);
+
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
       <div className="flex justify-between items-center text-center px-4 pt-2 pb-1 bg-white">
@@ -129,11 +130,27 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           />
         </div>
         {activeCategory && (
-          <IconContainer align="center" action={() => navigate({
-            to: `/main/filter/${activeCategory.id}`,
-            search: filters
-          })}>
-            <img src={FilterIcon} alt="" />
+          <IconContainer
+            align="center"
+            action={() =>
+              navigate({
+                to: `/main/filter/${activeCategory.id}`,
+                search: filters,
+              })
+            }
+          >
+            <img
+              src={
+                filters.details ||
+                filters.isHighRating ||
+                filters.maxPrice ||
+                filters.minPrice ||
+                filters.subcategories
+                  ? FilterActiveIcon
+                  : FilterIcon
+              }
+              alt=""
+            />
           </IconContainer>
         )}
       </div>
@@ -146,7 +163,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
               src={investirovanie}
               className="absolute top-0 left-0 w-full h-full object-cover"
               alt=""
-              />
+            />
           </div>
           <div className="relative min-w-[200px] h-[120px] bg-green-500 rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
             <img
@@ -255,7 +272,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           <RotatingLines strokeColor={COLORS.blue200} width="48px" />
         </div>
       )}
-      
+
       <NavMenuClient />
     </section>
   );
