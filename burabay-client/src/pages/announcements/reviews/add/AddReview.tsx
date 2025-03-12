@@ -43,7 +43,7 @@ export const AddReview: FC = function AddReview() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { t } = useTranslation();
-  const { announcement } = location.state as Record<string, Announcement>;
+  const { announcement } = location.state as unknown as Record<string, Announcement>;
   const [reviewImages, _] = useState([]);
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]

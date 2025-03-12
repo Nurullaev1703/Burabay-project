@@ -36,7 +36,7 @@ export const Booking: FC = function Booking() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { time, date, announcement, dateStart, dateEnd } =
-    location.state as BookingState;
+    location.state as unknown as BookingState;
   const { t } = useTranslation();
   const { user } = useAuth();
   const formatPrice = (value: number) => {

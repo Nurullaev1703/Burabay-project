@@ -23,7 +23,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
             <li key={index} className="py-3 border-b">
               <Link
                 className="flex justify-between"
-                to={`/reviews/reviewsOrg/${review.adId}`}
+                to={`/reviews/reviewsOrg/$announcementId`}
+                params={{
+                  announcementId: review.adId
+                }}
               >
                 <div className="flex">
                   <img

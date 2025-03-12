@@ -94,7 +94,10 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         {userRole === "турист" ? (
           <Link
             className="flex items-center justify-between py-3"
-            to={`/announcements/${announcement.id}`}
+            to={`/announcements/$announcementId`}
+            params={{
+              announcementId: announcement.id
+            }}
           >
             <div className="flex items-center">
               <img

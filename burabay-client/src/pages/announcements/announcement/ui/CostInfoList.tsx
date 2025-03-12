@@ -77,7 +77,10 @@ export const CostInfoList: FC<Props> = function CostInfoList({
         {!isAdmin &&
         <li>
           <Link
-            to={`/announcements/service-schedule/${ad.id}`}
+              to={`/announcements/service-schedule/$announcementId`}
+              params={{
+                announcementId: ad.id
+              }}
             className="flex justify-between"
           >
             <span>{t("serviceSchedule")}</span>

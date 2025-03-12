@@ -66,7 +66,12 @@
             />
           </div>
           <Link
-            to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+            to={`/booking/filter`}
+            search={{
+            onlinePayment,
+            onSidePayment,
+            canceled
+          }}
           >
             <img
               src={isFilterActive ? ActiveFilterIcon : FilterIcon}
@@ -109,7 +114,12 @@
                           key={timeKey}
                           className="py-3 border-b border-[#E4E9EA]"
                         >
-                          <Link to={`/booking/${ad.ad_id}/${category.header}`}>
+                          <Link to={`/booking/$bookingId/$category`}
+                            params={{
+                              bookingId: ad.ad_id,
+                              category: category.header
+                            }}
+                          >
                             <div className="mb-2">
                               <div className="flex justify-between">
                                 <span

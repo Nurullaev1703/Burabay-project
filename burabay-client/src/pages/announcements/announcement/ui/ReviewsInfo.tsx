@@ -9,7 +9,7 @@ import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../../shared/ui/colors";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
 import UnfocusedStarIcon from "../../../../app/icons/announcements/unfocused-star.svg";
 import ArrowIcon from "../../../../app/icons/announcements/black-arrowRight.svg";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { baseUrl } from "../../../../services/api/ServerData";
 import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
@@ -61,9 +61,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
             {t("С высокой оценкой")}
           </h2>
           {!isAdmin && (
-            <Link className="w-6 h-6 flex justify-center items-center">
+            <div className="w-6 h-6 flex justify-center items-center">
               <img src={ArrowIcon} alt="Стрелка" className="mt-0.5" />
-            </Link>
+            </div>
           )}
           {isAdmin && (
             <button

@@ -58,7 +58,12 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           />
         </div>
         <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+          to={`/booking/filter`}
+          search={{
+            onlinePayment,
+            onSidePayment,
+            canceled
+          }}
         >
           <img
             src={isFilterActive ? ActiveFilterIcon : FilterIcon}
@@ -85,7 +90,11 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                   <li className="py-3 border-b border-[#E4E9EA]">
                     <Link
                       className="flex justify-between"
-                      to={`/booking/${ad.ad_id}/${category.header}`}
+                      to={`/booking/$bookingId/$category`}
+                      params={{
+                        bookingId: ad.ad_id,
+                        category: category.header
+                      }}
                     >
                       <div className="flex">
                         <img

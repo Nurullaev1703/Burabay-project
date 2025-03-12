@@ -72,7 +72,10 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       </li>
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
-          to={`/announcements/schedule/${ad.id}`}
+          to={`/announcements/schedule/$announcementId`}
+          params={{
+            announcementId: ad.id
+          }}
           className="flex justify-between"
         >
           <div className="flex flex-col">
@@ -90,7 +93,10 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           className="flex justify-between"
-          to={`/mapNav?adId=${ad.id}`}
+            to={`/mapNav`}
+            search={{
+              adId: ad.id
+            }}
           
         >
           <span>{t("locationOnMap")}</span>
@@ -100,7 +106,10 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       }
       <li className="py-3">
         <Link
-          to={`/announcements/details/${ad.id}`}
+          to={`/announcements/details/$announcementId`}
+          params={{
+            announcementId: ad.id
+          }}
           className="flex justify-between"
         >
           <span>{t("details")}</span>
