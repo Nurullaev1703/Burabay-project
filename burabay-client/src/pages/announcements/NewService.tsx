@@ -6,7 +6,7 @@ import { ProgressSteps } from "./ui/ProgressSteps";
 import { Typography } from "../../shared/ui/Typography";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
-import { Switch } from "@mui/material";
+import { Modal, Switch } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../services/api/ApiService";
@@ -22,6 +22,7 @@ export const NewService: FC<Props> = function NewService({
   adId,
   announcement,
 }) {
+  const [showModal, setShowModal] = useState(false);
   const [unlimitedClients, setUnlimitedClients] = useState(
     announcement?.unlimitedClients || false
   );
@@ -89,17 +90,39 @@ export const NewService: FC<Props> = function NewService({
           </div>
           <IconContainer
             align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
+            action={() => setShowModal(true)}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={8} totalSteps={9} />
       </Header>
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${adId}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="p-4 space-y-6 ">
         {/* блок c клиентами */}
         <div className="flex justify-between items-center">
@@ -275,6 +298,7 @@ export const NewService: FC<Props> = function NewService({
           {t("continueBtn")}
         </Button>
       </div>
+
     </main>
   );
 };

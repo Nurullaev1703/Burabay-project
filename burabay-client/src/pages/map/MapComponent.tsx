@@ -22,7 +22,7 @@ import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../features/auth";
 import { HTTP_STATUS } from "../../services/api/ServerData";
-import { TextField } from "@mui/material";
+import { Modal, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Announcement } from "../announcements/model/announcements";
 
@@ -45,6 +45,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       url: `https://mt{0-3}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=en&gl=en&key=${googleMapsApiKey}`,
     }),
   });
+  const [showModal, setShowModal] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -231,17 +232,39 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           </div>
           <IconContainer
             align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
+            action={() => setShowModal(true)}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-0 top-0 p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${adId}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="z-10" id="map" style={containerStyle}></div>
       {address && (
         <div>
