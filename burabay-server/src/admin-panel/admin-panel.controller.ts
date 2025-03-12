@@ -52,8 +52,8 @@ export class AdminPanelController {
     return this.adminPanelService.checkReview(reviewId);
   }
 
-  @Patch('ban-tourist/:userId')
-  async banOrg(@Param('userId') userId: string, @Body() banUserDto: BanUserDto) {
-    return this.adminPanelService.banTourist(userId, banUserDto.value);
+  @Patch('ban-org/:orgId')
+  async banOrg(@Param('orgId') orgId: string, @Body() banUserDto: BanUserDto) {
+    return this.adminPanelService.banOrg(orgId, banUserDto.value);
   }
 }
