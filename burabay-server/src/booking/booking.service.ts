@@ -32,12 +32,12 @@ export class BookingService {
   /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
-    return await this.dataSource.transaction(async () => {
+    return await this.dataSource.transaction(async (manager) => {
       const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
       const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
       const ad = await this.adRepository.findOne({
         where: { id: adId },
-        relations: { subcategory: { category: true } },
+        relations: { subcategory: { category: true }, organization: { user:true } },
       });
 
       // Преобразовать строковые даты из DTO в тип js даты.
@@ -100,7 +100,13 @@ export class BookingService {
           await this.bookingBanDateService.create([bookingBanDateDto]);
         }
       }
-      // XXX Уведомление о новой брони для Организации
+      const notification = manager.create(Notification, {
+        users: [{ id: ad.organization.user.id }],
+        type: NotificationType.POSITIVE,
+        message: `Новая бронь на объявление "${ad.title}"`,
+        createdAt: new Date(),
+      });
+      await manager.save(notification);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -469,22 +475,38 @@ export class BookingService {
 
   @CatchErrors()
   async bookingConfirm(id: string) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+    return await this.dataSource.transaction(async (manager) => {
+    const booking = await this.bookingRepository.findOne({ where: { id: id }, relations: { user:true, ad:true } });
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.CONFIRM;
     await this.bookingRepository.save(booking);
-    // XXX Уведомление о подтверждении брони Туристу
+    const notification = manager.create(Notification, {
+      users: [{ id: booking.user.id }],
+      type: NotificationType.POSITIVE,
+      message: `Ваша бронь на объявление "${booking.ad.title}" была подтверждена`,
+      createdAt: new Date(),
+    });
+    await manager.save(notification);
     return JSON.stringify(HttpStatus.OK);
+  });
   }
 
   @CatchErrors()
   async bookingPayed(id: string) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+    return await this.dataSource.transaction(async (manager) => {
+    const booking = await this.bookingRepository.findOne({ where: { id: id }, relations: { ad: { organization: { user:true } } } });
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.PAYED;
     await this.bookingRepository.save(booking);
-    // XXX Уведомление об оплате брони Организации
+    const notification = manager.create(Notification, {
+      users: [{ id: booking.ad.organization.user.id }],
+      type: NotificationType.POSITIVE,
+      message: `Бронь на объявление "${booking.ad.title}" была оплачена`,
+      createdAt: new Date(),
+    });
+    await manager.save(notification);
     return JSON.stringify(HttpStatus.OK);
+  });
   }
 
   @CatchErrors()

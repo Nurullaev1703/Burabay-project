@@ -4,10 +4,12 @@ import { UpdateReviewReportDto } from './dto/update-review-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Organization } from 'src/users/entities/organization.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Review } from 'src/review/entities/review.entity';
 import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class ReviewReportService {
@@ -20,17 +22,20 @@ export class ReviewReportService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private dataSource: DataSource,
   ) {}
 
   @CatchErrors()
   async create(createReviewReportDto: CreateReviewReportDto, tokenData: TokenData) {
+    return await this.dataSource.transaction(async (manager) => {
     const user = await this.userRepository.findOne({
       where: { id: tokenData.id },
       relations: { organization: true },
     });
-    Utils.checkEntity(user.organization, 'Орагнизация не найдена');
+    Utils.checkEntity(user.organization, 'Организация не найдена');
     const review = await this.reviewRepository.findOne({
       where: { id: createReviewReportDto.reviewId },
+      relations: { user:true, ad:true },
     });
     Utils.checkEntity(review, 'Отзыв не найден');
     const report = this.reviewReportRepository.create({
@@ -40,8 +45,16 @@ export class ReviewReportService {
       date: new Date(),
     });
     await this.reviewReportRepository.save(report);
-    // XXX Уведомление о жалобе на отзыв Туристу
+    
+    const notification = manager.create(Notification, {
+      users: [{ id: review.user.id }],
+      type: NotificationType.NEGATIVE,
+      message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
+      createdAt: new Date(),
+    });
+    await manager.save(notification);
     return JSON.stringify(HttpStatus.CREATED);
+  });
   }
 
   @CatchErrors()

@@ -7,7 +7,8 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Review } from './entities/review.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
-
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Notification } from 'src/notification/entities/notification.entity';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -28,7 +29,7 @@ export class ReviewService {
       Utils.checkEntity(user, 'Пользователь не найден');
       const ad = await manager.findOne(Ad, {
         where: { id: adId },
-        relations: { reviews: true },
+        relations: { reviews: true, organization: { user:true } },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newReview = manager.create(Review, {
@@ -42,7 +43,14 @@ export class ReviewService {
       ad.reviewCount = length;
       await manager.save(ad);
       await manager.save(newReview);
-      // XXX Уведомление о новом отзыве для Организации
+      const notification = manager.create(Notification, {
+        users: [{ id: ad.organization.user.id }],
+        type: NotificationType.POSITIVE,
+        message: `Новый отзыв на объявление "${ad.title}"`,
+        createdAt: new Date(),
+      });
+      await manager.save(notification);
+      
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -123,7 +131,7 @@ export class ReviewService {
     return await this.dataSource.transaction(async (manager) => {
       const review = await manager.findOne(Review, {
         where: { id: id },
-        relations: { answer: true, report: true, ad: { reviews: true } },
+        relations: { answer: true, report: true, ad: { reviews: true }, user: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
 
@@ -138,7 +146,13 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
-      // XXX Уведомление об удалении отзыва Туристу
+      const notification = manager.create(Notification, {
+            users: [{ id: review.user.id }],
+            type: NotificationType.NEGATIVE,
+            message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
+            createdAt: new Date(),
+          });
+          await manager.save(notification);
       return JSON.stringify(HttpStatus.OK);
     });
   }
