@@ -9,7 +9,7 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Button } from "../../shared/ui/Button";
 import PlusIcon from "../../app/icons/announcements/bluePlus.svg";
 import editIcon from "../../app/icons/announcements/edit.svg";
-import { Switch } from "@mui/material";
+import { Modal, Switch } from "@mui/material";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -35,6 +35,7 @@ export const BookingBan: FC<Props> = function BookingBan({
   adId,
   announcement,
 }) {
+  const [showModal, setShowModal] = useState(false);
   const match = useMatch({
     from: "/announcements/bookingBan/$adId",
   });
@@ -192,17 +193,39 @@ export const BookingBan: FC<Props> = function BookingBan({
           </div>
           <IconContainer
             align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
+            action={() => setShowModal(true)}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={7} totalSteps={9} />
       </Header>
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${adId}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="p-4 cursor-none">
         <label className="w-full relative flex items-center border bg-white rounded-lg p-4 h-20 mb-4 cursor-none">
           <img src={PlusIcon} alt="Добавить" />

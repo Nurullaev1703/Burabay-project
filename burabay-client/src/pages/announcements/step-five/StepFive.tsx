@@ -9,7 +9,7 @@ import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../../app/icons/announcements/blueKrestik.svg";
 import { Controller, useForm } from "react-hook-form";
 import { DefaultForm } from "../../auth/ui/DefaultForm";
-import { Switch, TextField } from "@mui/material";
+import { Modal, Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { Announcement, Breaks, Schedule } from "../model/announcements";
@@ -34,7 +34,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
    const validateTime = (value: string) => {
     const isValidFormat = /^\d{2}:\d{2}$/.test(value);
     if (!isValidFormat) return t("invalidTimeFormat");
-  
+    
     const [hours, minutes] = value.split(":");
     const hoursNumber = parseInt(hours, 10);
     const minutesNumber = parseInt(minutes, 10);
@@ -45,6 +45,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   
     return true; 
   };
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
@@ -229,7 +230,12 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     <section className="min-h-screen bg-background pb-2">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer align="start" action={() => navigate({
+            to: `/map/$adId`,
+            params:{
+              adId: id
+            }
+          })}>
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -252,18 +258,39 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           </div>
           <IconContainer
             align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
+            action={() => setShowModal(true)}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={5} totalSteps={9}></ProgressSteps>
       </Header>
-
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-0 top-0 p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${id}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="mt-2 mx-4 bg-white rounded-lg">
         <DefaultForm>
           {/* Круглосточно или нет */}

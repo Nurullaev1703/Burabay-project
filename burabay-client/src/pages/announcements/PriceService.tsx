@@ -6,7 +6,7 @@ import { COLORS_TEXT } from "../../shared/ui/colors";
 import { ProgressSteps } from "./ui/ProgressSteps";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
 import XIcon from "../../app/icons/announcements/blueKrestik.svg";
-import { Switch } from "@mui/material";
+import { Modal, Switch } from "@mui/material";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,7 @@ export const PriceService: FC<Props> = function PriceService({
   adId,
   announcement,
 }) {
+  const [showModal, setShowModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const symbolRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState<string>("0");
@@ -151,17 +152,39 @@ export const PriceService: FC<Props> = function PriceService({
           </div>
           <IconContainer
             align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
+            action={() => setShowModal(true)}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${adId}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="">
         <div className="flex justify-between items-center px-4">
           <div className="flex flex-col">
