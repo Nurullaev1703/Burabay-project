@@ -1,7 +1,7 @@
 services:
     # Сервис для бэкенда
-    backend:
-        container_name: backend
+    backend-test:
+        container_name: backend-test
         build:
             context: .
             dockerfile: Dockerfile.backend
@@ -10,7 +10,7 @@ services:
         volumes:
             - public-data:/app/public
         depends_on:
-            - postgres
+            - postgres-test
         ports:
             - "3000:3000"
         networks:
@@ -18,8 +18,8 @@ services:
         command: ["bash", "-c", "./wait-for-it.sh postgres:5432 -- yarn start:prod"]
 
     # Сервис для фронтенда
-    frontend:
-        container_name: frontend
+    frontend-test:
+        container_name: frontend-test
         build:
             context: .
             dockerfile: Dockerfile.frontend
@@ -28,13 +28,13 @@ services:
         ports:
             - "5173:5173"
         depends_on:
-            - backend
+            - backend-test
         networks:
             - app-network
 
     # Сервис для PostgreSQL базы данных
-    postgres:
-        container_name: postgres
+    postgres-test:
+        container_name: postgres-test
         image: postgres:latest
         env_file:
             - burabay-server/.env.docker
