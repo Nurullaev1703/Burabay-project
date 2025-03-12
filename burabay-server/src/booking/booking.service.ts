@@ -101,6 +101,7 @@ export class BookingService {
           await this.bookingBanDateService.create([bookingBanDateDto]);
         }
       }
+      // XXX Уведомление о новой брони для Организации
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -461,7 +462,7 @@ export class BookingService {
       const notification = manager.create(Notification, {
         users: [{ id: booking.user.id }],
         type: NotificationType.NEGATIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
         createdAt: new Date(),
       });
       await manager.save(notification);
@@ -475,6 +476,7 @@ export class BookingService {
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.CONFIRM;
     await this.bookingRepository.save(booking);
+    // XXX Уведомление о подтверждении брони Туристу
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -484,6 +486,7 @@ export class BookingService {
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.PAYED;
     await this.bookingRepository.save(booking);
+    // XXX Уведомление об оплате брони Организации
     return JSON.stringify(HttpStatus.OK);
   }
 

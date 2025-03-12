@@ -40,6 +40,7 @@ export class ReviewReportService {
       date: new Date(),
     });
     await this.reviewReportRepository.save(report);
+    // XXX Уведомление о жалобе на отзыв Туристу
     return JSON.stringify(HttpStatus.CREATED);
   }
 

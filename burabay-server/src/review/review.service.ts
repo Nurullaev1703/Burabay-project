@@ -42,6 +42,7 @@ export class ReviewService {
       ad.reviewCount = length;
       await manager.save(ad);
       await manager.save(newReview);
+      // XXX Уведомление о новом отзыве для Организации
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -137,6 +138,7 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
+      // XXX Уведомление об удалении отзыва Туристу
       return JSON.stringify(HttpStatus.OK);
     });
   }
