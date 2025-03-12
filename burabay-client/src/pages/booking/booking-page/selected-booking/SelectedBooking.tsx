@@ -269,14 +269,13 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                       onClose={() => setIsCancel(false)}
                       bookingId={b.bookingId}
                     />
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  </div>    
+                );            
+              })}      
+          </div>
+          )}        
         </>
       )}
-
       {/* РОЛЬ ТУРИСТА */}
       {userRole === "турист" && (
         <TouristBookingInfo announcement={announcement} bookings={booking} />
@@ -287,7 +286,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           open={showModal}
           onClose={() => setShowModal(false)}
           booking={selectedBooking}
-        />
+        />     
       )}
     </section>
   );
