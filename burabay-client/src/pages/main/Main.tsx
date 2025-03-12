@@ -90,7 +90,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
 
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
-      <div className="flex justify-between items-center text-center px-4 pt-2 pb-1 bg-white">
+      <div className="flex justify-between items-center text-center px-4 bg-white fixed top-0 left-0 z-[100] w-full py-2">
         {activeCategory && (
           <IconContainer
             align="start"
@@ -157,7 +157,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
 
       {/* Отображаем предложения при отсутствии фильтров */}
       {!activeCategory && !filters.adName && (
-        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full">
+        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full mt-12">
           <div className=" relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
             <img
               src={investirovanie}
@@ -186,7 +186,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
       {activeCategory && (
         <div
           key={activeCategory.id}
-          className="flex items-center justify-between py-4 px-2 w-full bg-white"
+          className="flex items-center justify-between py-4 px-2 w-full bg-white mt-14"
         >
           <div className="flex items-center gap-4 w-full">
             <IconContainer align="end">

@@ -84,10 +84,20 @@ export class NotificationService {
     for (const user of users) {
       if (user.pushToken) {
         const payload = {
-          notification: {
+          data: {
             title: 'Burabay администратор',
             body: of.message,
+            icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
+            click_action: 'https://burabay-damu.kz',
           },
+          webpush: {
+            headers: {
+              urgency: 'high',
+            },
+            notification: {
+              requireInteraction: true, // Уведомление останется на экране
+            }
+          }
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
       }
