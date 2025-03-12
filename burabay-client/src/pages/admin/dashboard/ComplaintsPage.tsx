@@ -55,7 +55,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
