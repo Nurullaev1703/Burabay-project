@@ -16,9 +16,10 @@ import { CancelBooking } from "./modal/CancelBooking";
 import { Button } from "../../../../shared/ui/Button";
 import { roleService } from "../../../../services/storage/Factory";
 import { TouristBookingInfo } from "../../toursit/booking-info/TouristBookingInfo";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
-import defaultImage from "../../../../app/icons/abstract-bg.svg"
+import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
+import { apiService } from "../../../../services/api/ApiService";
 
 interface Props {
   announcement: Announcement;
@@ -29,10 +30,14 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
 }) {
+  const navigate = useNavigate()
   const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isCancel, setIsCancel] = useState<boolean>(false);
   const userRole = roleService.getValue();
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
   const [selectedBooking, setSelectedBooking] = useState<SelectedBookingList>({
     bookingId: "",
     avatar: "",
@@ -49,9 +54,9 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   const getDaySuffix = (days: number | undefined = 0) => {
     if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "день"
     if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
-      return t("daysV2"); 
+      return t("daysV2");
     }
-    return t("daysV1"); 
+    return t("daysV1");
   };
   return (
     <section>
@@ -93,7 +98,8 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           >
             <div className="flex items-center">
               <img
-                src={announcement.images[0] ? baseUrl + announcement.images[0] : defaultImage}
+                src={imageSrc}
+                onError={() => setImageSrc(DefaultIcon)}
                 alt={announcement.title}
                 className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
               />
@@ -106,7 +112,8 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         ) : (
           <div className="flex items-center">
             <img
-              src={baseUrl + announcement.images[0]}
+              src={imageSrc}
+              onError={() => setImageSrc(DefaultIcon)}
               alt={announcement.title}
               className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
             />
@@ -166,82 +173,105 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
 
           {booking.type === "Аренда" && (
             <div className="px-4 mt-4">
-              {booking.bookings.map((b, index) => (
-                <div
-                  key={b.bookingId}
-                  className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
-                >
-                  <div className="flex items-center py-3 border-t border-[#E4E9EA]">
-                    <img
-                      src={baseUrl + b.avatar}
-                      alt={b.name}
-                      className="w-[52px] h-[52px] object-cover rounded-full mr-4"
-                    />
-                    <span>{b.name}</span>
-                  </div>
+              {booking.bookings.map((b, index) => {
+                  const [isConfirmed, setIsConfirmed] = useState<boolean>(b.status == "подтверждено");
+                const [imageSrc, setImageSrc] = useState<string>(
+                  baseUrl + b.avatar
+                );
+                return (
+                  <div
+                    key={b.bookingId}
+                    className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
+                  >
+                    <div className="flex items-center py-3 border-t border-[#E4E9EA]">
+                      <img
+                        src={imageSrc}
+                        onError={() => setImageSrc(DefaultIcon)}
+                        alt={b.name}
+                        className="w-[52px] h-[52px] object-cover rounded-full mr-4"
+                      />
+                      <span>{b.name}</span>
+                    </div>
 
-                  <ul className="mb-8">
-                    <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-                      <span className="text-sm">{t("CheckInDate")}</span>
-                      <span>{booking.date}</span>
-                    </li>
-                    <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-                      <span className="text-sm">{t("DepatureDate")}</span>
-                      <span>{b.dateEnd}</span>
-                    </li>
-                    <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-                      <span className="text-sm">{t("totalDuration")}</span>
-                      <span>
+                    <ul className="mb-8">
+                      <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                        <span className="text-sm">{t("CheckInDate")}</span>
+                        <span>{booking.date}</span>
+                      </li>
+                      <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                        <span className="text-sm">{t("DepatureDate")}</span>
+                        <span>{b.dateEnd}</span>
+                      </li>
+                      <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                        <span className="text-sm">{t("totalDuration")}</span>
                         <span>
-                        {b.days} {getDaySuffix(b.days)}
-                        </span>
-                      </span>
-                    </li>
-                    <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
-                      <div>
-                        <span className="text-sm">
-                          {b.payment_method === "online"
-                            ? t("onlinePayment")
-                            : t("onSidePayment")}
-                        </span>
-                        {b.isPaid && (
-                          <span className={`text-sm ${COLORS_TEXT.access}`}>
-                            {b.isPaid ? t("paid") : t("")}
+                          <span>
+                            {b.days} {getDaySuffix(b.days)}
                           </span>
-                        )}
-                      </div>
-                      <span className={`${COLORS_TEXT.blue200}`}>
-                        {formatPrice(b.price)}
-                      </span>
-                    </li>
-                    <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                      <div className="flex flex-col">
-                        <span>{formatPhoneNumber(b.user_number)}</span>
-                        <span className={`${COLORS_TEXT.gray100} text-sm`}>
-                          {t("contactPhone")}
                         </span>
-                      </div>
-                      <a href={`tel:${b.user_number}`}>
-                        <img src={PhoneIcon} alt="Звонить" />
-                      </a>
-                    </li>
-                  </ul>
-                  {b.status !== "отменено" && (
+                      </li>
+                      <li className="flex justify-between py-3.5 border-b border-[#E4E9EA]">
+                        <div>
+                          <span className="text-sm">
+                            {b.payment_method === "online"
+                              ? t("onlinePayment")
+                              : t("onSidePayment")}
+                          </span>
+                          {b.isPaid && (
+                            <span className={`text-sm ${COLORS_TEXT.access}`}>
+                              {b.isPaid ? t("paid") : t("")}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`${COLORS_TEXT.blue200}`}>
+                          {formatPrice(b.price)}
+                        </span>
+                      </li>
+                      <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                        <div className="flex flex-col">
+                          <span>{formatPhoneNumber(b.user_number)}</span>
+                          <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                            {t("contactPhone")}
+                          </span>
+                        </div>
+                        <a href={`tel:${b.user_number}`}>
+                          <img src={PhoneIcon} alt="Звонить" />
+                        </a>
+                      </li>
+                    </ul>
+                    {!isConfirmed && (
                     <Button
-                      className="mb-4"
-                      onClick={() => setIsCancel(true)}
-                      mode="red"
-                    >
-                      {t("cancel")}
+                    className={isConfirmed ? "hidden" : ""}
+                    onClick={async() => {
+                       await apiService.patch({
+                        url: `/booking/${booking.bookings[0].bookingId}/confirm`
+                        
+                      })
+                      setIsConfirmed(true);
+                      navigate({
+                        to: "/booking/business"
+                      })
+                    }}>
+                      {t("accept")}
                     </Button>
-                  )}
-                  <CancelBooking
-                    open={isCancel}
-                    onClose={() => setIsCancel(false)}
-                    bookingId={b.bookingId}
-                  />
-                </div>
-              ))}
+                    )}
+                    {b.status !== "отменено" && (
+                      <Button
+                        className="mb-4"
+                        onClick={() => setIsCancel(true)}
+                        mode="red"
+                      >
+                        {t("cancel")}
+                      </Button>
+                    )}
+                    <CancelBooking
+                      open={isCancel}
+                      onClose={() => setIsCancel(false)}
+                      bookingId={b.bookingId}
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </>

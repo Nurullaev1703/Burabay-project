@@ -16,4 +16,8 @@ export class CreateBookingBanDateDto {
   @IsOptional()
   @IsArray()
   times: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  isByBooking?: boolean = false;
 }

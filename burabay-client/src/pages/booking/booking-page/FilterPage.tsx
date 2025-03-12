@@ -8,6 +8,7 @@ import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { roleService } from "../../../services/storage/Factory";
+import { Button } from "../../../shared/ui/Button";
 
 interface FilterType {
   onlinePayment: boolean;
@@ -103,6 +104,13 @@ export const FilterPage: FC = function FilterPage() {
           label={t("cancelled")}
         />
       </div>
+      <Button
+        className="fixed bottom-4 left-3 w-header z-10"
+        type="submit"
+        onClick={applyFilters}
+      >
+        {t("apply")}
+      </Button>
     </section>
   );
 };

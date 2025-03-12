@@ -13,6 +13,7 @@ interface ImageCardProps {
   isLast: boolean; // Указывает, является ли это последняя карточка
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onImageUpload: (files: FileList) => void; // Поддержка нескольких файлов
+  onClick?: () => void;
 }
 
 const ImageCard: FC<ImageCardProps> = ({
@@ -23,6 +24,7 @@ const ImageCard: FC<ImageCardProps> = ({
   isLast,
   moveCard,
   onImageUpload,
+  onClick
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [imageSrc, setImageSrc] = useState<string>(src || DefaultImage);
@@ -32,7 +34,7 @@ const ImageCard: FC<ImageCardProps> = ({
   useEffect(() => {
     setImageSrc(src || DefaultImage);
   }, [src]);
-  const {t} = useTranslation()
+  const { t } = useTranslation();
   const [, drop] = useDrop({
     accept: "image",
     hover(item: { id: number; index: number }) {
@@ -90,6 +92,7 @@ const ImageCard: FC<ImageCardProps> = ({
       }}
       onTouchStart={handleTouchStart} // Начало удержания
       onTouchEnd={handleTouchEnd} // Завершение удержания
+      onClick={() => { !isLast && onClick && onClick() }}
     >
       <img
         src={imageSrc}
@@ -103,14 +106,16 @@ const ImageCard: FC<ImageCardProps> = ({
           </Typography>
         </div>
       )}
-      <input
-        type="file"
-        accept="image/*"
-        multiple={true}
-        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-        onChange={handleFileChange}
-        style={{ zIndex: 10 }}
-      />
+      {isLast && (
+        <input
+          type="file"
+          accept="image/*"
+          multiple={true}
+          className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+          onChange={handleFileChange}
+          style={{ zIndex: 10 }}
+        />
+      )}
     </div>
   );
 };

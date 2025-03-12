@@ -18,6 +18,7 @@ import { apiService } from "../../../services/api/ApiService";
 import { imageService } from "../../../services/api/ImageService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "../../../features/auth";
 
 interface FormType {
   iin: string;
@@ -47,7 +48,9 @@ export const IEForm: FC = function IEForm() {
     showMask: true,
   });
   const navigate = useNavigate();
- const handleSubmitForm = async (form: FormType) => {
+  const { user, setUser } = useAuth();
+
+  const handleSubmitForm = async (form: FormType) => {
     setIsLoading(true);
     try {
       // Добавление файла
@@ -60,8 +63,7 @@ export const IEForm: FC = function IEForm() {
         dto: formData,
       });
 
-      if (!responseDocs.data)
-        throw Error("Ошибка при создании");
+      if (!responseDocs.data) throw Error("Ошибка при создании");
 
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
@@ -69,19 +71,21 @@ export const IEForm: FC = function IEForm() {
           regCouponPath: form.registerFile?.name,
           ibanDocPath: form.IBANFile?.name,
           iin: form.iin,
-          phoneNumber: "+" + form.phoneNumber.replace(/\D/g, "")
+          phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
       });
-      // setUser({
-      //   ...user,
-      //   organization: {
-      //     ...user.organization,
-      //     isConfirmWating: true,
-      //   },
-      // });
+      if (user) {
+        setUser({
+          ...user,
+          organization: {
+            ...user.organization,
+            isConfirmWating: true,
+          },
+        });
+      }
       if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
-      navigate({ to: "/" });
+      navigate({ to: "/profile" });
     } catch (e) {
       console.error(e);
     }

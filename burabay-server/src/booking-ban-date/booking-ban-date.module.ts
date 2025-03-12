@@ -9,5 +9,6 @@ import { Ad } from 'src/ad/entities/ad.entity';
   imports: [TypeOrmModule.forFeature([Ad, BookingBanDate])],
   controllers: [BookingBanDateController],
   providers: [BookingBanDateService],
+  exports: [BookingBanDateService],
 })
 export class BookingBanDateModule {}
