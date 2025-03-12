@@ -59,8 +59,7 @@ export class BookingService {
       });
 
       // Является ли объявление арендой.
-      const isRent =
-        ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+      const isRent = ad.subcategory.category.name === 'Жилье';
 
       // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
       if (isRent) {
@@ -135,7 +134,7 @@ export class BookingService {
     today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
-      const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
+      const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
       let date: Date;
       let header: string;
 
@@ -228,8 +227,7 @@ export class BookingService {
     const groups = [];
 
     for (const b of bookings) {
-      const isRent =
-        b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
+      const isRent = b.ad.subcategory.category.name === 'Жилье';
 
       const today = new Date();
       let date: Date;
@@ -312,8 +310,7 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Объявление это аренда?
-    const isRent =
-      ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+    const isRent = ad.subcategory.category.name === 'Жилье';
 
     let findDate: string;
 
