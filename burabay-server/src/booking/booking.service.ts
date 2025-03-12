@@ -59,8 +59,7 @@ export class BookingService {
       });
 
       // Является ли объявление арендой.
-      const isRent =
-        ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+      const isRent = ad.subcategory.category.name === 'Жилье';
 
       // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
       if (isRent) {
@@ -101,6 +100,7 @@ export class BookingService {
           await this.bookingBanDateService.create([bookingBanDateDto]);
         }
       }
+      // XXX Уведомление о новой брони для Организации
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -134,7 +134,7 @@ export class BookingService {
     today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
-      const isRent = ['Жилье', 'Прокат'].includes(b.ad.subcategory.category.name);
+      const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
       let date: Date;
       let header: string;
 
@@ -227,8 +227,7 @@ export class BookingService {
     const groups = [];
 
     for (const b of bookings) {
-      const isRent =
-        b.ad.subcategory.category.name === 'Жилье' || b.ad.subcategory.category.name === 'Прокат';
+      const isRent = b.ad.subcategory.category.name === 'Жилье';
 
       const today = new Date();
       let date: Date;
@@ -311,8 +310,7 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Объявление это аренда?
-    const isRent =
-      ad.subcategory.category.name === 'Жилье' || ad.subcategory.category.name === 'Прокат';
+    const isRent = ad.subcategory.category.name === 'Жилье';
 
     let findDate: string;
 
@@ -461,7 +459,7 @@ export class BookingService {
       const notification = manager.create(Notification, {
         users: [{ id: booking.user.id }],
         type: NotificationType.NEGATIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
         createdAt: new Date(),
       });
       await manager.save(notification);
@@ -475,6 +473,7 @@ export class BookingService {
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.CONFIRM;
     await this.bookingRepository.save(booking);
+    // XXX Уведомление о подтверждении брони Туристу
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -484,6 +483,7 @@ export class BookingService {
     Utils.checkEntity(booking, 'Объявление не найдено');
     booking.status = BookingStatus.PAYED;
     await this.bookingRepository.save(booking);
+    // XXX Уведомление об оплате брони Организации
     return JSON.stringify(HttpStatus.OK);
   }
 

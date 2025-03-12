@@ -36,6 +36,7 @@ export class ReviewAnswersService {
       date: new Date(),
     });
     await this.reviewAnswerRepository.save(answer);
+    // XXX Уведомление об ответе на отзыв Туристу
     return JSON.stringify(HttpStatus.CREATED);
   }
 
