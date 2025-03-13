@@ -10,6 +10,8 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
+import { useNavigate } from "@tanstack/react-router";
+import { AdminAnnoun } from "../announcements/AdminAnnoun";
 
 const BASE_URL = baseUrl;
 
@@ -68,9 +70,7 @@ export interface Profile {
 //   users: Profile;
 // }
 
-export const ComplaintsPage: FC = function ComplaintsPage({
-
-}) {
+export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [reviews, setReviews] = useState<
     (Review & {
       hint: { message: string; type: "success" | "error" } | null;
@@ -79,11 +79,24 @@ export const ComplaintsPage: FC = function ComplaintsPage({
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
+  const navigate = useNavigate();
+  const [selectedAd, setSelectedAd] = useState<Announcement | null>(null);
+  const [_isAdModalOpen, setIsAdModalOpen] = useState(false);
+
+  const handleAdClick = (ad: Announcement) => {
+    setSelectedAd(ad);
+    setIsAdModalOpen(true);
+  };
+
+  const closeAdModal = () => {
+    setSelectedAd(null);
+    setIsAdModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -247,6 +260,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({
         console.log("Информация об организации:", response.data);
         setSelectedOrg(response.data);
         setIsModalOpen(true);
+        setSelectedAd(null);
       }
     } catch (error) {
       console.error("Ошибка загрузки данных организации:", error);
@@ -599,11 +613,30 @@ export const ComplaintsPage: FC = function ComplaintsPage({
             {selectedOrg.ads.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {selectedOrg.ads.map((ad, index) => (
-                  <AdCard key={index} ad={ad} isOrganization={true} />
+                  <div key={index} onClick={() => handleAdClick(ad)}>
+                    <AdCard ad={ad} isOrganization={true} />
+                  </div>
                 ))}
               </div>
             ) : (
               <p className="text-gray-500">Нет объявлений</p>
+            )}
+            {selectedAd && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+                  <button
+                    onClick={closeAdModal}
+                    className="absolute top-4 right-4"
+                  >
+                    <img
+                      src="../../../../public/Close.png"
+                      alt="Close"
+                      className="w-6 h-6"
+                    />
+                  </button>
+                  <AdminAnnoun announcement={selectedAd} />
+                </div>
+              </div>
             )}
             <div className="mt-4 flex justify-between">
               <button
@@ -617,14 +650,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-lg z-10"
                 onClick={() => {
-                  if (selectedOrg?.user?.id) {
-                    console.log(
-                      `ID пользователя для разблокировки: ${selectedOrg.user.id}`
-                    );
-                    handleUnblockUser(selectedOrg.user.id);
-                  } else {
-                    console.error("Идентификатор пользователя не найден");
-                  }
+                  handleUnblockUser(selectedOrg.id);
                 }}
               >
                 Разблокировать

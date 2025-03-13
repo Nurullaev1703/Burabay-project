@@ -17,6 +17,7 @@ export interface Organization {
   orgRulePath: string;
   bin: string;
   email: string;
+  isBanned: boolean;
 }
 
 export interface Profile {
