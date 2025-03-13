@@ -464,11 +464,11 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.regCouponPath ? (
                         <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
+                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
-                          download={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
+                          download={`regFile.${selectedOrganization.regCouponPath.split(".").pop()}`}
                         >
                           <span>
                             {selectedOrganization.regCouponPath
@@ -492,11 +492,11 @@ export default function UsersList({ filters }: Props) {
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
                         <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
+                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
-                          download={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
+                          download={`ibanFile.${selectedOrganization.ibanDocPath.split(".").pop()}`}
                         >
                           <span>
                             {selectedOrganization.ibanDocPath
@@ -522,11 +522,11 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.orgRulePath ? (
                         <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
+                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"
-                          download={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
+                          download="ruleFile"
                         >
                           <span>
                             {selectedOrganization.orgRulePath
