@@ -88,11 +88,33 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   };
 
   // Функция проверки, можно ли выбрать эту дату
-  const shouldDisableDate = (date: Dayjs): boolean => {
+  const blockedDaysOfWeek = Object.entries(announcement.schedule)
+    .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
+    .map(([key]) => {
+      const dayMap: Record<string, number> = {
+        monStart: 1,
+        tueStart: 2,
+        wenStart: 3,
+        thuStart: 4,
+        friStart: 5,
+        satStart: 6,
+        sunStart: 0,
+      };
+      return dayMap[key] ?? null;
+    })
+    .filter((day): day is number => day !== null);
+
+  const isDayBlockedBySchedule = (date: dayjs.Dayjs): boolean => {
+    return blockedDaysOfWeek.includes(date.day()); // Блокируем день, если он в списке
+  };
+
+  const shouldDisableDate = (date: dayjs.Dayjs): boolean => {
     const today = dayjs().startOf("day");
 
-    if (date.isBefore(today)) return true;
-    if (activeField === "start" && isDateBanned(date)) return true;
+    if (date.isBefore(today)) return true; // Блокируем прошедшие дни
+    if (isDayBlockedBySchedule(date)) return true; // Блокируем дни с "00:00"
+    if (isDateBanned(date)) return true; // Блокируем заблокированные даты
+
     if (activeField === "end" && selectedDateStart) {
       const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
       const endDate = date;
@@ -105,10 +127,10 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
           const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
 
           return (
-            bannedStartDate.isBetween(startDate, endDate, null, "[]") || // Если запрещённый период внутри выбора
-            bannedEndDate.isBetween(startDate, endDate, null, "[]") || // Если запрещённый конец внутри выбора
+            bannedStartDate.isBetween(startDate, endDate, null, "[]") ||
+            bannedEndDate.isBetween(startDate, endDate, null, "[]") ||
             (startDate.isBefore(bannedStartDate) &&
-              endDate.isAfter(bannedEndDate)) // Если выбор охватывает запрещённый диапазон
+              endDate.isAfter(bannedEndDate))
           );
         }) ?? false
       );
