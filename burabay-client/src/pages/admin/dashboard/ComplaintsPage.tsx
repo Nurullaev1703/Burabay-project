@@ -42,15 +42,15 @@ interface Organization {
   imgUrl: string;
   website?: string;
   phone?: string;
-  user: { id: string; email: string };
+  user: { id: string; email: string }; // Добавьте id здесь
   ads: Announcement[];
 }
 
-export enum ROLE_TYPE {
-  ADMIN = "ADMIN",
-  MODERATOR = "MODERATOR",
-  TOURIST = "TOURIST",
-}
+// export enum ROLE_TYPE {
+//   ADMIN = "ADMIN",
+//   MODERATOR = "MODERATOR",
+//   TOURIST = "TOURIST",
+// }
 
 export interface Profile {
   id: string;
@@ -60,45 +60,16 @@ export interface Profile {
   organization: Organization;
   phoneNumber: string;
   picture: string;
-  role: ROLE_TYPE;
   isBanned: boolean;
 }
 
-interface ComplaintsPageProps {
-  profile: Profile;
-  users: Profile[];
-}
+// interface ComplaintsPageProps {
+//   profile: Profile;
+//   users: Profile;
+// }
 
-interface UserDataResponse {
-  id: string;
-  fullName: string;
-  phoneNumber: string;
-  role: string;
-  picture: string;
-  email: string;
-  isEmailConfirmed: boolean;
-  isBanned: boolean;
-  pushToken: null;
-  organization: {
-    id: string;
-    imgUrl: string;
-    name: string;
-    bin: null;
-    regCouponPath: null;
-    ibanDocPath: null;
-    orgRulePath: null;
-    rating: number;
-    reviewCount: number;
-    isConfirmed: boolean;
-    isConfirmCanceled: boolean;
-    description: string;
-    siteUrl: string;
-    isBanned: boolean;
-  };
-}
+export const ComplaintsPage: FC = function ComplaintsPage({
 
-export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
-  users,
 }) {
   const [reviews, setReviews] = useState<
     (Review & {
@@ -108,19 +79,13 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [_isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
-  const [_userData, _setUserData] = useState<UserDataResponse | null>(null);
 
   useEffect(() => {
-    console.log("Список пользователей:", users);
-
-    // Проверка роли пользователя
-
     const fetchReviews = async () => {
       try {
         const response = await apiService.get<Review[]>({
@@ -151,7 +116,7 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
     const intervalId = setInterval(fetchReviews, 15000); // Обновление каждые 15 секунд
 
     return () => clearInterval(intervalId); // Очистка интервала при размонтировании компонента
-  }, [users]);
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -281,43 +246,12 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
       if (response.status === 200) {
         console.log("Информация об организации:", response.data);
         setSelectedOrg(response.data);
-        if (users && users.length > 0) {
-          const user = users.find((user) => user.organization.id === orgId);
-          if (user) {
-            setSelectedUser(user);
-          } else {
-            console.error("Пользователь не найден для данной организации");
-          }
-        } else {
-          console.error("Список пользователей пуст или не определен");
-        }
         setIsModalOpen(true);
       }
     } catch (error) {
       console.error("Ошибка загрузки данных организации:", error);
     }
   };
-
-  // const fetchUserData = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await apiService.get<UserDataResponse>({
-  //       url: `/admin/users`, // <--- Эндпоинт API
-  //     });
-
-  //     if (response.status === 200) {
-  //       setUserData(response.data); // <--- Обновляем состояние данными пользователя
-  //     } else {
-  //       console.error("Ошибка при загрузке данных пользователя:", response);
-  //       // Обработка ошибки (например, показ сообщения пользователю)
-  //     }
-  //   } catch (error) {
-  //     console.error("Ошибка запроса к API /admin/users:", error);
-  //     // Обработка ошибки запроса
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const handleCancelHint = (reviewId: string) => {
     setReviews((prevReviews) =>
@@ -342,45 +276,33 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
     setVisibleReviewsCount((prevCount) => prevCount + 20);
   };
 
-  console.log(users);
-
-  const handleBlockUser = async () => {
-    // if (!selectedUser) {
-    //   console.error("Идентификатор пользователя не найден");
-    //   return;
-    // }
-
+  const handleBlockUser = async (orgId: string) => {
     try {
-      const response = await apiService.get({
-        url: `/admin/users`,
+      const response = await apiService.patch({
+        url: `/admin/ban-org/${orgId}`,
+        dto: { value: true },
       });
       if (response.status === 200) {
-        alert("Пользователь заблокирован"); // Измените сообщение на "Пользователь заблокирован"
+        alert("Пользователь заблокирован");
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при блокировке пользователя"); // Измените сообщение на "Ошибка при блокировке пользователя"
+        alert("Ошибка при блокировке пользователя");
       }
-      console.log(response.data);
     } catch (error) {
-      console.error("Ошибка блокировки пользователя:", error); // Измените сообщение об ошибке
-      alert("Произошла ошибка при блокировке пользователя"); // Измените сообщение об ошибке
+      console.error("Ошибка блокировки пользователя:", error);
+      alert("Произошла ошибка при блокировке пользователя");
     }
   };
 
-  const handleUnblockUser = async () => {
-    if (!selectedUser) {
-      console.error("Идентификатор пользователя не найден");
-      return;
-    }
-
+  const handleUnblockUser = async (userId: string) => {
     try {
       const response = await apiService.patch({
-        url: `/admin/ban-tourist/${selectedUser.id}`,
-        dto: { value: false }, // Разблокируем пользователя
+        url: `/admin/ban-org/${userId}`,
+        dto: { value: false },
       });
       if (response.status === 200) {
         alert("Пользователь разблокирован");
-        setIsModalOpen(false); // Закрываем модальное окно после разблокировки
+        setIsModalOpen(false);
       } else {
         alert("Ошибка при разблокировке пользователя");
       }
@@ -492,9 +414,8 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
                             <p className="text-sm font-semibold text-gray-700">
                               {review.adName}
                             </p>
-                            <div className="text-[16px] text-black flex items-center">
-                              ⭐ {review.adRating} · {review.adReviewCount}{" "}
-                              оценок
+                            <div className="text-[16px] text-yellow-500 flex items-center">
+                              ⭐ {review.adRating} ({review.adReviewCount})
                             </div>
                           </div>
                         </div>
@@ -686,14 +607,25 @@ export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
             )}
             <div className="mt-4 flex justify-between">
               <button
-                className="bg-red text-white px-4 py-2 rounded-lg z-10"
-                onClick={handleBlockUser}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg z-10"
+                onClick={() => {
+                  handleBlockUser(selectedOrg.id);
+                }}
               >
                 Заблокировать пользователя
               </button>
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-lg z-10"
-                onClick={handleUnblockUser}
+                onClick={() => {
+                  if (selectedOrg?.user?.id) {
+                    console.log(
+                      `ID пользователя для разблокировки: ${selectedOrg.user.id}`
+                    );
+                    handleUnblockUser(selectedOrg.user.id);
+                  } else {
+                    console.error("Идентификатор пользователя не найден");
+                  }
+                }}
               >
                 Разблокировать
               </button>
