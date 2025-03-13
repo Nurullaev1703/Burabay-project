@@ -7,8 +7,8 @@ export const Route = createFileRoute('/admin/dashboard/complaints/')({
 
 function RouteComponent() {
   return (
-    <>
+    <div>
       <ComplaintsPage />
-    </>
+    </div>
   )
 }
