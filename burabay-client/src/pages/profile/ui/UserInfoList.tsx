@@ -47,7 +47,7 @@ export const UserInfoList: FC<Props> = function UserInfoList({
           <li key={index} className="border-b border-[#999999] py-3 mb-2">
             <Link
               to={"/profile/edit"}
-              className={`${param === "organizationAbout" || accountStatus === "confirmed" ? "flex justify-between" : ""}`}
+              className={`${param === "organizationAbout" || accountStatus === "done" ? "flex justify-between" : ""}`}
             >
               <div>
                 <p>
@@ -61,7 +61,7 @@ export const UserInfoList: FC<Props> = function UserInfoList({
                 <img src={ArrowRight} alt="Стрелка" />
               )}
 
-              {accountStatus === "confirmed" &&
+              {accountStatus === "done" &&
                 param === "organizationName" && (
                   <img src={ConfirmedIcon} alt="Галочка" />
                 )}
