@@ -3,7 +3,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from './entities/ad.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
@@ -11,6 +11,8 @@ import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad-filter.type';
 import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { Booking } from 'src/booking/entities/booking.entity';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 
 @Injectable()
 export class AdService {
@@ -23,6 +25,10 @@ export class AdService {
     private readonly subcategoryRepository: Repository<Subcategory>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
+    @InjectRepository(BookingBanDate)
+    private readonly bookingBanDatesRepository: Repository<BookingBanDate>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -91,15 +97,15 @@ export class AdService {
         },
       });
     }
+    if (filter.adName) {
+      ads = this._searchAd(filter.adName, ads);
+    }
     const result = ads.map((ad) => {
       const isFavourite =
         ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
       delete ad.usersFavorited;
       return { ...ad, isFavourite };
     });
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
 
     return result;
   }
@@ -216,7 +222,7 @@ export class AdService {
         await this.adRepository.save(ad);
       }
     }
-
+    ad.bookingBanDate = ad.bookingBanDate.filter((bd) => bd.isByBooking === false);
     return { ...ad, favCount, isFavourite };
   }
 
@@ -289,6 +295,75 @@ export class AdService {
       await manager.remove(ad);
       return JSON.stringify(HttpStatus.OK);
     });
+  }
+
+  /* Проверка свободного диапазона для Бронирования. */
+  @CatchErrors()
+  async _checkDates(adId: string, startDateDto: string, endDateDto: string) {
+    // Форматирование переданных дат в тип даты.
+    const startDate = Utils.stringDateToDate(startDateDto);
+    const endDate = Utils.stringDateToDate(endDateDto);
+    // Получение всех броней в указанном диапазоне.
+    const bookings = await this.bookingRepository.find({
+      where: {
+        ad: { id: adId },
+        dateStart: LessThanOrEqual(endDate),
+        dateEnd: MoreThanOrEqual(startDate),
+      },
+    });
+    // Получение всех Booking Ban Dates с указанной датой.
+    const bookingBanDates = await this.bookingBanDatesRepository.find({
+      where: { ad: { id: adId }, date: Utils.dateToString(startDate) },
+    });
+
+    // Если брони в указанном диапазоне не были найдены,то вернуть true, иначе вернуть занятные даты.
+    if (bookings.length === 0 && bookingBanDates.length === 0) {
+      return true;
+    } else {
+      return {
+        message: 'Даты заняты',
+        dates: bookings.map(
+          (booking) => {
+            return {
+              startDate: Utils.dateToString(booking.dateStart),
+              endDate: Utils.dateToString(booking.dateEnd),
+            };
+          },
+          // `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
+        ),
+      };
+    }
+  }
+
+  @CatchErrors()
+  async checkDates(adId: string) {
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: { bookings: true },
+    });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    const bookedDates = [];
+    ad.bookings.forEach((booking) => {
+      console.log(booking);
+      if (!booking.date) {
+        bookedDates.push({
+          startDate: Utils.dateToString(booking.dateStart),
+          endDate: Utils.dateToString(booking.dateEnd),
+        });
+      } else {
+        bookedDates.push({
+          startDate: booking.date,
+        });
+      }
+    });
+    // ad.bookingBanDate.forEach((bookingBanDate) => {
+    //   // if (bookingBanDate.isByBooking) {
+    //   bookedDates.push({
+    //     startDate: bookingBanDate.date,
+    //   });
+    //   // }
+    // });
+    return bookedDates;
   }
 
   /* Поиск среди Объявлений. */

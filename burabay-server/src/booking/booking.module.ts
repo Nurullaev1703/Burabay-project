@@ -6,9 +6,14 @@ import { Booking } from './entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { BookingBanDateModule } from 'src/booking-ban-date/booking-ban-date.module';
+import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Booking, Ad, Notification])],
+  imports: [
+    TypeOrmModule.forFeature([User, Booking, Ad, Notification, BookingBanDate]),
+    BookingBanDateModule,
+  ],
   controllers: [BookingController],
   providers: [BookingService],
 })

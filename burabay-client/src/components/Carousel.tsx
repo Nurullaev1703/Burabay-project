@@ -14,9 +14,12 @@ interface Props {
   height?: string;
   ratio?: string;
   items: CarouselItem[];
+  currentItemId?: number
+  radius?: string
+  hasDelete?: boolean
 }
 
-export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "" }) => {
+export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "", currentItemId = 0, radius = "rounded-2xl", hasDelete  }) => {
   // Создаем реф с типом Slider
   const sliderRef = useRef<Slider | null>(null);
 
@@ -41,12 +44,12 @@ export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "" }) => {
     items.length > 0
       ? items.map((item) => ({
           ...item,
-          imgUrl: item.imgUrl.startsWith("http")
+          imgUrl: item.imgUrl.startsWith("http") || hasDelete
             ? item.imgUrl
             : baseUrl + item.imgUrl,
         }))
       : [{ index: 0, imgUrl: DefaultImage }];
-  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [activeIndex, setActiveIndex] = useState<number>(currentItemId);
   // Отключаем бесконечную прокрутку, если изображение только одно
   const settings = {
     dots: displayedItems.length > 1,
@@ -56,6 +59,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "" }) => {
     slidesToScroll: 1,
     autoplay: false,
     pauseOnFocus: true,
+    initialSlide: currentItemId,
     beforeChange: (_: number, current: number) => setActiveIndex(current),
     customPaging: (i: number) => (
       <div
@@ -72,7 +76,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "" }) => {
   return (
     <Slider
       {...settings}
-      className="rounded-2xl overflow-y-hidden"
+      className={radius + " overflow-y-hidden"}
       ref={sliderRef}
     >
       {displayedItems.map((item) => (

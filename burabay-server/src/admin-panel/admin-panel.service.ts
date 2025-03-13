@@ -11,6 +11,8 @@ import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
 import { AnalyticsService } from './analytics.service';
+import { BookingStatus } from 'src/booking/types/booking.types';
+import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 
 @Injectable()
 export class AdminPanelService {
@@ -23,6 +25,8 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(ReviewReport)
+    private readonly reviewReportRepository: Repository<ReviewReport>,
     private readonly analyticsService: AnalyticsService,
   ) {}
 
@@ -56,7 +60,7 @@ export class AdminPanelService {
         reviewCount: ad.reviewCount,
         avgRating: ad.avgRating,
         image: ad.images[0],
-        bookingCount: ad.bookings.length,
+        bookingCount: ad.bookings.filter((b) => b.status === BookingStatus.DONE).length,
       };
       return result;
     });
@@ -152,8 +156,12 @@ export class AdminPanelService {
   /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
   @CatchErrors()
   async checkReview(reviewId: string) {
-    const review = await this.reviewRepository.findOne({ where: { id: reviewId } });
+    const review = await this.reviewRepository.findOne({
+      where: { id: reviewId },
+      relations: { report: true },
+    });
     review.isCheked = true;
+    await this.reviewReportRepository.remove(review.report);
     await this.reviewRepository.save(review);
     return JSON.stringify(HttpStatus.OK);
   }

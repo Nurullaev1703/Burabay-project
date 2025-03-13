@@ -55,6 +55,21 @@ export class BookingController {
     return this.bookingService.bookingCancel(id);
   }
 
+  @Patch(':id/confirm')
+  bookingConfirm(@Param('id') id: string) {
+    return this.bookingService.bookingConfirm(id);
+  }
+
+  @Patch(':id/payed')
+  bookingPayed(@Param('id') id: string) {
+    return this.bookingService.bookingPayed(id);
+  }
+
+  @Patch(':id/done')
+  bookingDone(@Param('id') id: string) {
+    return this.bookingService.bookingDone(id);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.bookingService.remove(id);
