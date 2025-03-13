@@ -49,10 +49,14 @@ export const BookingTime: FC<Props> = function BookingTime({
     baseUrl + announcement.images[0]
   );
   const isDateBlocked = (date: dayjs.Dayjs): boolean => {
-    return serviceSchedule?.some(({ date: blockedDate, allDay }) => 
-      allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
-    ) ?? false;
+    return (
+      serviceSchedule?.some(
+        ({ date: blockedDate, allDay }) =>
+          allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
+      ) ?? false
+    );
   };
+
   // Установка времени с учетом заблокированных
   const handleDateChange = (date: any) => {
     setSelectedTime("");
@@ -89,6 +93,33 @@ export const BookingTime: FC<Props> = function BookingTime({
       to: "/announcements/booking",
       state: { time, date, announcement } as unknown as Record<string, unknown>,
     });
+  };
+  const blockedDaysOfWeek = Object.entries(announcement.schedule)
+    .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
+    .map(([key]) => {
+      const dayMap: Record<string, number> = {
+        monStart: 1,
+        tueStart: 2,
+        wenStart: 3,
+        thuStart: 4,
+        friStart: 5,
+        satStart: 6,
+        sunStart: 0,
+      };
+      return dayMap[key] ?? null;
+    })
+    .filter((day): day is number => day !== null);
+
+  const isDayBlockedBySchedule = (date: dayjs.Dayjs): boolean => {
+    return blockedDaysOfWeek.includes(date.day()); 
+  };
+
+  const shouldDisableDate = (date: dayjs.Dayjs) => {
+    return (
+      date.isBefore(dayjs(), "day") ||
+      isDateBlocked(date) ||
+      isDayBlockedBySchedule(date)
+    );
   };
 
   return (
@@ -149,7 +180,7 @@ export const BookingTime: FC<Props> = function BookingTime({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
-            shouldDisableDate={(date: dayjs.Dayjs) => date.isBefore(dayjs(), "day") || isDateBlocked(date)}
+            shouldDisableDate={shouldDisableDate}
             sx={{
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {
