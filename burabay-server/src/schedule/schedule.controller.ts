@@ -7,7 +7,6 @@ import { Public } from 'src/constants';
 
 @Controller('schedule')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
 @ApiTags('График работы')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}

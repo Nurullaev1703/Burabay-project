@@ -7,7 +7,6 @@ import { Public } from 'src/constants';
 
 @Controller('breaks')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
 @ApiTags('Перерыв')
 export class BreaksController {
   constructor(private readonly breaksService: BreaksService) {}
