@@ -57,11 +57,14 @@ export class ImagesController {
 
   @Post('full-docs')
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'registerFile', maxCount: 1 },
-      { name: 'IBANFile', maxCount: 1 },
-      { name: 'charterFile', maxCount: 1 },
-    ]),
+    FileFieldsInterceptor(
+      [
+        { name: 'registerFile', maxCount: 1 },
+        { name: 'IBANFile', maxCount: 1 },
+        { name: 'charterFile', maxCount: 1 },
+      ],
+      { limits: { fileSize: 50 * 1024 * 1024 } },
+    ),
   )
   async uploadFullDocs(
     @UploadedFiles()
