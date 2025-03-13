@@ -26,6 +26,4 @@ export class SubcategoryController {
     const withAds = ads === 'true';
     return this.subcategoryService.findOne(id, withAds);
   }
-
-  // XXX Нужна ли апишка для получения всех подкатегорий у определенной организации?
 }

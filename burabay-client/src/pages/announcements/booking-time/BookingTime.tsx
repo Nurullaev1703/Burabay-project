@@ -19,6 +19,7 @@ import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 
 interface Props {
   announcement: Announcement;
@@ -44,6 +45,17 @@ export const BookingTime: FC<Props> = function BookingTime({
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const navigate = useNavigate();
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
+  const isDateBlocked = (date: dayjs.Dayjs): boolean => {
+    return (
+      serviceSchedule?.some(
+        ({ date: blockedDate, allDay }) =>
+          allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
+      ) ?? false
+    );
+  };
 
   // Установка времени с учетом заблокированных
   const handleDateChange = (date: any) => {
@@ -82,6 +94,35 @@ export const BookingTime: FC<Props> = function BookingTime({
       state: { time, date, announcement } as unknown as Record<string, unknown>,
     });
   };
+  const blockedDaysOfWeek = announcement.isFullDay
+    ? [] 
+    : Object.entries(announcement.schedule)
+        .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
+        .map(([key]) => {
+          const dayMap: Record<string, number> = {
+            monStart: 1,
+            tueStart: 2,
+            wenStart: 3,
+            thuStart: 4,
+            friStart: 5,
+            satStart: 6,
+            sunStart: 0,
+          };
+          return dayMap[key] ?? null;
+        })
+        .filter((day): day is number => day !== null);
+
+  const isDayBlockedBySchedule = (date: dayjs.Dayjs): boolean => {
+    return blockedDaysOfWeek.includes(date.day());
+  };
+
+  const shouldDisableDate = (date: dayjs.Dayjs) => {
+    return (
+      date.isBefore(dayjs(), "day") || // Блокируем прошедшие дни
+      isDateBlocked(date) || // Блокируем даты из serviceSchedule
+      isDayBlockedBySchedule(date) // Блокируем дни по schedule, если isFullDay !== true
+    );
+  };
 
   return (
     <section>
@@ -110,7 +151,8 @@ export const BookingTime: FC<Props> = function BookingTime({
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -140,7 +182,7 @@ export const BookingTime: FC<Props> = function BookingTime({
           <DateCalendar
             showDaysOutsideCurrentMonth
             onChange={handleDateChange}
-            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")} 
+            shouldDisableDate={shouldDisableDate}
             sx={{
               "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
                 {

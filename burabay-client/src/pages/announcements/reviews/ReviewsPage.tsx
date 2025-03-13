@@ -3,10 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
-import {
-  Announcement,
-  ReviewAnnouncement,
-} from "../model/announcements";
+import { Announcement, ReviewAnnouncement } from "../model/announcements";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "../../../shared/ui/colors";
 import { baseUrl, HTTP_STATUS } from "../../../services/api/ServerData";
@@ -21,7 +18,10 @@ import WarningIcon from "../../../app/icons/announcements/reviews/warning.svg";
 import { Answer } from "../../reviews/reviewsOrg/review-page/ReviewPage";
 import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
-
+import { roleService } from "../../../services/storage/Factory";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import { ImageViewModal } from "./ui/ImageViewModal";
+import { ROLE_TYPE } from "../../auth/model/auth-model";
 interface Props {
   announcement: Announcement;
   review: any;
@@ -38,6 +38,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
     reviewId: "",
     text: "",
   });
+  // состояния для регулировки модалки с изображениями
+  const [imageModal, setImageModal] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [imageIndex, setImageIndex] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedReviews, setExpandedReviews] = useState<
@@ -46,6 +50,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   const [reviewData, setReviewData] = useState<ReviewAnnouncement>(review);
   const [sortModal, setSortModal] = useState<boolean>(false);
   const [sort, setSort] = useState<"highReview" | "lowReview">("highReview");
+  const role = roleService.getValue();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toggleReviewText = (index: number) => {
@@ -105,7 +110,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   const openModal = (reviewId: string, type: "complain" | "answer") => {
     setModalAnswer((prev) => ({ ...prev, [reviewId]: type }));
   };
-
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
   // Функция для закрытия модалки
   const closeModal = (reviewId: string) => {
     setModalAnswer((prev) => ({ ...prev, [reviewId]: false }));
@@ -125,9 +132,12 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
   return (
     <section className="bg-background min-h-screen">
-      <Header>
+      <Header className="fixed top-0 left-0 z-[100] bg-white w-full py-3 px-4">
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer
+            align="start"
+            action={() => navigate({ to: `/announcements/${announcement.id}` })}
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -147,10 +157,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         </div>
       </Header>
 
-      <div className="p-4 bg-white mb-2">
+      <div className="p-4 bg-white mb-2 mt-[36px]">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -180,7 +191,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         </div>
       </div>
 
-      <ul className="px-4 flex flex-col gap-2 bg-white">
+      <ul className="px-4 flex flex-col gap-2 bg-white pb-32">
         {sortedReviews.map((review, index) => (
           <li key={index} className="border-b border-[#E4E9EA] py-4">
             <div className="flex justify-between items-center mb-2.5">
@@ -243,7 +254,15 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
             <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
               {review.images.map((image, index) => (
-                <li key={index} className="w-20 h-20 flex-shrink-0">
+                <li
+                  key={index}
+                  className="w-20 h-20 flex-shrink-0"
+                  onClick={() => {
+                    setSelectedImages(review.images);
+                    setImageIndex(index);
+                    setImageModal(true);
+                  }}
+                >
                   <img
                     src={baseUrl + image}
                     alt="Изображение"
@@ -252,6 +271,19 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                 </li>
               ))}
             </ul>
+            {imageModal && (
+              <ImageViewModal
+                images={selectedImages.map((image, index) => {
+                  return {
+                    index: index,
+                    imgUrl: baseUrl + image,
+                  };
+                })}
+                open={imageModal}
+                onClose={() => setImageModal(false)}
+                firstItem={imageIndex}
+              />
+            )}
 
             <ul>
               {review.answer && (
@@ -286,19 +318,22 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
               )}
             </ul>
 
-            <div className="flex justify-between mb-4">
-              <img
-                src={WarningIcon}
-                alt="Опровергнуть"
-                onClick={() => openModal(review.id, "complain")}
-              />
-              <span
-                className={`font-semibold ${COLORS_TEXT.blue200}`}
-                onClick={() => openModal(review.id, "answer")}
-              >
-                {t("answer")}
-              </span>
-            </div>
+            {role === "бизнес" && (
+              <div className="flex justify-between mb-4">
+                <img
+                  src={WarningIcon}
+                  alt="Опровергнуть"
+                  onClick={() => openModal(review.id, "complain")}
+                />
+                <span
+                  className={`font-semibold ${COLORS_TEXT.blue200}`}
+                  onClick={() => openModal(review.id, "answer")}
+                >
+                  {t("answer")}
+                </span>
+              </div>
+            )}
+
             {modalAnswer[review.id] === "answer" && (
               <div>
                 <TextField
@@ -374,13 +409,15 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
           </li>
         ))}
       </ul>
-
-      <Button
-        className="fixed bottom-6 left-4 w-header mt-8 z-10"
-        onClick={() => addReview(announcement)}
-      >
-        {t("writeReview")}
-      </Button>
+      { 
+        role === ROLE_TYPE.TOURIST && 
+        <Button
+          className="fixed bottom-6 left-4 w-header mt-8 z-10"
+          onClick={() => addReview(announcement)}
+        >
+          {t("writeReview")}
+        </Button>
+      }
 
       {sortModal && (
         <SortModal

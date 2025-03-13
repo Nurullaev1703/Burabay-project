@@ -51,10 +51,6 @@ export default function UsersList({ filters }: Props) {
     });
   };
 
-  // const resolveDocUrl = (docPath: string | null) => {
-  //   if (!docPath) return "#";
-  //   return `${baseUrl}/public${docPath}`;
-  // };
   const openConfirmModal = (organization: Organization) => {
     setSelectedOrganization(organization);
     setIsConfirmModalOpen(true);

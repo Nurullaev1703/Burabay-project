@@ -24,7 +24,6 @@ export class AddressService {
    * - При указании adI, Адрес испольузется для Объявления с полем isMain: false.
    * - При отсутствии adId, создается основной Адрес для Профиля Организации с полем isMain: true.
    * - Для Профиля Организации должен быть только один Адрес с полем isMain: true.
-   * // XXX Возможно понадобится добавить проверку на наличие Адреса с полем isMain: true.
    */
   async create(createAddressDto: CreateAddressDto) {
     try {

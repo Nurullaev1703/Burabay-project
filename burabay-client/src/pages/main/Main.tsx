@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import locationImg from "../../app/icons/main/location.png";
@@ -15,6 +15,7 @@ import { RotatingLines } from "react-loader-spinner";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/back-icon.svg";
 import FilterIcon from "../../app/icons/main/filter.svg";
+import FilterActiveIcon from "../../app/icons/main/filter-active.svg";
 import { MainPageFilter } from "./model/mainpage-types";
 
 interface Props {
@@ -65,9 +66,31 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
     },
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   );
+
+  // попытка сброса фильтров при использовании нативных жестов возврата назад
+  const handlePopState = () => {
+    setActiveCategory(null);
+    navigate({
+      to: "/main",
+      search: {
+        category: "",
+        adName: filters.adName,
+      },
+    });
+  };
+  useEffect(() => {
+    if (filters.category) {
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }
+  }, [navigate, filters]);
+
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
-      <div className="flex justify-between items-center text-center px-4 pt-2 pb-1 bg-white">
+      <div className="flex justify-between items-center text-center px-4 bg-white fixed top-0 left-0 z-[100] w-full py-2">
         {activeCategory && (
           <IconContainer
             align="start"
@@ -107,24 +130,40 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           />
         </div>
         {activeCategory && (
-          <IconContainer align="center" action={() => navigate({
-            to: `/main/filter/${activeCategory.id}`,
-            search: filters
-          })}>
-            <img src={FilterIcon} alt="" />
+          <IconContainer
+            align="center"
+            action={() =>
+              navigate({
+                to: `/main/filter/${activeCategory.id}`,
+                search: filters,
+              })
+            }
+          >
+            <img
+              src={
+                filters.details ||
+                filters.isHighRating ||
+                filters.maxPrice ||
+                filters.minPrice ||
+                filters.subcategories
+                  ? FilterActiveIcon
+                  : FilterIcon
+              }
+              alt=""
+            />
           </IconContainer>
         )}
       </div>
 
       {/* Отображаем предложения при отсутствии фильтров */}
       {!activeCategory && !filters.adName && (
-        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full">
+        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full mt-12">
           <div className=" relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
             <img
               src={investirovanie}
               className="absolute top-0 left-0 w-full h-full object-cover"
               alt=""
-              />
+            />
           </div>
           <div className="relative min-w-[200px] h-[120px] bg-green-500 rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
             <img
@@ -147,7 +186,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
       {activeCategory && (
         <div
           key={activeCategory.id}
-          className="flex items-center justify-between py-4 px-2 w-full bg-white"
+          className="flex items-center justify-between py-4 px-2 w-full bg-white mt-14"
         >
           <div className="flex items-center gap-4 w-full">
             <IconContainer align="end">
@@ -233,7 +272,7 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           <RotatingLines strokeColor={COLORS.blue200} width="48px" />
         </div>
       )}
-      
+
       <NavMenuClient />
     </section>
   );

@@ -39,7 +39,7 @@ import FavouriteActiveIcon from "../../app/icons/favourite-active.svg";
 import { Button } from "../../shared/ui/Button";
 import cancelBlack from "../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../shared/ui/CoveredImage";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { MapFilter } from "../announcements/announcements-utils";
 import CircleStyle from "ol/style/Circle";
 import { useTranslation } from "react-i18next";
@@ -62,12 +62,12 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
+  const [center , _setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
-  const location = useLocation();
   const [directionsResponse, setDirectionsResponse] =
     useState<google.maps.DirectionsResult | null>(null);
   const [travelMode, setTravelMode] = useState<google.maps.TravelMode | null>(
@@ -84,24 +84,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setMapReady(true);
   };
 
-  const queryParams = new URLSearchParams(location.search as string);
-  const adId = queryParams.get("adId");
-  useEffect(() => {
-    if (!isLoaded || !mapReady || !adId) return;
 
-    const selectedAnnouncement = announcements.find(
-      (announcement) => String(announcement.id) === adId
-    );
 
-    if (selectedAnnouncement && mapRef.current) {
-      setAnnouncementInfo(selectedAnnouncement);
-      setShowAnnouncementModal(true);
-      mapRef.current.panTo({
-        lat: selectedAnnouncement.address.latitude,
-        lng: selectedAnnouncement.address.longitude,
-      });
-    }
-  }, [adId, announcements, isLoaded, mapReady]);
 
   const [isLocationDenied, setIsLocationDenied] = useState(false);
   const role = roleService.getValue();
@@ -226,10 +210,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setActiveCategory(filters?.categoryNames || "");
   }, []);
 
-  const center = {
-    lat: 53.08271195503471,
-    lng: 70.30456742278163,
-  };
+
 
   useEffect(() => {
     const vectorSource = new VectorSource();
@@ -246,7 +227,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         vectorLayer,
       ],
       view: new View({
-        center: fromLonLat([70.30456742278163, 53.08271195503471]),
+        center: fromLonLat([53.08271195503471, 70.30456742278163 ]),
         zoom: 14,
       }),
     });
@@ -384,8 +365,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         mapRef.current
       ) {
         mapRef.current.panTo({
-          lat: selectedAnnouncement.address.latitude,
-          lng: selectedAnnouncement.address.longitude,
+          lat: selectedAnnouncement.address.longitude,
+          lng: selectedAnnouncement.address.latitude,
         });
       }
     }
@@ -420,7 +401,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const [isFavourite, setIsFavourite] = useState<boolean>(
     announcementInfo?.isFavourite || false
   );
-
   const addToFavourite = async () => {
     if (announcementInfo) {
       await apiService.get({
@@ -433,6 +413,39 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       });
     }
   };
+  useEffect(() => {
+    if (!isLoaded || !mapReady || (!filters.adId && !filters.adName)) return;
+  
+    const selectedAnnouncement = announcements.find(
+      (announcement) => announcement.id === filters.adId
+    );
+  
+    const selectedByName = announcements.find(
+      (announcement) =>
+        filters.adName &&
+        announcement.title.toLowerCase().includes(filters.adName.toLowerCase()) 
+    );
+  
+    if (selectedAnnouncement && mapRef.current) {
+      setAnnouncementInfo(selectedAnnouncement);
+      setShowAnnouncementModal(true);
+      
+      mapRef.current.panTo({
+        lat: selectedAnnouncement.address.longitude,
+        lng: selectedAnnouncement.address.latitude,
+      });
+    } else if (selectedByName && mapRef.current) {
+      setAnnouncementInfo(selectedByName);
+      setShowAnnouncementModal(true);
+    
+      mapRef.current.panTo({
+        lat: selectedByName.address.longitude,
+        lng: selectedByName.address.latitude,
+      });
+    }
+  }, [filters.adId, filters.adName, announcements, isLoaded, mapReady]);
+  
+  
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -703,7 +716,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         >
                           <img
                             src={
-                              isFavourite ? FavouriteActiveIcon : FavouriteIcon
+                              isFavourite ? FavouriteActiveIcon : FavouriteIcon 
                             }
                             alt=""
                           />

@@ -9,9 +9,10 @@ import { User } from 'src/users/entities/user.entity';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Organization, Ad, Review, Booking])],
+  imports: [TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking])],
   controllers: [AdminPanelController, AnalyticsController],
   providers: [AdminPanelService, AnalyticsService],
   exports: [],

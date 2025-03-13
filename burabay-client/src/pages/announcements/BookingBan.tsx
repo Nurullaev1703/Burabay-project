@@ -9,18 +9,18 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Button } from "../../shared/ui/Button";
 import PlusIcon from "../../app/icons/announcements/bluePlus.svg";
 import editIcon from "../../app/icons/announcements/edit.svg";
-import { Switch } from "@mui/material";
+import { Modal, Switch } from "@mui/material";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, BookingBanDate } from "./model/announcements";
-import { format} from 'date-fns';
+import { format } from "date-fns";
 
 interface Props {
   adId: string;
-  announcement? :Announcement
+  announcement?: Announcement;
 }
 
 interface DateSettings {
@@ -28,10 +28,14 @@ interface DateSettings {
   times: string[];
 }
 interface TransformedData {
-  [key: string]: DateSettings
+  [key: string]: DateSettings;
 }
 
-export const BookingBan: FC<Props> = function BookingBan({ adId, announcement }) {
+export const BookingBan: FC<Props> = function BookingBan({
+  adId,
+  announcement,
+}) {
+  const [showModal, setShowModal] = useState(false);
   const match = useMatch({
     from: "/announcements/bookingBan/$adId",
   });
@@ -42,11 +46,13 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
 
   const [dates, setDates] = useState<string[]>(
     announcement?.bookingBanDate
-      ?.filter(item => item.date && !isNaN(new Date(item.date).getTime()))  // фильтруем нормальные даты
-      ?.map(item => format(new Date(item.date), "dd.MM.yyyy")) || []
+      ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime())) // фильтруем нормальные даты
+      ?.map((item) => format(new Date(item.date), "dd.MM.yyyy")) || []
   );
 
-  const [dateSettings, setDateSettings] = useState<Record<string, DateSettings>>(transformData(announcement?.bookingBanDate || []) || {});
+  const [dateSettings, setDateSettings] = useState<
+    Record<string, DateSettings>
+  >(transformData(announcement?.bookingBanDate || []) || {});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModals, setShowModals] = useState<Record<string, boolean>>({});
   const [selectedDateTwo, setSelectedDateTwo] = useState<Date | null>(null);
@@ -68,9 +74,9 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
         console.warn("Некорректная дата в bookingBanDate:", item);
         return acc;
       }
-  
+
       const formattedDate = format(new Date(item.date), "dd.MM.yyyy");
-  
+
       if (!acc[formattedDate]) {
         acc[formattedDate] = {
           allDay: item.allDay,
@@ -82,7 +88,7 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
       return acc;
     }, {});
   }
-  
+
   const toggleTimeSelection = (time: string) => {
     if (selectedDate) {
       setSelectedTimes((prevSelectedTimes) => {
@@ -136,26 +142,29 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
       adId: adId,
       date: date,
       allDay: dateSettings[date].allDay,
-      times: dateSettings[date].allDay ? [] : dateSettings[date].times.length > 0 ? dateSettings[date].times : serviceTime,
+      times: dateSettings[date].allDay
+        ? []
+        : dateSettings[date].times.length > 0
+          ? dateSettings[date].times
+          : serviceTime,
     }));
-  
+
     // Отправляем один запрос с массивом всех дат
     const response = await apiService.post<string>({
       url: `/booking-ban-date`,
-      dto: datesToSend,  // отправляем массив с датами
+      dto: datesToSend, // отправляем массив с датами
     });
-  
+
     // После успешного ответа редиректим пользователя
     if (response.data) {
       navigate({
         to: "/announcements/newService/$adId",
         params: {
           adId: adId,
-        }
+        },
       });
     }
   };
-  
 
   return (
     <main className="min-h-screen bg-[#F1F2F6]">
@@ -182,14 +191,41 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
               {t("optional")}
             </Typography>
           </div>
-          <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+          <IconContainer
+            align="end"
+            action={() => setShowModal(true)}
+          >
+            <img src={XIcon} alt="" />
+          </IconContainer>
         </div>
         <ProgressSteps currentStep={7} totalSteps={9} />
       </Header>
+      {showModal && (
+        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+          <Typography size={16} weight={400} className="text-center">
+            {t("confirmDelete")}
+          </Typography>
+          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
+          <img src={XIcon} className="w-[15px]" alt="" />
+          </div>
+          <div className="flex flex-col w-full px-4 justify-center mt-4">
+            <Button className="mb-2" onClick={() => navigate({
+              to: "/announcements"
+            })}>{t("publish")}</Button>
+              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
+              await apiService.delete({
+                url: `/ad/${adId}`
+              })
+              navigate({
+                to: "/announcements"
+              })
+            }
+            }>{t("delete")}</Button>
+          </div>
+          </div>
+        </Modal>
+      )}
       <div className="p-4 cursor-none">
         <label className="w-full relative flex items-center border bg-white rounded-lg p-4 h-20 mb-4 cursor-none">
           <img src={PlusIcon} alt="Добавить" />
@@ -303,7 +339,23 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
                 <Button onClick={saveDateSettings} className="text-white">
                   {t("saveBtn")}
                 </Button>
-                <Button onClick={() => setDates(prev => prev.filter(item => item != date))} mode="border">
+                <Button
+                  onClick={async () => {
+                    const banDateId = announcement?.bookingBanDate[0]?.id;
+                    try {
+                      await apiService.delete({
+                        url: `/booking-ban-date/${banDateId}`, 
+                        dto: { date }, 
+                      });
+
+
+                      setDates((prev) => prev.filter((item) => item !== date));
+                    } catch (error) {
+                      console.error("Ошибка при удалении даты:", error);
+                    }
+                  }}
+                  mode="border"
+                >
                   {t("deleteBtn")}
                 </Button>
               </div>
@@ -313,9 +365,10 @@ export const BookingBan: FC<Props> = function BookingBan({ adId, announcement })
       )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-        <Button onClick={handleSubmit} mode="default">{t("continueBtn")}</Button>
+        <Button onClick={handleSubmit} mode="default">
+          {t("continueBtn")}
+        </Button>
       </div>
     </main>
   );
 };
-

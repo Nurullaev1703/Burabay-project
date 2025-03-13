@@ -67,8 +67,8 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
       className={`min-h-screen px-4 ${adList.length ? "mb-36" : "overflow-y-hidden"}`}
     >
       {(adList.length || filters?.adName) && (
-        <div className="flex justify-between items-center text-center">
-          <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+        <div className="flex justify-between items-center text-center fixed top-0 left-0 w-full z-[100] bg-white px-4 py-2">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="" />
             <input
               type="search"
@@ -88,7 +88,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
               }}
             />
           </div>
-          <IconContainer className="mt-4" align="end">
+          <IconContainer align="end">
             <img
               onClick={() => navigate({ to: "/announcements/mapForAnnoun" })}
               src={marker}
@@ -119,7 +119,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
 
       {adList.length > 0 && (
         <>
-          <ul className="mt-6 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2">
+          <ul className="mt-[64px] grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2">
             {adList.map((item, index) => {
               if (index === adList.length - 1) {
                 return (

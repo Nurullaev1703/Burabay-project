@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Announcement} from "../model/announcements";
+import { Announcement } from "../model/announcements";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -18,13 +18,22 @@ import { baseUrl } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 
 interface Props {
   announcement: Announcement;
+  bannedDates?: TDates[];
 }
 
-export const BookingDate: FC<Props> = ({ announcement }) => {
+interface TDates {
+  startDate: string;
+  endDate: string;
+}
+
+export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   const { t } = useTranslation();
   const [selectedDateStart, setSelectedDateStart] = useState<string | null>(
     null
@@ -32,12 +41,20 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
   const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
   const navigate = useNavigate();
+  const [errorMessage, _setErrorMessage] = useState<string | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + announcement.images[0]
+  );
+  const isButtonDisabled =
+    !selectedDateStart ||
+    !selectedDateEnd ||
+    selectedDateStart === selectedDateEnd;
 
   const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;
-  
+
     const formattedDate = date.format("DD.MM.YYYY");
-  
+
     if (activeField === "start") {
       setSelectedDateStart(formattedDate);
 
@@ -47,48 +64,99 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
           setSelectedDateEnd(null);
         }
       }
-  
+
       setActiveField("end");
     } else {
       const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
-  
+
       if (date.isBefore(startDate)) {
         return;
       }
-  
+
       setSelectedDateEnd(formattedDate);
     }
   };
-  
 
-  const shouldDisableDate = (date: dayjs.Dayjs) => {
+  const isDateBanned = (date: Dayjs): boolean => {
+    return (
+      bannedDates?.some(({ startDate, endDate }) => {
+        const start = dayjs(startDate, "DD.MM.YYYY").startOf("day");
+        const end = dayjs(endDate, "DD.MM.YYYY").endOf("day");
+        return date.isBetween(start, end, null, "[]");
+      }) ?? false
+    );
+  };
+
+  // Функция проверки, можно ли выбрать эту дату
+  const blockedDaysOfWeek = announcement.isFullDay
+    ? [] // Если isFullDay === true, не блокируем дни недели
+    : Object.entries(announcement.schedule)
+        .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
+        .map(([key]) => {
+          const dayMap: Record<string, number> = {
+            monStart: 1,
+            tueStart: 2,
+            wenStart: 3,
+            thuStart: 4,
+            friStart: 5,
+            satStart: 6,
+            sunStart: 0,
+          };
+          return dayMap[key] ?? null;
+        })
+        .filter((day): day is number => day !== null);
+
+  const isDayBlockedBySchedule = (date: dayjs.Dayjs): boolean => {
+    return blockedDaysOfWeek.includes(date.day());
+  };
+
+  const shouldDisableDate = (date: dayjs.Dayjs): boolean => {
     const today = dayjs().startOf("day");
-  
-    if (date.isBefore(today)) {
-      return true; 
-    }
-  
+
+    if (date.isBefore(today)) return true; // Блокируем прошедшие дни
+    if (announcement.isFullDay) return isDateBanned(date); // Если isFullDay, блокируем только заблокированные даты
+    if (isDayBlockedBySchedule(date)) return true; // Блокируем дни с "00:00"
+    if (isDateBanned(date)) return true; // Блокируем заблокированные даты
+
     if (activeField === "end" && selectedDateStart) {
-      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY").startOf("day");
-      return date.isBefore(startDate);
+      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
+      const endDate = date;
+
+      return (
+        bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
+          const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
+            "day"
+          );
+          const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
+
+          return (
+            bannedStartDate.isBetween(startDate, endDate, null, "[]") ||
+            bannedEndDate.isBetween(startDate, endDate, null, "[]") ||
+            (startDate.isBefore(bannedStartDate) &&
+              endDate.isAfter(bannedEndDate))
+          );
+        }) ?? false
+      );
     }
-  
+
     return false;
   };
-  
-
   const saveTime = async () => {
-    if (!selectedDateStart || !selectedDateEnd) {
+    if (
+      !selectedDateStart ||
+      !selectedDateEnd ||
+      selectedDateStart === selectedDateEnd
+    ) {
       return;
     }
-  
+
     const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
     const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
-  
+
     if (endDate.isBefore(startDate)) {
       return;
     }
-  
+
     navigate({
       to: "/announcements/booking",
       state: {
@@ -98,7 +166,6 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       } as Record<string, unknown>,
     });
   };
-  
 
   return (
     <section>
@@ -128,7 +195,8 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
       <div className="mb-4 px-4">
         <div className="flex">
           <img
-            src={baseUrl + announcement.images[0]}
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
@@ -254,11 +322,15 @@ export const BookingDate: FC<Props> = ({ announcement }) => {
           </button>
         </div>
       </div>
-
+      {errorMessage && (
+        <div className="text-red-500 text-sm text-center mt-2">
+          {errorMessage}
+        </div>
+      )}
       {/* Кнопка */}
       <Button
+        disabled={isButtonDisabled}
         onClick={saveTime}
-        disabled={!selectedDateStart || !selectedDateEnd}
         className="fixed bottom-6 left-3 w-header mt-8 z-10"
       >
         {t("toBook")}
