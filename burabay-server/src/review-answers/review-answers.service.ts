@@ -4,9 +4,11 @@ import { UpdateReviewAnswerDto } from './dto/update-review-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from 'src/review/entities/review.entity';
 import { ReviewAnswer } from './entities/review-answer.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Injectable()
 export class ReviewAnswersService {
@@ -17,16 +19,19 @@ export class ReviewAnswersService {
     private readonly reviewAnswerRepository: Repository<ReviewAnswer>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    private dataSource: DataSource,
   ) {}
 
   @CatchErrors()
   async create(createReviewAnswerDto: CreateReviewAnswerDto, tokenData: TokenData) {
+    return await this.dataSource.transaction(async (manager) => {
     const org = await this.organizationRepository.findOne({
       where: { user: { id: tokenData.id } },
     });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     const review = await this.reviewRepository.findOne({
       where: { id: createReviewAnswerDto.reviewId },
+      relations: { user:true, ad:true }
     });
     Utils.checkEntity(review, 'Отзыв не найден');
     const answer = this.reviewAnswerRepository.create({
@@ -36,7 +41,15 @@ export class ReviewAnswersService {
       date: new Date(),
     });
     await this.reviewAnswerRepository.save(answer);
+    const notification = manager.create(Notification, {
+          users: [{ id: review.user.id }],
+          type: NotificationType.NEUTRAL,
+          message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
+          createdAt: new Date(),
+      });
+    await manager.save(notification);
     return JSON.stringify(HttpStatus.CREATED);
+    });
   }
 
   @CatchErrors()

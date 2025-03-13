@@ -19,6 +19,4 @@ export class CategoryController {
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(id);
   }
-
-  // XXX Нужна ли апишка для получения всех категорий у определенной организации?
 }

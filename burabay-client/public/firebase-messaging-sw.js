@@ -13,13 +13,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/firebase-logo.png'
-  };
+self.addEventListener('push', function(event) {
+  if (event.data) {
+    const payload = event.data.json();
+    
+    if (payload.data) {
+      const notificationTitle = payload.data.title;
+      const notificationOptions = {
+        body: payload.data.body,
+        icon: payload.data.icon,
+        badge: payload.data.icon,
+        requireInteraction: true,
+        data: { url: payload.data.click_action },
+      };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+      event.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
+    }
+  }
 });

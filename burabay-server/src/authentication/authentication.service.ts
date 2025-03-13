@@ -27,7 +27,7 @@ export class AuthenticationService {
     private jwtService: JwtService,
   ) {
     this.createAdminAccount({
-      email: "burabay-admin@gmail.com",
+      email: "burabai.travel@gmail.com",
       role: ROLE_TYPE.ADMIN,
       password: "burAdmin2025"
     })

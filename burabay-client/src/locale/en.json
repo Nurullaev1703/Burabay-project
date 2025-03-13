@@ -525,5 +525,7 @@
   "aproveNoti": "Allow notifications",
   "withoutNotiAprove": "Without this we will not be able to send them.",
   "confirmStatus": "Confirmed",
-  "doneStatus": "Done"
+  "doneStatus": "Done",
+  "confirmDelete": "The ad is not fully filled please select an action",
+  "publish": "Publish"
 }

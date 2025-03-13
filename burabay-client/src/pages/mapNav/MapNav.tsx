@@ -716,7 +716,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         >
                           <img
                             src={
-                              isFavourite ? FavouriteIcon : FavouriteActiveIcon
+                              isFavourite ? FavouriteActiveIcon : FavouriteIcon 
                             }
                             alt=""
                           />
