@@ -45,7 +45,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const logoutIcon = logout;
 
   const handleLogout = () => {
-    navigate({ to: "/admin/auth" });
+    navigate({ to: "/main" });
   };
 
   return (
@@ -104,7 +104,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
       <div className="absolute bottom-4 w-full">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-4 px-4 py-[12px] text-white border border-transparent hover:border-white rounded-[8px] cursor-pointer w-full"
+          className="flex items-center gap-4 px-4 py-[12px] text-white border border-transparent hover:border-white rounded-[8px] w-[280px] cursor-pointer"
         >
           <img
             src={logoutIcon}
