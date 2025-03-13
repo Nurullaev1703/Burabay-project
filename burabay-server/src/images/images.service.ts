@@ -96,15 +96,17 @@ export class ImagesService {
     },
     tokenData: TokenData,
   ) {
-    const organization = await this.organizationRepository.findOneBy({
-      user: { id: tokenData.id },
+    const organization = await this.organizationRepository.findOne({
+      where: { user: { id: tokenData.id } },
+      select: { id: true },
     });
 
     Utils.checkEntity(organization, 'Организация не найдена');
 
-    const orgName = organization.name;
+    // const orgName = organization.name;
     // const safeOrgName = orgName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-    const safeOrgName = this.sanitizeOrgName(orgName);
+    // const safeOrgName = this.sanitizeOrgName(orgName);
+    const safeOrgName = organization.id;
     const dirpath = `./public/docs/${safeOrgName}/`;
     await mkdir(dirpath, { recursive: true });
 
