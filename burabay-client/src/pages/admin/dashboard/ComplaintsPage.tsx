@@ -10,6 +10,8 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
+import { Navigate, useNavigate } from "@tanstack/react-router";
+import { AdminAnnoun } from "../announcements/AdminAnnoun";
 
 const BASE_URL = baseUrl;
 
@@ -68,9 +70,7 @@ export interface Profile {
 //   users: Profile;
 // }
 
-export const ComplaintsPage: FC = function ComplaintsPage({
-
-}) {
+export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [reviews, setReviews] = useState<
     (Review & {
       hint: { message: string; type: "success" | "error" } | null;
@@ -84,6 +84,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
+  const navigate = useNavigate();
+  const [selectedAd, setSelectedAd] = useState<Announcement | null>(null);
+  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -599,7 +602,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({
             {selectedOrg.ads.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {selectedOrg.ads.map((ad, index) => (
-                  <AdCard key={index} ad={ad} isOrganization={true} />
+                  <div
+                    onClick={() =>
+                      navigate({
+                        to: `/admin/announcements/${ad.id}`,
+                      })
+                    }
+                  >
+                    <AdCard key={index} ad={ad} isOrganization={true} />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -617,14 +628,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-lg z-10"
                 onClick={() => {
-                  if (selectedOrg?.user?.id) {
-                    console.log(
-                      `ID пользователя для разблокировки: ${selectedOrg.user.id}`
-                    );
-                    handleUnblockUser(selectedOrg.user.id);
-                  } else {
-                    console.error("Идентификатор пользователя не найден");
-                  }
+                  handleUnblockUser(selectedOrg.id);
                 }}
               >
                 Разблокировать

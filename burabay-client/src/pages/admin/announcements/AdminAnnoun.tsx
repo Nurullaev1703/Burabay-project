@@ -212,6 +212,7 @@ export const AdminAnnoun: FC<Props> = function Announcement({
       )}
       {isFavouriteModal && <FavouriteHint />}
       <div className="bg-white p-4 sticky left-0 flex justify-center items-center bottom-0">
+        
     <Button mode="red" onClick={() => setShowModal(true)} className=" border-2 border-red  w-[60%]">{"Удалить объявление"}</Button>
     </div>
     </section>

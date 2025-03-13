@@ -306,7 +306,7 @@ export default function UsersList({ filters }: Props) {
                             <p>—</p>
                           </div>
                         )}
-                        {user.role === "бизнес" && (
+                        {user.role === "турист" && (
                           <p
                             className={`text-sm ${
                               user.isBanned
@@ -315,6 +315,21 @@ export default function UsersList({ filters }: Props) {
                             }`}
                           >
                             {user.isBanned
+                              ? UsersFilterStatus.BAN
+                              : user.isEmailConfirmed
+                                ? "Подтвержден"
+                                : UsersFilterStatus.WAITING}
+                          </p>
+                        )}
+                        {user.role === "бизнес" && (
+                          <p
+                            className={`text-sm ${
+                              user.organization?.isBanned
+                                ? "text-red flex"
+                                : "text-[14px] text-[#39B56B]"
+                            }`}
+                          >
+                            {user.organization?.isBanned
                               ? UsersFilterStatus.BAN
                               : user.isEmailConfirmed
                                 ? "Подтвержден"
@@ -449,15 +464,15 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.regCouponPath ? (
                         <a
-                          href={selectedOrganization.regCouponPath ?? "#"}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
-                          download={selectedOrganization.regCouponPath}
+                          download={`regFile.${selectedOrganization.regCouponPath.split(".").pop()}`}
                         >
                           <span>
                             {selectedOrganization.regCouponPath
-                              ?.split("/")
+                              .split("/")
                               .pop() || "Документ"}
                           </span>
                         </a>
@@ -477,15 +492,15 @@ export default function UsersList({ filters }: Props) {
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
                         <a
-                          href={selectedOrganization.ibanDocPath ?? "#"}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
-                          download={selectedOrganization.ibanDocPath}
+                          download={`ibanFile.${selectedOrganization.ibanDocPath.split(".").pop()}`}
                         >
                           <span>
                             {selectedOrganization.ibanDocPath
-                              ?.split("/")
+                              .split("/")
                               .pop() || "Документ"}
                           </span>
                         </a>
@@ -507,15 +522,15 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.orgRulePath ? (
                         <a
-                          href={selectedOrganization.orgRulePath ?? "#"}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"
-                          download={selectedOrganization.orgRulePath}
+                          download="ruleFile"
                         >
                           <span>
                             {selectedOrganization.orgRulePath
-                              ?.split("/")
+                              .split("/")
                               .pop() || "Документ"}
                           </span>
                         </a>
