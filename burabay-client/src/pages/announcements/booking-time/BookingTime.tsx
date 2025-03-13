@@ -94,31 +94,33 @@ export const BookingTime: FC<Props> = function BookingTime({
       state: { time, date, announcement } as unknown as Record<string, unknown>,
     });
   };
-  const blockedDaysOfWeek = Object.entries(announcement.schedule)
-    .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
-    .map(([key]) => {
-      const dayMap: Record<string, number> = {
-        monStart: 1,
-        tueStart: 2,
-        wenStart: 3,
-        thuStart: 4,
-        friStart: 5,
-        satStart: 6,
-        sunStart: 0,
-      };
-      return dayMap[key] ?? null;
-    })
-    .filter((day): day is number => day !== null);
+  const blockedDaysOfWeek = announcement.isFullDay
+    ? [] 
+    : Object.entries(announcement.schedule)
+        .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
+        .map(([key]) => {
+          const dayMap: Record<string, number> = {
+            monStart: 1,
+            tueStart: 2,
+            wenStart: 3,
+            thuStart: 4,
+            friStart: 5,
+            satStart: 6,
+            sunStart: 0,
+          };
+          return dayMap[key] ?? null;
+        })
+        .filter((day): day is number => day !== null);
 
   const isDayBlockedBySchedule = (date: dayjs.Dayjs): boolean => {
-    return blockedDaysOfWeek.includes(date.day()); 
+    return blockedDaysOfWeek.includes(date.day());
   };
 
   const shouldDisableDate = (date: dayjs.Dayjs) => {
     return (
-      date.isBefore(dayjs(), "day") ||
-      isDateBlocked(date) ||
-      isDayBlockedBySchedule(date)
+      date.isBefore(dayjs(), "day") || // Блокируем прошедшие дни
+      isDateBlocked(date) || // Блокируем даты из serviceSchedule
+      isDayBlockedBySchedule(date) // Блокируем дни по schedule, если isFullDay !== true
     );
   };
 
