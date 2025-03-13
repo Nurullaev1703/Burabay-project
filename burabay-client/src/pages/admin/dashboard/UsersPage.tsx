@@ -51,10 +51,10 @@ export default function UsersList({ filters }: Props) {
     });
   };
 
-  const resolveDocUrl = (docPath: string | null) => {
-    if (!docPath) return "#";
-    return `${baseUrl}/public${docPath}`;
-  };
+  // const resolveDocUrl = (docPath: string | null) => {
+  //   if (!docPath) return "#";
+  //   return `${baseUrl}/public${docPath}`;
+  // };
   const openConfirmModal = (organization: Organization) => {
     setSelectedOrganization(organization);
     setIsConfirmModalOpen(true);
@@ -166,7 +166,7 @@ export default function UsersList({ filters }: Props) {
     <div className="relative min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-25"
+        className="fixed inset-0 bg-cover bg-center opacity-25"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
       <div className="relative z-50">
@@ -310,7 +310,7 @@ export default function UsersList({ filters }: Props) {
                             <p>—</p>
                           </div>
                         )}
-                        {user.role === "турист" && (
+                        {user.role === "бизнес" && (
                           <p
                             className={`text-sm ${
                               user.isBanned
@@ -457,6 +457,7 @@ export default function UsersList({ filters }: Props) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
+                          download={selectedOrganization.regCouponPath}
                         >
                           <span>
                             {selectedOrganization.regCouponPath
@@ -484,6 +485,7 @@ export default function UsersList({ filters }: Props) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
+                          download={selectedOrganization.ibanDocPath}
                         >
                           <span>
                             {selectedOrganization.ibanDocPath
@@ -513,6 +515,7 @@ export default function UsersList({ filters }: Props) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"
+                          download={selectedOrganization.orgRulePath}
                         >
                           <span>
                             {selectedOrganization.orgRulePath

@@ -42,11 +42,64 @@ interface Organization {
   imgUrl: string;
   website?: string;
   phone?: string;
-  user: { email: string };
+  user: { id: string; email: string };
   ads: Announcement[];
 }
 
-export const ComplaintsPage: FC = function ComplaintPage() {
+export enum ROLE_TYPE {
+  ADMIN = "ADMIN",
+  MODERATOR = "MODERATOR",
+  TOURIST = "TOURIST",
+}
+
+export interface Profile {
+  id: string;
+  fullName: string;
+  email: string;
+  isEmailConfirmed: boolean;
+  organization: Organization;
+  phoneNumber: string;
+  picture: string;
+  role: ROLE_TYPE;
+  isBanned: boolean;
+}
+
+interface ComplaintsPageProps {
+  profile: Profile;
+  users: Profile[];
+}
+
+interface UserDataResponse {
+  id: string;
+  fullName: string;
+  phoneNumber: string;
+  role: string;
+  picture: string;
+  email: string;
+  isEmailConfirmed: boolean;
+  isBanned: boolean;
+  pushToken: null;
+  organization: {
+    id: string;
+    imgUrl: string;
+    name: string;
+    bin: null;
+    regCouponPath: null;
+    ibanDocPath: null;
+    orgRulePath: null;
+    rating: number;
+    reviewCount: number;
+    isConfirmed: boolean;
+    isConfirmCanceled: boolean;
+    description: string;
+    siteUrl: string;
+    isBanned: boolean;
+  };
+}
+
+export const ComplaintsPage: FC<ComplaintsPageProps> = function ComplaintsPage({
+  users,
+}) {
   const [reviews, setReviews] = useState<
     (Review & {
       hint: { message: string; type: "success" | "error" } | null;
@@ -55,13 +108,19 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
+  const [_userData, _setUserData] = useState<UserDataResponse | null>(null);
 
   useEffect(() => {
+    console.log("Список пользователей:", users);
+
+    // Проверка роли пользователя
+
     const fetchReviews = async () => {
       try {
         const response = await apiService.get<Review[]>({
@@ -88,7 +147,11 @@ export const ComplaintsPage: FC = function ComplaintPage() {
     };
 
     fetchReviews();
-  }, []);
+
+    const intervalId = setInterval(fetchReviews, 15000); // Обновление каждые 15 секунд
+
+    return () => clearInterval(intervalId); // Очистка интервала при размонтировании компонента
+  }, [users]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -218,12 +281,43 @@ export const ComplaintsPage: FC = function ComplaintPage() {
       if (response.status === 200) {
         console.log("Информация об организации:", response.data);
         setSelectedOrg(response.data);
+        if (users && users.length > 0) {
+          const user = users.find((user) => user.organization.id === orgId);
+          if (user) {
+            setSelectedUser(user);
+          } else {
+            console.error("Пользователь не найден для данной организации");
+          }
+        } else {
+          console.error("Список пользователей пуст или не определен");
+        }
         setIsModalOpen(true);
       }
     } catch (error) {
       console.error("Ошибка загрузки данных организации:", error);
     }
   };
+
+  // const fetchUserData = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await apiService.get<UserDataResponse>({
+  //       url: `/admin/users`, // <--- Эндпоинт API
+  //     });
+
+  //     if (response.status === 200) {
+  //       setUserData(response.data); // <--- Обновляем состояние данными пользователя
+  //     } else {
+  //       console.error("Ошибка при загрузке данных пользователя:", response);
+  //       // Обработка ошибки (например, показ сообщения пользователю)
+  //     }
+  //   } catch (error) {
+  //     console.error("Ошибка запроса к API /admin/users:", error);
+  //     // Обработка ошибки запроса
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleCancelHint = (reviewId: string) => {
     setReviews((prevReviews) =>
@@ -246,6 +340,54 @@ export const ComplaintsPage: FC = function ComplaintPage() {
 
   const loadMoreReviews = () => {
     setVisibleReviewsCount((prevCount) => prevCount + 20);
+  };
+
+  console.log(users);
+
+  const handleBlockUser = async () => {
+    // if (!selectedUser) {
+    //   console.error("Идентификатор пользователя не найден");
+    //   return;
+    // }
+
+    try {
+      const response = await apiService.get({
+        url: `/admin/users`,
+      });
+      if (response.status === 200) {
+        alert("Пользователь заблокирован"); // Измените сообщение на "Пользователь заблокирован"
+        setIsModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке пользователя"); // Измените сообщение на "Ошибка при блокировке пользователя"
+      }
+      console.log(response.data);
+    } catch (error) {
+      console.error("Ошибка блокировки пользователя:", error); // Измените сообщение об ошибке
+      alert("Произошла ошибка при блокировке пользователя"); // Измените сообщение об ошибке
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!selectedUser) {
+      console.error("Идентификатор пользователя не найден");
+      return;
+    }
+
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${selectedUser.id}`,
+        dto: { value: false }, // Разблокируем пользователя
+      });
+      if (response.status === 200) {
+        alert("Пользователь разблокирован");
+        setIsModalOpen(false); // Закрываем модальное окно после разблокировки
+      } else {
+        alert("Ошибка при разблокировке пользователя");
+      }
+    } catch (error) {
+      console.error("Ошибка разблокировки пользователя:", error);
+      alert("Произошла ошибка при разблокировке пользователя");
+    }
   };
 
   return (
@@ -340,15 +482,19 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                         <div className="flex items-center">
                           <img
                             src={`${BASE_URL}${review.adImage}`}
-                            alt="Фото отзыва"
+                            alt="Фото курорта"
                             className="w-[52px] h-[52px] rounded-md object-cover"
+                            onError={(e) =>
+                              (e.currentTarget.src = defaultImage)
+                            }
                           />
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-700">
                               {review.adName}
                             </p>
-                            <div className="text-[16px] text-yellow-500 flex items-center">
-                              ⭐ {review.adRating} ({review.adReviewCount})
+                            <div className="text-[16px] text-black flex items-center">
+                              ⭐ {review.adRating} · {review.adReviewCount}{" "}
+                              оценок
                             </div>
                           </div>
                         </div>
@@ -360,8 +506,11 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                             <img
                               key={idx}
                               src={`${BASE_URL}${img}`}
-                              alt="Фото отзыва"
+                              alt="Фото орагнизации"
                               className="w-[80px] h-[80px] rounded-md object-cover"
+                              onError={(e) =>
+                                (e.currentTarget.src = defaultImage)
+                              }
                             />
                           ))}
                         </div>
@@ -376,10 +525,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                           <img
                             src={`${BASE_URL}${review.orgImage}`}
                             alt="Лого"
-                            className="w-[40px] h-[40px] rounded-full bg-gray-200"
+                            className="w-[40px] h-[40px] rounded-full object-cover bg-gray-200"
                             onError={(e) =>
-                              (e.currentTarget.src =
-                                "../../../app/icons/abstract-bg.svg")
+                              (e.currentTarget.src = defaultImage)
                             }
                           />
 
@@ -441,7 +589,11 @@ export const ComplaintsPage: FC = function ComplaintPage() {
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
               <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
-                <img src={noComp} alt="Нет жалоб" className="w-[150px] h-[150px] mb-4" />
+                <img
+                  src={noComp}
+                  alt="Нет жалоб"
+                  className="w-[150px] h-[150px] mb-4"
+                />
                 <p className="text-center text-black text-lg">Жалоб пока нет</p>
               </div>
             </div>
@@ -457,9 +609,9 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../../public/icons/Close.png"
+                  src="../../../../public/Back.svg"
                   alt="Назад"
-                  className="w-full h-full"
+                  className="w-6 h-6"
                 />
               </button>
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
@@ -470,7 +622,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 <img
-                  src="../../../../public/icons/Close.png"
+                  src="../../../../public/Close.png"
                   alt="Выход"
                   className="w-full h-full"
                 />
@@ -524,7 +676,7 @@ export const ComplaintsPage: FC = function ComplaintPage() {
               </div>
             </div>
             {selectedOrg.ads.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {selectedOrg.ads.map((ad, index) => (
                   <AdCard key={index} ad={ad} isOrganization={true} />
                 ))}
@@ -533,10 +685,16 @@ export const ComplaintsPage: FC = function ComplaintPage() {
               <p className="text-gray-500">Нет объявлений</p>
             )}
             <div className="mt-4 flex justify-between">
-              <button className="bg-red text-white px-4 py-2 rounded-lg">
+              <button
+                className="bg-red text-white px-4 py-2 rounded-lg z-10"
+                onClick={handleBlockUser}
+              >
                 Заблокировать пользователя
               </button>
-              <button className="bg-green-500 text-white px-4 py-2 rounded-lg">
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded-lg z-10"
+                onClick={handleUnblockUser}
+              >
                 Разблокировать
               </button>
             </div>
