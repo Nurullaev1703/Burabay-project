@@ -9,6 +9,7 @@ import { Review } from './entities/review.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -19,6 +20,7 @@ export class ReviewService {
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @CatchErrors()
@@ -43,14 +45,15 @@ export class ReviewService {
       ad.reviewCount = length;
       await manager.save(ad);
       await manager.save(newReview);
-      const notification = manager.create(Notification, {
-        users: [{ id: ad.organization.user.id }],
-        type: NotificationType.POSITIVE,
+      const notificationDto = {
+        email: ad.organization.user.email, // Используем email пользователя
+        title: "",
         message: `Новый отзыв на объявление "${ad.title}"`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
-      
+        type: NotificationType.POSITIVE
+      };
+  
+      await this.notificationService.createForUser(notificationDto);
+
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -146,13 +149,14 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
-      const notification = manager.create(Notification, {
-            users: [{ id: review.user.id }],
-            type: NotificationType.NEGATIVE,
-            message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
-            createdAt: new Date(),
-          });
-          await manager.save(notification);
+      
+      const notificationDto = {
+        email: review.user.email,
+        title: '',
+        type: NotificationType.NEGATIVE,
+        message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
     });
   }

@@ -10,6 +10,7 @@ import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class ReviewReportService {
@@ -23,6 +24,7 @@ export class ReviewReportService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @CatchErrors()
@@ -45,14 +47,13 @@ export class ReviewReportService {
       date: new Date(),
     });
     await this.reviewReportRepository.save(report);
-    
-    const notification = manager.create(Notification, {
-      users: [{ id: review.user.id }],
+    const notificationDto = {
+      email: review.user.email,
+      title: '',
       type: NotificationType.NEGATIVE,
       message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
-      createdAt: new Date(),
-    });
-    await manager.save(notification);
+    };
+    await this.notificationService.createForUser(notificationDto);
     return JSON.stringify(HttpStatus.CREATED);
   });
   }

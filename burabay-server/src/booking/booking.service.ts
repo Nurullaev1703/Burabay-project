@@ -14,6 +14,7 @@ import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.ser
 import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class BookingService {
@@ -28,6 +29,7 @@ export class BookingService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /* Создание Бронирования. */
@@ -101,13 +103,13 @@ export class BookingService {
           await this.bookingBanDateService.create([bookingBanDateDto]);
         }
       }
-      const notification = manager.create(Notification, {
-        users: [{ id: ad.organization.user.id }],
+      const notificationDto = {
+        email: ad.organization.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Новая бронь на объявление "${ad.title}"`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -444,11 +446,13 @@ export class BookingService {
       });
       Utils.checkEntity(booking, 'Бронирование не найдено');
       await manager.remove(booking);
-      const notification = manager.create(Notification, {
-        user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
+      const notificationDto = {
+        email: booking.user.email,
+        title: '',
+        type: NotificationType.NEGATIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
     });
   }
@@ -468,21 +472,21 @@ export class BookingService {
         select: { id: true, role: true },
       });
       if (user.role === ROLE_TYPE.BUSINESS) {
-        const notification = manager.create(Notification, {
-          users: [{ id: booking.user.id }],
+        const notificationDto = {
+          email: booking.ad.organization.user.email, 
+          title: '',
           type: NotificationType.NEGATIVE,
-          message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
-          createdAt: new Date(),
-        });
-        await manager.save(notification);
+          message: `Бронь на объявление "${booking.ad.title}" была отменена`,
+        };
+        await this.notificationService.createForUser(notificationDto);
       } else if (user.role === ROLE_TYPE.TOURIST) {
-        const notification = manager.create(Notification, {
-          users: [{ id: booking.ad.organization.user.id }],
+        const notificationDto = {
+          email: booking.user.email, 
+          title: '',
           type: NotificationType.NEGATIVE,
           message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
-          createdAt: new Date(),
-        });
-        await manager.save(notification);
+        };
+        await this.notificationService.createForUser(notificationDto);
       }
 
       return JSON.stringify(HttpStatus.OK);
@@ -499,13 +503,13 @@ export class BookingService {
       Utils.checkEntity(booking, 'Объявление не найдено');
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
-      const notification = manager.create(Notification, {
-        users: [{ id: booking.user.id }],
+      const notificationDto = {
+        email: booking.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была подтверждена`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
     });
   }
@@ -520,17 +524,20 @@ export class BookingService {
       Utils.checkEntity(booking, 'Объявление не найдено');
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
-      const notification = manager.create(Notification, {
-        users: [{ id: booking.ad.organization.user.id }],
+
+      const notificationDto = {
+        email: booking.ad.organization.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Бронь на объявление "${booking.ad.title}" была оплачена`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+
+      await this.notificationService.createForUser(notificationDto);
+
       return JSON.stringify(HttpStatus.OK);
     });
   }
-
+  
   @CatchErrors()
   async bookingDone(id: string) {
     const booking = await this.bookingRepository.findOne({ where: { id: id } });
