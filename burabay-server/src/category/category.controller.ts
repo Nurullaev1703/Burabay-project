@@ -5,7 +5,6 @@ import { Public } from 'src/constants';
 
 @ApiTags('Категории')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

@@ -33,10 +33,9 @@ export class NotificationService {
     const newNotification = this.notificationRepository.create({
       ...of,
       createdAt: createdAt,
-      users:[user],
+      users: [user],
     });
     await this.notificationRepository.save(newNotification);
-    
     // Отправка push-уведомления
     if (user.pushToken) {
       const payload = {
@@ -57,7 +56,6 @@ export class NotificationService {
       }
       await this.firebaseAdminService.sendNotification(user.pushToken, payload);
     }
-    
 
     return JSON.stringify(HttpStatus.CREATED);
   }

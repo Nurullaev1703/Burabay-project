@@ -8,6 +8,8 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { BookingBanDateModule } from 'src/booking-ban-date/booking-ban-date.module';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { FirebaseAdminService } from 'src/notification/firebase-admin.service';
 
 @Module({
   imports: [
@@ -15,6 +17,6 @@ import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.e
     BookingBanDateModule,
   ],
   controllers: [BookingController],
-  providers: [BookingService],
+  providers: [BookingService, NotificationService, FirebaseAdminService],
 })
 export class BookingModule {}

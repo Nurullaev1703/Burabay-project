@@ -9,6 +9,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class ReviewAnswersService {
@@ -20,6 +21,7 @@ export class ReviewAnswersService {
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
     private dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @CatchErrors()
@@ -41,13 +43,13 @@ export class ReviewAnswersService {
       date: new Date(),
     });
     await this.reviewAnswerRepository.save(answer);
-    const notification = manager.create(Notification, {
-          users: [{ id: review.user.id }],
-          type: NotificationType.NEUTRAL,
-          message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
-          createdAt: new Date(),
-      });
-    await manager.save(notification);
+    const notificationDto = {
+      email: review.user.email,
+      title: '',
+      type: NotificationType.NEUTRAL,
+      message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
+    };
+    await this.notificationService.createForUser(notificationDto);
     return JSON.stringify(HttpStatus.CREATED);
     });
   }
