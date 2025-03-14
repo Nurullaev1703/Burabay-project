@@ -15,6 +15,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
+  const [isModalOpen, setIsModalOpen] = useState(false); // Добавляем состояние для модального окна
 
   const links = [
     {
@@ -45,7 +46,16 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const logoutIcon = logout;
 
   const handleLogout = () => {
-    navigate({ to: "/main" });
+    setIsModalOpen(true); // Открываем модальное окно
+  };
+
+  const confirmLogout = () => {
+    navigate({ to: "/main" }); // Выполняем выход
+    setIsModalOpen(false); // Закрываем модальное окно
+  };
+
+  const cancelLogout = () => {
+    setIsModalOpen(false); // Закрываем модальное окно
   };
 
   return (
@@ -114,6 +124,29 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
           {isExpanded && <span className="text-md font-medium">Выйти</span>}
         </button>
       </div>
+
+      {/* Модальное окно */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white w-[390px] p-6 rounded-md">
+            <p className="text-[18px] text-center font-medium mb-4">Вы уверены, что хотите выйти из аккаунта?</p>
+            <div className="gap-4 space-y-4">
+              <button
+                onClick={confirmLogout}
+                className="border-[3px] border-[#FF4545] text-[#FF4545] font-medium px-4 py-2 rounded-[32px] h-[54px] w-full"
+              >
+                Да
+              </button>
+              <button
+                onClick={cancelLogout}
+                className="border bg-[#0A7D9E] font-medium rounded-[32px] text-white px-4 py-2 h-[54px] w-full"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
