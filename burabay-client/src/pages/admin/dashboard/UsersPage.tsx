@@ -19,7 +19,7 @@ import downloadIcon from "../../../app/icons/download.svg";
 
 import document from "../../../../public/document.svg";
 import confirmed from "../../../../public/confirmed.svg";
-import Close from "../../../../public/Close.png"
+import Close from "../../../../public/Close.png";
 
 interface Props {
   filters: UsersFilter;
@@ -138,25 +138,6 @@ export default function UsersList({ filters }: Props) {
 
   const loadMoreUsers = () => {
     setVisibleUsersCount((prevCount) => prevCount + 20);
-  };
-
-  const downloadFile = (filePath: string, staticFilename: string) => {
-    fetch(filePath)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const ext = filePath.split(".").pop();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${staticFilename}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      })
-      .catch((error) => {
-        console.error("Ошибка при скачивании файла:", error);
-      });
   };
 
   return (
@@ -352,10 +333,7 @@ export default function UsersList({ filters }: Props) {
                           <span className="text-[#0A7D9E] mr-4">
                             Подтвержден
                           </span>
-                          <img
-                            src={confirmed}
-                            alt="confirmed"
-                          />
+                          <img src={confirmed} alt="confirmed" />
                         </div>
                       ) : (
                         <button
@@ -433,11 +411,7 @@ export default function UsersList({ filters }: Props) {
                   className="h-[44px] w-[44px]"
                   onClick={closeConfirmModal}
                 >
-                  <img
-                    src={Close}
-                    alt="Назад"
-                    className="w-full h-full"
-                  />
+                  <img src={Close} alt="Назад" className="w-full h-full" />
                 </button>
               </div>
 

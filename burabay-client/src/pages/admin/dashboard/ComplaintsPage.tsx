@@ -10,8 +10,7 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
-import { Navigate, useNavigate } from "@tanstack/react-router";
-import { AdminAnnoun } from "../announcements/AdminAnnoun";
+import { useNavigate } from "@tanstack/react-router";
 
 import Back from "../../../../public/Back.svg";
 import Close from "../../../../public/Close.png";
@@ -82,14 +81,12 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     })[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, setIsExpanded] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
   const navigate = useNavigate();
-  const [selectedAd, setSelectedAd] = useState<Announcement | null>(null);
-  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
