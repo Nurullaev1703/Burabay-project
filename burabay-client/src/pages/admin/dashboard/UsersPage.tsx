@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -16,6 +16,10 @@ import defaultImage from "../../../app/icons/abstract-bg.svg?url";
 import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
+
+import document from "../../../../public/document.svg";
+import confirmed from "../../../../public/confirmed.svg";
+import Close from "../../../../public/Close.png"
 
 interface Props {
   filters: UsersFilter;
@@ -79,28 +83,6 @@ export default function UsersList({ filters }: Props) {
     openConfirmActionModal("reject");
   };
 
-  const closeDropdownsOnClickOutside = (event: MouseEvent) => {
-    if (
-      roleFilterRef.current &&
-      !roleFilterRef.current.contains(event.target as Node)
-    ) {
-      setIsRoleDropdownOpen(false);
-    }
-    if (
-      statusFilterRef.current &&
-      !statusFilterRef.current.contains(event.target as Node)
-    ) {
-      setIsStatusDropdownOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", closeDropdownsOnClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", closeDropdownsOnClickOutside);
-    };
-  }, []);
-
   const BASE_URL = baseUrl;
 
   const confirmActionHandler = async () => {
@@ -156,6 +138,25 @@ export default function UsersList({ filters }: Props) {
 
   const loadMoreUsers = () => {
     setVisibleUsersCount((prevCount) => prevCount + 20);
+  };
+
+  const downloadFile = (filePath: string, staticFilename: string) => {
+    fetch(filePath)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const ext = filePath.split(".").pop();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${staticFilename}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      })
+      .catch((error) => {
+        console.error("Ошибка при скачивании файла:", error);
+      });
   };
 
   return (
@@ -352,7 +353,7 @@ export default function UsersList({ filters }: Props) {
                             Подтвержден
                           </span>
                           <img
-                            src="../../../../public/confirmed.svg"
+                            src={confirmed}
                             alt="confirmed"
                           />
                         </div>
@@ -433,7 +434,7 @@ export default function UsersList({ filters }: Props) {
                   onClick={closeConfirmModal}
                 >
                   <img
-                    src="../../../../public/Close.png"
+                    src={Close}
                     alt="Назад"
                     className="w-full h-full"
                   />
@@ -456,7 +457,7 @@ export default function UsersList({ filters }: Props) {
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-[32px]">
                 <div className="flex items-center space-x-2">
-                  <img src="../../../../public/document.svg" alt="doc" />
+                  <img src={document} alt="doc" />
                   <div className="flex-1 flex items-center justify-between">
                     <div>
                       <p className="text-[12px] text-[#999999] w-full">
@@ -486,7 +487,7 @@ export default function UsersList({ filters }: Props) {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <img src="../../../../public/document.svg" alt="doc" />
+                  <img src={document} alt="doc" />
                   <div className="flex-1 flex items-center justify-between">
                     <div>
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
@@ -514,7 +515,7 @@ export default function UsersList({ filters }: Props) {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <img src="../../../../public/document.svg" alt="doc" />
+                  <img src={document} alt="doc" />
                   <div className="flex-1 flex items-center justify-between">
                     <div>
                       <p className="text-[12px] text-[#999999]">

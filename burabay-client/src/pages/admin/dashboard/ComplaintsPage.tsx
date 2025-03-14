@@ -13,6 +13,9 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { AdminAnnoun } from "../announcements/AdminAnnoun";
 
+import Back from "../../../../public/Back.svg";
+import Close from "../../../../public/Close.png";
+
 const BASE_URL = baseUrl;
 
 interface Review {
@@ -136,7 +139,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет удален через 10 секунд",
+                message: "Отзыв будет удален через 15 секунд",
                 type: "success",
               },
               delayedRemoval: true,
@@ -191,7 +194,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               ...review,
               hint: {
                 message:
-                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
+                  "Отзыв будет принят через 15 секунд. Нажмите Отменить, чтобы восстановить.",
                 type: "success",
               },
               delayedRemoval: true,
@@ -328,9 +331,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       >
         <SideNav />
       </div>
-      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
+      <div className="flex-1 flex flex-col  items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
         {reviews.length > 0 && (
-          <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full bg-white font-roboto rounded-b-[16px]">
+          <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px]">
             <div className="border-r pl-[32px] h-full flex items-center">
               <div className="text-left text-[24px] font-normal flex items-center ">
                 Отзыв
@@ -417,8 +420,11 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             <p className="text-sm font-semibold text-gray-700">
                               {review.adName}
                             </p>
-                            <div className="text-[16px] text-yellow-500 flex items-center">
-                              ⭐ {review.adRating} ({review.adReviewCount})
+                            <div className="text-[16px] text-black flex items-center">
+                              ⭐ {review.adRating} ·{" "}
+                              <span className="text-gray-500">
+                                &nbsp;{review.adReviewCount} оценок
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -532,11 +538,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
               >
-                <img
-                  src="../../../../public/Back.svg"
-                  alt="Назад"
-                  className="w-6 h-6"
-                />
+                <img src={Back} alt="Назад" className="w-6 h-6" />
               </button>
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
                 Организация
@@ -545,11 +547,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
               >
-                <img
-                  src="../../../../public/Close.png"
-                  alt="Выход"
-                  className="w-full h-full"
-                />
+                <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
             <div className="flex justify-center mt-[68px]">
@@ -616,23 +614,27 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             ) : (
               <p className="text-gray-500">Нет объявлений</p>
             )}
-            <div className="mt-4 flex justify-between">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-lg z-10"
-                onClick={() => {
-                  handleBlockUser(selectedOrg.id);
-                }}
-              >
-                Заблокировать пользователя
-              </button>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded-lg z-10"
-                onClick={() => {
-                  handleUnblockUser(selectedOrg.id);
-                }}
-              >
-                Разблокировать
-              </button>
+            <div className="flex flex-col items-center gap-4">
+              <div>
+                <button
+                  className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                  onClick={() => {
+                    handleBlockUser(selectedOrg.id);
+                  }}
+                >
+                  Заблокировать пользователя
+                </button>
+              </div>
+              <div>
+                <button
+                  className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                  onClick={() => {
+                    handleUnblockUser(selectedOrg.id);
+                  }}
+                >
+                  Разблокировать
+                </button>
+              </div>
             </div>
           </div>
         </div>
