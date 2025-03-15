@@ -63,7 +63,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
     <ul>
       <li className="py-3">
         <Link
-          to={`/announcements/schedule/${ad.id}`}
+          to={`/announcements/org-page/${ad.organization.id}`}
           className="flex justify-between"
         >
           <div className="flex items-center relative">
