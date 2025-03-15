@@ -81,6 +81,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
         <div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white p-4">
           {org.ads.map((ad, index) => (
             <div
+              key={index}
               onClick={() =>
                 navigate({
                   to: `/announcements/${ad.id}`,
