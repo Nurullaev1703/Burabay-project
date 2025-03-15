@@ -197,7 +197,6 @@ export const Profile: FC = function Profile() {
       setAccountStatus("unconfirmed");
     }
   }, []);
-    console.log(accountStatus)
 
   return (
     <section className="px-4 mb-nav">

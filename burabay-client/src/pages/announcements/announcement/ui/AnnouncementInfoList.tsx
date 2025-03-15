@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
@@ -7,7 +7,9 @@ import { Link } from "@tanstack/react-router";
 import PhoneIcon from "../../../../app/icons/announcements/phone.svg";
 import { roleService } from "../../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../../auth/model/auth-model";
-
+import { baseUrl } from "../../../../services/api/ServerData";
+import DefaultImage from "../../../../app/icons/abstract-bg.svg";
+import ConfirmedIcon from "../../../../app/icons/profile/confirmed.svg";
 interface Props {
   ad: Announcement;
   isAdmin?: boolean;
@@ -18,10 +20,12 @@ export const formatPhoneNumber = (number: number | string) => {
 };
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
-  isAdmin
+  isAdmin,
 }) {
   const { t } = useTranslation();
-
+  const [imageSrc, setImageSrc] = useState<string>(
+    baseUrl + ad.organization.imgUrl
+  );
   // Обработка обьекта с расписанием работы
   const renderSchedule = () => {
     if (!ad.schedule || typeof ad.schedule === "string") {
@@ -57,6 +61,30 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
 
   return (
     <ul>
+      <li className="py-3">
+        <Link
+          to={`/announcements/schedule/${ad.id}`}
+          className="flex justify-between"
+        >
+          <div className="flex items-center relative">
+            <img
+              className="rounded-full w-10 h-10 mr-2 object-cover"
+              src={imageSrc}
+              alt={ad.organization.name}
+              onError={() => setImageSrc(DefaultImage)}
+            />
+            {ad.organization.isConfirmed && (
+              <img
+                src={ConfirmedIcon}
+                className="absolute top-[-5px] left-6"
+                alt="Подтверждено"
+              />
+            )}
+            <span>{ad.organization.name}</span>
+          </div>
+          <img src={ArrowRight} alt="Стрелка" />
+        </Link>
+      </li>
       <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
         <div className="flex flex-col">
           <span>{formatPhoneNumber(ad.phoneNumber)}</span>
@@ -86,18 +114,14 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      {!isAdmin &&
-      <li className="border-b border-[#E4E9EA] py-3">
-        <Link
-          className="flex justify-between"
-          to={`/mapNav?adId=${ad.id}`}
-          
-        >
-          <span>{t("locationOnMap")}</span>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
-      }
+      {!isAdmin && (
+        <li className="border-b border-[#E4E9EA] py-3">
+          <Link className="flex justify-between" to={`/mapNav?adId=${ad.id}`}>
+            <span>{t("locationOnMap")}</span>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        </li>
+      )}
       <li className="py-3">
         <Link
           to={`/announcements/details/${ad.id}`}
