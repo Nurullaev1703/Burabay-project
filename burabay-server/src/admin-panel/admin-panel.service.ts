@@ -6,13 +6,16 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { CatchErrors, Utils } from 'src/utilities';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
 import { AnalyticsService } from './analytics.service';
 import { BookingStatus } from 'src/booking/types/booking.types';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
+import { BannerCreateDto } from './dto/banner-create.dto';
+import { Banner } from './entities/baner.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AdminPanelService {
@@ -28,6 +31,8 @@ export class AdminPanelService {
     @InjectRepository(ReviewReport)
     private readonly reviewReportRepository: Repository<ReviewReport>,
     private readonly analyticsService: AnalyticsService,
+    @InjectRepository(Banner)
+    private readonly bannerRepository: Repository<Banner>,
   ) {}
 
   /** Получить данные для экрана статистики в Админ Панели. */
@@ -348,6 +353,42 @@ export class AdminPanelService {
     }
 
     return { searchedUsers, searchedOrgs };
+  }
+
+  @CatchErrors()
+  async createBanner(dto: BannerCreateDto) {
+    const { text, imagePath, deleteDate } = dto;
+    const banner = this.bannerRepository.create({
+      text: text,
+      imagePath: imagePath,
+      deleteDate: Utils.stringDateToDate(deleteDate),
+    });
+    await this.bannerRepository.save(banner);
+    return JSON.stringify(HttpStatus.CREATED);
+  }
+
+  @CatchErrors()
+  async deleteBanner(id: string) {
+    await this.bannerRepository.delete(id);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  @CatchErrors()
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async deleteBannersByDate() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
+
+    const banners = await this.bannerRepository.find({
+      where: { deleteDate: LessThanOrEqual(today) },
+    });
+
+    if (banners.length > 0) {
+      await this.bannerRepository.remove(banners);
+      console.log(`Удалено ${banners.length} баннеров`);
+    } else {
+      console.log('Нет баннеров для удаления');
+    }
   }
 
   /** Быстрая сортировка Объявлений по количеству бронирований. */
