@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../../services/api/ApiService";
 import {
   Announcement,
+  OrgInfo,
   ReviewAnnouncement,
   ReviewsOrg,
 } from "../model/announcements";
@@ -48,6 +49,18 @@ export function UseGetBannedDates(announcementId: string) {
     queryFn: async () => {
       const response = await apiService.get<any>({
         url: `/ad/check-dates/${announcementId}`,
+      });
+      return response.data;
+    },
+  });
+}
+
+export function UseGetOrg(organizationId: string) {
+  return useQuery({
+    queryKey: [`/ad/org/${organizationId}`],
+    queryFn: async () => {
+      const response = await apiService.get<OrgInfo>({
+        url: `/ad/org/${organizationId}`,
       });
       return response.data;
     },
