@@ -28,6 +28,11 @@ export class AdController {
     return this.adService.findAllByOrg(orgId, filters);
   }
 
+  @Get('org/:orgId')
+  findAllByOrgId(@Param('orgId') orgId: string, @Request() req: AuthRequest) {
+    return this.adService.getAdsFromOrg(orgId, req.user);
+  }
+
   @Get(':id')
   @ApiParam({ name: 'id', description: 'ID of the ad' })
   findOne(@Param('id') id: string, @Request() req: AuthRequest) {
