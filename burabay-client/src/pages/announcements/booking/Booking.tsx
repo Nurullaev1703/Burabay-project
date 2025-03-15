@@ -16,7 +16,7 @@ import { Radio, Switch, TextField } from "@mui/material";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { apiService } from "../../../services/api/ApiService";
-import DefaultIcon from "../../../app/icons/abstract-bg.svg"
+import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 
 export type PaymentType = "online" | "cash";
 
@@ -60,7 +60,13 @@ export const Booking: FC = function Booking() {
     return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
   };
 
-  const { handleSubmit, watch, control, setValue , formState: { isValid } } = useForm<FormType>({
+  const {
+    handleSubmit,
+    watch,
+    control,
+    setValue,
+    formState: { isValid },
+  } = useForm<FormType>({
     defaultValues: {
       adId: announcement.id,
       name: user?.fullName || "Безымянный",
@@ -356,37 +362,37 @@ export const Booking: FC = function Booking() {
         <span className="text-[22px] font-medium mb-2">{t("total")}</span>
         <span className={`font-bold ${COLORS_TEXT.blue200} text-[28px]`}>
           {(() => {
-            // Если даты заезда и отъезда указаны
-            if (dateStart && dateEnd) {
-              // Преобразуем даты в формат Date
-              const parseDate = (dateString: string) => {
-                const [day, month, year] = dateString.split(".").map(Number);
-                return new Date(year, month - 1, day);
-              };
+            const parseDate = (dateString: string) => {
+              const [day, month, year] = dateString.split(".").map(Number);
+              return new Date(year, month - 1, day);
+            };
 
+            let totalCost = announcement.price; // Базовая стоимость (взрослый тариф)
+
+            // Если есть даты заезда и отъезда
+            if (dateStart && dateEnd) {
               const start = parseDate(dateStart);
               const end = parseDate(dateEnd);
 
-              // Вычисляем разницу в миллисекундах и переводим в дни
+              // Вычисляем количество дней аренды
               const diffInMs = end.getTime() - start.getTime();
               const totalDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24)); // Округляем вверх
 
-              // Выбираем стоимость в зависимости от тарифа (взрослый или детский)
-              const dailyPrice = isChildRate
-                ? announcement.priceForChild
-                : announcement.price;
+              // Общая стоимость взрослого тарифа за весь период
+              totalCost = totalDays * announcement.price;
 
-              // Рассчитываем общую стоимость
-              const totalCost = totalDays * dailyPrice;
-
-              // Форматируем и возвращаем стоимость
-              return formatPrice(totalCost);
+              // Если включен детский тариф, добавляем его за каждый день
+              if (isChildRate) {
+                totalCost += totalDays * announcement.priceForChild;
+              }
+            } else {
+              // Если бронирование на один день
+              if (isChildRate) {
+                totalCost += announcement.priceForChild;
+              }
             }
 
-            // Если даты не указаны, возвращаем стоимость за один день
-            return formatPrice(
-              isChildRate ? announcement.priceForChild : announcement.price
-            );
+            return formatPrice(totalCost);
           })()}
         </span>
       </div>
