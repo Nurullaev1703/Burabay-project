@@ -376,6 +376,7 @@ export class AdService {
         name: true,
         description: true,
         siteUrl: true,
+        imgUrl: true,
         isConfirmed: true,
         ads: {
           id: true,
@@ -397,10 +398,19 @@ export class AdService {
       },
     });
     Utils.checkEntity(org, 'Организация не найдена');
+    const ads = [];
     org.ads.forEach((ad) => {
-      ad.usersFavorited = ad.usersFavorited.filter((userFav) => userFav.id === user.id);
+      const result = ad.usersFavorited.filter((userFav) => userFav.id === user.id).length;
+      delete ad.usersFavorited;
+      ads.push({
+        isFavourite: result > 0,
+        ...ad,
+      });
     });
-    return org;
+    return {
+      ...org,
+      ads,
+    };
   }
 
   /* Поиск среди Объявлений. */
