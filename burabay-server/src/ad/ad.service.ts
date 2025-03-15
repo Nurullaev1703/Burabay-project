@@ -352,14 +352,55 @@ export class AdService {
         });
       }
     });
-    // ad.bookingBanDate.forEach((bookingBanDate) => {
-    //   // if (bookingBanDate.isByBooking) {
-    //   bookedDates.push({
-    //     startDate: bookingBanDate.date,
-    //   });
-    //   // }
-    // });
     return bookedDates;
+  }
+
+  @CatchErrors()
+  async getAdsFromOrg(orgId: string, tokenData: TokenData) {
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    const org = await this.organizationRepository.findOne({
+      where: { id: orgId },
+      relations: {
+        ads: {
+          subcategory: { category: true },
+          usersFavorited: true,
+          address: true,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        siteUrl: true,
+        isConfirmed: true,
+        ads: {
+          id: true,
+          title: true,
+          images: true,
+          price: true,
+          address: { specialName: true, address: true },
+          usersFavorited: { id: true },
+          avgRating: true,
+          reviewCount: true,
+          subcategory: {
+            name: true,
+            category: {
+              name: true,
+              imgPath: true,
+            },
+          },
+        },
+      },
+    });
+    Utils.checkEntity(org, 'Организация не найдена');
+    org.ads.forEach((ad) => {
+      ad.usersFavorited = ad.usersFavorited.filter((userFav) => userFav.id === user.id);
+    });
+    return org;
   }
 
   /* Поиск среди Объявлений. */
