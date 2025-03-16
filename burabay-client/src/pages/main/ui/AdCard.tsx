@@ -99,7 +99,7 @@ export const AdCard: FC<Props> = function AdCard({
             <Typography
               size={12}
               weight={400}
-              className="text-black text-xs line-clamp-2"
+              className="text-black text-xs line-clamp-1"
             >
               {ad?.address?.address || "Боровое"}
             </Typography>
