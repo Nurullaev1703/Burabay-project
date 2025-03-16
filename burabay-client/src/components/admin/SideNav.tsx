@@ -5,6 +5,7 @@ import users from "../../app/icons/admin/users.svg";
 import messages from "../../app/icons/admin/messages.svg";
 import analytics from "../../app/icons/admin/analytics.svg";
 import logout from "../../app/icons/admin/logout.svg";
+import banners from "../../app/icons/admin/banners.svg";
 import { Link, useNavigate, useMatchRoute } from "@tanstack/react-router";
 
 interface SideNavProps {
@@ -40,6 +41,12 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
       icon: analytics,
       label: "Аналитика",
       to: "/admin/dashboard/analytics",
+      hasNotifications: true,
+    },
+    {
+      icon: banners,
+      label: "Баннер",
+      to: "/admin/dashboard/banners",
       hasNotifications: true,
     },
   ];
