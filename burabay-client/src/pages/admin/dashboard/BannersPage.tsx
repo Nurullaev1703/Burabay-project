@@ -2,25 +2,26 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import authBg from "../../../app/icons/bg_auth.png";
 import SideNav from "../../../components/admin/SideNav";
 import imageIcon from "../../../app/icons/announcements/image.svg";
+import { apiService } from "../../../services/api/ApiService";
+import { imageService } from "../../../services/api/ImageService";
 
 interface Banner {
-  title: string;
-  description: string;
+  text: string;
   image: File | null;
-  imagePreview: string | null;
+  deleteDate: string;
 }
 
 const BannersPage: React.FC = () => {
   const [banner, setBanner] = useState<Banner>({
-    title: "",
-    description: "",
+    text: "",
     image: null,
-    imagePreview: null,
+    deleteDate: "",
   });
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setBanner((prev) => ({ ...prev, [name]: value }));
   };
@@ -28,17 +29,68 @@ const BannersPage: React.FC = () => {
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setBanner((prev) => ({ ...prev, image: file, imagePreview: imageUrl }));
+      setBanner((prev) => ({ ...prev, image: file }));
     } else {
-      setBanner((prev) => ({ ...prev, image: null, imagePreview: null }));
+      setBanner((prev) => ({ ...prev, image: null }));
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Форма отправлена с данными:", banner);
-    setBanner({ title: "", description: "", image: null, imagePreview: null });
+    if (!banner.image) {
+      setError("Добавьте изображение");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Загрузить изображение и получить imagePath
+      console.log(banner)
+      const imagePath = await uploadImage(banner.image, "banners");
+
+      // 2. Отправить JSON с баннером
+      const response = await fetch("/admin/banner", {
+        method: "POST",
+        headers: {
+          Authorization: apiService.bearerToken.Authorization || "",
+        },
+        body: JSON.stringify({
+          text: banner.text,
+          imagePath: imagePath,
+          deleteDate: banner.deleteDate,
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Баннер добавлен");
+        setBanner({ text: "", image: null, deleteDate: "" });
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Ошибка при добавлении баннера");
+      }
+    } catch (error) {
+      setError("Ошибка сети");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadImage = async (
+    imageFile: File,
+    directory: string
+  ): Promise<string> => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    const response = await imageService.post<string>({
+      url: `/image/${directory}`,
+      dto: formData,
+    });
+
+    return response.data; // Вернёт путь к загруженному изображению
   };
 
   return (
@@ -54,19 +106,20 @@ const BannersPage: React.FC = () => {
           <h2 className="text-2xl text-white font-semibold mb-4">
             Добавить баннер
           </h2>
+          {error && <p className="text-red-500">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
-                htmlFor="title"
+                htmlFor="text"
                 className="block text-sm text-white font-medium"
               >
-                Заголовок:
+                Текст:
               </label>
               <input
                 type="text"
-                id="title"
-                name="title"
-                value={banner.title}
+                id="text"
+                name="text"
+                value={banner.text}
                 onChange={handleChange}
                 className="mt-1 p-2 border rounded-md w-full bg-transparent text-white"
                 required
@@ -74,18 +127,18 @@ const BannersPage: React.FC = () => {
             </div>
             <div>
               <label
-                htmlFor="description"
+                htmlFor="deleteDate"
                 className="block text-sm text-white font-medium"
               >
-                Описание:
+                Дата удаления:
               </label>
-              <textarea
-                id="description"
-                name="description"
-                value={banner.description}
+              <input
+                type="date"
+                id="deleteDate"
+                name="deleteDate"
+                value={banner.deleteDate}
                 onChange={handleChange}
                 className="mt-1 p-2 border rounded-md w-full bg-transparent text-white"
-                rows={4}
                 required
               />
             </div>
@@ -103,22 +156,15 @@ const BannersPage: React.FC = () => {
                   onChange={handleImageChange}
                   accept="image/*"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  required
                 />
               </div>
-              {banner.imagePreview && (
-                <img
-                  src={banner.imagePreview}
-                  alt="Предпросмотр"
-                  className="w-24 h-24 object-cover rounded-md border border-white/20"
-                />
-              )}
             </div>
             <button
               type="submit"
               className="bg-[#0A7D9E] font-medium rounded-3xl text-white px-4 py-3 w-full"
+              disabled={loading}
             >
-              Добавить баннер
+              {loading ? "Загрузка..." : "Добавить баннер"}
             </button>
           </form>
         </div>
