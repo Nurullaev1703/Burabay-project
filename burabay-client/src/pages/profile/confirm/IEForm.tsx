@@ -68,12 +68,12 @@ export const IEForm: FC = function IEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: form.registerFile?.name,
-          ibanDocPath: form.IBANFile?.name,
+          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
+          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
-      });
+      }); 
       if (user) {
         setUser({
           ...user,

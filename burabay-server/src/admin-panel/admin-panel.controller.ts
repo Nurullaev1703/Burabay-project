@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UsersFilter } from './types/admin-panel-filters.type';
 import { Public } from 'src/constants';
+import { BannerCreateDto } from './dto/banner-create.dto';
 
 @Controller('admin')
 @ApiTags('Админ Панель')
@@ -11,6 +12,11 @@ import { Public } from 'src/constants';
 @Public() // TODO Удалить после тестирования.
 export class AdminPanelController {
   constructor(private readonly adminPanelService: AdminPanelService) {}
+
+  @Post('banner')
+  async createBanner(@Body() dto: BannerCreateDto) {
+    return this.adminPanelService.createBanner(dto);
+  }
 
   @Get('statistic')
   async getStats() {
@@ -55,5 +61,10 @@ export class AdminPanelController {
   @Patch('ban-org/:orgId')
   async banOrg(@Param('orgId') orgId: string, @Body() banUserDto: BanUserDto) {
     return this.adminPanelService.banOrg(orgId, banUserDto.value);
+  }
+
+  @Delete('banner/:bannerId')
+  async deleteBanner(@Param('bannerId') bannerId: string) {
+    return this.adminPanelService.deleteBanner(bannerId);
   }
 }

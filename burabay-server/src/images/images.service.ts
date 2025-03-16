@@ -96,14 +96,17 @@ export class ImagesService {
     },
     tokenData: TokenData,
   ) {
-    const organization = await this.organizationRepository.findOneBy({
-      user: { id: tokenData.id },
+    const organization = await this.organizationRepository.findOne({
+      where: { user: { id: tokenData.id } },
+      select: { id: true },
     });
 
     Utils.checkEntity(organization, 'Организация не найдена');
 
-    const orgName = organization.name;
-    const safeOrgName = orgName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    // const orgName = organization.name;
+    // const safeOrgName = orgName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    // const safeOrgName = this.sanitizeOrgName(orgName);
+    const safeOrgName = organization.id;
     const dirpath = `./public/docs/${safeOrgName}/`;
     await mkdir(dirpath, { recursive: true });
 
@@ -217,5 +220,54 @@ export class ImagesService {
       throw new Error('Файл не найден или повреждён');
     }
     return extname(file.originalname).toLowerCase();
+  }
+
+  private transliterate(text) {
+    const map = {
+      'а': 'a',
+      'б': 'b',
+      'в': 'v',
+      'г': 'g',
+      'д': 'd',
+      'е': 'e',
+      'ё': 'yo',
+      'ж': 'zh',
+      'з': 'z',
+      'и': 'i',
+      'й': 'y',
+      'к': 'k',
+      'л': 'l',
+      'м': 'm',
+      'н': 'n',
+      'о': 'o',
+      'п': 'p',
+      'р': 'r',
+      'с': 's',
+      'т': 't',
+      'у': 'u',
+      'ф': 'f',
+      'х': 'kh',
+      'ц': 'ts',
+      'ч': 'ch',
+      'ш': 'sh',
+      'щ': 'sch',
+      'ъ': '',
+      'ы': 'y',
+      'ь': '',
+      'э': 'e',
+      'ю': 'yu',
+      'я': 'ya',
+    };
+
+    return text
+      .split('')
+      .map((char) => map[char.toLowerCase()] || char)
+      .join('');
+  }
+  private sanitizeOrgName(orgName) {
+    const transliterated = this.transliterate(orgName); // Транслитерация кириллицы
+    return transliterated
+      .replace(/\s+/g, '_') // Заменяем пробелы на _
+      .replace(/[^a-zA-Z0-9_-]/g, ''); // Удаляем всё лишнее
   }
 }

@@ -70,9 +70,9 @@ export const LEForm: FC = function LEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: form.registerFile?.name,
-          ibanDocPath: form.IBANFile?.name,
-          orgRulePath: form.charterFile?.name,
+          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
+          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
+          orgRulePath: `charterFile.${form.charterFile?.name.split('.').pop()}`,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },

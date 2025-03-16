@@ -8,12 +8,12 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
-import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.service';
 import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class BookingService {
@@ -28,12 +28,13 @@ export class BookingService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
       const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
       const ad = await this.adRepository.findOne({
@@ -62,12 +63,13 @@ export class BookingService {
       // Является ли объявление арендой.
       const isRent = ad.subcategory.category.name === 'Жилье';
 
-      // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
+      // Вычисление общей стоимости аренды
       if (isRent) {
         const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
-        newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
+        newBooking.totalPrice =
+          days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
       } else {
-        newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
+        newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
       }
 
       // Сохранение
@@ -101,13 +103,13 @@ export class BookingService {
           await this.bookingBanDateService.create([bookingBanDateDto]);
         }
       }
-      const notification = manager.create(Notification, {
-        users: [{ id: ad.organization.user.id }],
+      const notificationDto = {
+        email: ad.organization.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Новая бронь на объявление "${ad.title}"`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -444,11 +446,13 @@ export class BookingService {
       });
       Utils.checkEntity(booking, 'Бронирование не найдено');
       await manager.remove(booking);
-      const notification = manager.create(Notification, {
-        user: await this.userRepository.findOne({ where: { id: booking.user.id } }),
+      const notificationDto = {
+        email: booking.user.email,
+        title: '',
+        type: NotificationType.NEGATIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
     });
   }
@@ -468,21 +472,21 @@ export class BookingService {
         select: { id: true, role: true },
       });
       if (user.role === ROLE_TYPE.BUSINESS) {
-        const notification = manager.create(Notification, {
-          users: [{ id: booking.user.id }],
+        const notificationDto = {
+          email: booking.ad.organization.user.email,
+          title: '',
           type: NotificationType.NEGATIVE,
-          message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
-          createdAt: new Date(),
-        });
-        await manager.save(notification);
+          message: `Бронь на объявление "${booking.ad.title}" была отменена`,
+        };
+        await this.notificationService.createForUser(notificationDto);
       } else if (user.role === ROLE_TYPE.TOURIST) {
-        const notification = manager.create(Notification, {
-          users: [{ id: booking.ad.organization.user.id }],
+        const notificationDto = {
+          email: booking.user.email,
+          title: '',
           type: NotificationType.NEGATIVE,
           message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
-          createdAt: new Date(),
-        });
-        await manager.save(notification);
+        };
+        await this.notificationService.createForUser(notificationDto);
       }
 
       return JSON.stringify(HttpStatus.OK);
@@ -491,7 +495,7 @@ export class BookingService {
 
   @CatchErrors()
   async bookingConfirm(id: string) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
         relations: { user: true, ad: true },
@@ -499,20 +503,20 @@ export class BookingService {
       Utils.checkEntity(booking, 'Объявление не найдено');
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
-      const notification = manager.create(Notification, {
-        users: [{ id: booking.user.id }],
+      const notificationDto = {
+        email: booking.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Ваша бронь на объявление "${booking.ad.title}" была подтверждена`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+      await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
     });
   }
 
   @CatchErrors()
   async bookingPayed(id: string) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
         relations: { ad: { organization: { user: true } } },
@@ -520,13 +524,16 @@ export class BookingService {
       Utils.checkEntity(booking, 'Объявление не найдено');
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
-      const notification = manager.create(Notification, {
-        users: [{ id: booking.ad.organization.user.id }],
+
+      const notificationDto = {
+        email: booking.ad.organization.user.email,
+        title: '',
         type: NotificationType.POSITIVE,
         message: `Бронь на объявление "${booking.ad.title}" была оплачена`,
-        createdAt: new Date(),
-      });
-      await manager.save(notification);
+      };
+
+      await this.notificationService.createForUser(notificationDto);
+
       return JSON.stringify(HttpStatus.OK);
     });
   }

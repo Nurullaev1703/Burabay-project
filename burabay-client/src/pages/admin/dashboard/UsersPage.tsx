@@ -439,7 +439,7 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.regCouponPath ? (
                         <a
-                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
@@ -467,7 +467,7 @@ export default function UsersList({ filters }: Props) {
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
                         <a
-                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-black"
@@ -497,7 +497,7 @@ export default function UsersList({ filters }: Props) {
                       </p>
                       {selectedOrganization.orgRulePath ? (
                         <a
-                          href={`/burabay-server/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
+                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"

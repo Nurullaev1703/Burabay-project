@@ -1,6 +1,6 @@
 import  { FC, useEffect } from 'react';
 import BurabayLogo from "../../app/icons/burabay-logo.svg"
-import BgImage from "../../app/icons/abstract-bg.svg"
+import BgImage from "../../app/icons/abstract-bg-1.svg"
 import { COLORS } from '../../shared/ui/colors';
 import { RotatingLines } from "react-loader-spinner";
 import { useNavigate } from '@tanstack/react-router';
