@@ -192,18 +192,18 @@ const AnalyticsPage = () => {
             </ScrollableBlock>
             <Block
               title="Переход на Google Analytics"
-              className="h-[27.4vh] center flex flex-col gap-8"
+              className="center flex flex-col gap-8"
             >
               <div>
-                <div className="flex mb-6">
-                  <div className="mr-[48px]">
-                    <p className="text-[#999999] text-[12px] mb-2">Пароль</p>
+                <div className="flex flex-wrap mb-6">
+                  <div className="flex-grow mr-[48px] mb-2">
+                    <p className="text-[#999999] text-[12px]">Пароль</p>
                     <p className="text-4 text-[#000000]">
                       Burabay_travel@gmail.com
                     </p>
                   </div>
-                  <div className="">
-                    <p className="text-[#999999] text-[12px] mb-2">Логин</p>
+                  <div className="flex-grow mb-2">
+                    <p className="text-[#999999] text-[12px]">Логин</p>
                     <p className="text-4 text-[#000000]">Burabay_travel0099</p>
                   </div>
                 </div>
