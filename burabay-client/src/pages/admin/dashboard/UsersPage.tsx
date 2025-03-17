@@ -20,6 +20,7 @@ import downloadIcon from "../../../app/icons/download.svg";
 import document from "../../../../public/document.svg";
 import confirmed from "../../../../public/confirmed.svg";
 import Close from "../../../../public/Close.png";
+import Down from "../../../../public/down-arrow.svg";
 
 interface Props {
   filters: UsersFilter;
@@ -170,7 +171,7 @@ export default function UsersList({ filters }: Props) {
                 ? capitalizeFirstLetter(filters.role)
                 : "Все пользователи"}
               <img
-                src="../../../../public/down-arrow.svg"
+                src={Down}
                 alt=""
                 className="ml-[17px] w-[16px] h-[16px]"
               />
@@ -218,7 +219,7 @@ export default function UsersList({ filters }: Props) {
                 ? capitalizeFirstLetter(filters.status)
                 : "Все статусы"}
               <img
-                src="../../../../public/down-arrow.svg"
+                src={Down}
                 alt=""
                 className="ml-[17px] w-[16px] h-[16px]"
               />

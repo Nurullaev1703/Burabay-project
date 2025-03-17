@@ -4,6 +4,7 @@ import SideNav from "../../../components/admin/SideNav";
 import imageIcon from "../../../app/icons/announcements/image.svg";
 import { apiService } from "../../../services/api/ApiService";
 import { imageService } from "../../../services/api/ImageService";
+import { format } from "date-fns";
 
 interface Banner {
   text: string;
@@ -18,6 +19,7 @@ const BannersPage: React.FC = () => {
     deleteDate: "",
   });
 
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +32,10 @@ const BannersPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       setBanner((prev) => ({ ...prev, image: file }));
+      setImagePreview(URL.createObjectURL(file)); // Создаём ссылку на выбранное изображение
     } else {
       setBanner((prev) => ({ ...prev, image: null }));
+      setImagePreview(null);
     }
   };
 
@@ -46,29 +50,22 @@ const BannersPage: React.FC = () => {
     setError(null);
 
     try {
-      // 1. Загрузить изображение и получить imagePath
-      console.log(banner)
+      console.log(banner);
       const imagePath = await uploadImage(banner.image, "banners");
 
-      // 2. Отправить JSON с баннером
-      const response = await fetch("/admin/banner", {
-        method: "POST",
-        headers: {
-          Authorization: apiService.bearerToken.Authorization || "",
-        },
-        body: JSON.stringify({
+      const response = await apiService.post({
+        url: "/admin/banner",
+        dto: {
           text: banner.text,
           imagePath: imagePath,
-          deleteDate: banner.deleteDate,
-        }),
+          deleteDate: format(new Date(banner.deleteDate), "dd.MM.yyyy"),
+        },
       });
 
-      if (response.ok) {
+      if (response.data) {
         console.log("Баннер добавлен");
         setBanner({ text: "", image: null, deleteDate: "" });
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Ошибка при добавлении баннера");
+        setImagePreview(null);
       }
     } catch (error) {
       setError("Ошибка сети");
@@ -83,30 +80,46 @@ const BannersPage: React.FC = () => {
     directory: string
   ): Promise<string> => {
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("file", imageFile);
 
     const response = await imageService.post<string>({
       url: `/image/${directory}`,
       dto: formData,
     });
 
-    return response.data; // Вернёт путь к загруженному изображению
+    return response.data;
+  };
+
+  const handleDateBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const inputDate = event.target.value;
+    const today = new Date().toISOString().split("T")[0];
+
+    if (inputDate && inputDate < today) {
+      alert("Нельзя выбрать прошедшую дату!");
+      event.target.value = today;
+    }
   };
 
   return (
     <div className="flex h-screen relative">
+      {/* Фоновое изображение */}
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-0"></div>
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25 z-0"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
-      <SideNav />
-      <div className="flex-1 p-5">
-        <div className="max-w-md mx-auto relative z-20 p-5 rounded-md ">
-          <h2 className="text-2xl text-white font-semibold mb-4">
+
+      <div className="fixed left-0 top-0 h-full w-64 z-20">
+        <SideNav />
+      </div>
+
+      {/* Центрирование формы */}
+      <div className="flex flex-1 items-center justify-center p-5 relative z-10">
+        <div className="bg-white bg-opacity-10 backdrop-blur-md p-6 rounded-xl max-w-md w-full">
+          <h2 className="text-2xl text-white font-semibold text-center mb-4">
             Добавить баннер
           </h2>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
@@ -125,6 +138,7 @@ const BannersPage: React.FC = () => {
                 required
               />
             </div>
+
             <div>
               <label
                 htmlFor="deleteDate"
@@ -138,17 +152,32 @@ const BannersPage: React.FC = () => {
                 name="deleteDate"
                 value={banner.deleteDate}
                 onChange={handleChange}
+                onBlur={handleDateBlur}
                 className="mt-1 p-2 border rounded-md w-full bg-transparent text-white"
                 required
+                min={new Date().toISOString().split("T")[0]}
               />
             </div>
-            <div className="flex gap-4">
-              <div className="relative w-24 h-24">
-                <img
-                  src={imageIcon}
-                  alt="Изображение"
-                  className="w-full h-full object-cover rounded-md border"
-                />
+
+            {/* Выбор изображения */}
+            <div className="flex flex-col items-center gap-4">
+              <label className="block text-sm text-white font-medium">
+                Изображение:
+              </label>
+              <div className="relative w-32 h-32 border-2 border-white rounded-md overflow-hidden">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Предпросмотр"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={imageIcon}
+                    alt="Выберите изображение"
+                    className="w-full h-full object-contain opacity-50"
+                  />
+                )}
                 <input
                   type="file"
                   id="image"
@@ -159,6 +188,7 @@ const BannersPage: React.FC = () => {
                 />
               </div>
             </div>
+
             <button
               type="submit"
               className="bg-[#0A7D9E] font-medium rounded-3xl text-white px-4 py-3 w-full"

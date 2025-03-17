@@ -7,6 +7,9 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { baseUrl } from "../../../services/api/ServerData";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 
+import Up from "../../../../public/up.svg";
+import Down from "../../../../public/down.svg";
+
 interface AnalyticsData {
   tourists: number;
   orgs: number;
@@ -91,13 +94,13 @@ const AnalyticsPage = () => {
       <SideNav className="fixed top-0 left-0 z-50" />
 
       {/* 🔹 Контейнер с аналитикой */}
-      <main className="relative flex flex-1 h-full p-4 overflow-hidden ml-[94px] transition-all duration-300">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full h-full">
+      <main className="relative flex flex-wrap h-full p-4 overflow-x-auto ml-[94px] transition-all duration-300 custom-admin:flex-nowrap custom-admin:flex-col">
+        <div className="flex flex-wrap gap-4 w-full">
           {/* ✅ 1 Колонка */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
             <Block
               title="Количество пользователей"
-              className="font-medium h-[16vh] "
+              className="font-medium h-[16vh]"
             >
               <div className="flex space-x-[32px]">
                 <div className="w-[146.33px]">
@@ -143,7 +146,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* ✅ 2 Колонка */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
             <Block
               title="Количество посетителей сегодня"
               className="font-medium h-[16vh]"
@@ -218,14 +221,14 @@ const AnalyticsPage = () => {
           </div>
 
           {/* ✅ 3 Колонка */}
-          <div className="h-full overflow-auto">
+          <div className="flex-1 min-w-[300px]">
             <ScrollableBlock
               title={`Всего объявлений: ${data.adsCount}`}
               className="h-full"
             >
               {data.ads.slice(0, visibleAdsCount).map((ad, index) => (
                 <div key={index} className="flex py-4 items-center">
-                  <span className="mr-2">{index + 1}</span>{" "}
+                  <span className="mr-2">{index + 1}</span>
                   <CoveredImage
                     width="w-[52px]"
                     height="h-[52px]"
@@ -309,11 +312,7 @@ const ScrollableBlock: React.FC<{
       {isFilterable && onFilterClick && (
         <button onClick={onFilterClick}>
           <img
-            src={
-              isAscending
-                ? "../../../../public/up.svg"
-                : "../../../../public/down.svg"
-            }
+            src={isAscending ? Up : Down}
             alt={
               isAscending
                 ? "Сортировка по возрастанию"

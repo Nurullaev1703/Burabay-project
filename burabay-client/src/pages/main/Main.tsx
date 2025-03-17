@@ -17,10 +17,19 @@ import BackIcon from "../../app/icons/back-icon.svg";
 import FilterIcon from "../../app/icons/main/filter.svg";
 import FilterActiveIcon from "../../app/icons/main/filter-active.svg";
 import { MainPageFilter } from "./model/mainpage-types";
+import { apiService } from "../../services/api/ApiService";
+import Close from "../../../public/Close.png";
 
 interface Props {
   categories: Category[];
   filters: MainPageFilter;
+}
+
+interface Banner {
+  id: string;
+  imagePath: string;
+  text: string;
+  deleteDate: string;
 }
 
 export const Main: FC<Props> = function Main({ categories, filters }) {
@@ -30,6 +39,11 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
   const [activeCategory, setActiveCategory] = useState<Category | null>(
     categories.find((item) => item.name == filters?.category) || null
   );
+
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
@@ -87,6 +101,31 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
       };
     }
   }, [navigate, filters]);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const response = await apiService.get<Banner[]>({
+          url: "/main-pages/banners",
+        });
+        setBanners(response.data);
+      } catch (error) {
+        console.error("Ошибка при загрузке баннеров:", error);
+      }
+    };
+
+    fetchBanners();
+  }, []);
+
+  const openModal = (banner: Banner) => {
+    setSelectedBanner(banner);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedBanner(null);
+    setIsModalOpen(false);
+  };
 
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen">
@@ -158,26 +197,59 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
       {/* Отображаем предложения при отсутствии фильтров */}
       {!activeCategory && !filters.adName && (
         <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full mt-12">
-          <div className=" relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
-            <img
-              src={investirovanie}
-              className="absolute top-0 left-0 w-full h-full object-cover"
-              alt=""
-            />
-          </div>
-          <div className="relative min-w-[200px] h-[120px] bg-green-500 rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
-            <img
-              src={locationImg}
-              className="absolute top-0 left-0 w-full h-full object-cover"
-              alt=""
-            />
-          </div>
-          <div className="relative min-w-[200px] h-[120px] bg-green-500 rounded-2xl flex items-center justify-center text-white text-center overflow-hidden">
-            <img
-              src={locationImg}
-              className="absolute top-0 left-0 w-full h-full object-cover"
-              alt=""
-            />
+          {banners
+            .slice()
+            .sort((a, b) => {
+              return b.id.localeCompare(a.id);
+            })
+            .map((banner) => {
+              console.log("Image path:", banner.imagePath);
+
+              return (
+                <div
+                  key={banner.id}
+                  className="relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden cursor-pointer"
+                  onClick={() => openModal(banner)}
+                >
+                  <img
+                    src={`${baseUrl}${banner.imagePath}`}
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    alt={banner.text}
+                  />
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {isModalOpen && selectedBanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl w-full max-w-[455px] max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <div className="flex-grow text-center">
+                <p className="text-[#0A7D9E] text-[18px] font-semibold">
+                  Баннер
+                </p>
+              </div>
+              <img
+                src={Close}
+                alt="Закрыть"
+                className="w-[44px] h-[44px] cursor-pointer"
+                onClick={closeModal}
+              />
+            </div>
+
+            {/* Контейнер для изображения и текста */}
+            <div className="w-full max-w-full">
+              <img
+                src={`${baseUrl}${selectedBanner.imagePath}`}
+                alt={selectedBanner.text}
+                className="w-full max-w-full max-h-64 mb-4"
+              />
+              <p className="text-[18px] p-4 break-words box-border w-full max-w-full">
+                {selectedBanner.text}
+              </p>
+            </div>
           </div>
         </div>
       )}
