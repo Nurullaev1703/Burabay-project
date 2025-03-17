@@ -426,7 +426,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           </div>
                         </div>
                       </div>
-                      <p className="text-gray-600 mt-2">{review.reviewText}</p>
+                      <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                        {review.reviewText}
+                      </p>
                       {review.reviewImages && (
                         <div className="flex gap-2 mt-2">
                           {review.reviewImages.map((img, idx) => (
@@ -479,7 +481,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
                           {review.reportText}
                         </p>
                       </div>
