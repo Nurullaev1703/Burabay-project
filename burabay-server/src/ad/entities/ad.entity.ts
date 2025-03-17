@@ -42,7 +42,7 @@ export class Ad extends AbstractEntity<Ad> {
   @Column({ type: 'text', array: true })
   images: string[];
 
-  @Column({ name: 'phone_number' })
+  @Column({ name: 'phone_number', nullable: true })
   phoneNumber: string;
 
   // Подробности объявления
