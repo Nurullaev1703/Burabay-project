@@ -98,20 +98,17 @@ const AnalyticsPage = () => {
         <div className="flex flex-wrap gap-4 w-full">
           {/* ✅ 1 Колонка */}
           <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
-            <Block
-              title="Количество пользователей"
-              className="font-medium h-[16vh]"
-            >
+            <Block title="Количество пользователей" className="font-medium">
               <div className="flex space-x-[32px]">
-                <div className="w-[146.33px]">
+                <div className="flex-grow">
                   <p className="text-4 font-normal">Всего: </p>
                   <p className="text-[22px] font-bold">{data.totalUsers}</p>
                 </div>
-                <div className="w-[146.33px]">
+                <div className="flex-grow">
                   <p className="text-4 font-normal">Туристы: </p>
                   <p className="text-[22px] font-bold">{data.tourists}</p>
                 </div>
-                <div className="w-[146.33px]">
+                <div className="flex-grow">
                   <p className="text-4 font-normal">Организации: </p>
                   <p className="text-[22px] font-bold">{data.orgs}</p>
                 </div>
@@ -149,14 +146,18 @@ const AnalyticsPage = () => {
           <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
             <Block
               title="Количество посетителей сегодня"
-              className="font-medium h-[16vh]"
+              className="font-medium" // Убрали h-[16vh]
             >
               <div className="flex">
-                <div className="w-[251.5px]">
+                <div className="flex-grow">
+                  {" "}
+                  {/* Заменили w-[251.5px] на flex-grow */}
                   <p className="text-4 font-normal">Текущее: </p>
                   <p className="text-[22px] font-bold">{data.activeUsersNow}</p>
                 </div>
-                <div className="w-[251.5px]">
+                <div className="flex-grow">
+                  {" "}
+                  {/* Заменили w-[251.5px] на flex-grow */}
                   <p className="text-4 font-normal">Максимальное: </p>
                   <p className="text-[22px] font-bold">{data.peakUsersToday}</p>
                 </div>
