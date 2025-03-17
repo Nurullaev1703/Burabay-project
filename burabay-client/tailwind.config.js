@@ -68,7 +68,10 @@ export default {
       },
       inset: {
         navbar: "73px"
-      }
+      },
+      screens: {
+        'custom-admin': '938px',
+      },
     },
     fontFamily: {
       sans: ['"Roboto"', "sans-serif"],
