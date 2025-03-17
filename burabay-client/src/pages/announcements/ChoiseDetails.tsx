@@ -231,7 +231,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     });
   };
 
-  // 🔥 Функция загрузки фото на сервер (при нажатии "Продолжить")
   const handleUpload = async () => {
     const formData = new FormData();
 
@@ -264,7 +263,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     }
   };
 
-  // 🔥 Удаление загруженных, но неиспользованных изображений
   const deleteUnusedImages = async () => {
     const uploadedImages = images
       .filter((img) => img.file && img.serverPreview) // Берём только загруженные
@@ -283,7 +281,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     }
   };
 
-  // ❗️ Вызываем удаление при размонтировании компонента (например, при отмене создания объявления)
+  // Вызываем удаление при размонтировании компонента (например, при отмене создания объявления)
   useEffect(() => {
     return () => {
       deleteUnusedImages();
@@ -303,7 +301,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         : "+7 ___ ___-__-__",
       youtubeLink: announcement?.youtubeLink || "",
     },
-    mode: "onSubmit",
+    mode: "onBlur",
   });
   return (
     <section className="min-h-screen bg-[#F1F2F6]">
