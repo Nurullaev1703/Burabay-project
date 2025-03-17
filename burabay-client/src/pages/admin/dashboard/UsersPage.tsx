@@ -20,6 +20,7 @@ import downloadIcon from "../../../app/icons/download.svg";
 import document from "../../../../public/document.svg";
 import confirmed from "../../../../public/confirmed.svg";
 import Close from "../../../../public/Close.png";
+import Down from "../../../../public/down-arrow.svg";
 
 interface Props {
   filters: UsersFilter;
@@ -169,11 +170,7 @@ export default function UsersList({ filters }: Props) {
               {filters.role
                 ? capitalizeFirstLetter(filters.role)
                 : "Все пользователи"}
-              <img
-                src="../../../../public/down-arrow.svg"
-                alt=""
-                className="ml-[17px] w-[16px] h-[16px]"
-              />
+              <img src={Down} alt="" className="ml-[17px] w-[16px] h-[16px]" />
             </button>
             {isRoleDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -217,11 +214,7 @@ export default function UsersList({ filters }: Props) {
               {filters.status
                 ? capitalizeFirstLetter(filters.status)
                 : "Все статусы"}
-              <img
-                src="../../../../public/down-arrow.svg"
-                alt=""
-                className="ml-[17px] w-[16px] h-[16px]"
-              />
+              <img src={Down} alt="" className="ml-[17px] w-[16px] h-[16px]" />
             </button>
             {isStatusDropdownOpen && (
               <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
@@ -279,6 +272,7 @@ export default function UsersList({ filters }: Props) {
                       />
 
                       <div className="h-[58px] flex flex-col justify-center">
+                        {/* Имя пользователя */}
                         {user.fullName ? (
                           <h2 className="text-[16px] font-roboto">
                             {user.fullName}
@@ -288,6 +282,7 @@ export default function UsersList({ filters }: Props) {
                             <p>—</p>
                           </div>
                         )}
+
                         {user.role === "турист" && (
                           <p
                             className={`text-sm ${
@@ -303,21 +298,8 @@ export default function UsersList({ filters }: Props) {
                                 : UsersFilterStatus.WAITING}
                           </p>
                         )}
-                        {user.role === "бизнес" && (
-                          <p
-                            className={`text-sm ${
-                              user.organization?.isBanned
-                                ? "text-red flex"
-                                : "text-[14px] text-[#39B56B]"
-                            }`}
-                          >
-                            {user.organization?.isBanned
-                              ? UsersFilterStatus.BAN
-                              : user.isEmailConfirmed
-                                ? "Подтвержден"
-                                : UsersFilterStatus.WAITING}
-                          </p>
-                        )}
+
+                        {/* Роль пользователя */}
                         <span className="text-[12px] text-[#999999]">
                           {user.role === "бизнес"
                             ? "Организация"

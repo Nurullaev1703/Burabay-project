@@ -17,6 +17,7 @@ import {
 } from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { Banner } from 'src/admin-panel/entities/baner.entity';
 
 @Injectable()
 export class MainPageService {
@@ -27,6 +28,8 @@ export class MainPageService {
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
+    @InjectRepository(Banner)
+    private readonly bannerRepository: Repository<Banner>,
   ) {}
 
   async getMainPageAnnouncements(filter?: AdFilter) {
@@ -149,12 +152,17 @@ export class MainPageService {
       relations: {
         subcategory: { category: true },
         usersFavorited: true,
+        address: true
       },
       order: {
         createdAt: 'DESC',
       },
       select: {
         id: true,
+        address: {
+          address: true,
+          specialName: true,
+        },
         title: true,
         images: true,
         price: true,
@@ -184,6 +192,10 @@ export class MainPageService {
 
   async getMainPageCategories() {
     return await this.categoryRepository.find();
+  }
+
+  async getBanners() {
+    return await this.bannerRepository.find();
   }
 
   private _searchAd(name: string, ads: Ad[]): Ad[] {

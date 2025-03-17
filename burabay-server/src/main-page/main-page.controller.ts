@@ -28,4 +28,10 @@ export class MainPageController {
   getMainPageAd(@Request() req: AuthRequest, @Query() filter?: MainPageFilter) {
     return this.mainPageService.getMainPageAds(req.user, filter);
   }
+
+  @Get('/banners')
+  @ApiBearerAuth()
+  getBanners() {
+    return this.mainPageService.getBanners();
+  }
 }

@@ -175,8 +175,6 @@ export interface Review {
   report: ReviewAnswer;
 }
 
-
-
 interface ReviewAnswer {
   date: string;
   id: string;
@@ -189,4 +187,14 @@ export interface ReviewsOrg {
   adImage: string;
   adAvgRating: string;
   newReviews: number;
+}
+
+export interface OrgInfo {
+  description: string;
+  name: string;
+  siteUrl: string;
+  imgUrl: string;
+  id: string;
+  isConfirmed: boolean;
+  ads: Announcement[];
 }

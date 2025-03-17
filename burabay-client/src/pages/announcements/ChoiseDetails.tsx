@@ -10,7 +10,7 @@ import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { DefaultForm } from "../auth/ui/DefaultForm";
 import { Controller, useForm } from "react-hook-form";
-import { Switch, TextField } from "@mui/material";
+import { Modal, Switch, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useMask, format } from "@react-input/mask";
 import { ProgressSteps } from "./ui/ProgressSteps";
@@ -40,7 +40,6 @@ interface FormType {
   description: string;
   youtubeLink: string;
   phoneNumber: string;
-  photo: string;
 }
 
 export const ChoiseDetails: FC<Props> = function ChoiseDetails({
@@ -48,6 +47,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   subcategory,
   announcement,
 }) {
+  const [isPhoneValid, setIsPhoneValid] = useState<boolean>(true);
+  const [showModal, setShowModal] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     (announcement?.details as Record<string, boolean>) || {}
   );
@@ -64,23 +65,22 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     "206",
     "207",
     "208",
-    "209", // вообще не используются
+    "209",
     "333",
     "444",
     "555",
     "666",
     "888",
     "999",
-    "000", // зарезервированы или не назначены
+    "000",
     "123",
     "321",
     "234",
     "432",
     "345",
-    "543", // не выделены операторам
-    "700", // В некоторых базах 700 — фейковый или тестовый
-    "709", // Резерв, не выдан операторам
-    "911", // Спецслужбы в некоторых странах (в РФ такого кода у операторов нет)
+    "543",
+    "709",
+    "911",
   ];
 
   const handleToggle = (item: string) => {
@@ -232,7 +232,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     });
   };
 
-  // 🔥 Функция загрузки фото на сервер (при нажатии "Продолжить")
   const handleUpload = async () => {
     const formData = new FormData();
 
@@ -265,7 +264,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     }
   };
 
-  // 🔥 Удаление загруженных, но неиспользованных изображений
   const deleteUnusedImages = async () => {
     const uploadedImages = images
       .filter((img) => img.file && img.serverPreview) // Берём только загруженные
@@ -284,28 +282,85 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     }
   };
 
-  // ❗️ Вызываем удаление при размонтировании компонента (например, при отмене создания объявления)
   useEffect(() => {
     return () => {
       deleteUnusedImages();
     };
   }, []);
-
+  const [title, setTitle] = useState<string>(announcement?.title || "");
+  const [description, setDescription] = useState<string>(
+    announcement?.description || ""
+  );
+  const [youtubeLink, setYoutubeLink] = useState<string>(
+    announcement?.youtubeLink || ""
+  );
   const {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
+    watch,
   } = useForm<FormType>({
     defaultValues: {
-      title: announcement?.title || "",
-      description: announcement?.description || "",
+      title: title,
+      description: description,
       phoneNumber: announcement?.phoneNumber
         ? format(announcement?.phoneNumber.replace("+7", ""), phoneMask)
-        : "+7 ___ ___-__-__",
-      youtubeLink: announcement?.youtubeLink || "",
+        : "",
+      youtubeLink: youtubeLink,
     },
-    mode: "onSubmit",
+    mode: "onChange",
   });
+  const watchedTitle = watch("title");
+  const watchedDescription = watch("description");
+  useEffect(() => {
+    setTitle(watchedTitle);
+  }, [watchedTitle]);
+
+  useEffect(() => {
+    setDescription(watchedDescription);
+  }, [watchedDescription]);
+  const handleConfirmPublish = async () => {
+    setIsLoading(true);
+    const newImages = await handleUpload();
+
+    try {
+      const response = await apiService.post<string>({
+        url: "/ad",
+        dto: {
+          title,
+          description,
+          phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+          youtubeLink,
+          organizationId: user?.organization?.id,
+          subcategoryId: subcategory.id,
+          images: newImages,
+          details: toggles,
+        },
+      });
+
+      if (response.data) {
+        navigate({ to: "/announcements" });
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+      setShowModal(false);
+    }
+  };
+  const handleValidatePhone = (value: string) => {
+    if (value.replace(/[^\d]/g, "").replace("7", "").length !== 0) {
+      const cleanedNumber = value.replace(/[^\d]/g, "");
+      if (cleanedNumber.length !== 11) {
+        return false;
+      }
+
+      const prefix = cleanedNumber.substring(1, 4);
+      if (invalidPhonePrefixes.includes(prefix)) {
+        return false;
+      }
+    }
+    return true;
+  };
   return (
     <section className="min-h-screen bg-[#F1F2F6]">
       <Header>
@@ -346,19 +401,50 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("placeAd")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={async () =>
-              navigate({
-                to: "/announcements",
-              })
-            }
-          >
+          <IconContainer align="end" action={() => setShowModal(true)}>
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
       </Header>
+      {showModal && (
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
+          <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
+            <Typography size={16} weight={400} className="text-center">
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-[-2px] top-[-2px] p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button className="mb-2" onClick={handleConfirmPublish}>
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  await apiService.delete({
+                    url: `/ad/${announcement?.id}`,
+                  });
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
       <div className="px-4">
         <DefaultForm
           onSubmit={handleSubmit(async (form) => {
@@ -369,7 +455,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 url: `/ad/${announcement.id}`,
                 dto: {
                   ...form,
-                  phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
+                  phoneNumber:
+                    form.phoneNumber.replace(/[^\d]/g, "").replace("7", "")
+                      .length !== 0
+                      ? form.phoneNumber.replace(/[ -]/g, "")
+                      : "",
                   images: [
                     ...images
                       .map((item) => {
@@ -438,6 +528,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     inputProps={{ maxLength: 40 }}
                     autoFocus={true}
                     placeholder={t("adName")}
+                    value={field.value} // Значение из react-hook-form
+                    onChange={(e) => {
+                      field.onChange(e); // Обновляем react-hook-form
+                    }}
                   />
                   <Typography
                     size={12}
@@ -472,6 +566,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     label={t("description")}
                     inputProps={{ maxLength: 300 }}
                     placeholder={t("adDescription")}
+                    value={field.value} // Значение из react-hook-form
+                    onChange={(e) => {
+                      field.onChange(e); // Обновляем react-hook-form
+                    }}
                   />
                   <Typography
                     size={12}
@@ -528,17 +626,19 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               </DndProvider>
               {imageModal && (
                 <ImageViewModal
-                  images={images.filter(item => item.preview).map((image, index) => {
-                    return {
-                      index: index,
-                      imgUrl: image.preview,
-                    };
-                  })}
+                  images={images
+                    .filter((item) => item.preview)
+                    .map((image, index) => {
+                      return {
+                        index: index,
+                        imgUrl: image.preview,
+                      };
+                    })}
                   open={imageModal}
                   onClose={() => setImageModal(false)}
                   firstItem={imageIndex}
                   onDelete={() => {
-                    if(images[imageIndex].serverPreview) {
+                    if (images[imageIndex].serverPreview) {
                       deleteImageFromServer(images[imageIndex].serverPreview);
                     }
                     setImages((prevImages) =>
@@ -575,6 +675,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     label={t("youtubeVideo")}
                     inputProps={{ maxLength: 300 }}
                     placeholder={t("inputLink")}
+                    value={youtubeLink}
+                    onChange={(e) => {
+                      setYoutubeLink(e.target.value);
+                    }}
                   />
                 </div>
               )}
@@ -583,30 +687,15 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               name="phoneNumber"
               control={control}
               rules={{
-                required: t("requiredField"),
-                validate: (value: string) => {
-                  const cleanedNumber = value.replace(/\D/g, "");
-                  if (cleanedNumber.length !== 11) {
-                    return t("invalidNumber");
-                  }
-
-                  const prefix = cleanedNumber.substring(1, 4);
-                  if (invalidPhonePrefixes.includes(prefix)) {
-                    return "Такого номера не существует";
-                  }
-
-                  return true;
-                },
-                pattern: {
-                  value: /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/,
-                  message: "Неверный формат номера телефона",
-                },
+                required: false,
               }}
               render={({ field, fieldState: { error } }) => (
                 <TextField
                   {...field}
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
+                  error={Boolean(error?.message) || !isPhoneValid}
+                  helperText={
+                    error?.message || (!isPhoneValid ? t("invalidNumber") : "")
+                  }
                   fullWidth
                   type="tel"
                   inputMode="tel"
@@ -616,6 +705,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   placeholder="+7 700 000-00-00"
                   InputLabelProps={{
                     shrink: true,
+                  }}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setIsPhoneValid(handleValidatePhone(e.target.value));
                   }}
                 />
               )}
@@ -649,7 +742,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           <div className="fixed left-0 bottom-2 px-2 w-full z-10">
             <Button
               type="submit"
-              disabled={!isValid || isLoading}
+              disabled={!isValid || isLoading || !isPhoneValid}
               loading={isLoading || isSubmitting}
               mode="default"
             >

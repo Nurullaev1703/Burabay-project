@@ -21,7 +21,6 @@ import { apiService } from "../../services/api/ApiService";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../features/auth";
-import { HTTP_STATUS } from "../../services/api/ServerData";
 import { Modal, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Announcement } from "../announcements/model/announcements";
@@ -144,12 +143,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
   }, []);
 
-  console.log(adId)
   const handleSubmit = async () => {
-    const arrayAdress = address.split(",");
-    const specialName = !arrayAdress[0].includes("улица")
-      ? arrayAdress[0]
-      : "Бурабай";
     if (announcement?.address) {
       const response = await apiService.patch<string>({
         url: `/address/${announcement.address.id}`,
@@ -158,7 +152,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           address: address,
           latitude: coords[0],
           longitude: coords[1],
-          specialName,
+          specialName: address,
         },
       });
       if (response.data) {
@@ -179,10 +173,11 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           address: address,
           latitude: coords[0],
           longitude: coords[1],
-          specialName,
+          specialName: address,
         },
       });
-      if (response.data == HTTP_STATUS.CREATED) {
+      // XXX поменял проверку со статусв на response.data
+      if (response.data) {
         navigate({
           to: "/announcements/addAnnouncements/step-five/$id",
           params: {

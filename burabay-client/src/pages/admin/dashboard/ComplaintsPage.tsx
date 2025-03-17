@@ -426,7 +426,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           </div>
                         </div>
                       </div>
-                      <p className="text-gray-600 mt-2">{review.reviewText}</p>
+                      <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                        {review.reviewText}
+                      </p>
                       {review.reviewImages && (
                         <div className="flex gap-2 mt-2">
                           {review.reviewImages.map((img, idx) => (
@@ -479,7 +481,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
                           {review.reportText}
                         </p>
                       </div>
@@ -529,7 +531,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"

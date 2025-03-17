@@ -11,7 +11,6 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 export const CoveredImage: FC<Props> = function CoveredImage(props) {
   const [image, setImage] = useState<string>(baseUrl + props.imageSrc);
-  console.log(props.imageSrc)
   const coverStyles = `${props.width} ${props.height} ${props.borderRadius} relative`;
   return (
     <div className={coverStyles}>

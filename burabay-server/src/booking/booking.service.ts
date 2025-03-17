@@ -8,7 +8,6 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
-import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.service';
 import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
@@ -35,7 +34,7 @@ export class BookingService {
   /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
       const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
       const ad = await this.adRepository.findOne({
@@ -64,12 +63,13 @@ export class BookingService {
       // Является ли объявление арендой.
       const isRent = ad.subcategory.category.name === 'Жилье';
 
-      // Вычисление общей стоимости аренды, в случае если это аренда и если начало и конец аренды указан.
+      // Вычисление общей стоимости аренды
       if (isRent) {
         const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
-        newBooking.totalPrice = days * (createBookingDto.isChildRate ? ad.priceForChild : ad.price);
+        newBooking.totalPrice =
+          days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
       } else {
-        newBooking.totalPrice = createBookingDto.isChildRate ? ad.priceForChild : ad.price;
+        newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
       }
 
       // Сохранение
@@ -491,7 +491,7 @@ export class BookingService {
       });
       if (user.role === ROLE_TYPE.BUSINESS) {
         const notificationDto = {
-          email: booking.ad.organization.user.email, 
+          email: booking.ad.organization.user.email,
           title: '',
           type: NotificationType.NEGATIVE,
           message: `Бронь на объявление "${booking.ad.title}" была отменена`,
@@ -499,7 +499,7 @@ export class BookingService {
         await this.notificationService.createForUser(notificationDto);
       } else if (user.role === ROLE_TYPE.TOURIST) {
         const notificationDto = {
-          email: booking.user.email, 
+          email: booking.user.email,
           title: '',
           type: NotificationType.NEGATIVE,
           message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
@@ -513,7 +513,7 @@ export class BookingService {
 
   @CatchErrors()
   async bookingConfirm(id: string) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
         relations: { user: true, ad: true },
@@ -534,7 +534,7 @@ export class BookingService {
 
   @CatchErrors()
   async bookingPayed(id: string) {
-    return await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
         relations: { ad: { organization: { user: true } } },
@@ -555,7 +555,7 @@ export class BookingService {
       return JSON.stringify(HttpStatus.OK);
     });
   }
-  
+
   @CatchErrors()
   async bookingDone(id: string) {
     const booking = await this.bookingRepository.findOne({ where: { id: id } });

@@ -10,9 +10,12 @@ import { Booking } from 'src/booking/entities/booking.entity';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
+import { Banner } from './entities/baner.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking])],
+  imports: [
+    TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking, Banner]),
+  ],
   controllers: [AdminPanelController, AnalyticsController],
   providers: [AdminPanelService, AnalyticsService],
   exports: [],
