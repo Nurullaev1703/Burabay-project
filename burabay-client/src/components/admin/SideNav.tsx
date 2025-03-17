@@ -94,14 +94,14 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
               key={index}
               to={link.to}
               className={`flex items-center py-[12px] px-[16px] cursor-pointer rounded-[8px] transition-all duration-300 ease-linear
-                ${isActive ? "bg-white text-[#0A7D9E]" : "text-white border-transparent hover:border-white border-[1.05px]"}
+                ${isActive ? "bg-white text-[#0A7D9E]" : "text-white border-transparent hover:border-white border"}
               `}
             >
-              <div className="relative">
+              <div className="relative min-w-[30px] min-h-[30px]">
                 <img
                   src={link.icon}
                   alt={link.label}
-                  className={`w-[30px] h-[30px] transition-all duration-300
+                  className={`w-full h-full transition-colors duration-300
                     ${isActive ? "" : "brightness-[25]"}
                   `}
                 />
