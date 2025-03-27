@@ -162,7 +162,7 @@ export const PriceService: FC<Props> = function PriceService({
       {showModal && (
         <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center">
+          <Typography size={16} weight={400} className="text-center w-4/5 mx-auto">
             {t("confirmDelete")}
           </Typography>
           <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">

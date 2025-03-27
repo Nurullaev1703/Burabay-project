@@ -324,17 +324,20 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     const newImages = await handleUpload();
 
     try {
+      const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
+        phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+      } : null
       const response = await apiService.post<string>({
         url: "/ad",
         dto: {
           title,
           description,
-          phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
           youtubeLink,
           organizationId: user?.organization?.id,
           subcategoryId: subcategory.id,
           images: newImages,
           details: toggles,
+          ...phoneNumberDto
         },
       });
 
