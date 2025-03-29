@@ -15,6 +15,7 @@ import {
 import { RotatingLines } from "react-loader-spinner";
 import { COLORS } from "../../shared/ui/colors";
 import AddAnnouncementIcon from "../../app/icons/Intersect.png";
+import { Loader } from "../../components/Loader";
 
 interface Props {
   orgId: string;
@@ -37,7 +38,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
       });
     }
   };
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     UseGetOrganizationAnnouncements(orgId, filters);
 
   const adList = data?.pages.flat() || [];
@@ -97,7 +98,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
           </IconContainer>
         </div>
       )}
-      {!adList.length && (
+      {!adList.length && !isLoading && (
         <div className="flex justify-center flex-col items-center flex-grow mt-16 py-8">
           <img src={AddAnnouncementIcon} alt="" className="mb-8" />
           {filters?.adName ? (
@@ -143,14 +144,15 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
           </ul>
         </>
       )}
-
-      <Button
-        className={`${adList.length || filters?.adName ? "fixed bottom-navbar left-4 z-50" : "mx-4 mt-4"}  w-header `}
-        onClick={() => navigate({ to: "/announcements/addAnnouncements" })}
-      >
-        {t("addAdBtn")}
-      </Button>
-
+      {!isLoading && (
+        <Button
+          className={`${adList.length || filters?.adName ? "fixed bottom-navbar left-4 z-50" : "mx-4 mt-4"}  w-header `}
+          onClick={() => navigate({ to: "/announcements/addAnnouncements" })}
+        >
+          {t("addAdBtn")}
+        </Button>
+      )}
+      {isLoading && <Loader />}
       <NavMenuOrg />
     </div>
   );

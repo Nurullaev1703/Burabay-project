@@ -51,7 +51,7 @@ const AnalyticsPage = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  });
+  },[]);
 
   const loadMoreAds = () => {
     setVisibleAdsCount((prevCount) => prevCount + 20);

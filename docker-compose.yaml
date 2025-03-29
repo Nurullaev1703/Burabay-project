@@ -9,6 +9,7 @@ services:
             - burabay-server/.env.docker
         volumes:
             - public-data:/app/public
+        restart: always
         depends_on:
             - postgres
         ports:
@@ -27,6 +28,7 @@ services:
             - burabay-client/.env
         ports:
             - "5173:5173"
+        restart: always
         depends_on:
             - backend
         networks:

@@ -152,12 +152,17 @@ export class MainPageService {
       relations: {
         subcategory: { category: true },
         usersFavorited: true,
+        address: true
       },
       order: {
         createdAt: 'DESC',
       },
       select: {
         id: true,
+        address: {
+          address: true,
+          specialName: true,
+        },
         title: true,
         images: true,
         price: true,

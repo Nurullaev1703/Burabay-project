@@ -567,7 +567,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"
