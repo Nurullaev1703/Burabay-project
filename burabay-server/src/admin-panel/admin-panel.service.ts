@@ -92,7 +92,7 @@ export class AdminPanelService {
         stars: true,
         images: true,
         date: true,
-        user: { fullName: true },
+        user: { id: true, fullName: true },
         ad: {
           images: true,
           title: true,
