@@ -95,6 +95,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     mask: "+7 ___ ___-__-__",
     replacement: { _: /\d/ },
     showMask: true,
+    showMaskOnHover: false,
+    showMaskOnBlur: false,
   };
   const mask = useMask(phoneMask);
 
@@ -454,15 +456,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             setIsLoading(true);
             const newImages = await handleUpload();
             if (announcement) {
+              const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
+                ? {
+                  phoneNumber: "+"+mask.current?.value.replace(/\D/g, "")
+                  }
+                : null;
               await apiService.patch<string>({
                 url: `/ad/${announcement.id}`,
                 dto: {
-                  ...form,
-                  phoneNumber:
-                    form.phoneNumber.replace(/[^\d]/g, "").replace("7", "")
-                      .length !== 0
-                      ? form.phoneNumber.replace(/[ -]/g, "")
-                      : "",
+                  title: form.title,
+                  description: form.description,
+                  youtubeLink: form.youtubeLink,
                   images: [
                     ...images
                       .map((item) => {
@@ -474,6 +478,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     ...(newImages as string[]),
                   ],
                   details: toggles,
+                  ...phoneNumberDto
                 },
               });
               navigate({
@@ -483,15 +488,22 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               });
             } else {
+              const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "")
+                ? {
+                    phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+                  }
+                : null;
               const response = await apiService.post<string>({
                 url: "/ad",
                 dto: {
-                  ...form,
+                  title: form.title,
+                  description: form.description,
+                  youtubeLink: form.youtubeLink,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
-                  phoneNumber: form.phoneNumber.replace(/[ -]/g, ""),
                   images: newImages,
                   details: toggles,
+                  ...phoneNumberDto,
                 },
               });
               if (response.data) {
