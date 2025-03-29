@@ -32,6 +32,7 @@ export default function UsersList({ filters }: Props) {
   const { data: users = [], isLoading } = useGetUsers(filters);
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
 
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
@@ -273,13 +274,17 @@ export default function UsersList({ filters }: Props) {
 
                       <div className="h-[58px] flex flex-col justify-center">
                         {/* Имя пользователя */}
-                        {user.fullName ? (
+                        {user.role === "бизнес" && user.organization?.name ? (
+                          <h2 className="text-[16px] font-roboto">
+                            {user.organization.name}
+                          </h2>
+                        ) : user.fullName ? (
                           <h2 className="text-[16px] font-roboto">
                             {user.fullName}
                           </h2>
                         ) : (
                           <div>
-                            <p>—</p>
+                            <p>-</p>
                           </div>
                         )}
 

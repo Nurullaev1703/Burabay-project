@@ -88,6 +88,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
   const navigate = useNavigate();
 
+  const [isTouristModalOpen, setIsTouristModalOpen] = useState(false);
+  const [selectedTourist, setSelectedTourist] = useState<Profile | null>(null);
+
   useEffect(() => {
     const fetchReviews = async () => {
       try {
@@ -256,6 +259,22 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     }
   };
 
+  const fetchTouristInfo = async (touristId: string) => {
+    try {
+      const response = await apiService.get<Profile>({
+        url: `/admin/tourist-info/${touristId}`,
+      });
+
+      if (response.status === 200) {
+        console.log("Информация о туристе:", response.data);
+        setSelectedTourist(response.data);
+        setIsTouristModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки данных туриста:", error);
+    }
+  };
+
   const handleCancelHint = (reviewId: string) => {
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
@@ -312,6 +331,23 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     } catch (error) {
       console.error("Ошибка разблокировки пользователя:", error);
       alert("Произошла ошибка при разблокировке пользователя");
+    }
+  };
+
+  const handleBlockTourist = async (touristId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${touristId}`,
+        dto: { value: true },
+      });
+      if (response.status === 200) {
+        setIsTouristModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке туриста");
+      }
+    } catch (error) {
+      console.error("Ошибка блокировки туриста:", error);
+      alert("Произошла ошибка при блокировке туриста");
     }
   };
 
