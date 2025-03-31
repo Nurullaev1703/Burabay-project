@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Injectable, Request } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
 import { ReviewReportService } from './review-report.service';
 import { CreateReviewReportDto } from './dto/create-review-report.dto';
 import { UpdateReviewReportDto } from './dto/update-review-report.dto';
@@ -12,8 +12,8 @@ export class ReviewReportController {
 
   @Post()
   create(@Body() createReviewReportDto: CreateReviewReportDto, @Request() req: AuthRequest) {
-      return this.reviewReportService.create(createReviewReportDto, req.user);
-    }
+    return this.reviewReportService.create(createReviewReportDto, req.user);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateReviewReportDto: UpdateReviewReportDto) {
