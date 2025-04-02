@@ -29,58 +29,101 @@ export const PolitikHelp: FC<Props> = function PolitikHelp() {
 
   <div>
   <div className="bg-white p-6 rounded-md shadow-lg max-w-md mx-auto">
-  <Typography className="text-black">Обновлено: [Дата]</Typography>
-  <Typography className=" mt-4 mb-2">[Название приложения]</Typography>
-  <Typography className="text-black">
-    уважает вашу конфиденциальность и стремится защищать ваши персональные данные.
-    Настоящая Политика конфиденциальности объясняет, какие данные мы собираем, как мы их используем и защищаем.
-  </Typography>
+      <Typography className="text-black">{t("sectionGeneral")}</Typography>
+      <Typography className="text-black mt-4">
+      {t("sectionGeneralText1")}
+      </Typography>
+      <Typography className="text-black mt-2">
+      {t("sectionGeneralText2")}
+      </Typography>
 
-  <div className="mt-4">
-    <Typography className="">1. Какие данные мы собираем:</Typography>
-    <ul className="list-disc list-inside text-black mt-2 space-y-1">
-      <li>Личные данные: имя, email, номер телефона.</li>
-      <li>Данные для бронирований: даты поездки, предпочтения.</li>
-      <li>Техническая информация: IP-адрес, данные устройства, файлы cookie.</li>
-    </ul>
-  </div>
+      <Typography className="text-black  mt-6">{t("sectionDataCollection")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionDataCollectionText1")}
+      </Typography>
+      <ul className="list-disc list-inside text-black mt-2 space-y-1">
+        <li>{t("dataItem1")}</li>
+        <li>{t("dataItem2")}</li>
+        <li>{t("dataItem3")}</li>
+      </ul>
+      <Typography className="text-black mt-2">
+        {t("sectionDataProcessingText1")}
+      </Typography>
+      <ul className="list-disc list-inside text-black mt-2 space-y-1">
+        <li>{t("purposeItem1")}</li>
+        <li>{t("purposeItem2")}</li>
+        <li>{t("purposeItem3")}</li>
+        <li>{t("purposeItem4")}</li>
+        <li>{t("purposeItem5")}</li>
+      </ul>
 
-  <div className="mt-4">
-    <Typography className="">2. Как мы используем данные:</Typography>
-    <ul className="list-disc list-inside text-black mt-2 space-y-1">
-      <li>Для обработки бронирований и предоставления услуг.</li>
-      <li>Для улучшения работы приложения и поддержки пользователей.</li>
-      <li>Для рассылки актуальных предложений (с возможностью отказа).</li>
-    </ul>
-  </div>
+      <Typography className="text-black mt-6">{t("sectionDataStorage")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionDataStorageText1")}
+      </Typography>
+      <Typography className="text-black mt-2">
+      {t("sectionDataStorageText2")}
+      </Typography>
+      <Typography className="text-black mt-2">
+      {t("sectionDataStorageText3")}
+      </Typography>
+      <Typography className="text-black mt-2">
+      {t("sectionDataStorageText4")}
+      </Typography>
 
-  <div className="mt-4">
-    <Typography className="">3. Безопасность данных:</Typography>
-    <p className="text-black mt-2">
-      Мы принимаем все необходимые меры для защиты ваших данных от несанкционированного доступа,
-      изменения или утраты.
-    </p>
-  </div>
+      <Typography className="text-black mt-6">{t("sectionUserRights")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionUserRightsText1")}
+      </Typography>
+      <ul className="list-disc list-inside text-black mt-2 space-y-1">
+        <li>{t("userRight1")}</li>
+        <li>{t("userRight2")}</li>
+        <li>{t("userRight3")}</li>
+        <li>{t("userRight4")}</li>
+      </ul>
+      <Typography className="text-black mt-2">
+        {t("sectionUserRightsText2")}
+      </Typography>
+      <Typography className="text-black mt-2">
+      {t("sectionUserRightsText3")}
+      </Typography>
 
-  <div className="mt-4">
-    <Typography className="">4. Передача данных третьим лицам:</Typography>
-    <Typography className="text-black mt-2">
-      Ваши данные могут быть переданы партнерам (например, отелям или организаторам активностей) только для выполнения бронирования.
-      Мы не продаем ваши данные.
-    </Typography>
-  </div>
+      <Typography className="text-black mt-6">{t("sectionCookies")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionCookiesText1")}
+      </Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionCookiesText2")}
+      </Typography>
 
-  <div className="mt-4">
-    <Typography className="">5. Ваши права:</Typography>
-    <Typography className="text-black mt-2">
-      Вы можете запросить доступ к своим данным, их удаление или изменение, обратившись в нашу службу поддержки.
-    </Typography>
-  </div>
+      <Typography className="text-black mt-6">{t("sectionChanges")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionChangesText1")}
+      </Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionChangesText2")}
+      </Typography>
 
-  <Typography className="text-black mt-4">
-    Подробную информацию смотрите в полном тексте Политики конфиденциальности [ссылка].
-  </Typography>
-</div>
+      <Typography className="text-black mt-6">{t("sectionContacts")}</Typography>
+      <Typography className="mt-2">{t("sectionContactsText1")}</Typography>
+      <Typography className="text-black mt-2">
+        Email: info@burabaydamu.kz
+      </Typography>
+      <Typography className="text-black mt-2">
+        WhatsApp: 87010921405
+      </Typography>
+      <Typography className="text-black mt-2">
+        {t("contactAddress")}
+      </Typography>
+      <Typography className="text-black mt-2">
+        {t("contactPhoneDa")}
+      </Typography>
+
+      <Typography className="text-black mt-6">{t("sectionConsent")}</Typography>
+      <Typography className="text-black mt-2">
+        {t("sectionConsentText1")}
+      </Typography>
+    </div>
 
   </div>
   </main>

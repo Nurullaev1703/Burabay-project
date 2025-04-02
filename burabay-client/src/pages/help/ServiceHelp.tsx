@@ -28,26 +28,29 @@ export const ServiceHelp: FC<Props> = function ServiceHelp() {
         </div>
       </AlternativeHeader>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Burabay Travel — это мобильное приложение, предназначенное для туристов, планирующих посещение курортной зоны Бурабай в Республике Казахстан.</Typography>
-      </div>
-        <Typography className="px-4 mt-4" size={16} weight={400}>С помощью Приложения Пользователи могут:</Typography>
-      <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Находить и бронировать услуги (проживание, питание, активный отдых и пр.)</Typography>
+        <Typography size={16} weight={400}>1. {t("aboutServiceVosem")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Оплачивать бронирования онлайн через подключённые платёжные системы.</Typography>
+        <Typography size={16} weight={400}>1.1. {t("aboutServiceT")}</Typography>
+      </div>
+        <Typography className="px-4 mt-4" size={16} weight={400}>1.2. {t("aboutServiceOne")}</Typography>
+      <div className="mt-4 px-4">
+        <Typography size={16} weight={400}>{t("aboutServiceTwo")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Оставлять отзывы и оценки.</Typography>
+        <Typography size={16} weight={400}>{t("aboutServiceTri")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Использовать карту и фильтры для удобного поиска.</Typography>
+        <Typography size={16} weight={400}>{t("aboutServiceFour")}</Typography>
+      </div>
+      <div className="mt-4 px-4">
+        <Typography size={16} weight={400}>{t("aboutServiceFive")}</Typography>
       </div>
       <div className="mt-10 px-4">
-        <Typography size={16} weight={400}>Приложение объединяет туристов и компании, предлагающие туристические услуги, в единую цифровую платформу для удобного взаимодействия.</Typography>
+        <Typography size={16} weight={400}>1.3. {t("aboutServiceSix")}.</Typography>
       </div>
-      <div className="mt-10 px-4">
-        <Typography size={16} weight={400}>Администрация Приложения осуществляет только информационно-технологическое сопровождение, не являясь поставщиком услуг, публикуемых организациями.</Typography>
+      <div className="mt-10 mb-2 px-4">
+        <Typography size={16} weight={400}>1.4. {t("aboutServiceSeven")}.</Typography>
       </div>
   </main>
   )
