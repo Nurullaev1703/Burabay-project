@@ -305,7 +305,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         <Button
           onClick={handleSubmit}
           mode="default"
-          disabled={coords.length === 0}
+          disabled={coords.length === 0 || !Boolean(address)}
         >
           {t("continueBtn")}
         </Button>
