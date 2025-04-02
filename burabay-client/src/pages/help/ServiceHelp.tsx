@@ -28,26 +28,26 @@ export const ServiceHelp: FC<Props> = function ServiceHelp() {
         </div>
       </AlternativeHeader>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>[Название приложения] — удобный сервис для бронирования отелей и развлечений в курортных зонах. Планируйте свой отдых легко: выбирайте лучшие варианты проживания и активностей, оформляйте бронирование прямо в приложении.</Typography>
+        <Typography size={16} weight={400}>Burabay Travel — это мобильное приложение, предназначенное для туристов, планирующих посещение курортной зоны Бурабай в Республике Казахстан.</Typography>
       </div>
-        <Typography className="px-4 mt-4" size={16} weight={400}>Основные возможности:</Typography>
+        <Typography className="px-4 mt-4" size={16} weight={400}>С помощью Приложения Пользователи могут:</Typography>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Быстрый поиск и бронирование отелей.</Typography>
-      </div>
-      <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Удобный выбор экскурсий, активностей и развлечений.</Typography>
+        <Typography size={16} weight={400}>Находить и бронировать услуги (проживание, питание, активный отдых и пр.)</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Актуальные цены и предложения.</Typography>
+        <Typography size={16} weight={400}>Оплачивать бронирования онлайн через подключённые платёжные системы.</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Поддержка пользователей 24/7.</Typography>
+        <Typography size={16} weight={400}>Оставлять отзывы и оценки.</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>С нами ваш отдых станет комфортным и запоминающимся!</Typography>
+        <Typography size={16} weight={400}>Использовать карту и фильтры для удобного поиска.</Typography>
       </div>
       <div className="mt-10 px-4">
-        <Typography size={16} weight={400}>Связаться с нами...</Typography>
+        <Typography size={16} weight={400}>Приложение объединяет туристов и компании, предлагающие туристические услуги, в единую цифровую платформу для удобного взаимодействия.</Typography>
+      </div>
+      <div className="mt-10 px-4">
+        <Typography size={16} weight={400}>Администрация Приложения осуществляет только информационно-технологическое сопровождение, не являясь поставщиком услуг, публикуемых организациями.</Typography>
       </div>
   </main>
   )
