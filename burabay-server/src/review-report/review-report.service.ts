@@ -9,7 +9,6 @@ import { Review } from 'src/review/entities/review.entity';
 import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
-import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
@@ -29,33 +28,34 @@ export class ReviewReportService {
 
   @CatchErrors()
   async create(createReviewReportDto: CreateReviewReportDto, tokenData: TokenData) {
-    return await this.dataSource.transaction(async (manager) => {
-    const user = await this.userRepository.findOne({
-      where: { id: tokenData.id },
-      relations: { organization: true },
+    console.log(tokenData);
+    return await this.dataSource.transaction(async () => {
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        relations: { organization: true },
+      });
+      Utils.checkEntity(user.organization, 'Организация не найдена');
+      const review = await this.reviewRepository.findOne({
+        where: { id: createReviewReportDto.reviewId },
+        relations: { user: true, ad: true },
+      });
+      Utils.checkEntity(review, 'Отзыв не найден');
+      const report = this.reviewReportRepository.create({
+        review,
+        org: user.organization,
+        text: createReviewReportDto.text,
+        date: new Date(),
+      });
+      await this.reviewReportRepository.save(report);
+      const notificationDto = {
+        email: review.user.email,
+        title: '',
+        type: NotificationType.NEGATIVE,
+        message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
+      };
+      await this.notificationService.createForUser(notificationDto);
+      return JSON.stringify(HttpStatus.CREATED);
     });
-    Utils.checkEntity(user.organization, 'Организация не найдена');
-    const review = await this.reviewRepository.findOne({
-      where: { id: createReviewReportDto.reviewId },
-      relations: { user:true, ad:true },
-    });
-    Utils.checkEntity(review, 'Отзыв не найден');
-    const report = this.reviewReportRepository.create({
-      review,
-      org: user.organization,
-      text: createReviewReportDto.text,
-      date: new Date(),
-    });
-    await this.reviewReportRepository.save(report);
-    const notificationDto = {
-      email: review.user.email,
-      title: '',
-      type: NotificationType.NEGATIVE,
-      message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
-    };
-    await this.notificationService.createForUser(notificationDto);
-    return JSON.stringify(HttpStatus.CREATED);
-  });
   }
 
   @CatchErrors()

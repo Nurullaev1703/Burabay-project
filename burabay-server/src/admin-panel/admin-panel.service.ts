@@ -110,6 +110,7 @@ export class AdminPanelService {
       return {
         reviewId: review.id,
         username: review.user.fullName,
+        userId: review.user.id,
         reviewDate: review.date,
         reviewStars: review.stars,
         reviewText: review.text,
