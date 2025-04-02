@@ -20,3 +20,5 @@ Dockerfile.frontend
 .vscode
 
 
+node_modules/.yarn-integrity
+yarn.lock

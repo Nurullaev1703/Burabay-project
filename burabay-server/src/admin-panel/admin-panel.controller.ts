@@ -34,8 +34,13 @@ export class AdminPanelController {
   }
 
   @Get('org-info/:orgId')
-  async getOrgAndAds(@Param('orgId') orgId: string) {
-    return this.adminPanelService.getOrgAndAds(orgId);
+  async getOrgInfo(@Param('orgId') orgId: string) {
+    return this.adminPanelService.getOrgInfo(orgId);
+  }
+
+  @Get('tourist-info/:userId')
+  async getTouristInfo(@Param('userId') userId: string) {
+    return this.adminPanelService.getTouristInfo(userId);
   }
 
   @Patch('check-org/:orgId')

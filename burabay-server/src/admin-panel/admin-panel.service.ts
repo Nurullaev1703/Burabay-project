@@ -92,7 +92,7 @@ export class AdminPanelService {
         stars: true,
         images: true,
         date: true,
-        user: { fullName: true },
+        user: { id: true, fullName: true },
         ad: {
           images: true,
           title: true,
@@ -110,6 +110,7 @@ export class AdminPanelService {
       return {
         reviewId: review.id,
         username: review.user.fullName,
+        userId: review.user.id,
         reviewDate: review.date,
         reviewStars: review.stars,
         reviewText: review.text,
@@ -129,7 +130,7 @@ export class AdminPanelService {
 
   /** Полные данные об Организации и ее Объявления для раскрытии карточки в Админ Панели. */
   @CatchErrors()
-  async getOrgAndAds(orgId: string) {
+  async getOrgInfo(orgId: string) {
     const org = await this.organizationRepository.findOne({
       where: { id: orgId },
       relations: { ads: { address: true, subcategory: { category: true } }, user: true },
@@ -156,6 +157,21 @@ export class AdminPanelService {
       },
     });
     return org;
+  }
+
+  /** Полные данные об Пользователе для раскрытии карточки в Админ Панели. */
+  @CatchErrors()
+  async getTouristInfo(userId: string) {
+    return await this.userRepository.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        phoneNumber: true,
+        email: true,
+        picture: true,
+      },
+    });
   }
 
   /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
@@ -315,7 +331,7 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  /** Логика для блокировки Орагнизации. */
+  /** Блокировка Орагнизации. */
   @CatchErrors()
   async banOrg(orgId: string, value: boolean) {
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
