@@ -21,6 +21,10 @@ import document from "../../../../public/document.svg";
 import confirmed from "../../../../public/confirmed.svg";
 import Close from "../../../../public/Close.png";
 import Down from "../../../../public/down-arrow.svg";
+import Back from "../../../../public/Back.svg";
+import { CoveredImage } from "../../../shared/ui/CoveredImage";
+import { AdCard } from "../../main/ui/AdCard";
+import { Announcement } from "../../announcements/model/announcements";
 
 interface Props {
   filters: UsersFilter;
@@ -32,7 +36,6 @@ export default function UsersList({ filters }: Props) {
   const { data: users = [], isLoading } = useGetUsers(filters);
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
-
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
   const statusFilterRef = useRef<HTMLDivElement | null>(null);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
@@ -45,6 +48,17 @@ export default function UsersList({ filters }: Props) {
     "confirm" | "reject" | null
   >(null);
   const [visibleUsersCount, setVisibleUsersCount] = useState(2);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [_isTouristModalOpen, setIsTouristModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+
+  const [organizationAnnouncements, setOrganizationAnnouncements] = useState<
+    any[]
+  >([]); // Adjust 'any[]' to your Announcement model
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [announcementsError, setAnnouncementsError] = useState<string | null>(
+    null
+  );
 
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
@@ -139,6 +153,113 @@ export default function UsersList({ filters }: Props) {
 
   const loadMoreUsers = () => {
     setVisibleUsersCount((prevCount) => prevCount + 20);
+  };
+
+  const closeUserDetailsModal = () => {
+    setSelectedUser(null);
+    setIsModalOpen(false);
+  };
+
+  const openUserDetailsModal = async (user: any) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+    setOrganizationAnnouncements([]); // Clear previous announcements
+    setAnnouncementsLoading(true);
+    setAnnouncementsError(null);
+
+    if (user?.role === "бизнес" && user.organization?.id) {
+      const orgId = user.organization.id;
+      try {
+        const response = await apiService.get<Announcement[]>({
+          url: `/ad/by-org/${orgId}`,
+        });
+        if (response.status === 200) {
+          setOrganizationAnnouncements(response.data);
+          console.log("Полученные объявления:", response.data);
+        } else {
+          setAnnouncementsError(
+            `Ошибка при загрузке объявлений: ${response.status}`
+          );
+        }
+      } catch (error: any) {
+        setAnnouncementsError(
+          `Ошибка при загрузке объявлений: ${error.message}`
+        );
+      } finally {
+        setAnnouncementsLoading(false);
+      }
+    } else {
+      setAnnouncementsLoading(false);
+    }
+  };
+
+  const handleBlockUser = async (orgId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-org/${orgId}`,
+        dto: { value: true },
+      });
+      if (response.status === 200) {
+        alert("Пользователь заблокирован");
+        setIsModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке пользователя");
+      }
+    } catch (error) {
+      console.error("Ошибка блокировки пользователя:", error);
+      alert("Произошла ошибка при блокировке пользователя");
+    }
+  };
+
+  const handleUnblockUser = async (userId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-org/${userId}`,
+        dto: { value: false },
+      });
+      if (response.status === 200) {
+        alert("Пользователь разблокирован");
+        setIsModalOpen(false);
+      } else {
+        alert("Ошибка при разблокировке пользователя");
+      }
+    } catch (error) {
+      console.error("Ошибка разблокировки пользователя:", error);
+      alert("Произошла ошибка при разблокировке пользователя");
+    }
+  };
+
+  const handleBlockTourist = async (userId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${userId}`,
+        dto: { value: true },
+      });
+      if (response.status === 200) {
+        setIsTouristModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке туриста");
+      }
+    } catch (error) {
+      console.error("Ошибка блокировки туриста:", error);
+      alert("Произошла ошибка при блокировке туриста");
+    }
+  };
+  const handleUnblockTourist = async (userId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${userId}`,
+        dto: { value: false },
+      });
+      if (response.status === 200) {
+        setIsTouristModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке туриста");
+      }
+    } catch (error) {
+      console.error("Ошибка блокировки туриста:", error);
+      alert("Произошла ошибка при блокировке туриста");
+    }
   };
 
   return (
@@ -258,7 +379,11 @@ export default function UsersList({ filters }: Props) {
                   key={user.organization?.id || user.id}
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                 >
-                  <div className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px]">
+                  <div
+                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px]"
+                    onClick={() => openUserDetailsModal(user)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="flex items-center space-x-4">
                       <img
                         src={
@@ -272,16 +397,24 @@ export default function UsersList({ filters }: Props) {
                       />
 
                       <div className="h-[58px] flex flex-col justify-center">
-                        {/* Имя пользователя */}
-                        {user.fullName ? (
+                        {user.role === "бизнес" && user.organization?.name ? (
+                          <h2 className="text-[16px] font-roboto">
+                            {user.organization.name}
+                          </h2>
+                        ) : user.fullName ? (
                           <h2 className="text-[16px] font-roboto">
                             {user.fullName}
                           </h2>
                         ) : (
                           <div>
-                            <p>—</p>
+                            <p>-</p>
                           </div>
                         )}
+
+                        {user.role === "бизнес" &&
+                          user.organization?.isBanned && (
+                            <p className="text-sm text-red">Заблокирован</p>
+                          )}
 
                         {user.role === "турист" && (
                           <p
@@ -299,7 +432,6 @@ export default function UsersList({ filters }: Props) {
                           </p>
                         )}
 
-                        {/* Роль пользователя */}
                         <span className="text-[12px] text-[#999999]">
                           {user.role === "бизнес"
                             ? "Организация"
@@ -319,8 +451,11 @@ export default function UsersList({ filters }: Props) {
                         </div>
                       ) : (
                         <button
-                          className="text-[#39B56B] items-center pt-3 pr-4 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[38.5px]"
-                          onClick={() => openConfirmModal(user.organization!)}
+                          className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openConfirmModal(user.organization!);
+                          }}
                         >
                           Подтверждение
                           <img
@@ -502,17 +637,16 @@ export default function UsersList({ filters }: Props) {
                 </div>
               </div>
             </div>
-
             <div className="mt-6 flex flex-col items-center space-y-4">
               <button
                 onClick={handleConfirmUser}
-                className="w-[400px] pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#39B56B] text-white rounded-[32px] font-medium"
+                className="w-[400px] pt-[18px] pr-[12px] pb-[18px] bg-[#39B56B] text-white rounded-[32px] font-medium"
               >
                 Подтвердить аккаунт
               </button>
               <button
                 onClick={handleRejectUser}
-                className="w-[400px] pt-[18px] pr-[12px] pb-[18px] pl-[12px] bg-[#FF5959] text-white rounded-[32px] font-medium"
+                className="w-[400px] pt-[18px] pr-[12px] pb-[18px] bg-[#FF5959] text-white rounded-[32px] font-medium"
               >
                 Отклонить
               </button>
@@ -567,6 +701,179 @@ export default function UsersList({ filters }: Props) {
                 Отмена
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* User Details Modal */}
+      {isModalOpen && selectedUser && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto w-[772px]">
+            <div className="flex items-center justify-between w-full">
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={closeUserDetailsModal}
+              >
+                <img src={Back} alt="Назад" className="w-6 h-6" />
+              </button>
+              <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
+                {selectedUser.role === "турист" ? (
+                  <p>Турист</p>
+                ) : selectedUser.role === "бизнес" ? (
+                  <p>Организация</p>
+                ) : (
+                  <p>Детали пользователя</p>
+                )}
+              </h2>
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={closeUserDetailsModal}
+              >
+                <img src={Close} alt="Выход" className="w-full h-full" />
+              </button>
+            </div>
+            <div>
+              <div className="flex justify-center space-x-4">
+                <CoveredImage
+                  width="w-[128px]"
+                  height="h-[128px]"
+                  borderRadius="rounded-full"
+                  imageSrc={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
+                  errorImage={defaultImage}
+                />
+              </div>
+              <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+                {selectedUser.fullName ||
+                  selectedUser.organization?.name ||
+                  "—"}
+              </h2>
+            </div>
+
+            {selectedUser.role === "турист" ? (
+              <div>
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                  <p className="text-[#999999] text-[12px] flex">Email</p>
+                  <Typography className="font-medium">
+                    {selectedUser.email || "—"}
+                  </Typography>
+                </div>
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                  <p className="text-[#999999] text-[12px] flex">
+                    Phone Number
+                  </p>
+                  <Typography className="font-medium">
+                    {selectedUser.phoneNumber || "—"}
+                  </Typography>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  <div>
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                      onClick={() => {
+                        handleBlockTourist(selectedUser.id);
+                      }}
+                    >
+                      Заблокировать пользователя
+                    </button>
+                  </div>
+                  <div>
+                    <button
+                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                      onClick={() => {
+                        handleUnblockTourist(selectedUser.id);
+                      }}
+                    >
+                      Разблокировать
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : selectedUser.role === "бизнес" ? (
+              <div>
+                <div className="mt-4">
+                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                    <div className="flex flex-col items-start">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
+                        {selectedUser.website || "Не указано"}
+                      </p>
+                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                        Сайт
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                    <div className="flex flex-col items-start">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                        {selectedUser.phone || "Не указано"}
+                      </p>
+                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                        Телефон
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                    <div className="flex flex-col items-start">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                        {selectedUser.email || "Не указан"}
+                      </p>
+                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                        Email
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  {announcementsLoading ? (
+                    <Loader />
+                  ) : announcementsError ? (
+                    <Typography color="error">{announcementsError}</Typography>
+                  ) : organizationAnnouncements.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {organizationAnnouncements.map((ad: any) => (
+                        <div
+                          key={ad.id}
+                          onClick={() =>
+                            navigate({
+                              to: `/admin/announcements/${ad.id}`,
+                            })
+                          }
+                        >
+                          <AdCard ad={ad} isOrganization={true} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Typography className="text-gray-500">
+                      Нет объявлений
+                    </Typography>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <div>
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                      onClick={() => {
+                        handleBlockUser(selectedUser.organization.id);
+                      }}
+                    >
+                      Заблокировать пользователя
+                    </button>
+                  </div>
+                  <div>
+                    <button
+                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                      onClick={() => {
+                        handleUnblockUser(selectedUser.organization.id);
+                      }}
+                    >
+                      Разблокировать
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div></div>
+            )}
           </div>
         </div>
       )}

@@ -146,18 +146,14 @@ const AnalyticsPage = () => {
           <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
             <Block
               title="Количество посетителей сегодня"
-              className="font-medium" // Убрали h-[16vh]
+              className="font-medium"
             >
               <div className="flex">
                 <div className="flex-grow">
-                  {" "}
-                  {/* Заменили w-[251.5px] на flex-grow */}
                   <p className="text-4 font-normal">Текущее: </p>
                   <p className="text-[22px] font-bold">{data.activeUsersNow}</p>
                 </div>
                 <div className="flex-grow">
-                  {" "}
-                  {/* Заменили w-[251.5px] на flex-grow */}
                   <p className="text-4 font-normal">Максимальное: </p>
                   <p className="text-[22px] font-bold">{data.peakUsersToday}</p>
                 </div>
@@ -222,7 +218,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* ✅ 3 Колонка */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 max-h-[940px] min-w-[300px]">
             <ScrollableBlock
               title={`Всего объявлений: ${data.adsCount}`}
               className="h-full"
