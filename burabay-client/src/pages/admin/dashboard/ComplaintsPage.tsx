@@ -39,6 +39,7 @@ interface Review {
   userId: string;
   delayedRemoval?: boolean;
   status?: "deleted" | "accepted";
+  adId: string;
 }
 
 interface Organization {
@@ -353,6 +354,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       alert("Произошла ошибка при блокировке туриста");
     }
   };
+  
 
   return (
     <div className="relative w-full min-h-screen flex">
@@ -395,7 +397,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             <Loader />
           ) : reviews.length > 0 ? (
             <>
-              {reviews.slice(0, visibleReviewsCount).map((review) => (
+              {reviews.slice(0, visibleReviewsCount).map((review)  => (                
                 <div
                   key={review.reviewId}
                   className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
@@ -431,7 +433,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                       </button>
                     </div>
                   ) : (
-                    <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
+                    <div
+                      key={review.id}
+                      className="h-full p-[32px] pr-[32px] flex flex-col border-r"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <p
@@ -446,7 +451,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                                 fetchTouristInfo(review.user.id);
                               } else if (isLoading) {
                                 console.warn("Данные еще загружаются.");
-                                
                               } else {
                                 console.log("review:", review);
                                 console.warn(
@@ -463,7 +467,16 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           <RatingStars rating={review.reviewStars} />
                         </div>
 
-                        <div className="flex items-center">
+                        <div
+                          key={review.adId}
+                          className="flex items-center"
+                          onClick={() =>
+                            navigate({
+                              to: `/admin/announcements/${review.adId}`,
+                            })
+                          }
+                        >
+                          
                           <img
                             src={`${BASE_URL}${review.adImage}`}
                             alt="Фото курорта"
@@ -563,6 +576,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   )}
                 </div>
               ))}
+              
               {visibleReviewsCount < reviews.length && (
                 <div className="flex justify-center mt-4">
                   <button
@@ -574,6 +588,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               )}
             </>
+            
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
               <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
@@ -590,7 +605,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"
