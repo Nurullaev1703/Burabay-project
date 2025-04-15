@@ -94,6 +94,7 @@ export class AdminPanelService {
         date: true,
         user: { id: true, fullName: true },
         ad: {
+          id: true,
           images: true,
           title: true,
           reviewCount: true,
@@ -108,6 +109,7 @@ export class AdminPanelService {
     });
     return reviews.map((review) => {
       return {
+        adId: review.ad.id,
         reviewId: review.id,
         username: review.user.fullName,
         userId: review.user.id,

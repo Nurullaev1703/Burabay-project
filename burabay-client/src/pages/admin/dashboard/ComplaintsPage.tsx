@@ -35,8 +35,11 @@ interface Review {
   id: string;
   organization: Organization;
   orgId: string;
+  user: User;
+  userId: string;
   delayedRemoval?: boolean;
   status?: "deleted" | "accepted";
+  adId: string;
 }
 
 interface Organization {
@@ -46,7 +49,7 @@ interface Organization {
   imgUrl: string;
   website?: string;
   phone?: string;
-  user: { id: string; email: string }; // Добавьте id здесь
+  user: { id: string; email: string };
   ads: Announcement[];
 }
 
@@ -56,7 +59,7 @@ interface Organization {
 //   TOURIST = "TOURIST",
 // }
 
-export interface Profile {
+export interface User {
   id: string;
   fullName: string;
   email: string;
@@ -87,6 +90,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
   const navigate = useNavigate();
+
+  const [isTouristModalOpen, setIsTouristModalOpen] = useState(false);
+  const [selectedTourist, setSelectedTourist] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -136,7 +142,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет удален через 15 секунд",
+                message: "Отзыв будет удален через 10 секунд",
                 type: "success",
               },
               delayedRemoval: true,
@@ -191,7 +197,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               ...review,
               hint: {
                 message:
-                  "Отзыв будет принят через 15 секунд. Нажмите Отменить, чтобы восстановить.",
+                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
                 type: "success",
               },
               delayedRemoval: true,
@@ -256,6 +262,23 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     }
   };
 
+  const fetchTouristInfo = async (userId: string) => {
+    try {
+      const response = await apiService.get<User>({
+        url: `/admin/tourist-info/${userId}`,
+      });
+
+      if (response.status === 200) {
+        console.log("Информация о туристе:", response.data);
+
+        setSelectedTourist(response.data);
+        setIsTouristModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки данных туриста:", error);
+    }
+  };
+
   const handleCancelHint = (reviewId: string) => {
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
@@ -315,6 +338,24 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     }
   };
 
+  const handleBlockTourist = async (userId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${userId}`,
+        dto: { value: true },
+      });
+      if (response.status === 200) {
+        setIsTouristModalOpen(false);
+      } else {
+        alert("Ошибка при блокировке туриста");
+      }
+    } catch (error) {
+      console.error("Ошибка блокировки туриста:", error);
+      alert("Произошла ошибка при блокировке туриста");
+    }
+  };
+  
+
   return (
     <div className="relative w-full min-h-screen flex">
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
@@ -356,7 +397,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             <Loader />
           ) : reviews.length > 0 ? (
             <>
-              {reviews.slice(0, visibleReviewsCount).map((review) => (
+              {reviews.slice(0, visibleReviewsCount).map((review)  => (                
                 <div
                   key={review.reviewId}
                   className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
@@ -392,10 +433,32 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                       </button>
                     </div>
                   ) : (
-                    <div className="h-full p-[32px] pr-[32px] flex flex-col border-r">
+                    <div
+                      key={review.id}
+                      className="h-full p-[32px] pr-[32px] flex flex-col border-r"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-sm font-semibold text-gray-700">
+                          <p
+                            className={`text-sm font-semibold text-gray-700 ${
+                              !isLoading
+                                ? "cursor-pointer text-blue-500"
+                                : "text-gray-500 cursor-default"
+                            }`}
+                            onClick={() => {
+                              if (!isLoading && review && review.userId) {
+                                fetchTouristInfo(review.userId);
+                                fetchTouristInfo(review.user.id);
+                              } else if (isLoading) {
+                                console.warn("Данные еще загружаются.");
+                              } else {
+                                console.log("review:", review);
+                                console.warn(
+                                  "Не удалось получить ID пользователя для данного отзыва."
+                                );
+                              }
+                            }}
+                          >
                             {review.username}
                           </p>
                           <p className="text-gray-500 text-sm">
@@ -404,7 +467,16 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           <RatingStars rating={review.reviewStars} />
                         </div>
 
-                        <div className="flex items-center">
+                        <div
+                          key={review.adId}
+                          className="flex items-center"
+                          onClick={() =>
+                            navigate({
+                              to: `/admin/announcements/${review.adId}`,
+                            })
+                          }
+                        >
+                          
                           <img
                             src={`${BASE_URL}${review.adImage}`}
                             alt="Фото курорта"
@@ -504,6 +576,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   )}
                 </div>
               ))}
+              
               {visibleReviewsCount < reviews.length && (
                 <div className="flex justify-center mt-4">
                   <button
@@ -515,6 +588,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               )}
             </>
+            
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
               <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
@@ -531,7 +605,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"
@@ -632,6 +706,75 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   }}
                 >
                   Разблокировать
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {isTouristModalOpen && selectedTourist && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+            <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={() => setIsTouristModalOpen(false)}
+              >
+                <img src={Back} alt="Назад" className="w-6 h-6" />
+              </button>
+              <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
+                Турист
+              </h2>
+              <button
+                className="h-[44px] w-[44px]"
+                onClick={() => setIsTouristModalOpen(false)}
+              >
+                <img src={Close} alt="Выход" className="w-full h-full" />
+              </button>
+            </div>
+            <div className="flex justify-center mt-[68px]">
+              <CoveredImage
+                width="w-[128px]"
+                height="h-[128px]"
+                borderRadius="rounded-full"
+                imageSrc={`${BASE_URL}${selectedTourist.picture}`}
+                errorImage={defaultImage}
+              />
+            </div>
+            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+              {selectedTourist.fullName}
+            </h2>
+            <div className="mt-4">
+              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                <div className="flex flex-col items-start">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    {selectedTourist.phoneNumber || "Не указан"}
+                  </p>
+                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                    Телефон
+                  </strong>
+                </div>
+              </div>
+              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                <div className="flex flex-col items-start">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    {selectedTourist.email || "Не указан"}
+                  </p>
+                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                    Email
+                  </strong>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-4 mt-4">
+              <div>
+                <button
+                  className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                  onClick={() => {
+                    handleBlockTourist(selectedTourist.id);
+                  }}
+                >
+                  Заблокировать пользователя
                 </button>
               </div>
             </div>
