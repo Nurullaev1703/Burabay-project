@@ -85,6 +85,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
+      {ad.phoneNumber &&
+      
       <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
         <div className="flex flex-col">
           <span>{formatPhoneNumber(ad.phoneNumber)}</span>
@@ -98,6 +100,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </a>
         )}
       </li>
+      }
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           to={`/announcements/schedule/${ad.id}`}
@@ -114,7 +117,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      {!isAdmin && (
+      {!isAdmin && ad.address && (
         <li className="border-b border-[#E4E9EA] py-3">
           <Link className="flex justify-between" to={`/mapNav?adId=${ad.id}`}>
             <span>{t("locationOnMap")}</span>

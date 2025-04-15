@@ -214,38 +214,58 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
               {t("serviceSchedule")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={() => setShowModal(true)}
-          >
+          <IconContainer align="end" action={() => setShowModal(true)}>
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={6} totalSteps={9}></ProgressSteps>
       </Header>
       {showModal && (
-        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center">
-            {t("confirmDelete")}
-          </Typography>
-          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
-          <img src={XIcon} className="w-[15px]" alt="" />
-          </div>
-          <div className="flex flex-col w-full px-4 justify-center mt-4">
-            <Button className="mb-2" onClick={() => navigate({
-              to: "/announcements"
-            })}>{t("publish")}</Button>
-              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
-              await apiService.delete({
-                url: `/ad/${id}`
-              })
-              navigate({
-                to: "/announcements"
-              })
-            }
-            }>{t("delete")}</Button>
-          </div>
+            <Typography
+              size={16}
+              weight={400}
+              className="text-center w-4/5 mx-auto"
+            >
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-[-2px] top-[-2px] p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button
+                className="mb-2"
+                onClick={() =>
+                  navigate({
+                    to: "/announcements",
+                  })
+                }
+              >
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  await apiService.delete({
+                    url: `/ad/${id}`,
+                  });
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
@@ -322,16 +342,14 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                               handleTempTimeChange(e.target.value)
                             }
                             onBlur={handleBlur}
-                            onKeyDown={
-                              (e) => {
-                                if (
-                                  e.key == "Enter" &&
-                                  /^\d{2}:\d{2}$/.test(tempTime)
-                                ) {
-                                  handleBlur();
-                                }
+                            onKeyDown={(e) => {
+                              if (
+                                e.key == "Enter" &&
+                                /^\d{2}:\d{2}$/.test(tempTime)
+                              ) {
+                                handleBlur();
                               }
-                            }
+                            }}
                             placeholder="00:00"
                           />
                           <img
@@ -354,11 +372,11 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                 >
                   {editingIndex === index ? (
                     <Controller
-                    rules={{
-                      validate: (value: any) => {
-                        return validateTime(value); // Используем validateTime
-                      },
-                    }}
+                      rules={{
+                        validate: (value: any) => {
+                          return validateTime(value); // Используем validateTime
+                        },
+                      }}
                       name={`startTime.${index}`}
                       control={control}
                       defaultValue={time}

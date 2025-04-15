@@ -28,25 +28,40 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
   </AlternativeHeader>
   <div className="p-6 bg-white rounded-md shadow-md max-w-xl mx-auto">
       <Typography size={16} weight={400} className="text-black">
-        Обновлено: [Дата]
+      3. {t("terms_of_use")}
       </Typography>
       <Typography size={16} weight={400} className="text-black mt-4">
-        Добро пожаловать в [Название приложения]. Пользуясь нашим приложением, вы соглашаетесь с нижеприведенными условиями:
+      {t("terms_of_use_description")}
       </Typography>
 
       <div className="mt-4">
         <Typography size={16} weight={400} className="text-black ">
-          1. Основные положения:
+        {t("general_conditions")}
         </Typography>
         <ul className="list-disc list-inside mt-2">
           <li>
             <Typography size={16} weight={400} className="text-black">
-              [Название приложения] предоставляет услуги бронирования отелей и активностей.
+            {t("general_conditions_1_1")} 
             </Typography>
           </li>
           <li>
             <Typography size={16} weight={400} className="text-black">
-              Все данные, предоставленные вами, должны быть достоверными.
+            {t("general_conditions_1_2")} 
+            </Typography>
+          </li>
+          <li>
+            <Typography size={16} weight={400} className="text-black mt-2">
+            {t("general_conditions_1_3")}
+            </Typography>
+          </li>
+          <li>
+            <Typography size={16} weight={400} className="text-black mt-2">
+            {t("general_conditions_1_3_1")}
+            </Typography>
+          </li>
+          <li>
+            <Typography size={16} weight={400} className="text-black mt-2">
+            {t("general_conditions_1_3_2")}
             </Typography>
           </li>
         </ul>
@@ -54,52 +69,220 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
 
       <div className="mt-4">
         <Typography size={16} weight={400} className="text-black">
-          2. Ответственность:
+        {t("services_description")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          Мы предоставляем актуальную информацию, но не несем ответственности за изменения, внесенные нашими партнерами (отелями, организаторами активностей).
+        {t("services_description_2_1")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          Пользователь самостоятельно несет ответственность за выбор и корректность бронирований.
+        {t("services_description_2_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("services_description_2_2_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("services_description_2_2_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("services_description_2_2_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("services_description_2_2_4")}
         </Typography>
       </div>
 
       <div className="mt-4">
         <Typography size={16} weight={400} className="text-black ">
-          3. Оплаты и отмены:
+         {t("user_obligations")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          Условия оплаты и отмены зависят от конкретного поставщика услуги (отеля, организатора). Информация об этом указана перед подтверждением бронирования.
+        {t("user_obligations_3_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("user_obligations_3_1_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("user_obligations_3_1_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("user_obligations_3_1_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("user_obligations_3_2")}
         </Typography>
       </div>
 
       <div className="mt-4">
         <Typography size={16} weight={400} className="text-black ">
-          4. Ограничения использования:
+        {t("payment_and_return")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          Запрещено использование приложения в незаконных целях или с нарушением прав других пользователей.
+        {t("payment_and_return_4_1")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          Пользователь обязан соблюдать все правила и инструкции, указанные в приложении.
+        {t("payment_and_return_4_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_4")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_5")}
         </Typography>
       </div>
 
       <div className="mt-4">
         <Typography size={16} weight={400} className="text-black">
-          5. Изменения условий:
+        {t("goods_and_services_delivery")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
-          [Название приложения] оставляет за собой право изменять данные Условия. Изменения вступают в силу с момента их публикации в приложении.
+        {t("goods_and_services_delivery_5_1")}
         </Typography>
       </div>
 
       <Typography size={16} weight={400} className="text-black mt-4">
-        С полными условиями вы можете ознакомиться [по ссылке].
+      {t("goods_and_services_delivery_5_2")}
       </Typography>
       <Typography size={16} weight={400} className="text-black mt-2">
-        Если у вас есть вопросы, свяжитесь с нами через службу поддержки.
+      {t("goods_and_services_delivery_5_3")}
       </Typography>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("cost_of_goods_and_services")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+       {t("cost_of_goods_and_services_6_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("cost_of_goods_and_services_6_2")}
+        </Typography>
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("parties_responsibility")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("parties_responsibility_7_1")} 
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("parties_responsibility_7_2")} 
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("parties_responsibility_7_3")} 
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("parties_responsibility_7_4")}
+        </Typography>
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+       {t("use_of_third_party_services")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("use_of_third_party_services_8_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("use_of_third_party_services_8_2")}
+        </Typography>
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("dispute_resolution")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("dispute_resolution_9_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("dispute_resolution_9_2")}
+        </Typography>
+
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("changes_in_terms")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("changes_in_terms_10_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("changes_in_terms_10_2")}
+        </Typography>       
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("force_majeure")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("force_majeure_11_1")}
+        </Typography>     
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("offer_duration")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("offer_duration_12_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("offer_duration_12_2")}
+        </Typography>       
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("contact_details")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("contact_details_13_1")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("contact_details_13_2")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("contact_details_13_3")}
+        </Typography>     
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("contact_details_13_4")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("contact_details_13_5")}
+        </Typography>              
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("14_intellectual_property_title")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("14_intellectual_property_text")}
+        </Typography>    
+      </div>
+      <div className="mt-4">
+        <Typography size={16} weight={400} className="text-black">
+        {t("15_mobile_notifications_and_marketing_title")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+          {t("15_mobile_notifications_and_marketing_text")}
+        </Typography>     
+      </div>
     </div>
     </main>
 )

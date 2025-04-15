@@ -20,6 +20,11 @@ export class ReviewController {
     return this.reviewService.findAll(req.user);
   }
 
+  @Get('all')
+  findAllReviews() {
+    return this.reviewService.findAllReviews();
+  }
+
   @Get('ad/:adId')
   findAllByAd(@Param('adId') adId: string) {
     return this.reviewService.findAllByAd(adId);

@@ -192,19 +192,21 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
     <main className="min-h-screen">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={async () => {
-            if (announcement?.title) {
-              navigate({
-                to: "/announcements/edit/choiseDetails/$adId",
-                params: {
-                  adId: announcement?.id,
-                }
-              })
-            }
-            else {
-              history.back()
-            }
-          }}>
+          <IconContainer
+            align="start"
+            action={async () => {
+              if (announcement?.title) {
+                navigate({
+                  to: "/announcements/edit/choiseDetails/$adId",
+                  params: {
+                    adId: announcement?.id,
+                  },
+                });
+              } else {
+                history.back();
+              }
+            }}
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -225,38 +227,58 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={() => setShowModal(true)}
-          >
+          <IconContainer align="end" action={() => setShowModal(true)}>
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={4} totalSteps={9}></ProgressSteps>
       </Header>
       {showModal && (
-        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center">
-            {t("confirmDelete")}
-          </Typography>
-          <div onClick={() => setShowModal(false)} className="absolute right-0 top-0 p-4">
-          <img src={XIcon} className="w-[15px]" alt="" />
-          </div>
-          <div className="flex flex-col w-full px-4 justify-center mt-4">
-            <Button className="mb-2" onClick={() => navigate({
-              to: "/announcements"
-            })}>{t("publish")}</Button>
-              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
-              await apiService.delete({
-                url: `/ad/${adId}`
-              })
-              navigate({
-                to: "/announcements"
-              })
-            }
-            }>{t("delete")}</Button>
-          </div>
+            <Typography
+              size={16}
+              weight={400}
+              className="text-center w-4/5 mx-auto"
+            >
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-0 top-0 p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button
+                className="mb-2"
+                onClick={() =>
+                  navigate({
+                    to: "/announcements",
+                  })
+                }
+              >
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  await apiService.delete({
+                    url: `/ad/${adId}`,
+                  });
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
@@ -283,7 +305,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         <Button
           onClick={handleSubmit}
           mode="default"
-          disabled={coords.length === 0}
+          disabled={coords.length === 0 || !Boolean(address)}
         >
           {t("continueBtn")}
         </Button>

@@ -187,7 +187,7 @@ export class AdService {
     return result;
   }
 
-  /* Получения одного Объявления по id. */
+  /* Получения одного Объявления по id. В случае если пользователь Турист,то увеличивает кол-во просмотров Объявления. */
   @CatchErrors()
   async findOne(id: string, tokenData?: TokenData) {
     const ad = await this.adRepository.findOne({
@@ -203,10 +203,14 @@ export class AdService {
       },
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
+
     const favCount = ad.usersFavorited.length;
+    // Проверка, является ли объявление Избранным.
     const isFavourite =
       ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
     delete ad.usersFavorited;
+
+    // Если пользователь Турист, то увеличивает кол-во просмотров Объявления.
     if (tokenData) {
       const user = await this.userRepository.findOne({
         where: { id: tokenData.id },

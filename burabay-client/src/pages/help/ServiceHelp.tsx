@@ -28,26 +28,29 @@ export const ServiceHelp: FC<Props> = function ServiceHelp() {
         </div>
       </AlternativeHeader>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>[Название приложения] — удобный сервис для бронирования отелей и развлечений в курортных зонах. Планируйте свой отдых легко: выбирайте лучшие варианты проживания и активностей, оформляйте бронирование прямо в приложении.</Typography>
-      </div>
-        <Typography className="px-4 mt-4" size={16} weight={400}>Основные возможности:</Typography>
-      <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Быстрый поиск и бронирование отелей.</Typography>
+        <Typography size={16} weight={400}>1. {t("aboutServiceVosem")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Удобный выбор экскурсий, активностей и развлечений.</Typography>
+        <Typography size={16} weight={400}>1.1. {t("aboutServiceT")}</Typography>
+      </div>
+        <Typography className="px-4 mt-4" size={16} weight={400}>1.2. {t("aboutServiceOne")}</Typography>
+      <div className="mt-4 px-4">
+        <Typography size={16} weight={400}>{t("aboutServiceTwo")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Актуальные цены и предложения.</Typography>
+        <Typography size={16} weight={400}>{t("aboutServiceTri")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>Поддержка пользователей 24/7.</Typography>
+        <Typography size={16} weight={400}>{t("aboutServiceFour")}</Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>С нами ваш отдых станет комфортным и запоминающимся!</Typography>
+        <Typography size={16} weight={400}>{t("aboutServiceFive")}</Typography>
       </div>
       <div className="mt-10 px-4">
-        <Typography size={16} weight={400}>Связаться с нами...</Typography>
+        <Typography size={16} weight={400}>1.3. {t("aboutServiceSix")}.</Typography>
+      </div>
+      <div className="mt-10 mb-2 px-4">
+        <Typography size={16} weight={400}>1.4. {t("aboutServiceSeven")}.</Typography>
       </div>
   </main>
   )

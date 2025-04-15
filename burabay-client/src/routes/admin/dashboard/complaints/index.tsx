@@ -7,8 +7,9 @@ export const Route = createFileRoute('/admin/dashboard/complaints/')({
 
 function RouteComponent() {
   return (
-    <div>
+    <>
+    {/* @ts-ignore */}
       <ComplaintsPage />
-    </div>
+    </>
   )
 }

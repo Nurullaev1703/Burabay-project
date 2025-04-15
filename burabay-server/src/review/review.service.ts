@@ -8,7 +8,6 @@ import { User } from 'src/users/entities/user.entity';
 import { Review } from './entities/review.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { NotificationType } from 'src/notification/types/notification.type';
-import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 @Injectable()
 export class ReviewService {
@@ -31,7 +30,7 @@ export class ReviewService {
       Utils.checkEntity(user, 'Пользователь не найден');
       const ad = await manager.findOne(Ad, {
         where: { id: adId },
-        relations: { reviews: true, organization: { user:true } },
+        relations: { reviews: true, organization: { user: true } },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newReview = manager.create(Review, {
@@ -47,11 +46,11 @@ export class ReviewService {
       await manager.save(newReview);
       const notificationDto = {
         email: ad.organization.user.email, // Используем email пользователя
-        title: "",
+        title: '',
         message: `Новый отзыв на объявление "${ad.title}"`,
-        type: NotificationType.POSITIVE
+        type: NotificationType.POSITIVE,
       };
-  
+
       await this.notificationService.createForUser(notificationDto);
 
       return JSON.stringify(HttpStatus.CREATED);
@@ -78,6 +77,36 @@ export class ReviewService {
       });
     }
     return result;
+  }
+
+  @CatchErrors()
+  async findAllReviews() {
+    return await this.reviewRepository.find({
+      relations: { ad: { subcategory: { category: true } }, user: true },
+      select: {
+        id: true,
+        images: true,
+        text: true,
+        stars: true,
+        isCheked: true,
+        date: true,
+        ad: {
+          id: true,
+          title: true,
+          description: true,
+          images: true,
+          subcategory: {
+            name: true,
+            category: { name: true },
+          },
+        },
+        user: {
+          id: true,
+          fullName: true,
+          picture: true,
+        },
+      },
+    });
   }
 
   @CatchErrors()
@@ -149,7 +178,7 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
-      
+
       const notificationDto = {
         email: review.user.email,
         title: '',

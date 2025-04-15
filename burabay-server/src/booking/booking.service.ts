@@ -311,7 +311,18 @@ export class BookingService {
 
   /* Получить все брони на объявление.  */
   @CatchErrors()
-  async getAllByAdId(adId: string, date: string, filter?: BookingFilter) {
+  async getAllByAdId(adId: string, date: string, tokenData: TokenData, filter?: BookingFilter) {
+    // Получить роль пользователя через Токен.
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Получение объявления
     const ad = await this.adRepository.findOne({
       where: { id: adId },
       relations: { subcategory: { category: true } },
@@ -321,9 +332,8 @@ export class BookingService {
     // Объявление это аренда?
     const isRent = ad.subcategory.category.name === 'Жилье';
 
-    let findDate: string;
-
     // Получение даты для поиска
+    let findDate: string;
     if (date === 'Сегодня') {
       const today = new Date();
       findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
@@ -338,12 +348,20 @@ export class BookingService {
       }
       findDate = parts.join('.');
     }
-    Utils.checkEntity(ad, 'Объявление не найдено');
+
     let whereOptions: any;
+    // Если Турист, то получить только свои брони.
+    if (user.role === ROLE_TYPE.TOURIST) {
+      whereOptions = { user: { id: tokenData.id } };
+    }
     if (isRent) {
-      whereOptions = { ad: { id: adId }, dateStart: Utils.stringDateToDate(findDate) };
+      whereOptions = {
+        ...whereOptions,
+        ad: { id: adId },
+        dateStart: Utils.stringDateToDate(findDate),
+      };
     } else {
-      whereOptions = { ad: { id: adId }, date: findDate };
+      whereOptions = { ...whereOptions, ad: { id: adId }, date: findDate };
     }
 
     if (filter.canceled) {

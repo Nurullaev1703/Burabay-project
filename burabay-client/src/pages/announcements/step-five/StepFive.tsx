@@ -230,12 +230,17 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     <section className="min-h-screen bg-background pb-2">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => navigate({
-            to: `/map/$adId`,
-            params:{
-              adId: id
+          <IconContainer
+            align="start"
+            action={() =>
+              navigate({
+                to: `/map/$adId`,
+                params: {
+                  adId: id,
+                },
+              })
             }
-          })}>
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -256,38 +261,58 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               {t("workingDays")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={() => setShowModal(true)}
-          >
+          <IconContainer align="end" action={() => setShowModal(true)}>
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={5} totalSteps={9}></ProgressSteps>
       </Header>
       {showModal && (
-        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center">
-            {t("confirmDelete")}
-          </Typography>
-          <div onClick={() => setShowModal(false)} className="absolute right-0 top-0 p-4">
-          <img src={XIcon} className="w-[15px]" alt="" />
-          </div>
-          <div className="flex flex-col w-full px-4 justify-center mt-4">
-            <Button className="mb-2" onClick={() => navigate({
-              to: "/announcements"
-            })}>{t("publish")}</Button>
-              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
-              await apiService.delete({
-                url: `/ad/${id}`
-              })
-              navigate({
-                to: "/announcements"
-              })
-            }
-            }>{t("delete")}</Button>
-          </div>
+            <Typography
+              size={16}
+              weight={400}
+              className="text-center w-4/5 mx-auto"
+            >
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-0 top-0 p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button
+                className="mb-2"
+                onClick={() =>
+                  navigate({
+                    to: "/announcements",
+                  })
+                }
+              >
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  await apiService.delete({
+                    url: `/ad/${id}`,
+                  });
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
