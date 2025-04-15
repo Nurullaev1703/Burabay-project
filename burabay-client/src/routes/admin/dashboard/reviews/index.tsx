@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
+import ReviewsPage from '../../../../pages/admin/dashboard/ReviewsPage'
 
 export const Route = createFileRoute('/admin/dashboard/reviews/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/admin/dashboard/reviews/"!</div>
+  return <div> <ReviewsPage /> </div>
 }

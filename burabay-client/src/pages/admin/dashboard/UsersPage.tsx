@@ -22,9 +22,11 @@ import confirmed from "../../../../public/confirmed.svg";
 import Close from "../../../../public/Close.png";
 import Down from "../../../../public/down-arrow.svg";
 import Back from "../../../../public/Back.svg";
+import arrow from "../../../../public/arrow.svg";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
   filters: UsersFilter;
@@ -54,11 +56,13 @@ export default function UsersList({ filters }: Props) {
 
   const [organizationAnnouncements, setOrganizationAnnouncements] = useState<
     any[]
-  >([]); // Adjust 'any[]' to your Announcement model
+  >([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   const [announcementsError, setAnnouncementsError] = useState<string | null>(
     null
   );
+
+  const queryClient = useQueryClient();
 
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
@@ -76,8 +80,9 @@ export default function UsersList({ filters }: Props) {
   };
 
   const closeConfirmModal = () => {
-    setSelectedOrganization(null);
     setIsConfirmModalOpen(false);
+    setSelectedOrganization(null);
+    setConfirmAction(null);
   };
 
   const openConfirmActionModal = (action: "confirm" | "reject") => {
@@ -86,8 +91,8 @@ export default function UsersList({ filters }: Props) {
   };
 
   const closeConfirmActionModal = () => {
-    setConfirmAction(null);
     setIsConfirmActionModalOpen(false);
+    setConfirmAction(null);
   };
 
   const handleConfirmUser = () => {
@@ -105,46 +110,44 @@ export default function UsersList({ filters }: Props) {
 
     try {
       const orgId = selectedOrganization.id;
-      const url =
-        confirmAction === "confirm"
-          ? `/admin/check-org/${orgId}`
-          : `/admin/cancel-org/${orgId}`;
+      const url = confirmAction === "confirm"
+        ? `/admin/check-org/${orgId}`
+        : `/admin/cancel-org/${orgId}`;
 
+      // Сначала выполняем основной запрос
       const response = await apiService.patch({ url });
 
       if (response.status !== 200) {
         throw new Error(`Ошибка при выполнении действия: ${response.status}`);
       }
 
-      console.log(`Успешно выполнили действие для организации с id: ${orgId}`);
-
-      const notificationResponse = await apiService.post({
+      // Отправляем уведомление
+      await apiService.post({
         url: "/notification/user",
         dto: {
           email: users.find((user) => user.organization?.id === orgId)?.email,
-          title:
-            confirmAction === "confirm"
-              ? "Профиль подтвержден"
-              : "Подтверждение отклонено",
+          title: confirmAction === "confirm"
+            ? "Профиль подтвержден"
+            : "Подтверждение отклонено",
           type: confirmAction === "confirm" ? "позитивное" : "негативное",
-          message:
-            confirmAction === "confirm"
-              ? "Отправленные вами документы для подтверждения профиля приняты аодминистратором"
-              : "Отправленные вами документы для подтверждения профиля отклонены администратором",
+          message: confirmAction === "confirm"
+            ? "Отправленные вами документы для подтверждения профиля приняты аодминистратором"
+            : "Отправленные вами документы для подтверждения профиля отклонены администратором",
         },
       });
 
-      if (notificationResponse.status !== 200) {
-        throw new Error(
-          `Ошибка при отправке уведомления: ${notificationResponse.status}`
-        );
-      }
+      // Обновляем данные
+      await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+
+      // Закрываем модальные окна и очищаем состояния
+      setConfirmAction(null);
+      setIsConfirmActionModalOpen(false);
+      setSelectedOrganization(null);
+      setIsConfirmModalOpen(false);
+
     } catch (error) {
       console.error("Ошибка при выполнении действия:", error);
     }
-
-    closeConfirmActionModal();
-    closeConfirmModal();
   };
 
   function capitalizeFirstLetter(string: string): string {
@@ -163,7 +166,7 @@ export default function UsersList({ filters }: Props) {
   const openUserDetailsModal = async (user: any) => {
     setSelectedUser(user);
     setIsModalOpen(true);
-    setOrganizationAnnouncements([]); // Clear previous announcements
+    setOrganizationAnnouncements([]);
     setAnnouncementsLoading(true);
     setAnnouncementsError(null);
 
@@ -200,7 +203,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: true },
       });
       if (response.status === 200) {
-        alert("Пользователь заблокирован");
+        await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
         setIsModalOpen(false);
       } else {
         alert("Ошибка при блокировке пользователя");
@@ -218,7 +221,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: false },
       });
       if (response.status === 200) {
-        alert("Пользователь разблокирован");
+        await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
         setIsModalOpen(false);
       } else {
         alert("Ошибка при разблокировке пользователя");
@@ -399,22 +402,33 @@ export default function UsersList({ filters }: Props) {
                       <div className="h-[58px] flex flex-col justify-center">
                         {user.role === "бизнес" && user.organization?.name ? (
                           <h2 className="text-[16px] font-roboto">
-                            {user.organization.name}
+                            {user.organization.name.length > 8
+                              ? user.organization.name.substring(0, 8) + "..."
+                              : user.organization.name}
                           </h2>
                         ) : user.fullName ? (
                           <h2 className="text-[16px] font-roboto">
-                            {user.fullName}
+                            {user.fullName.length > 6
+                              ? user.fullName.substring(0, 6) + "..."
+                              : user.fullName}
                           </h2>
                         ) : (
                           <div>
-                            <p>-</p>
+                            <p>Без названия</p>
                           </div>
                         )}
 
-                        {user.role === "бизнес" &&
-                          user.organization?.isBanned && (
-                            <p className="text-sm text-red">Заблокирован</p>
-                          )}
+                        {user.role === "бизнес" && (
+                          <p
+                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red" : "text-[#39B56B]"}`}
+                          >
+                            {user.organization?.isConfirmCanceled
+                              ? "Отклонена"
+                              : user.organization?.isBanned
+                                ? "Заблокирован"
+                                : ""}
+                          </p>
+                        )}
 
                         {user.role === "турист" && (
                           <p
@@ -459,7 +473,7 @@ export default function UsersList({ filters }: Props) {
                         >
                           Подтверждение
                           <img
-                            src="../../../../public/arrow.svg"
+                            src={arrow}
                             alt=""
                             className="h-[14px] w-2"
                           ></img>
@@ -516,10 +530,14 @@ export default function UsersList({ filters }: Props) {
                     <Typography className="">
                       {selectedOrganization?.name
                         ? selectedOrganization.name
-                        : "-"}
+                        : "Без названия"}
                     </Typography>
-                    <p className="text-[#39B56B] text-[14px]">
-                      Ожидание подтверждения
+                    <p
+                      className={`text-[14px] ${selectedOrganization.isConfirmCanceled ? "text-[#FF5959]" : "text-[#39B56B]"}`}
+                    >
+                      {selectedOrganization.isConfirmCanceled
+                        ? "Отклонена"
+                        : "Ожидание подтверждения"}
                     </p>
                     <p className="text-[#999999] text-[12px]">Организация</p>
                   </div>
@@ -644,12 +662,14 @@ export default function UsersList({ filters }: Props) {
               >
                 Подтвердить аккаунт
               </button>
-              <button
-                onClick={handleRejectUser}
-                className="w-[400px] pt-[18px] pr-[12px] pb-[18px] bg-[#FF5959] text-white rounded-[32px] font-medium"
-              >
-                Отклонить
-              </button>
+              {!selectedOrganization.isConfirmCanceled && (
+                <button
+                  onClick={handleRejectUser}
+                  className="w-[400px] pt-[18px] pr-[12px] pb-[18px] bg-[#FF5959] text-white rounded-[32px] font-medium"
+                >
+                  Отклонить
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -744,7 +764,7 @@ export default function UsersList({ filters }: Props) {
               <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
                 {selectedUser.fullName ||
                   selectedUser.organization?.name ||
-                  "—"}
+                  "Без названия"}
               </h2>
             </div>
 
@@ -753,7 +773,7 @@ export default function UsersList({ filters }: Props) {
                 <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
                   <p className="text-[#999999] text-[12px] flex">Email</p>
                   <Typography className="font-medium">
-                    {selectedUser.email || "—"}
+                    {selectedUser.email || "Не указан"}
                   </Typography>
                 </div>
                 <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
@@ -761,7 +781,7 @@ export default function UsersList({ filters }: Props) {
                     Phone Number
                   </p>
                   <Typography className="font-medium">
-                    {selectedUser.phoneNumber || "—"}
+                    {selectedUser.phoneNumber || "Не указан"}
                   </Typography>
                 </div>
                 <div className="flex flex-col items-center gap-4">
@@ -793,7 +813,7 @@ export default function UsersList({ filters }: Props) {
                   <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                     <div className="flex flex-col items-start">
                       <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
-                        {selectedUser.website || "Не указано"}
+                        {selectedUser.website || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
                         Сайт
@@ -803,7 +823,7 @@ export default function UsersList({ filters }: Props) {
                   <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                     <div className="flex flex-col items-start">
                       <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                        {selectedUser.phone || "Не указано"}
+                        {selectedUser.phone || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
                         Телефон

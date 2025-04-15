@@ -633,7 +633,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               />
             </div>
             <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-              {selectedOrg.name}
+              {selectedOrg.name || "Не указано"}
             </h2>
             <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
               {selectedOrg.description || "Описание отсутствует"}
@@ -742,7 +742,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               />
             </div>
             <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-              {selectedTourist.fullName}
+              {selectedTourist.fullName || "Не указано"}
             </h2>
             <div className="mt-4">
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
