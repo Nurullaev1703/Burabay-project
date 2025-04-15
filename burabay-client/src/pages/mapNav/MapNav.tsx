@@ -85,8 +85,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   };
 
 
-
-
+  const [zoom, setZoom] = useState<number>(10);
   const [isLocationDenied, setIsLocationDenied] = useState(false);
   const role = roleService.getValue();
   const [userLocation, setUserLocation] = useState<{
@@ -444,6 +443,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       });
     }
   }, [filters.adId, filters.adName, announcements, isLoaded, mapReady]);
+  useEffect(() => {
+    if (announcements.length > 0 && !selectedMarker) {
+      setSelectedMarker(announcements[0].id); // Выбираем первый маркер по умолчанию
+    }
+  }, [announcements, selectedMarker]);
   
   
   return (
@@ -469,6 +473,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {isLoaded ? (
         <GoogleMap
+        onZoomChanged={() =>{
+          if(mapRef.current) {
+            setZoom(mapRef.current.getZoom() ?? 10)
+          }
+        }}
           mapContainerStyle={containerStyle}
           center={center}
           zoom={15}
@@ -483,7 +492,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
           )}
-          {announcements.map((announcement) => {
+          {announcements.map((announcement, index) => {
             const isSelected = selectedMarker === announcement.id;
             if (
               !announcement.address ||
@@ -496,13 +505,18 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             const subcategoryImgPath = loadImage(
               announcement.subcategory?.category?.imgPath
             );
-
+            if (zoom < 10 && index%20  !== 0) return null;
             const categoryName = announcement.subcategory?.category?.name;
             const categoryColor = categoryColors[categoryName];
 
             const svgLocationWithColor = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
     <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
-      <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}"/>
+    <defs>
+      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="black" flood-opacity="0.4"/>
+      </filter>
+    </defs>
+      <path d="M36.75 17.2881C36.75 28.4327 23.3562 38.5496 21.2714 40.0569C21.1029 40.1787 20.8971 40.1787 20.7286 40.0569C18.6438 38.5496 5.25 28.4327 5.25 17.2881C5.25 8.70665 12.3015 1.75 21 1.75C29.6985 1.75 36.75 8.70665 36.75 17.2881Z" fill="${categoryColor}" filter="url(#shadow)"/>
       <circle cx="21" cy="17.5" r="7" fill="white"/>
     </svg>`)}`;
 
@@ -517,12 +531,12 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                   icon={{
                     url: svgLocationWithColor,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 50 : 40,
-                      isSelected ? 50 : 40
+                      isSelected ? 60 : 40,
+                      isSelected ? 60 : 40
                     ),
                     fillColor: categoryColor,
                   }}
-                  zIndex={1}
+                  zIndex={index}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
@@ -534,17 +548,17 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                   icon={{
                     url: subcategoryImgPath,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 18 : 16,
-                      isSelected ? 18 : 16
+                      isSelected ? 24 : 16,
+                      isSelected ? 24 : 16
                     ),
                     anchor: new google.maps.Point(
-                      isSelected ? 9 : 8,
-                      isSelected ? 38 : 32
+                      isSelected ? 12 : 8,
+                      isSelected ? 46 : 32
                     ),
                     fillColor: "white",
                     strokeColor: "white",
                   }}
-                  zIndex={2}
+                  zIndex={index +1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
@@ -556,15 +570,15 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                   icon={{
                     url: whiteCircle,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 26 : 24,
-                      isSelected ? 26 : 24
+                      isSelected ? 32 : 24,
+                      isSelected ? 32 : 24
                     ),
                     anchor: new google.maps.Point(
-                      isSelected ? 13 : 12,
-                      isSelected ? 42 : 36
+                      isSelected ? 16 : 12,
+                      isSelected ? 51 : 36
                     ),
                   }}
-                  zIndex={1}
+                  zIndex={index}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
               </React.Fragment>
