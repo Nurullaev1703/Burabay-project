@@ -4,6 +4,8 @@ export interface UsersFilter {
   name?: string;
   role?: ROLE_TYPE;
   status?: UsersFilterStatus;
+  skip?: number;
+  take?: number;
 }
 
 export enum UsersFilterStatus {

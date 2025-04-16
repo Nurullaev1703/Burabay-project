@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UsersFilter } from './types/admin-panel-filters.type';
 import { Public } from 'src/constants';
 import { BannerCreateDto } from './dto/banner-create.dto';
@@ -29,6 +29,18 @@ export class AdminPanelController {
   }
 
   @Get('users')
+  @ApiQuery({
+    name: 'take',
+    description: 'Количество получаемых записей',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'skip',
+    description: 'Количество пропускаемых записей',
+    required: false,
+    type: Number,
+  })
   async getUsers(@Query() filter: UsersFilter) {
     return this.adminPanelService.getUsers(filter);
   }

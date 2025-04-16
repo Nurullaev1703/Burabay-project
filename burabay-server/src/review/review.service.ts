@@ -9,6 +9,7 @@ import { Review } from './entities/review.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
+import { AllReviewParams } from './types/all-review.params';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -80,7 +81,7 @@ export class ReviewService {
   }
 
   @CatchErrors()
-  async findAllReviews() {
+  async findAllReviews(params: AllReviewParams) {
     return await this.reviewRepository.find({
       relations: { ad: { subcategory: { category: true } }, user: true },
       select: {
@@ -106,6 +107,8 @@ export class ReviewService {
           picture: true,
         },
       },
+      take: params.take,
+      skip: params.skip,
     });
   }
 
