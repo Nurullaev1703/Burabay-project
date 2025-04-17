@@ -194,6 +194,9 @@ export class AdminPanelService {
   async getUsers(filter?: UsersFilter) {
     let users: User[] = [],
       orgsUsers: User[] = [];
+
+    console.log(filter.take, filter.skip);
+
     const selectOptions = {
       id: true,
       fullName: true,
@@ -221,7 +224,12 @@ export class AdminPanelService {
     // Фильтр по роли.
     if (filter.role === ROLE_TYPE.TOURIST) {
       // Поиск туристов.
-      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
+      users = await this.userRepository.find({
+        where: usersWhereOptions,
+        select: selectOptions,
+        take: filter.take,
+        skip: filter.skip,
+      });
       // Поиск по названию среди туристов.
       if (filter.name) {
         const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
@@ -285,8 +293,15 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
+        take: filter.take,
+        skip: filter.skip,
       });
-      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
+      users = await this.userRepository.find({
+        where: usersWhereOptions,
+        select: selectOptions,
+        take: filter.take,
+        skip: filter.skip,
+      });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(

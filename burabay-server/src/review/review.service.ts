@@ -82,6 +82,7 @@ export class ReviewService {
 
   @CatchErrors()
   async findAllReviews(params: AllReviewParams) {
+    console.log(params.take, params.skip);
     return await this.reviewRepository.find({
       relations: { ad: { subcategory: { category: true } }, user: true },
       select: {

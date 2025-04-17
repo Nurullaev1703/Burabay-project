@@ -5,6 +5,9 @@ import { User } from '../users/entities/user.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Organization } from './entities/organization.entity';
 import { UpdateDocsDto } from './dto/update-docs.dto';
+import { ROLE_TYPE } from './types/user-types';
+import { Booking } from 'src/booking/entities/booking.entity';
+import { Ad } from 'src/ad/entities/ad.entity';
 
 @Injectable()
 export class UserService {
@@ -17,15 +20,43 @@ export class UserService {
     private readonly entityManager: EntityManager,
   ) {}
 
+  /* Удаление аккаунта пользователя. При наличии, удаление организации и ее объявлений. */
   async remove(tokenData: TokenData) {
-    const user = await this.userRep.findOne({
-      where: {
-        id: tokenData.id,
-      },
-    });
-    await this.entityManager.remove(user);
+    return this.dataSource.transaction(async (manager) => {
+      // Получение данных о пользователе вместе с организацией
+      const user = await manager.findOne(User, {
+        where: {
+          id: tokenData.id,
+        },
+        relations: {
+          organization: { address: true },
+        },
+      });
 
-    return JSON.stringify(HttpStatus.OK);
+      // Если Бизнес, то удалить проверить на наличие броней.
+      // Если нет актуальный броней, то удалить объявления, организацию и аккаунт.
+      if (user.role === ROLE_TYPE.BUSINESS) {
+        const bookings = await manager.find(Booking, {
+          where: { ad: { organization: { id: user.organization.id } } },
+        });
+        if (bookings.length === 0) {
+          const ads = await manager.find(Ad, {
+            where: { organization: { user: { id: user.id } } },
+          });
+          await manager.remove(ads);
+          return JSON.stringify(HttpStatus.OK);
+        }
+      }
+      // Если Турист, то отменить брони.
+      else if (user.role === ROLE_TYPE.TOURIST) {
+      }
+
+      // Удалить адрес организации, организацию и пользователя.
+      manager.remove(user.organization.address);
+      manager.remove(user.organization);
+      manager.remove(user);
+      return JSON.stringify(HttpStatus.OK);
+    });
   }
 
   /* Метод для удаления Пользователей у которых не задан пароль. Метод испольузется в TasksService. */
@@ -44,7 +75,7 @@ export class UserService {
   }
 
   /*
-   * Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
+   *  Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
    * Метод испольузется в TasksService.
    */
   async deleteOrganizationsAndUsers() {
