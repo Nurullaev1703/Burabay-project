@@ -251,6 +251,8 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
+        take: filter.take,
+        skip: filter.skip,
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
