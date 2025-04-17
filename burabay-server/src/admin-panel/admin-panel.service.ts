@@ -194,9 +194,8 @@ export class AdminPanelService {
   async getUsers(filter?: UsersFilter) {
     let users: User[] = [],
       orgsUsers: User[] = [];
-
-    console.log(filter.take, filter.skip);
-
+    console.log(Math.floor(filter.take / 2));
+    console.log(Math.round(filter.take / 2));
     const selectOptions = {
       id: true,
       fullName: true,
@@ -208,22 +207,25 @@ export class AdminPanelService {
       isBanned: true,
       pushToken: true,
     };
+
     let usersWhereOptions: any = { role: ROLE_TYPE.TOURIST },
       orgWhereOptions: any = { user: { role: ROLE_TYPE.BUSINESS } };
 
     // Фильтр по статусу.
+    // Заблокированные аккаунты.
     if (filter.status === UsersFilterStatus.BAN) {
       usersWhereOptions = { ...usersWhereOptions, isBanned: true };
       orgWhereOptions = { ...orgWhereOptions, isBanned: true };
     }
+    // Организации ожидающие подтверждения.
     if (filter.status === UsersFilterStatus.WAITING) {
       filter.role = ROLE_TYPE.BUSINESS;
       orgWhereOptions = { ...orgWhereOptions, isConfirmed: false };
     }
 
     // Фильтр по роли.
+    // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      // Поиск туристов.
       users = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
@@ -235,8 +237,9 @@ export class AdminPanelService {
         const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
         users = searchedUsers;
       }
-    } else if (filter.role === ROLE_TYPE.BUSINESS) {
-      // Поиск организаций.
+    }
+    // Поиск организаций.
+    else if (filter.role === ROLE_TYPE.BUSINESS) {
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
@@ -267,8 +270,9 @@ export class AdminPanelService {
         const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
         orgsUsers = searchedOrgs;
       }
-    } else {
-      // Поиск всех пользователей.
+    }
+    // Поиск всех пользователей.
+    else {
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: {
@@ -293,13 +297,13 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: filter.take,
+        take: filter.take ? Math.floor(filter.take / 2) : undefined,
         skip: filter.skip,
       });
       users = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: filter.take,
+        take: filter.take ? Math.round(filter.take / 2) : undefined,
         skip: filter.skip,
       });
       // Поиск по имени среди всех пользователей.
@@ -313,6 +317,7 @@ export class AdminPanelService {
         orgsUsers = searchedOrgs;
       }
     }
+
     return [...users, ...orgsUsers];
   }
 
