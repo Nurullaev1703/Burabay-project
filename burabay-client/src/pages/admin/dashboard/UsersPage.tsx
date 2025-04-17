@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -26,7 +26,7 @@ import arrow from "../../../../public/arrow.svg";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   filters: UsersFilter;
@@ -35,7 +35,30 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
-  const { data: users = [], isLoading } = useGetUsers(filters);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [skip, setSkip] = useState(0);
+  const take = 15;
+
+  useEffect(() => {
+    setSkip(0);
+    setUsers([]);
+  }, [filters.name, filters.role, filters.status]);
+
+  // Получаем пользователей с учетом skip/take
+  const { data: fetchedUsers = [], isLoading } = useGetUsers({
+    ...filters,
+    skip,
+    take,
+  });
+
+  useEffect(() => {
+    if (skip === 0) {
+      setUsers(fetchedUsers);
+    } else if (fetchedUsers.length > 0) {
+      setUsers((prev) => [...prev, ...fetchedUsers]);
+    }
+  }, [fetchedUsers, skip]);
+
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const roleFilterRef = useRef<HTMLDivElement | null>(null);
@@ -64,7 +87,10 @@ export default function UsersList({ filters }: Props) {
 
   const queryClient = useQueryClient();
 
+  // Обновляем фильтры и сбрасываем skip
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
+    setSkip(0);
+    setUsers([]);
     navigate({
       to: "/admin/dashboard/users",
       search: {
@@ -110,41 +136,39 @@ export default function UsersList({ filters }: Props) {
 
     try {
       const orgId = selectedOrganization.id;
-      const url = confirmAction === "confirm"
-        ? `/admin/check-org/${orgId}`
-        : `/admin/cancel-org/${orgId}`;
+      const url =
+        confirmAction === "confirm"
+          ? `/admin/check-org/${orgId}`
+          : `/admin/cancel-org/${orgId}`;
 
-      // Сначала выполняем основной запрос
       const response = await apiService.patch({ url });
 
       if (response.status !== 200) {
         throw new Error(`Ошибка при выполнении действия: ${response.status}`);
       }
 
-      // Отправляем уведомление
       await apiService.post({
         url: "/notification/user",
         dto: {
           email: users.find((user) => user.organization?.id === orgId)?.email,
-          title: confirmAction === "confirm"
-            ? "Профиль подтвержден"
-            : "Подтверждение отклонено",
+          title:
+            confirmAction === "confirm"
+              ? "Профиль подтвержден"
+              : "Подтверждение отклонено",
           type: confirmAction === "confirm" ? "позитивное" : "негативное",
-          message: confirmAction === "confirm"
-            ? "Отправленные вами документы для подтверждения профиля приняты аодминистратором"
-            : "Отправленные вами документы для подтверждения профиля отклонены администратором",
+          message:
+            confirmAction === "confirm"
+              ? "Отправленные вами документы для подтверждения профиля приняты аодминистратором"
+              : "Отправленные вами документы для подтверждения профиля отклонены администратором",
         },
       });
 
-      // Обновляем данные
-      await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
 
-      // Закрываем модальные окна и очищаем состояния
       setConfirmAction(null);
       setIsConfirmActionModalOpen(false);
       setSelectedOrganization(null);
       setIsConfirmModalOpen(false);
-
     } catch (error) {
       console.error("Ошибка при выполнении действия:", error);
     }
@@ -154,8 +178,9 @@ export default function UsersList({ filters }: Props) {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
+  // Загрузка следующей порции пользователей
   const loadMoreUsers = () => {
-    setVisibleUsersCount((prevCount) => prevCount + 20);
+    setSkip((prev) => prev + take);
   };
 
   const closeUserDetailsModal = () => {
@@ -203,7 +228,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: true },
       });
       if (response.status === 200) {
-        await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+        await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsModalOpen(false);
       } else {
         alert("Ошибка при блокировке пользователя");
@@ -221,7 +246,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: false },
       });
       if (response.status === 200) {
-        await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+        await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsModalOpen(false);
       } else {
         alert("Ошибка при разблокировке пользователя");
@@ -373,11 +398,11 @@ export default function UsersList({ filters }: Props) {
           </div>
         </div>
         <div className="mt-16">
-          {isLoading ? (
+          {isLoading && users.length === 0 ? (
             <Loader />
           ) : (
             <div className="grid gap-4">
-              {users.slice(0, visibleUsersCount).map((user) => (
+              {users.map((user) => (
                 <div
                   key={user.organization?.id || user.id}
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
@@ -500,7 +525,7 @@ export default function UsersList({ filters }: Props) {
                   </div>
                 </div>
               ))}
-              {visibleUsersCount < users.length && (
+              {fetchedUsers.length === take && (
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={loadMoreUsers}
