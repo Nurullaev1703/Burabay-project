@@ -5,10 +5,10 @@ import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()
 export class Address extends AbstractEntity<Address> {
-  @OneToOne(() => Organization, (organization) => organization.address)
+  @OneToOne(() => Organization, (organization) => organization.address, { onDelete: 'CASCADE' })
   organization: Organization;
 
-  @OneToMany(() => Ad, (ad) => ad.address)
+  @OneToMany(() => Ad, (ad) => ad.address, { onDelete: 'CASCADE' })
   ad: Ad[];
 
   @Column()

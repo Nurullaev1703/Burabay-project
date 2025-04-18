@@ -22,7 +22,7 @@ import { Booking } from '../../booking/entities/booking.entity';
 
 @Entity()
 export class Ad extends AbstractEntity<Ad> {
-  @ManyToOne(() => Organization, (org) => org.ads)
+  @ManyToOne(() => Organization, (org) => org.ads, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 
@@ -131,7 +131,7 @@ export class Ad extends AbstractEntity<Ad> {
   @Column({ default: 0 })
   views: number;
 
-  @OneToMany(() => Review, (review) => review.ad, { onDelete: 'CASCADE' })
+  @OneToMany(() => Review, (review) => review.ad)
   reviews: Review[];
 
   @Column({ default: 0 })

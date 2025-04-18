@@ -95,7 +95,6 @@ const BannersPage: React.FC = () => {
     const today = new Date().toISOString().split("T")[0];
 
     if (inputDate && inputDate < today) {
-      alert("Нельзя выбрать прошедшую дату!");
       event.target.value = today;
     }
   };

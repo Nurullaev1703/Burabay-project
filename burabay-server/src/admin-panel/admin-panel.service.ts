@@ -192,6 +192,9 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
+    // Если страница не указана, то 1.
+    if (!filter.page) filter.page = 1;
+
     let users: User[] = [],
       orgsUsers: User[] = [];
     const selectOptions = {
@@ -205,30 +208,41 @@ export class AdminPanelService {
       isBanned: true,
       pushToken: true,
     };
+
     let usersWhereOptions: any = { role: ROLE_TYPE.TOURIST },
       orgWhereOptions: any = { user: { role: ROLE_TYPE.BUSINESS } };
 
     // Фильтр по статусу.
+    // Заблокированные аккаунты.
     if (filter.status === UsersFilterStatus.BAN) {
       usersWhereOptions = { ...usersWhereOptions, isBanned: true };
       orgWhereOptions = { ...orgWhereOptions, isBanned: true };
     }
+    // Организации ожидающие подтверждения.
     if (filter.status === UsersFilterStatus.WAITING) {
       filter.role = ROLE_TYPE.BUSINESS;
       orgWhereOptions = { ...orgWhereOptions, isConfirmed: false };
     }
 
     // Фильтр по роли.
+    // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      // Поиск туристов.
-      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
+      const skipForBoth = filter.page * 15 - 15;
+      users = await this.userRepository.find({
+        where: usersWhereOptions,
+        select: selectOptions,
+        take: 15,
+        skip: skipForBoth,
+      });
       // Поиск по названию среди туристов.
       if (filter.name) {
         const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
         users = searchedUsers;
       }
-    } else if (filter.role === ROLE_TYPE.BUSINESS) {
-      // Поиск организаций.
+    }
+    // Поиск организаций.
+    else if (filter.role === ROLE_TYPE.BUSINESS) {
+      const skipForBoth = filter.page * 15 - 15;
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
@@ -251,14 +265,20 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
+        take: 15,
+        skip: skipForBoth,
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
         const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
         orgsUsers = searchedOrgs;
       }
-    } else {
-      // Поиск всех пользователей.
+    }
+    // Поиск всех пользователей.
+    else {
+      // Если параметр both при целочисленном делении равен нулю, то не отправлять запрос для организаций.
+      const skipForOrgs = filter.page * 7 - 7;
+      const skipForUsers = filter.page * 8 - 8;
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: {
@@ -283,8 +303,15 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
+        take: 7,
+        skip: skipForOrgs,
       });
-      users = await this.userRepository.find({ where: usersWhereOptions, select: selectOptions });
+      users = await this.userRepository.find({
+        where: usersWhereOptions,
+        select: selectOptions,
+        take: 8,
+        skip: skipForUsers,
+      });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
@@ -296,6 +323,7 @@ export class AdminPanelService {
         orgsUsers = searchedOrgs;
       }
     }
+
     return [...users, ...orgsUsers];
   }
 

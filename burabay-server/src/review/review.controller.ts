@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AllReviewParams } from './types/all-review.params';
 
 @ApiTags('Отзывы на объявления')
 @ApiBearerAuth()
@@ -18,6 +19,23 @@ export class ReviewController {
   @Get()
   findAll(@Request() req: AuthRequest) {
     return this.reviewService.findAll(req.user);
+  }
+
+  @Get('all')
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    description: 'Количество получаемых записей',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'skip',
+    required: false,
+    description: 'Количетсво пропускаемых записей',
+    type: Number,
+  })
+  findAllReviews(@Query() params: AllReviewParams) {
+    return this.reviewService.findAllReviews(params);
   }
 
   @Get('ad/:adId')

@@ -5,10 +5,10 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 
 @Entity()
 export class ReviewAnswer extends AbstractEntity<ReviewAnswer> {
-  @OneToOne(() => Review, (review) => review.answer)
+  @OneToOne(() => Review, (review) => review.answer, { onDelete: 'CASCADE' })
   review: Review;
 
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   org: Organization;
 

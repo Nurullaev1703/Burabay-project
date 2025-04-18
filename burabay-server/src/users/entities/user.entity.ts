@@ -30,14 +30,11 @@ export class User extends AbstractEntity<User> {
   @Column()
   isEmailConfirmed: boolean;
 
-  @ManyToMany(() => Ad, (ad) => ad.usersFavorited)
+  @ManyToMany(() => Ad, (ad) => ad.usersFavorited, { onDelete: 'CASCADE' })
   @JoinTable()
   favorites: Ad[];
 
-  @OneToOne(() => Organization, (organization) => organization.user, {
-    cascade: true,
-    nullable: true,
-  })
+  @OneToOne(() => Organization, (organization) => organization.user, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 
@@ -54,7 +51,8 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
 
-  @ManyToMany(() => Notification, (notification) => notification.users)
+  @ManyToMany(() => Notification, (notification) => notification.users, { onDelete: 'CASCADE' })
+  @JoinTable({ name: 'user_notifications' })
   notifications: Notification[];
 
   @Column({ nullable: true })

@@ -4,7 +4,7 @@ import { Column, Entity, OneToOne } from 'typeorm';
 
 @Entity()
 export class Feedback extends AbstractEntity<Feedback> {
-  @OneToOne(() => User, (user) => user.feedback)
+  @OneToOne(() => User, (user) => user.feedback, { onDelete: 'CASCADE' })
   user: User;
 
   @Column({ nullable: true })

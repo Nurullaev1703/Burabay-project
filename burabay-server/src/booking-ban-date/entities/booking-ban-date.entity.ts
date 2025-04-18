@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 export class BookingBanDate extends AbstractEntity<BookingBanDate> {
-  @ManyToOne(() => Ad, (ad) => ad.bookingBanDate)
+  @ManyToOne(() => Ad, (ad) => ad.bookingBanDate, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ad_id' })
   ad: Ad;
 

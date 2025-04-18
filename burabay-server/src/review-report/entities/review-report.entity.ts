@@ -4,11 +4,11 @@ import { Organization } from '../../users/entities/organization.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 
 @Entity()
-export class ReviewReport extends AbstractEntity<ReviewReport>{
-  @OneToOne(() => Review, (review) => review.report)
+export class ReviewReport extends AbstractEntity<ReviewReport> {
+  @OneToOne(() => Review, (review) => review.report, { onDelete: 'CASCADE' })
   review: Review;
 
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   org: Organization;
 

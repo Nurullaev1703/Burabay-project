@@ -6,6 +6,7 @@ import messages from "../../app/icons/admin/messages.svg";
 import analytics from "../../app/icons/admin/analytics.svg";
 import logout from "../../app/icons/admin/logout.svg";
 import banners from "../../app/icons/admin/banners.svg";
+import star from "../../app/icons/profile/star.svg";
 import { Link, useNavigate, useMatchRoute } from "@tanstack/react-router";
 
 interface SideNavProps {
@@ -16,7 +17,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
-  const [isModalOpen, setIsModalOpen] = useState(false); // Добавляем состояние для модального окна
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const links = [
     {
@@ -47,6 +48,12 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
       icon: banners,
       label: "Баннер",
       to: "/admin/dashboard/banners",
+      hasNotifications: true,
+    },
+    {
+      icon: star,
+      label: "Отзывы",
+      to: "/admin/dashboard/reviews",
       hasNotifications: true,
     },
   ];
