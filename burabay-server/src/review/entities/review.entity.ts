@@ -7,11 +7,11 @@ import { ReviewReport } from '../../review-report/entities/review-report.entity'
 
 @Entity()
 export class Review extends AbstractEntity<Review> {
-  @ManyToOne(() => User, (user) => user.reviews)
+  @ManyToOne(() => User, (user) => user.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Ad, (ad) => ad.reviews)
+  @ManyToOne(() => Ad, (ad) => ad.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ad_id' })
   ad: Ad;
 

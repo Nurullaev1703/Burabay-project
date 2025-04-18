@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
 @Entity()
 export class Schedule extends AbstractEntity<Schedule> {
-  @OneToOne(() => Ad, (ad) => ad.schedule)
+  @OneToOne(() => Ad, (ad) => ad.schedule, { onDelete: 'CASCADE' })
   @JoinColumn()
   ad: Ad;
 

@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 export class Break extends AbstractEntity<Break> {
-  @ManyToOne(() => Ad, (ad) => ad.breaks)
+  @ManyToOne(() => Ad, (ad) => ad.breaks, { onDelete: 'CASCADE' })
   @JoinColumn()
   ad: Ad;
 

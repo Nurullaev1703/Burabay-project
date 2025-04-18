@@ -1,12 +1,11 @@
 import { AbstractEntity } from '../../abstractions/abstract.entity';
 import { User } from '../../users/entities/user.entity';
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 import { NotificationType } from '../types/notification.type';
 
 @Entity()
 export class Notification extends AbstractEntity<Notification> {
   @ManyToMany(() => User, (user) => user.notifications)
-  @JoinTable({ name: 'user_notifications' })
   users: User[];
 
   @Column({ nullable: true })
