@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useRef } from "react";
+import { FC, useState, useRef } from "react";
 import { apiService } from "../../../services/api/ApiService";
 import { RatingStars } from "../../../shared/ui/RatingStars";
 import authBg from "../../../app/icons/bg_auth.png";
@@ -9,9 +9,11 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
+import { useQueryClient } from "@tanstack/react-query";
 
 import Back from "../../../../public/Back.svg";
 import Close from "../../../../public/Close.png";
+import { useGetReviews } from "./model/review-filter";
 
 const BASE_URL = baseUrl;
 
@@ -48,57 +50,26 @@ interface Review {
 }
 
 const ReviewsPage: FC = () => {
-  const [reviews, setReviews] = useState<
-    (Review & {
-      hint: { message: string; type: "success" | "error" } | null;
-      delayedRemoval?: boolean;
-      status?: "deleted" | "accepted";
-    })[]
-  >([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
-  const [visibleReviewsCount, setVisibleReviewsCount] = useState(20);
+  const [visibleReviewsCount, _setVisibleReviewsCount] = useState(20);
   const [_isExpanded, setIsExpanded] = useState(false);
+  const [_reviews, _setReviews] = useState<Review[]>([]);
   const [_isModalOpen, setIsModalOpen] = useState(false);
   const [isTouristModalOpen, setIsTouristModalOpen] = useState<Review | null>(
     null
   );
   const [selectedTourist, setSelectedTourist] = useState<Review | null>(null);
+  const [reviewHints, setReviewHints] = useState<Record<string, { message: string; type: string; status?: string }> >({});
   const navigate = useNavigate();
+  const take = 8;
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await apiService.get<Review[]>({
-          url: "/review/all",
-        });
-        console.log("Ответ API:", response);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetReviews({ take });
 
-        if (response.status === 200) {
-          setReviews(
-            response.data.map((review) => ({
-              ...review,
-              hint: null,
-              delayedRemoval: false,
-              status: undefined,
-            }))
-          );
-        } else {
-          console.error("Ошибка загрузки данных:", response);
-        }
-      } catch (error) {
-        console.error("Ошибка запроса:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReviews();
-
-    const intervalId = setInterval(fetchReviews, 15000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+  const reviews = (data?.pages.flat() || []).slice().sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -109,21 +80,14 @@ const ReviewsPage: FC = () => {
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    setReviews((prevReviews) =>
-      prevReviews.map((review) =>
-        review.id === reviewId
-          ? {
-              ...review,
-              hint: {
-                message: "Отзыв будет удален через 10 секунд",
-                type: "success",
-              },
-              delayedRemoval: true,
-              status: "deleted",
-            }
-          : review
-      )
-    );
+    setReviewHints((prev) => ({
+      ...prev,
+      [reviewId]: {
+        message: "Отзыв будет удален через 10 секунд",
+        type: "success",
+        status: "deleted",
+      },
+    }));
 
     if (timers.current[reviewId]) {
       clearTimeout(timers.current[reviewId]);
@@ -135,83 +99,29 @@ const ReviewsPage: FC = () => {
           url: `/review/${reviewId}`,
         });
         if (response.status === 200) {
-          setReviews((prevReviews) =>
-            prevReviews.filter((review) => review.id !== reviewId)
-          );
+          queryClient.setQueryData(["admin-reviews", { take }], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page: any[]) =>
+                page.filter((review) => review.id !== reviewId)
+              ),
+            };
+          });
+          setReviewHints((prev) => {
+            const copy = { ...prev };
+            delete copy[reviewId];
+            return copy;
+          });
         }
       } catch (error) {
-        console.error("Ошибка удаления отзыва:", error);
-        setReviews((prevReviews) =>
-          prevReviews.map((review) =>
-            review.id === reviewId
-              ? {
-                  ...review,
-                  hint: {
-                    message: "Ошибка при удалении отзыва",
-                    type: "error",
-                  },
-                  delayedRemoval: false,
-                  status: undefined,
-                }
-              : review
-          )
-        );
-      } finally {
-        delete timers.current[reviewId];
-      }
-    }, 10000);
-  };
-  const handleAcceptReview = async (reviewId: string) => {
-    setReviews((prevReviews) =>
-      prevReviews.map((review) =>
-        review.id === reviewId
-          ? {
-              ...review,
-              hint: {
-                message:
-                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
-                type: "success",
-              },
-              delayedRemoval: true,
-              status: "accepted",
-            }
-          : review
-      )
-    );
-
-    if (timers.current[reviewId]) {
-      clearTimeout(timers.current[reviewId]);
-    }
-
-    timers.current[reviewId] = setTimeout(async () => {
-      try {
-        const response = await apiService.patch({
-          url: `/admin/check-review/${reviewId}`,
-          dto: {},
-        });
-        if (response.status === 200) {
-          setReviews((prevReviews) =>
-            prevReviews.filter((review) => review.id !== reviewId)
-          );
-          delete timers.current[reviewId];
-        }
-      } catch (error) {
-        console.error("Ошибка принятия отзыва:", error);
-        setReviews((prevReviews) =>
-          prevReviews.map((review) =>
-            review.id === reviewId
-              ? {
-                  ...review,
-                  hint: {
-                    message: "Ошибка при принятии отзыва",
-                    type: "error",
-                  },
-                  delayedRemoval: false,
-                  status: undefined,
-                }
-              : review
-          )
-        );
+        setReviewHints((prev) => ({
+          ...prev,
+          [reviewId]: {
+            message: "Ошибка при удалении отзыва",
+            type: "error",
+          },
+        }));
       } finally {
         delete timers.current[reviewId];
       }
@@ -225,14 +135,11 @@ const ReviewsPage: FC = () => {
         dto: { value: false },
       });
       if (response.status === 200) {
-        alert("Пользователь разблокирован");
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при разблокировке пользователя");
       }
     } catch (error) {
       console.error("Ошибка разблокировки пользователя:", error);
-      alert("Произошла ошибка при разблокировке пользователя");
     }
   };
 
@@ -245,11 +152,9 @@ const ReviewsPage: FC = () => {
       if (response.status === 200) {
         setIsTouristModalOpen(null);
       } else {
-        alert("Ошибка при блокировке туриста");
       }
     } catch (error) {
       console.error("Ошибка блокировки туриста:", error);
-      alert("Произошла ошибка при блокировке туриста");
     }
   };
   const fetchTouristInfo = async (userId: string) => {
@@ -270,18 +175,11 @@ const ReviewsPage: FC = () => {
   };
 
   const handleCancelHint = (reviewId: string) => {
-    setReviews((prevReviews) =>
-      prevReviews.map((review) =>
-        review.id === reviewId
-          ? {
-              ...review,
-              hint: null,
-              status: undefined,
-              delayedRemoval: false,
-            }
-          : review
-      )
-    );
+    setReviewHints((prev) => {
+      const copy = { ...prev };
+      delete copy[reviewId];
+      return copy;
+    });
     if (timers.current[reviewId]) {
       clearTimeout(timers.current[reviewId]);
       delete timers.current[reviewId];
@@ -289,14 +187,14 @@ const ReviewsPage: FC = () => {
   };
 
   const loadMoreReviews = () => {
-    setVisibleReviewsCount((prevCount) => prevCount + 20);
+    fetchNextPage();
   };
 
   return (
     <div className="relative w-full min-h-screen flex">
-      <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
+      <div className="fixed inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-25 z-[-1]"
+        className="fixed inset-0 bg-cover bg-center opacity-25 z-[-1]"
         style={{ backgroundImage: `url(${authBg})` }}
       ></div>
       <div
@@ -309,21 +207,15 @@ const ReviewsPage: FC = () => {
         <div className="max-w-[1200px] w-full mx-auto">
           {reviews.length > 0 && (
             <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px]">
-              <div className="border-r pl-[32px] h-full flex items-center">
+              <div className="pl-[32px] h-full flex items-center">
                 <div className="text-left text-[24px] font-normal flex items-center ">
-                  Отзыв
-                </div>
-              </div>
-              <div className=" h-full pl-[32px] flex items-center">
-                <div className="text-left text-[24px] font-normal flex items-center self-stretch ">
-                  Действие
+                  Отзывы
                 </div>
               </div>
             </div>
           )}
           <div
-            className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto"
-            style={{ maxHeight: "calc(100vh - 68px)" }}
+            className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 py-[10px]"
           >
             {isLoading ? (
               <Loader />
@@ -332,31 +224,31 @@ const ReviewsPage: FC = () => {
                 {reviews.slice(0, visibleReviewsCount).map((review) => (
                   <div
                     key={review.id}
-                    className={`grid grid-cols-[1fr_332px] max-h-[330px] rounded-[16px] ${
-                      review.hint
-                        ? review.hint.type === "success"
-                          ? "bg-[#59C183]"
-                          : "bg-[#FF5959]"
+                    className={`rounded-[16px] bg-white shadow-md flex flex-col justify-between
+                      min-w-[300px] max-w-[600px] w-full mx-auto
+                      ${reviewHints[review.id]?.status
+                        ? reviewHints[review.id].status === "deleted"
+                          ? "bg-[#FF5959]"
+                          : "bg-[#59C183]"
                         : "bg-white"
-                    }`}
+                      }`}
+                    style={{ width: "100%", minHeight: "400px", maxWidth: "600px" }}
                   >
-                    {review.status ? (
-                      <div
-                        className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
-                          review.status === "deleted"
-                            ? "bg-[#FF5959]"
-                            : "bg-[#59C183]"
-                        }`}
-                      >
+                    {reviewHints[review.id]?.status ? (
+                      <div className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
+                        reviewHints[review.id].status === "deleted"
+                          ? "bg-[#FF5959]"
+                          : "bg-[#59C183]"
+                      }`}>
                         <div className="p-2 text-white rounded">
-                          {review.status === "deleted"
+                          {reviewHints[review.id].status === "deleted"
                             ? "Комментарий удален"
                             : "Комментарий оставлен"}
                         </div>
                         <button
                           onClick={() => handleCancelHint(review.id)}
                           className={`p-2 text-white rounded bg-inherit ${
-                            review.status === "deleted"
+                            reviewHints[review.id].status === "deleted"
                               ? "bg-[#FF5959]"
                               : "bg-[#59C183]"
                           }`}
@@ -365,116 +257,100 @@ const ReviewsPage: FC = () => {
                         </button>
                       </div>
                     ) : (
-                      <div
-                        key={review.id}
-                        className="h-full p-[32px] pr-[32px] flex flex-col border-r"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p
-                              className={`text-sm font-semibold text-gray-700 ${
-                                !isLoading
-                                  ? "cursor-pointer text-blue-500"
-                                  : "text-gray-500 cursor-default"
-                              }`}
-                              onClick={() => {
-                                if (!isLoading && review && review.user.id) {
-                                  fetchTouristInfo(review.user.id);
-                                  fetchTouristInfo(review.user.id);
-                                } else if (isLoading) {
-                                  console.warn("Данные еще загружаются.");
-                                } else {
-                                  console.log("review:", review);
-                                  console.warn(
-                                    "Не удалось получить ID пользователя для данного отзыва."
-                                  );
-                                }
-                              }}
-                            >
-                              {review.user.fullName || "Не указано"}
-                            </p>
-                            <p className="text-gray-500 text-sm">
-                              {formatDate(review.date)}
-                            </p>
-                            <RatingStars rating={review.stars} />
-                          </div>
-                          <div
-                            key={review.ad.id}
-                            className="flex items-center"
-                            onClick={() =>
-                              navigate({
-                                to: `/admin/announcements/${review.ad.id}`,
-                              })
-                            }
-                          >
-                            <img
-                              src={`${BASE_URL}${review.ad.images[0]}`}
-                              alt="Фото курорта"
-                              className="w-[52px] h-[52px] rounded-md object-cover"
-                              onError={(e) =>
-                                (e.currentTarget.src = defaultImage)
-                              }
-                            />
-                            <div className="text-right">
-                              <p className="text-sm font-semibold text-gray-700">
-                                {review.ad.title || "Без названия"}
+                      <>
+                        <div
+                          key={review.id}
+                          className="h-full p-[32px] pr-[32px] flex flex-col border-r"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p
+                                className={`text-sm font-semibold text-gray-700 ${
+                                  !isLoading
+                                    ? "cursor-pointer text-blue-500"
+                                    : "text-gray-500 cursor-default"
+                                }`}
+                                onClick={() => {
+                                  if (!isLoading && review && review.user.id) {
+                                    fetchTouristInfo(review.user.id);
+                                    fetchTouristInfo(review.user.id);
+                                  } else if (isLoading) {
+                                    console.warn("Данные еще загружаются.");
+                                  } else {
+                                    console.log("review:", review);
+                                    console.warn(
+                                      "Не удалось получить ID пользователя для данного отзыва."
+                                    );
+                                  }
+                                }}
+                              >
+                                {review.user.fullName || "Не указано"}
                               </p>
-                              <div className="text-[16px] text-black flex items-center">
-                                ⭐ {review.stars}
-                              </div>
+                              <p className="text-gray-500 text-sm">
+                                {formatDate(review.date)}
+                              </p>
+                              <RatingStars rating={review.stars} />
                             </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
-                          {review.text}
-                        </p>
-                        {review.images && (
-                          <div className="flex gap-2 mt-2">
-                            {review.images.map((img, idx) => (
+                            <div
+                              key={review.ad.id}
+                              className="flex items-center"
+                              onClick={() =>
+                                navigate({
+                                  to: `/admin/announcements/${review.ad.id}`,
+                                })
+                              }
+                            >
                               <img
-                                key={idx}
-                                src={`${BASE_URL}${img}`}
-                                alt="Фото орагнизации"
-                                className="w-[80px] h-[80px] rounded-md object-cover"
+                                src={`${BASE_URL}${review.ad.images[0]}`}
+                                alt="Фото курорта"
+                                className="w-[52px] h-[52px] rounded-md object-cover"
                                 onError={(e) =>
                                   (e.currentTarget.src = defaultImage)
                                 }
                               />
-                            ))}
+                              <div className="text-right">
+                                <p className="text-sm font-semibold text-gray-700">
+                                  {review.ad.title || "Без названия"}
+                                </p>
+                                <div className="text-[16px] text-black flex items-center">
+                                  ⭐ {review.stars}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                            {review.text}
+                          </p>
+                          {review.images && (
+                              <div className="flex gap-2 mt-2">
+                              {review.images.map((img: string, idx: number) => (
+                                <img
+                                key={idx}
+                                src={`${BASE_URL}${img}`}
+                                alt="Фото орагнизации"
+                                className="w-[80px] h-[80px] rounded-md object-cover"
+                                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) =>
+                                  (e.currentTarget.src = defaultImage)
+                                }
+                                />
+                              ))}
+                              </div>
+                          )}
+                        </div>
+                        {!review.status && (
+                          <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                            >
+                              Удалить отзыв
+                            </button>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {!review.status && (
-                      <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
-                        <button
-                          onClick={() => handleAcceptReview(review.id)}
-                          className="bg-[#39B56B] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                        >
-                          Оставить отзыв
-                        </button>
-                        <button
-                          onClick={() => handleDeleteReview(review.id)}
-                          className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                        >
-                          Удалить отзыв
-                        </button>
-                      </div>
+                      </>
                     )}
                   </div>
                 ))}
-
-                {visibleReviewsCount < reviews.length && (
-                  <div className="flex justify-center mt-4">
-                    <button
-                      onClick={loadMoreReviews}
-                      className="bg-[#0A7D9E] text-white px-4 py-2 rounded-lg"
-                    >
-                      Загрузить еще
-                    </button>
-                  </div>
-                )}
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
@@ -490,88 +366,101 @@ const ReviewsPage: FC = () => {
                 </div>
               </div>
             )}
-            {isTouristModalOpen && selectedTourist && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
-                  <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
-                    <button
-                      className="h-[44px] w-[44px]"
-                      onClick={() => setIsTouristModalOpen(null)}
-                    >
-                      <img src={Back} alt="Назад" className="w-6 h-6" />
-                    </button>
-                    <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
-                      Турист
-                    </h2>
-                    <button
-                      className="h-[44px] w-[44px]"
-                      onClick={() => setIsTouristModalOpen(null)}
-                    >
-                      <img src={Close} alt="Выход" className="w-full h-full" />
-                    </button>
-                  </div>
-                  <div className="flex justify-center mt-[68px]">
-                    <CoveredImage
-                      width="w-[128px]"
-                      height="h-[128px]"
-                      borderRadius="rounded-full"
-                      imageSrc={
-                        selectedTourist.picture
-                          ? `${BASE_URL}${selectedTourist.picture}`
-                          : defaultImage
-                      }
-                      errorImage={defaultImage}
-                    />
-                  </div>
-                  <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-                    {selectedTourist.fullName}
+          </div>
+
+          {hasNextPage && (
+            <div className="flex justify-center mt-8 mb-8 w-full">
+              <button
+                onClick={loadMoreReviews}
+                className="bg-[#0A7D9E] text-white w-[400px] h-[54px] rounded-[32px] px-4 py-2"
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? "Загрузка..." : "Загрузить ещё"}
+              </button>
+            </div>
+          )}
+
+          {isTouristModalOpen && selectedTourist && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+                <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+                  <button
+                    className="h-[44px] w-[44px]"
+                    onClick={() => setIsTouristModalOpen(null)}
+                  >
+                    <img src={Back} alt="Назад" className="w-6 h-6" />
+                  </button>
+                  <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
+                    Турист
                   </h2>
-                  <div className="mt-4">
-                    <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                      <div className="flex flex-col items-start">
-                        <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                          {selectedTourist.phoneNumber || "Не указан"}
-                        </p>
-                        <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                          Телефон
-                        </strong>
-                      </div>
-                    </div>
-                    <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                      <div className="flex flex-col items-start">
-                        <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                          {selectedTourist.email || "Не указан"}
-                        </p>
-                        <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                          Email
-                        </strong>
-                      </div>
+                  <button
+                    className="h-[44px] w-[44px]"
+                    onClick={() => setIsTouristModalOpen(null)}
+                  >
+                    <img src={Close} alt="Выход" className="w-full h-full" />
+                  </button>
+                </div>
+                <div className="flex justify-center mt-[68px]">
+                  <CoveredImage
+                    width="w-[128px]"
+                    height="h-[128px]"
+                    borderRadius="rounded-full"
+                    imageSrc={
+                      selectedTourist.picture
+                        ? `${BASE_URL}${selectedTourist.picture}`
+                        : defaultImage
+                    }
+                    errorImage={defaultImage}
+                  />
+                </div>
+                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+                  {selectedTourist.fullName}
+                </h2>
+                <div className="mt-4">
+                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                    <div className="flex flex-col items-start">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                        {selectedTourist.phoneNumber || "Не указан"}
+                      </p>
+                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                        Телефон
+                      </strong>
                     </div>
                   </div>
-                  <div className="flex flex-col items-center gap-4 mt-4">
+                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+                    <div className="flex flex-col items-start">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                        {selectedTourist.email || "Не указан"}
+                      </p>
+                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                        Email
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-4 mt-4">
+                  <div>
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                      onClick={() => handleBlockTourist(selectedTourist.id)}
+                    >
+                      Заблокировать пользователя
+                    </button>
                     <div>
                       <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                        onClick={() => handleBlockTourist(selectedTourist.id)}
+                        className="bg-[#39B56B] mt-4 text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleUnblockUser(selectedTourist.id);
+                        }}
                       >
-                        Заблокировать пользователя
+                        Разблокировать пользователя
                       </button>
-                      <div>
-                        <button
-                          className="bg-[#39B56B] mt-4 text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                          onClick={() => {
-                            handleUnblockUser(selectedTourist.id);
-                          }}
-                        >
-                          Разблокировать пользователя
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -309,14 +309,11 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: true },
       });
       if (response.status === 200) {
-        alert("Пользователь заблокирован");
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при блокировке пользователя");
       }
     } catch (error) {
       console.error("Ошибка блокировки пользователя:", error);
-      alert("Произошла ошибка при блокировке пользователя");
     }
   };
 
@@ -327,14 +324,11 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: false },
       });
       if (response.status === 200) {
-        alert("Пользователь разблокирован");
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при разблокировке пользователя");
       }
     } catch (error) {
       console.error("Ошибка разблокировки пользователя:", error);
-      alert("Произошла ошибка при разблокировке пользователя");
     }
   };
 
@@ -347,11 +341,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       if (response.status === 200) {
         setIsTouristModalOpen(false);
       } else {
-        alert("Ошибка при блокировке туриста");
       }
     } catch (error) {
       console.error("Ошибка блокировки туриста:", error);
-      alert("Произошла ошибка при блокировке туриста");
     }
   };
   

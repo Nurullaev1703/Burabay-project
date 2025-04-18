@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiService } from "../../../../services/api/ApiService";
 import { Profile } from "../../../profile/model/profile";
 
@@ -24,8 +24,8 @@ export function useGetUsers(filters: UsersFilter) {
   const name = filters.name ?? "";
   const role = filters.role ?? "";
   const status = filters.status ?? "";
-  // const skip = filters.skip ?? 0;
-  const take = filters.take ?? 6;
+  // const skip = filters.skip ?? 2;
+  const take = filters.take ?? 16;
 
   let isBanned = "";
   let isEmailConfirmed = "";
@@ -39,11 +39,9 @@ export function useGetUsers(filters: UsersFilter) {
   return useInfiniteQuery({
     queryKey: ["admin-users", filters],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiService.get< Profile[] >(
-        {
-          url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&skip=${pageParam}&take=${take}`,
-        }
-      );
+      const response = await apiService.get<Profile[]>({
+        url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&skip=${pageParam}&take=${take}`,
+      });
       return response.data;
     },
     initialPageParam: 0,

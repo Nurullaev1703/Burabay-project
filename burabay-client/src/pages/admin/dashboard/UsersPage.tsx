@@ -36,19 +36,16 @@ interface Props {
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
   // const [users, setUsers] = useState<Profile[]>([]);
-  const [skip, setSkip] = useState(0);
-  const take = 6;
+  // const [skip, setSkip] = useState(0);
+  // const take = 10;
 
   useEffect(() => {
-    setSkip(0);
   }, [filters.name, filters.role, filters.status]);
 
   // Получаем пользователей с учетом skip/take
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetUsers({
       ...filters,
-      skip,
-      take,
     });
 
   const users = data?.pages.flat() || [];
@@ -110,7 +107,6 @@ export default function UsersList({ filters }: Props) {
 
   // Обновляем фильтры и сбрасываем skip
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
-    setSkip(0);
     navigate({
       to: "/admin/dashboard/users",
       search: {
@@ -251,11 +247,9 @@ export default function UsersList({ filters }: Props) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при блокировке пользователя");
       }
     } catch (error) {
       console.error("Ошибка блокировки пользователя:", error);
-      alert("Произошла ошибка при блокировке пользователя");
     }
   };
 
@@ -269,11 +263,9 @@ export default function UsersList({ filters }: Props) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsModalOpen(false);
       } else {
-        alert("Ошибка при разблокировке пользователя");
       }
     } catch (error) {
       console.error("Ошибка разблокировки пользователя:", error);
-      alert("Произошла ошибка при разблокировке пользователя");
     }
   };
 
@@ -286,11 +278,9 @@ export default function UsersList({ filters }: Props) {
       if (response.status === 200) {
         setIsTouristModalOpen(false);
       } else {
-        alert("Ошибка при блокировке туриста");
       }
     } catch (error) {
       console.error("Ошибка блокировки туриста:", error);
-      alert("Произошла ошибка при блокировке туриста");
     }
   };
   const handleUnblockTourist = async (userId: string) => {
@@ -302,11 +292,9 @@ export default function UsersList({ filters }: Props) {
       if (response.status === 200) {
         setIsTouristModalOpen(false);
       } else {
-        alert("Ошибка при блокировке туриста");
       }
     } catch (error) {
       console.error("Ошибка блокировки туриста:", error);
-      alert("Произошла ошибка при блокировке туриста");
     }
   };
 
