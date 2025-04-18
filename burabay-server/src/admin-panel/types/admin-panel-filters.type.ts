@@ -4,8 +4,8 @@ export interface UsersFilter {
   name?: string;
   role?: ROLE_TYPE;
   status?: UsersFilterStatus;
-  skip?: number;
-  take?: number;
+  // skip?: number;
+  // take?: number;
   page?: number;
 }
 
