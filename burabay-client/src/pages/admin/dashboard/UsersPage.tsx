@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -35,29 +35,51 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<Profile[]>([]);
+  // const [users, setUsers] = useState<Profile[]>([]);
   const [skip, setSkip] = useState(0);
-  const take = 15;
+  const take = 6;
 
   useEffect(() => {
     setSkip(0);
-    setUsers([]);
   }, [filters.name, filters.role, filters.status]);
 
   // Получаем пользователей с учетом skip/take
-  const { data: fetchedUsers = [], isLoading } = useGetUsers({
-    ...filters,
-    skip,
-    take,
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetUsers({
+      ...filters,
+      skip,
+      take,
+    });
 
-  useEffect(() => {
-    if (skip === 0) {
-      setUsers(fetchedUsers);
-    } else if (fetchedUsers.length > 0) {
-      setUsers((prev) => [...prev, ...fetchedUsers]);
-    }
-  }, [fetchedUsers, skip]);
+  const users = data?.pages.flat() || [];
+
+  // Используем useRef для хранения observer
+  const observer = useRef<IntersectionObserver | null>(null);
+
+  // Callback для последнего элемента списка
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingNextPage) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  );
+
+  // useEffect(() => {
+  //   if (skip === 0) {
+  //     setUsers(fetchedUsers);
+  //   } else if (fetchedUsers.length > 0) {
+  //     setUsers((prev) => [...prev, ...fetchedUsers]);
+  //   }
+  // }, [fetchedUsers, skip]);
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
@@ -72,7 +94,6 @@ export default function UsersList({ filters }: Props) {
   const [confirmAction, setConfirmAction] = useState<
     "confirm" | "reject" | null
   >(null);
-  const [visibleUsersCount, setVisibleUsersCount] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [_isTouristModalOpen, setIsTouristModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -90,7 +111,6 @@ export default function UsersList({ filters }: Props) {
   // Обновляем фильтры и сбрасываем skip
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     setSkip(0);
-    setUsers([]);
     navigate({
       to: "/admin/dashboard/users",
       search: {
@@ -180,7 +200,7 @@ export default function UsersList({ filters }: Props) {
 
   // Загрузка следующей порции пользователей
   const loadMoreUsers = () => {
-    setSkip((prev) => prev + take);
+    fetchNextPage();
   };
 
   const closeUserDetailsModal = () => {
@@ -404,7 +424,8 @@ export default function UsersList({ filters }: Props) {
             <div className="grid gap-4">
               {users.map((user) => (
                 <div
-                  key={user.organization?.id || user.id}
+                  ref={lastElementRef}
+                  key={user.id}
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                 >
                   <div
@@ -525,13 +546,14 @@ export default function UsersList({ filters }: Props) {
                   </div>
                 </div>
               ))}
-              {fetchedUsers.length === take && (
+              {hasNextPage && (
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={loadMoreUsers}
+                    disabled={isFetchingNextPage}
                     className="bg-[#0A7D9E] w-[400px] h-[54px] text-white text-[16px] rounded-[32px] px-4 py-2"
                   >
-                    Загрузить еще
+                    {isFetchingNextPage ? "Загрузка..." : "Загрузить еще"}
                   </button>
                 </div>
               )}
