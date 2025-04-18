@@ -6,6 +6,7 @@ export interface UsersFilter {
   status?: UsersFilterStatus;
   skip?: number;
   take?: number;
+  page?: number;
 }
 
 export enum UsersFilterStatus {

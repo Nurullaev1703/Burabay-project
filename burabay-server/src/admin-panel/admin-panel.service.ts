@@ -192,10 +192,11 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
+    // Если страница не указана, то 1.
+    if (!filter.page) filter.page = 1;
+
     let users: User[] = [],
       orgsUsers: User[] = [];
-    console.log(Math.floor(filter.take / 2));
-    console.log(Math.round(filter.take / 2));
     const selectOptions = {
       id: true,
       fullName: true,
@@ -226,11 +227,12 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
+      const skipForBoth = filter.page * 15 - 15;
       users = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: filter.take,
-        skip: filter.skip,
+        take: 15,
+        skip: skipForBoth,
       });
       // Поиск по названию среди туристов.
       if (filter.name) {
@@ -240,6 +242,7 @@ export class AdminPanelService {
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
+      const skipForBoth = filter.page * 15 - 15;
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
@@ -262,8 +265,8 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: filter.take,
-        skip: filter.skip,
+        take: 15,
+        skip: skipForBoth,
       });
       // Поиск по названию среди организацей.
       if (filter.name) {
@@ -273,6 +276,9 @@ export class AdminPanelService {
     }
     // Поиск всех пользователей.
     else {
+      // Если параметр both при целочисленном делении равен нулю, то не отправлять запрос для организаций.
+      const skipForOrgs = filter.page * 7 - 7;
+      const skipForUsers = filter.page * 8 - 8;
       orgsUsers = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: {
@@ -297,14 +303,14 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: filter.take ? Math.floor(filter.take / 2) : undefined,
-        skip: filter.skip,
+        take: 7,
+        skip: skipForOrgs,
       });
       users = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: filter.take ? Math.round(filter.take / 2) : undefined,
-        skip: filter.skip,
+        take: 8,
+        skip: skipForUsers,
       });
       // Поиск по имени среди всех пользователей.
       if (filter.name) {

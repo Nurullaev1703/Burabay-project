@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UsersFilter } from './types/admin-panel-filters.type';
 import { Public } from 'src/constants';
 import { BannerCreateDto } from './dto/banner-create.dto';
@@ -30,16 +30,16 @@ export class AdminPanelController {
 
   @Get('users')
   @ApiQuery({
-    name: 'take',
-    description: 'Количество получаемых записей',
-    required: false,
+    name: 'page',
+    description: 'Номер страницы. Если не указана, то берется 1',
+    required: true,
     type: Number,
+    example: 1,
   })
-  @ApiQuery({
-    name: 'skip',
-    description: 'Количество пропускаемых записей',
-    required: false,
-    type: Number,
+  @ApiOperation({
+    summary: 'Получить всех пользователей',
+    description:
+      'Возвращает пользователей по 15 штук. Принимает фильтр в Query. Значение page указывает номер страницы и используется чтобы расчитать сколько записей надо пропустить. Формула: skip = page * 15 - 15',
   })
   async getUsers(@Query() filter: UsersFilter) {
     return this.adminPanelService.getUsers(filter);
