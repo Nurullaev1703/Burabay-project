@@ -15,6 +15,9 @@ import { useNavigate } from "@tanstack/react-router";
 import Back from "../../../../public/Back.svg";
 import Close from "../../../../public/Close.png";
 
+const LOCAL_STORAGE_DELETION_KEY = "delayedDeletions";
+const LOCAL_STORAGE_ACCEPTANCE_KEY = "delayedAcceptances";
+
 const BASE_URL = baseUrl;
 
 interface Review {
@@ -53,12 +56,6 @@ interface Organization {
   ads: Announcement[];
 }
 
-// export enum ROLE_TYPE {
-//   ADMIN = "ADMIN",
-//   MODERATOR = "MODERATOR",
-//   TOURIST = "TOURIST",
-// }
-
 export interface User {
   id: string;
   fullName: string;
@@ -69,11 +66,6 @@ export interface User {
   picture: string;
   isBanned: boolean;
 }
-
-// interface ComplaintsPageProps {
-//   profile: Profile;
-//   users: Profile;
-// }
 
 export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [reviews, setReviews] = useState<
@@ -102,13 +94,47 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         });
 
         if (response.status === 200) {
+          const storedDeletions = localStorage.getItem(
+            LOCAL_STORAGE_DELETION_KEY
+          );
+          const parsedDeletions: Record<string, number> = storedDeletions
+            ? JSON.parse(storedDeletions)
+            : {};
+          const storedAcceptances = localStorage.getItem(
+            LOCAL_STORAGE_ACCEPTANCE_KEY
+          );
+          const parsedAcceptances: Record<string, number> = storedAcceptances
+            ? JSON.parse(storedAcceptances)
+            : {};
+
           setReviews(
-            response.data.map((review) => ({
-              ...review,
-              hint: null,
-              delayedRemoval: false,
-              status: undefined,
-            }))
+            response.data.map((review) => {
+              const isDelayedDeletion =
+                parsedDeletions[review.reviewId] > Date.now();
+              const isDelayedAcceptance =
+                parsedAcceptances[review.reviewId] > Date.now();
+
+              return {
+                ...review,
+                hint: isDelayedDeletion
+                  ? {
+                      message: "Отзыв будет удален...",
+                      type: "success",
+                    }
+                  : isDelayedAcceptance
+                    ? {
+                        message: "Отзыв будет принят...",
+                        type: "success",
+                      }
+                    : null,
+                delayedRemoval: isDelayedDeletion || isDelayedAcceptance,
+                status: isDelayedDeletion
+                  ? "deleted"
+                  : isDelayedAcceptance
+                    ? "accepted"
+                    : undefined,
+              };
+            })
           );
         } else {
           console.error("Ошибка загрузки данных:", response);
@@ -122,9 +148,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
     fetchReviews();
 
-    const intervalId = setInterval(fetchReviews, 15000); // Обновление каждые 15 секунд
+    const intervalId = setInterval(fetchReviews, 15000);
 
-    return () => clearInterval(intervalId); // Очистка интервала при размонтировании компонента
+    return () => clearInterval(intervalId);
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -135,14 +161,245 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     });
   };
 
+  useEffect(() => {
+    console.log("Проверка таймеров");
+    const storedDeletions = localStorage.getItem(LOCAL_STORAGE_DELETION_KEY);
+    const parsedDeletions: Record<string, number> = storedDeletions
+      ? JSON.parse(storedDeletions)
+      : {};
+    const storedAcceptances = localStorage.getItem(
+      LOCAL_STORAGE_ACCEPTANCE_KEY
+    );
+    const parsedAcceptances: Record<string, number> = storedAcceptances
+      ? JSON.parse(storedAcceptances)
+      : {};
+
+    const handleExpiredDeletion = async (reviewId: string) => {
+      console.log(
+        `Время удаления для отзыва ${reviewId} истекло. Попытка удалить.`
+      );
+      try {
+        const response = await apiService.delete({
+          url: `/review/${reviewId}`,
+        });
+        if (response.status === 200) {
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
+          );
+          const updatedDeletions = { ...parsedDeletions };
+          delete updatedDeletions[reviewId];
+          localStorage.setItem(
+            LOCAL_STORAGE_DELETION_KEY,
+            JSON.stringify(updatedDeletions)
+          );
+          console.log(
+            "Отзыв успешно удален (после истечения времени)",
+            reviewId
+          );
+        } else {
+          console.error(
+            "Ошибка удаления отзыва (после истечения времени):",
+            response
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Ошибка запроса на удаление (после истечения времени):",
+          error
+        );
+      } finally {
+        const updatedDeletions = { ...parsedDeletions };
+        delete updatedDeletions[reviewId];
+        localStorage.setItem(
+          LOCAL_STORAGE_DELETION_KEY,
+          JSON.stringify(updatedDeletions)
+        );
+      }
+    };
+
+    Object.keys(parsedDeletions).forEach((reviewId) => {
+      const expiryTime = parsedDeletions[reviewId];
+      const timeLeft = expiryTime - Date.now();
+      console.log(`Отзыв ${reviewId}, время до удаления: ${timeLeft}`);
+
+      if (timeLeft > 0 && !timers.current[reviewId]) {
+        console.log(`Запускается таймер для удаления отзыва ${reviewId}`);
+        timers.current[reviewId] = setTimeout(async () => {
+          try {
+            console.log("Выполняется удаление отзыва (из useEffect)", reviewId);
+            const response = await apiService.delete({
+              url: `/review/${reviewId}`,
+            });
+            if (response.status === 200) {
+              setReviews((prevReviews) =>
+                prevReviews.filter((review) => review.reviewId !== reviewId)
+              );
+              const updatedDeletions = { ...parsedDeletions };
+              delete updatedDeletions[reviewId];
+              localStorage.setItem(
+                LOCAL_STORAGE_DELETION_KEY,
+                JSON.stringify(updatedDeletions)
+              );
+              console.log("Отзыв успешно удален (из useEffect)", reviewId);
+            }
+          } catch (error) {
+            console.error("Ошибка удаления отзыва (из useEffect):", error);
+            setReviews((prevReviews) =>
+              prevReviews.map((review) =>
+                review.reviewId === reviewId
+                  ? {
+                      ...review,
+                      hint: {
+                        message: "Ошибка при удалении отзыва",
+                        type: "error",
+                      },
+                      delayedRemoval: false,
+                      status: undefined,
+                    }
+                  : review
+              )
+            );
+            const updatedDeletions = { ...parsedDeletions };
+            delete updatedDeletions[reviewId];
+            localStorage.setItem(
+              LOCAL_STORAGE_DELETION_KEY,
+              JSON.stringify(updatedDeletions)
+            );
+          } finally {
+            delete timers.current[reviewId];
+          }
+        }, timeLeft);
+      } else if (timeLeft <= 0) {
+        handleExpiredDeletion(reviewId);
+      }
+    });
+
+    const handleExpiredAcceptance = async (reviewId: string) => {
+      console.log(
+        `Время принятия для отзыва ${reviewId} истекло. Попытка принять.`
+      );
+      try {
+        const response = await apiService.patch({
+          url: `/admin/check-review/${reviewId}`,
+          dto: {},
+        });
+        if (response.status === 200) {
+          setReviews((prevReviews) =>
+            prevReviews.filter((review) => review.reviewId !== reviewId)
+          );
+          const updatedAcceptances = { ...parsedAcceptances };
+          delete updatedAcceptances[reviewId];
+          localStorage.setItem(
+            LOCAL_STORAGE_ACCEPTANCE_KEY,
+            JSON.stringify(updatedAcceptances)
+          );
+          console.log(
+            "Отзыв успешно принят (после истечения времени)",
+            reviewId
+          );
+        } else {
+          console.error(
+            "Ошибка принятия отзыва (после истечения времени):",
+            response
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Ошибка запроса на принятие (после истечения времени):",
+          error
+        );
+      } finally {
+        const updatedAcceptances = { ...parsedAcceptances };
+        delete updatedAcceptances[reviewId];
+        localStorage.setItem(
+          LOCAL_STORAGE_ACCEPTANCE_KEY,
+          JSON.stringify(updatedAcceptances)
+        );
+      }
+    };
+
+    Object.keys(parsedAcceptances).forEach((reviewId) => {
+      const expiryTime = parsedAcceptances[reviewId];
+      const timeLeft = expiryTime - Date.now();
+      console.log(`Отзыв ${reviewId}, время до принятия: ${timeLeft}`);
+
+      if (timeLeft > 0 && !timers.current[reviewId]) {
+        console.log(`Запускается таймер для принятия отзыва ${reviewId}`);
+        timers.current[reviewId] = setTimeout(async () => {
+          try {
+            console.log("Выполняется принятие отзыва (из useEffect)", reviewId);
+            const response = await apiService.patch({
+              url: `/admin/check-review/${reviewId}`,
+              dto: {},
+            });
+            if (response.status === 200) {
+              setReviews((prevReviews) =>
+                prevReviews.filter((review) => review.reviewId !== reviewId)
+              );
+              const updatedAcceptances = { ...parsedAcceptances };
+              delete updatedAcceptances[reviewId];
+              localStorage.setItem(
+                LOCAL_STORAGE_ACCEPTANCE_KEY,
+                JSON.stringify(updatedAcceptances)
+              );
+              console.log("Отзыв успешно принят (из useEffect)", reviewId);
+            }
+          } catch (error) {
+            console.error("Ошибка принятия отзыва (из useEffect):", error);
+            setReviews((prevReviews) =>
+              prevReviews.map((review) =>
+                review.reviewId === reviewId
+                  ? {
+                      ...review,
+                      hint: {
+                        message: "Ошибка при принятии отзыва",
+                        type: "error",
+                      },
+                      delayedRemoval: false,
+                      status: undefined,
+                    }
+                  : review
+              )
+            );
+            const updatedAcceptances = { ...parsedAcceptances };
+            delete updatedAcceptances[reviewId];
+            localStorage.setItem(
+              LOCAL_STORAGE_ACCEPTANCE_KEY,
+              JSON.stringify(updatedAcceptances)
+            );
+          } finally {
+            delete timers.current[reviewId];
+          }
+        }, timeLeft);
+      } else if (timeLeft <= 0) {
+        handleExpiredAcceptance(reviewId);
+      }
+    });
+
+    return () => {
+      Object.values(timers.current).forEach(clearTimeout);
+    };
+  }, [reviews]);
+
   const handleDeleteReview = async (reviewId: string) => {
+    console.log("Удалить отзыв", reviewId);
+    const deletionTime = Date.now() + 4000;
+    const updatedDeletions = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+    );
+    updatedDeletions[reviewId] = deletionTime;
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_KEY,
+      JSON.stringify(updatedDeletions)
+    );
+
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
         review.reviewId === reviewId
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет удален через 10 секунд",
+                message: "Отзыв будет удален через 4 секунды",
                 type: "success",
               },
               delayedRemoval: true,
@@ -158,6 +415,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
     timers.current[reviewId] = setTimeout(async () => {
       try {
+        console.log("Выполняется удаление отзыва", reviewId);
         const response = await apiService.delete({
           url: `/review/${reviewId}`,
         });
@@ -165,6 +423,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           setReviews((prevReviews) =>
             prevReviews.filter((review) => review.reviewId !== reviewId)
           );
+          const storedDeletions = JSON.parse(
+            localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+          );
+          delete storedDeletions[reviewId];
+          localStorage.setItem(
+            LOCAL_STORAGE_DELETION_KEY,
+            JSON.stringify(storedDeletions)
+          );
+          console.log("Отзыв успешно удален", reviewId);
         }
       } catch (error) {
         console.error("Ошибка удаления отзыва:", error);
@@ -183,13 +450,31 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               : review
           )
         );
+        const storedDeletions = JSON.parse(
+          localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+        );
+        delete storedDeletions[reviewId];
+        localStorage.setItem(
+          LOCAL_STORAGE_DELETION_KEY,
+          JSON.stringify(storedDeletions)
+        );
       } finally {
         delete timers.current[reviewId];
       }
-    }, 10000);
+    }, 4000);
   };
 
   const handleAcceptReview = async (reviewId: string) => {
+    const acceptanceTime = Date.now() + 4000;
+    const updatedAcceptances = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
+    );
+    updatedAcceptances[reviewId] = acceptanceTime;
+    localStorage.setItem(
+      LOCAL_STORAGE_ACCEPTANCE_KEY,
+      JSON.stringify(updatedAcceptances)
+    );
+
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
         review.reviewId === reviewId
@@ -197,7 +482,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               ...review,
               hint: {
                 message:
-                  "Отзыв будет принят через 10 секунд. Нажмите Отменить, чтобы восстановить.",
+                  "Отзыв будет принят через 4 секунды. Нажмите Отменить, чтобы восстановить.",
                 type: "success",
               },
               delayedRemoval: true,
@@ -221,7 +506,14 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           setReviews((prevReviews) =>
             prevReviews.filter((review) => review.reviewId !== reviewId)
           );
-          delete timers.current[reviewId];
+          const storedAcceptances = JSON.parse(
+            localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
+          );
+          delete storedAcceptances[reviewId];
+          localStorage.setItem(
+            LOCAL_STORAGE_ACCEPTANCE_KEY,
+            JSON.stringify(storedAcceptances)
+          );
         }
       } catch (error) {
         console.error("Ошибка принятия отзыва:", error);
@@ -240,10 +532,18 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               : review
           )
         );
+        const storedAcceptances = JSON.parse(
+          localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
+        );
+        delete storedAcceptances[reviewId];
+        localStorage.setItem(
+          LOCAL_STORAGE_ACCEPTANCE_KEY,
+          JSON.stringify(storedAcceptances)
+        );
       } finally {
         delete timers.current[reviewId];
       }
-    }, 10000);
+    }, 4000);
   };
 
   const fetchOrgInfo = async (orgId: string) => {
@@ -296,6 +596,22 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       clearTimeout(timers.current[reviewId]);
       delete timers.current[reviewId];
     }
+    const storedDeletions = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+    );
+    delete storedDeletions[reviewId];
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_KEY,
+      JSON.stringify(storedDeletions)
+    );
+    const storedAcceptances = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
+    );
+    delete storedAcceptances[reviewId];
+    localStorage.setItem(
+      LOCAL_STORAGE_ACCEPTANCE_KEY,
+      JSON.stringify(storedAcceptances)
+    );
   };
 
   const loadMoreReviews = () => {
@@ -346,7 +662,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       console.error("Ошибка блокировки туриста:", error);
     }
   };
-  
 
   return (
     <div className="relative w-full min-h-screen flex">
@@ -389,7 +704,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             <Loader />
           ) : reviews.length > 0 ? (
             <>
-              {reviews.slice(0, visibleReviewsCount).map((review)  => (                
+              {reviews.slice(0, visibleReviewsCount).map((review) => (
                 <div
                   key={review.reviewId}
                   className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
@@ -468,7 +783,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             })
                           }
                         >
-                          
                           <img
                             src={`${BASE_URL}${review.adImage}`}
                             alt="Фото курорта"
@@ -499,7 +813,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             <img
                               key={idx}
                               src={`${BASE_URL}${img}`}
-                              alt="Фото орагнизации"
+                              alt="Фото отзыва"
                               className="w-[80px] h-[80px] rounded-md object-cover"
                               onError={(e) =>
                                 (e.currentTarget.src = defaultImage)
@@ -568,7 +882,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   )}
                 </div>
               ))}
-              
+
               {visibleReviewsCount < reviews.length && (
                 <div className="flex justify-center mt-4">
                   <button
@@ -580,7 +894,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               )}
             </>
-            
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
               <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">

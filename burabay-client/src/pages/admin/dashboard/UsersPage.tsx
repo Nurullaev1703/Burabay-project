@@ -276,6 +276,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: true },
       });
       if (response.status === 200) {
+        await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsTouristModalOpen(false);
       } else {
       }
@@ -290,6 +291,7 @@ export default function UsersList({ filters }: Props) {
         dto: { value: false },
       });
       if (response.status === 200) {
+        await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         setIsTouristModalOpen(false);
       } else {
       }
