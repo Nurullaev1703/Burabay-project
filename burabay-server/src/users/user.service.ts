@@ -21,6 +21,7 @@ export class UserService {
   ) {}
 
   /* Удаление аккаунта пользователя. При наличии, удаление организации и ее объявлений. */
+  @CatchErrors()
   async remove(tokenData: TokenData) {
     return this.dataSource.transaction(async (manager) => {
       // Получение данных о пользователе вместе с организацией
@@ -33,28 +34,49 @@ export class UserService {
         },
       });
 
-      // Если Бизнес, то удалить проверить на наличие броней.
-      // Если нет актуальный броней, то удалить объявления, организацию и аккаунт.
+      // Если организация, то удалить ее объявления.
       if (user.role === ROLE_TYPE.BUSINESS) {
-        const bookings = await manager.find(Booking, {
+        // Проверить на наличие броней.
+        const booking = await manager.findOne(Booking, {
           where: { ad: { organization: { id: user.organization.id } } },
         });
-        if (bookings.length === 0) {
-          const ads = await manager.find(Ad, {
-            where: { organization: { user: { id: user.id } } },
-          });
-          await manager.remove(ads);
-          return JSON.stringify(HttpStatus.OK);
+        if (booking) {
+          return {
+            status: HttpStatus.BAD_REQUEST,
+            message: 'Нельзя удалить аккаунт с бронированиями',
+          };
+        }
+        const ads = await manager.find(Ad, {
+          where: { organization: { id: user.organization.id } },
+          relations: {
+            address: true,
+            bookingBanDate: true,
+            schedule: true,
+            breaks: true,
+            usersFavorited: true,
+          },
+        });
+        await manager.remove(ads);
+        await manager.remove(user.organization);
+      }
+      // Если турист.
+      else if (user.role === ROLE_TYPE.TOURIST) {
+        // Проверить на наличие броней.
+        const booking = await manager.findOne(Booking, {
+          where: { user: { id: user.id } },
+        });
+        // Если есть брони, то отменить удаление.
+        if (booking) {
+          return {
+            status: HttpStatus.BAD_REQUEST,
+            message: 'Нельзя удалить аккаунт с бронированиями',
+          };
+        }
+        // Если броней нет, то удалить аккаунт.
+        else {
+          await manager.remove(user);
         }
       }
-      // Если Турист, то отменить брони.
-      else if (user.role === ROLE_TYPE.TOURIST) {
-      }
-
-      // Удалить адрес организации, организацию и пользователя.
-      manager.remove(user.organization.address);
-      manager.remove(user.organization);
-      manager.remove(user);
       return JSON.stringify(HttpStatus.OK);
     });
   }

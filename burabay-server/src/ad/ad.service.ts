@@ -275,13 +275,18 @@ export class AdService {
       const ad = await manager.findOne(Ad, {
         where: { id: id },
         relations: {
+          reviews: { report: true, answer: true },
           schedule: true,
           bookingBanDate: true,
           breaks: true,
           bookings: true,
         },
       });
+
+      // Проверка существования объявления.
       Utils.checkEntity(ad, 'Объявление не найдено');
+
+      // Проверка на наличие бронирований.
       if (ad.bookings.length > 0) {
         return {
           message:
@@ -289,9 +294,23 @@ export class AdService {
           code: HttpStatus.CONFLICT,
         };
       }
+
+      // Удаление связанных сущностей.
       if (ad.schedule) await manager.remove(ad.schedule);
-      if (ad.bookingBanDate) await manager.remove(ad.bookingBanDate);
-      if (ad.breaks) await manager.remove(ad.breaks);
+      if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
+      if (ad.breaks?.length) await manager.remove(ad.breaks);
+
+      if (ad.reviews?.length) {
+        await Promise.all(
+          ad.reviews.map(async (review) => {
+            if (review.answer) await manager.remove(review.answer);
+            if (review.report) await manager.remove(review.report);
+          }),
+        );
+        await manager.remove(ad.reviews);
+      }
+
+      // Удаление самого объявления.
       await manager.remove(ad);
       return JSON.stringify(HttpStatus.OK);
     });

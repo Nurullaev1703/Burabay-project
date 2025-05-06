@@ -102,7 +102,7 @@ export class AuthenticationService {
       }
 
       // если пришел пароль, то регистрируем как организацию
-      if (signInDto.password?.length) {
+      if (signInDto.password?.length && signInDto.role == ROLE_TYPE.BUSINESS) {
         await this._registerBusiness(signInDto);
         await this.emailService.sendAcceptMessage(signInDto.email);
         return JSON.stringify(HttpStatus.CREATED);
