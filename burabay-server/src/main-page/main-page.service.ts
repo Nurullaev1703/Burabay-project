@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { AdFilter } from 'src/ad/types/ad-filter.type';
@@ -18,6 +18,8 @@ import {
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class MainPageService {
@@ -30,8 +32,11 @@ export class MainPageService {
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
+  /** Скорее всего неактуальный метод, который не используется. */
   async getMainPageAnnouncements(filter?: AdFilter) {
     let whereOptions = {};
     if (filter.category) {
@@ -57,6 +62,61 @@ export class MainPageService {
   /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
   @CatchErrors()
   async getMainPageAds(tokenData: TokenData, mainPageFilter?: MainPageFilter) {
+    // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const offset = mainPageFilter?.offset ?? 0;
+    const limit = mainPageFilter?.limit ?? 10;
+
+    const other = { ...mainPageFilter };
+    delete other.offset;
+    delete other.limit;
+
+    const isNoAdditionalFilters = !Object.keys(other).length;
+
+    const cacheKey = `ads:${offset}:${limit}`;
+
+    if (isNoAdditionalFilters) {
+      const cachedAds = await this.cacheManager.get(cacheKey);
+      if (cachedAds) {
+        return cachedAds;
+      }
+      const ads = await this.adRepository.find({
+        relations: {
+          subcategory: { category: true },
+          usersFavorited: true,
+          address: true,
+        },
+        select: {
+          id: true,
+          address: {
+            address: true,
+            specialName: true,
+          },
+          title: true,
+          images: true,
+          price: true,
+          details: {},
+          avgRating: true,
+          reviewCount: true,
+          createdAt: true,
+          subcategory: {
+            name: true,
+            category: {
+              name: true,
+              imgPath: true,
+            },
+          },
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+        skip: mainPageFilter.offset || 0,
+        take: mainPageFilter.limit || 10,
+      });
+      await this.cacheManager.set(cacheKey, ads, 3600);
+      return ads;
+    }
+
     let whereOptions: any = {};
 
     // Фильтр по цене
@@ -152,10 +212,7 @@ export class MainPageService {
       relations: {
         subcategory: { category: true },
         usersFavorited: true,
-        address: true
-      },
-      order: {
-        createdAt: 'DESC',
+        address: true,
       },
       select: {
         id: true,
@@ -178,6 +235,9 @@ export class MainPageService {
           },
         },
       },
+      order: {
+        createdAt: 'DESC',
+      },
       skip: mainPageFilter.offset || 0,
       take: mainPageFilter.limit || 10,
     });
@@ -190,14 +250,41 @@ export class MainPageService {
     return mainPageFilter.name ? this._searchAd(mainPageFilter.name, result) : result;
   }
 
+  /** Получить категории для главной страницы. */
   async getMainPageCategories() {
-    return await this.categoryRepository.find();
-  }
+    // Получить данные из Redis.
+    const cachedCategories = await this.cacheManager.get('all_categories');
 
+    if (cachedCategories) {
+      return cachedCategories;
+    }
+
+    const categories = await this.categoryRepository.find({
+      select: {
+        id: true,
+        name: true,
+        imgPath: true,
+      },
+    });
+    // Категории в кэше хранятся год.
+    await this.cacheManager.set('all_categories', categories, 3600);
+    return categories;
+  }
+  /** Получить банеры для главной страницы. */
   async getBanners() {
-    return await this.bannerRepository.find();
+    // Получить данные из Redis.
+    const cachedBanners = await this.cacheManager.get('all_banners');
+    if (cachedBanners) {
+      return cachedBanners;
+    }
+    // Получить банеры из БД.
+    const banners = await this.bannerRepository.find();
+    // Банеры в кэше хранятся год.
+    await this.cacheManager.set('all_banners', banners, 3600);
+    return banners;
   }
 
+  /** Поиск объявлений по имени. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];
     ads.forEach((ad) => {

@@ -186,7 +186,7 @@ export class ImagesService {
       return JSON.stringify(`Файл ${deleteImageDto.filepath} успешно удален`);
     } catch (error) {
       throw new HttpException(
-        `Не удалось удалить файл ${deleteImageDto.filepath}`,
+        `Не удалось удалить файл ${deleteImageDto.filepath}, ${error.message}`,
         HttpStatus.NOT_FOUND,
       );
     }
