@@ -23,7 +23,6 @@ import Close from "../../../../public/Close.png";
 import Down from "../../../../public/down-arrow.svg";
 import Back from "../../../../public/Back.svg";
 import arrow from "../../../../public/arrow.svg";
-import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,8 +38,7 @@ export default function UsersList({ filters }: Props) {
   // const [skip, setSkip] = useState(0);
   // const take = 10;
 
-  useEffect(() => {
-  }, [filters.name, filters.role, filters.status]);
+  useEffect(() => {}, [filters.name, filters.role, filters.status]);
 
   // Получаем пользователей с учетом skip/take
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -50,7 +48,6 @@ export default function UsersList({ filters }: Props) {
 
   const users = data?.pages.flat() || [];
 
-  // Используем useRef для хранения observer
   const observer = useRef<IntersectionObserver | null>(null);
 
   // Callback для последнего элемента списка
@@ -324,46 +321,55 @@ export default function UsersList({ filters }: Props) {
             <button
               type="button"
               className="w-[264.5px] flex items-center justify-center text-[#0A7D9E] font-roboto pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
-              onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+              onClick={() => {
+                if (filters.status !== UsersFilterStatus.WAITING) {
+                  setIsRoleDropdownOpen(!isRoleDropdownOpen);
+                }
+              }}
+              disabled={filters.status === UsersFilterStatus.WAITING}
             >
-              {filters.role
-                ? capitalizeFirstLetter(filters.role)
-                : "Все пользователи"}
+              {filters.status === UsersFilterStatus.WAITING
+                ? "Бизнес"
+                : filters.role
+                  ? capitalizeFirstLetter(filters.role)
+                  : "Все пользователи"}
               <img src={Down} alt="" className="ml-[17px] w-[16px] h-[16px]" />
             </button>
-            {isRoleDropdownOpen && (
-              <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
-                <label className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="roleFilter"
-                    checked={!filters.role}
-                    onChange={() => updateFilters({ role: undefined })}
-                    className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
-                  />
-                  Все пользователи
-                </label>
-                {Object.values(RoleType)
-                  .filter((roleValue) => roleValue !== "admin")
-                  .map((roleValue) => (
-                    <label
-                      key={roleValue}
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="roleFilter"
-                        value={roleValue}
-                        checked={filters.role === roleValue}
-                        onChange={() => updateFilters({ role: roleValue })}
-                        className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
-                      />
-                      {capitalizeFirstLetter(roleValue)}
-                    </label>
-                  ))}
-              </div>
-            )}
+            {isRoleDropdownOpen &&
+              filters.status !== UsersFilterStatus.WAITING && (
+                <div className="absolute mt-1 w-[264.5px] bg-white rounded shadow-md z-10 border">
+                  <label className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="roleFilter"
+                      checked={!filters.role}
+                      onChange={() => updateFilters({ role: undefined })}
+                      className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
+                    />
+                    Все пользователи
+                  </label>
+                  {Object.values(RoleType)
+                    .filter((roleValue) => roleValue !== "admin")
+                    .map((roleValue) => (
+                      <label
+                        key={roleValue}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      >
+                        <input
+                          type="radio"
+                          name="roleFilter"
+                          value={roleValue}
+                          checked={filters.role === roleValue}
+                          onChange={() => updateFilters({ role: roleValue })}
+                          className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
+                        />
+                        {capitalizeFirstLetter(roleValue)}
+                      </label>
+                    ))}
+                </div>
+              )}
           </div>
+
           <div className="relative" ref={statusFilterRef}>
             <button
               type="button"
@@ -382,7 +388,9 @@ export default function UsersList({ filters }: Props) {
                     type="radio"
                     name="statusFilter"
                     checked={!filters.status}
-                    onChange={() => updateFilters({ status: undefined })}
+                    onChange={() =>
+                      updateFilters({ status: undefined, role: undefined })
+                    }
                     className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                   />
                   Все статусы
@@ -397,7 +405,13 @@ export default function UsersList({ filters }: Props) {
                       name="statusFilter"
                       value={status}
                       checked={filters.status === status}
-                      onChange={() => updateFilters({ status })}
+                      onChange={() => {
+                        if (status === UsersFilterStatus.WAITING) {
+                          updateFilters({ status, role: RoleType.BUSINESS });
+                        } else {
+                          updateFilters({ status, role: undefined });
+                        }
+                      }}
                       className="mr-2 h-5 w-5 accent-[#0A7D9E] cursor-pointer"
                     />
                     {capitalizeFirstLetter(status)}
@@ -407,6 +421,7 @@ export default function UsersList({ filters }: Props) {
             )}
           </div>
         </div>
+
         <div className="mt-16">
           {isLoading && users.length === 0 ? (
             <Loader />
@@ -790,12 +805,10 @@ export default function UsersList({ filters }: Props) {
             </div>
             <div>
               <div className="flex justify-center space-x-4">
-                <CoveredImage
-                  width="w-[128px]"
-                  height="h-[128px]"
-                  borderRadius="rounded-full"
-                  imageSrc={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
-                  errorImage={defaultImage}
+                <img
+                  className="w-[128px] h-[128px] rounded-full object-cover"
+                  src={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
+                  onError={(e) => (e.currentTarget.src = defaultImage)}
                 />
               </div>
               <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
