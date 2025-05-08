@@ -16,16 +16,12 @@ export interface UsersFilter {
   name?: string;
   role?: RoleType;
   status?: UsersFilterStatus;
-  skip?: number;
-  take?: number;
 }
 
 export function useGetUsers(filters: UsersFilter) {
   const name = filters.name ?? "";
   const role = filters.role ?? "";
   const status = filters.status ?? "";
-  // const skip = filters.skip ?? 2;
-  const take = filters.take ?? 16;
 
   let isBanned = "";
   let isEmailConfirmed = "";
@@ -40,13 +36,13 @@ export function useGetUsers(filters: UsersFilter) {
     queryKey: ["admin-users", filters],
     queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Profile[]>({
-        url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&skip=${pageParam}&take=${take}`,
+        url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&page=${pageParam}`,
       });
       return response.data;
     },
-    initialPageParam: 0,
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length === take ? allPages.length * take : undefined;
+      return lastPage.length === 15 ? allPages.length + 1 : undefined;
     },
   });
 }
