@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,9 @@ import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
+import { ImagesService } from 'src/images/images.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AdService {
@@ -30,6 +33,9 @@ export class AdService {
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDatesRepository: Repository<BookingBanDate>,
     private readonly dataSource: DataSource,
+    private imageService: ImagesService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   /* Создания Объявления. Принимает айти Подкатегории и Организации. */
@@ -54,6 +60,7 @@ export class AdService {
       ...otherFields,
     });
     await this.adRepository.save(newAd);
+    await this.cacheManager.del('ads');
     return JSON.stringify(newAd.id);
   }
 
@@ -308,6 +315,15 @@ export class AdService {
           }),
         );
         await manager.remove(ad.reviews);
+      }
+
+      // Удаление изображений объявления.
+      if (ad.images?.length) {
+        await Promise.all(
+          ad.images.map(async (image) => {
+            await this.imageService.deleteImage({ filepath: image });
+          }),
+        );
       }
 
       // Удаление самого объявления.

@@ -10,6 +10,7 @@ import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { Break } from 'src/breaks/entities/break.entity';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { ImagesModule } from 'src/images/images.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Booking } from 'src/booking/entities/booking.entity';
       BookingBanDate,
       Break,
     ]),
+    ImagesModule,
   ],
   controllers: [AdController],
   providers: [AdService],
