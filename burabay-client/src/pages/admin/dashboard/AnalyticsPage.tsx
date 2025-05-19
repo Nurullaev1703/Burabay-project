@@ -193,14 +193,14 @@ const AnalyticsPage = () => {
               <div>
                 <div className="flex flex-wrap mb-6">
                   <div className="flex-grow mr-[48px] mb-2">
-                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-[#999999] text-[12px]">Логин</p>
                     <p className="text-4 text-[#000000]">
-                      Burabay_travel@gmail.com
+                    burabai.travel@gmail.com
                     </p>
                   </div>
                   <div className="flex-grow mb-2">
-                    <p className="text-[#999999] text-[12px]">Логин</p>
-                    <p className="text-4 text-[#000000]">Burabay_travel0099</p>
+                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-4 text-[#000000]">Qaz4321#$</p>
                   </div>
                 </div>
                 <div className="flex justify-center">

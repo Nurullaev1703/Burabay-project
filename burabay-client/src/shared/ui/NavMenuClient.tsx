@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { FC } from "react";
+import { FC, useRef } from "react";
 import { Map } from "../../app/icons/navbar/map"; 
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
 import { ProfileIcon } from "../../app/icons/navbar/profile"; 
@@ -22,6 +22,24 @@ export const NavMenuClient: FC = function NavMenuClient() {
   const getFillColorMask = (path: string) =>
     location.pathname.includes(path) ? "#FFFFFF" : "#999999";
 
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleClick = () => {
+    if (clickTimeout.current) {
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      if (location.pathname === "/main") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } else {
+      clickTimeout.current = setTimeout(() => {
+        navigate({ to: "/main" });
+        clickTimeout.current = null;
+      }, 250);
+    }
+  };
+
+
   return (
     <nav
       className={`fixed bottom-0 left-0 z-50 w-full pb-1 flex justify-center ${COLORS_BACKGROUND.white}`}
@@ -29,11 +47,7 @@ export const NavMenuClient: FC = function NavMenuClient() {
       <ul className="flex justify-between w-full px-4 items-center">
         <li
           className="w-1/5 pb-4 pt-2"
-          onClick={() =>
-            navigate({
-              to: "/main",
-            })
-          }
+          onClick={handleClick}
         >
           <div className="flex justify-center items-center flex-col cursor-pointer">
             <Main

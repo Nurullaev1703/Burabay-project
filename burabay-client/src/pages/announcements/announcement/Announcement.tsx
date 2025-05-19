@@ -93,7 +93,7 @@ export const Announcement: FC<Props> = function Announcement({
             action={() =>
               role === "бизнес"
                 ? navigate({ to: `/announcements` })
-                : window.history.back()
+                : navigate({to: `/main`})
             }
           >
             <img src={BackIcon} alt="" />
