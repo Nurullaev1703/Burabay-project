@@ -11,8 +11,8 @@
   "appLanguage": "App language",
   "aboutService": "About the service",
   "invalidTimeFormat": "Invalid time format. Use the HH:MM format.",
-"invalidTimeRange": "Time must be in the range from 00:00 to 23:59.",
-"cancelBooking": "Cancel booking",
+  "invalidTimeRange": "Time must be in the range from 00:00 to 23:59.",
+  "cancelBooking": "Cancel booking",
   "help": "Help",
   "estimateService": "Rate the service",
   "safety": "Safety",
@@ -96,7 +96,6 @@
   "newAnnouncemet": "New announcement",
   "workingDays": "Working hours",
   "aroundClock": "24/7, no restrictions",
-  "invalidTimeFormat": "Invalid time format",
   "aroundClockDays": "24/7",
   "mon": "Monday",
   "tue": "Tuesday",
@@ -646,5 +645,6 @@
   "14_intellectual_property_title": "14. Intellectual Property",
   "14_intellectual_property_text": "All interface elements, logos, texts, and content of the application are objects of copyright and cannot be copied without the written consent of the copyright holder.",
   "15_mobile_notifications_and_marketing_title": "15. Mobile Notifications and Marketing",
-  "15_mobile_notifications_and_marketing_text": "The user may receive push notifications about special offers, changes, and news. Notifications can be turned off at any time via device settings."
+  "15_mobile_notifications_and_marketing_text": "The user may receive push notifications about special offers, changes, and news. Notifications can be turned off at any time via device settings.",
+  "you_were_banned": "Your account is blocked"
 }

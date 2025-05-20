@@ -29,8 +29,8 @@ interface FormType {
 export const Login: FC = function Login() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [emailError, _setEmailError] = useState<boolean>(false);
-  const [errorMessage, _setErrorMessage] = useState<string>("");
+  const [emailError, setEmailError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
     roleService.deleteValue();
@@ -150,6 +150,10 @@ export const Login: FC = function Login() {
             url: "/auth",
             dto: form,
           });
+          if (response.data == HTTP_STATUS.FORBIDDEN) {
+            setErrorMessage(t("you_were_banned"));
+            setEmailError(true);
+          }
           if (response.data == HTTP_STATUS.CREATED) {
             navigate({
               to: "/auth/accept/$email",
