@@ -1,6 +1,6 @@
-import { FC, useState, useRef } from "react";
-import { apiService } from "../../../services/api/ApiService";
+import { FC, useState } from "react";
 import { RatingStars } from "../../../shared/ui/RatingStars";
+import { apiService } from "../../../services/api/ApiService";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
@@ -9,11 +9,10 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
-import { useQueryClient } from "@tanstack/react-query";
 
 import Back from "../../../../public/Back.svg";
 import Close from "../../../../public/Close.png";
-import { useGetReviews } from "./model/review-filter";
+import { useGetReviews } from "./model/useGetReviews";
 
 const BASE_URL = baseUrl;
 
@@ -31,7 +30,7 @@ interface Review {
   ad: {
     id: string;
     title: string;
-    description: string;
+    description: string[];
     images: string[];
     subcategory: {
       name: string;
@@ -50,26 +49,30 @@ interface Review {
 }
 
 const ReviewsPage: FC = () => {
-  const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const [visibleReviewsCount, _setVisibleReviewsCount] = useState(20);
   const [_isExpanded, setIsExpanded] = useState(false);
-  const [_reviews, _setReviews] = useState<Review[]>([]);
   const [_isModalOpen, setIsModalOpen] = useState(false);
   const [isTouristModalOpen, setIsTouristModalOpen] = useState<Review | null>(
     null
   );
   const [selectedTourist, setSelectedTourist] = useState<Review | null>(null);
-  const [reviewHints, setReviewHints] = useState<Record<string, { message: string; type: string; status?: string }> >({});
   const navigate = useNavigate();
   const take = 8;
-  const queryClient = useQueryClient();
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetReviews({ take });
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    handleDeleteReview,
+    handleCancelHint,
+    reviewHints,
+  } = useGetReviews({ take });
 
-  const reviews = (data?.pages.flat() || []).slice().sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const reviews = (data?.pages.flat() || [])
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -77,55 +80,6 @@ const ReviewsPage: FC = () => {
       month: "long",
       day: "numeric",
     });
-  };
-
-  const handleDeleteReview = async (reviewId: string) => {
-    setReviewHints((prev) => ({
-      ...prev,
-      [reviewId]: {
-        message: "Отзыв будет удален через 10 секунд",
-        type: "success",
-        status: "deleted",
-      },
-    }));
-
-    if (timers.current[reviewId]) {
-      clearTimeout(timers.current[reviewId]);
-    }
-
-    timers.current[reviewId] = setTimeout(async () => {
-      try {
-        const response = await apiService.delete({
-          url: `/review/${reviewId}`,
-        });
-        if (response.status === 200) {
-          queryClient.setQueryData(["admin-reviews", { take }], (oldData: any) => {
-            if (!oldData) return oldData;
-            return {
-              ...oldData,
-              pages: oldData.pages.map((page: any[]) =>
-                page.filter((review) => review.id !== reviewId)
-              ),
-            };
-          });
-          setReviewHints((prev) => {
-            const copy = { ...prev };
-            delete copy[reviewId];
-            return copy;
-          });
-        }
-      } catch (error) {
-        setReviewHints((prev) => ({
-          ...prev,
-          [reviewId]: {
-            message: "Ошибка при удалении отзыва",
-            type: "error",
-          },
-        }));
-      } finally {
-        delete timers.current[reviewId];
-      }
-    }, 10000);
   };
 
   const handleUnblockUser = async (userId: string) => {
@@ -174,18 +128,6 @@ const ReviewsPage: FC = () => {
     }
   };
 
-  const handleCancelHint = (reviewId: string) => {
-    setReviewHints((prev) => {
-      const copy = { ...prev };
-      delete copy[reviewId];
-      return copy;
-    });
-    if (timers.current[reviewId]) {
-      clearTimeout(timers.current[reviewId]);
-      delete timers.current[reviewId];
-    }
-  };
-
   const loadMoreReviews = () => {
     fetchNextPage();
   };
@@ -214,9 +156,7 @@ const ReviewsPage: FC = () => {
               </div>
             </div>
           )}
-          <div
-            className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 py-[10px]"
-          >
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 py-[10px]">
             {isLoading ? (
               <Loader />
             ) : reviews.length > 0 ? (
@@ -224,33 +164,47 @@ const ReviewsPage: FC = () => {
                 {reviews.slice(0, visibleReviewsCount).map((review) => (
                   <div
                     key={review.id}
-                    className={`rounded-[16px] bg-white shadow-md flex flex-col justify-between
-                      min-w-[300px] max-w-[600px] w-full mx-auto
-                      ${reviewHints[review.id]?.status
-                        ? reviewHints[review.id].status === "deleted"
-                          ? "bg-[#FF5959]"
-                          : "bg-[#59C183]"
-                        : "bg-white"
+                    className={`rounded-[16px] bg-white shadow-md flex flex-col justify-between min-w-[300px] max-w-[600px] w-full mx-auto
+                      ${
+                        reviewHints[review.id]?.status
+                          ? reviewHints[review.id].status === "pending"
+                            ? "bg-[#FF5959]"
+                            : reviewHints[review.id].status === "deleted"
+                              ? "bg-[#FF5959]"
+                              : "bg-[#59C183]"
+                          : "bg-white"
                       }`}
-                    style={{ width: "100%", minHeight: "400px", maxWidth: "600px" }}
+                    style={{
+                      width: "100%",
+                      minHeight: "400px",
+                      maxWidth: "600px",
+                    }}
                   >
                     {reviewHints[review.id]?.status ? (
-                      <div className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
-                        reviewHints[review.id].status === "deleted"
-                          ? "bg-[#FF5959]"
-                          : "bg-[#59C183]"
-                      }`}>
+                      <div
+                        className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
+                          reviewHints[review.id].status === "pending"
+                            ? "bg-[#FF5959]"
+                            : reviewHints[review.id].status === "deleted"
+                              ? "bg-[#FF5959]"
+                              : "bg-[#59C183]"
+                        }`}
+                      >
                         <div className="p-2 text-white rounded">
-                          {reviewHints[review.id].status === "deleted"
-                            ? "Комментарий удален"
-                            : "Комментарий оставлен"}
+                          {reviewHints[review.id].status === "pending"
+                            ? "Удаление..."
+                            : reviewHints[review.id].status === "deleted"
+                              ? "Комментарий удален"
+                              : "Комментарий оставлен"}
                         </div>
                         <button
                           onClick={() => handleCancelHint(review.id)}
                           className={`p-2 text-white rounded bg-inherit ${
-                            reviewHints[review.id].status === "deleted"
-                              ? "bg-[#FF5959]"
-                              : "bg-[#59C183]"
+                            reviewHints[review.id].status === "pending"
+                              ? "bg-[#FF5959] text-black"
+                              : reviewHints[review.id].status === "deleted"
+                                ? "bg-[#FF5959]"
+                                : "bg-[#59C183]"
                           }`}
                         >
                           Отменить
@@ -272,7 +226,6 @@ const ReviewsPage: FC = () => {
                                 }`}
                                 onClick={() => {
                                   if (!isLoading && review && review.user.id) {
-                                    fetchTouristInfo(review.user.id);
                                     fetchTouristInfo(review.user.id);
                                   } else if (isLoading) {
                                     console.warn("Данные еще загружаются.");
@@ -322,19 +275,22 @@ const ReviewsPage: FC = () => {
                             {review.text}
                           </p>
                           {review.images && (
-                              <div className="flex gap-2 mt-2">
+                            <div className="flex gap-2 mt-2">
                               {review.images.map((img: string, idx: number) => (
                                 <img
-                                key={idx}
-                                src={`${BASE_URL}${img}`}
-                                alt="Фото орагнизации"
-                                className="w-[80px] h-[80px] rounded-md object-cover"
-                                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) =>
-                                  (e.currentTarget.src = defaultImage)
-                                }
+                                  key={idx}
+                                  src={`${BASE_URL}${img}`}
+                                  alt="Фото орагнизации"
+                                  className="w-[80px] h-[80px] rounded-md object-cover"
+                                  onError={(
+                                    e: React.SyntheticEvent<
+                                      HTMLImageElement,
+                                      Event
+                                    >
+                                  ) => (e.currentTarget.src = defaultImage)}
                                 />
                               ))}
-                              </div>
+                            </div>
                           )}
                         </div>
                         {!review.status && (

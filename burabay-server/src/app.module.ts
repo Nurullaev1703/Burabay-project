@@ -28,18 +28,23 @@ import { NotificationModule } from './notification/notification.module';
 import { ReviewAnswersModule } from './review-answers/review-answers.module';
 import { ReviewReportModule } from './review-report/review-report.module';
 import { AppController } from './app.controller';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
+      serveStaticOptions: { maxAge: '1d' },
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/public',
     }),
     ServeStaticModule.forRoot({
+      serveStaticOptions: { maxAge: '1d' },
       rootPath: join(__dirname, '..', 'public', 'images'),
       serveRoot: '/images',
     }),
     ServeStaticModule.forRoot({
+      serveStaticOptions: { maxAge: '1d' },
       rootPath: join(__dirname, '..', 'public', 'icons'),
       serveRoot: '/icons',
     }),
@@ -51,6 +56,13 @@ import { AppController } from './app.controller';
         limit: 20,
       },
     ]),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: 'localhost',
+      port: 6379,
+      ttl: 60 * 60,
+    }),
     DatabaseModule,
     UsersModule,
     AuthenticationModule,
