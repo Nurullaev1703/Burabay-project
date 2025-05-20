@@ -491,9 +491,8 @@ export default function UsersList({ filters }: Props) {
                           >
                             {user.isBanned
                               ? UsersFilterStatus.BAN
-                              : user.isEmailConfirmed
-                                ? "Подтвержден"
-                                : UsersFilterStatus.WAITING}
+                              : "Подтвержден"
+                            }
                           </p>
                         )}
 
