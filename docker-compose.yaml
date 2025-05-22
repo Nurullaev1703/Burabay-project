@@ -12,6 +12,7 @@ services:
         restart: always
         depends_on:
             - postgres
+            - redis
         ports:
             - "3000:3000"
         networks:
@@ -45,6 +46,19 @@ services:
         ports:
             - "5432:5432"
 
+    # Сервис для Redis
+    redis:
+        container_name: redis
+        image: redis:latest
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis-data:/data
+        networks:
+            - app-network
+        command: redis-server --appendonly yes
+        restart: always
+
 networks:
     app-network:
         driver: bridge
@@ -52,3 +66,4 @@ networks:
 volumes:
     public-data:
     postgres-data:
+    redis-data:
