@@ -23,11 +23,19 @@ import ImageCard from "./ui/ImageCard";
 import { imageService } from "../../services/api/ImageService";
 import { baseUrl } from "../../services/api/ServerData";
 import { ImageViewModal } from "./reviews/ui/ImageViewModal";
+import VideoUploadImg from "../../app/icons/profile/confirm/file.svg"
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
   preview: string; // Превью для отображения
   serverPreview: string; // ссылка с сервера на изображение
+}
+
+interface VideoData {
+  file: File | null;
+  preview: string;
+  duration: number;
+  size: number;
 }
 
 interface Props {
@@ -293,9 +301,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [description, setDescription] = useState<string>(
     announcement?.description || ""
   );
-  const [youtubeLink, setYoutubeLink] = useState<string>(
+  const [youtubeLink, _setYoutubeLink] = useState<string>(
     announcement?.youtubeLink || ""
   );
+  const [video, setVideo] = useState<VideoData | null>(null);
+  const [videoError, setVideoError] = useState<string>("");
+  const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB в байтах
+  const MAX_VIDEO_DURATION = 90; // 1.5 минуты в секундах
+  
   const {
     control,
     handleSubmit,
@@ -321,9 +334,69 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   useEffect(() => {
     setDescription(watchedDescription);
   }, [watchedDescription]);
+  
+  const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setVideoError("");
+    
+    if (!file) return;
+    
+    // Проверка размера файла
+    if (file.size > MAX_VIDEO_SIZE) {
+      setVideoError(t("videoSizeExceeded", { size: "200МБ" }) || "Размер видео превышает 200МБ");
+      return;
+    }
+    
+    // Создаем элемент видео для проверки длительности
+    const videoElement = document.createElement('video');
+    videoElement.preload = 'metadata';
+    
+    videoElement.onloadedmetadata = () => {
+      URL.revokeObjectURL(videoElement.src);
+      
+      if (videoElement.duration > MAX_VIDEO_DURATION) {
+        setVideoError(t("videoDurationExceeded", { duration: "1.5" }) || "Длительность видео превышает 1.5 минуты");
+        return;
+      }
+      
+      setVideo({
+        file,
+        preview: URL.createObjectURL(file),
+        duration: videoElement.duration,
+        size: file.size
+      });
+    };
+    
+    videoElement.onerror = () => {
+      setVideoError(t("invalidVideoFormat") || "Неверный формат видео");
+    };
+    
+    videoElement.src = URL.createObjectURL(file);
+  };
+  
+  const uploadVideo = async (): Promise<string | null> => {
+    if (!video?.file) return null;
+    
+    const formData = new FormData();
+    formData.append('video', video.file);
+    
+    try {
+      const response = await apiService.post<string>({
+        url: "/video/upload",
+        dto: formData,
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error("Ошибка при загрузке видео:", error);
+      return null;
+    }
+  };
+  
   const handleConfirmPublish = async () => {
     setIsLoading(true);
     const newImages = await handleUpload();
+    const videoUrl = await uploadVideo();
 
     try {
       const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
@@ -335,6 +408,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           title,
           description,
           youtubeLink,
+          videoUrl,
           organizationId: user?.organization?.id,
           subcategoryId: subcategory.id,
           images: newImages,
@@ -455,6 +529,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
+            const videoUrl = await uploadVideo();
+            
             if (announcement) {
               const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
                 ? {
@@ -467,6 +543,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
+                  videoUrl,
                   images: [
                     ...images
                       .map((item) => {
@@ -499,6 +576,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
+                  videoUrl,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
@@ -674,30 +752,72 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 {t("addPicture")}
               </Typography>
             </div>
-            <Controller
-              name="youtubeLink"
-              control={control}
-              rules={{}}
-              render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
-                  <TextField
-                    {...field}
-                    error={Boolean(error?.message)}
-                    helperText={error?.message || errorMessage}
-                    fullWidth={true}
-                    type={"text"}
-                    variant="outlined"
-                    label={t("youtubeVideo")}
-                    inputProps={{ maxLength: 300 }}
-                    placeholder={t("inputLink")}
-                    value={youtubeLink}
-                    onChange={(e) => {
-                      setYoutubeLink(e.target.value);
-                    }}
-                  />
-                </div>
-              )}
-            />
+            <div className="bg-white rounded-lg p-4 mb-2">
+              <Typography
+                className="mb-2"
+                size={12}
+                weight={400}
+                color={COLORS_TEXT.gray100}
+              >
+                {t("uploadVideo")}
+              </Typography>
+              
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  id="video-upload"
+                />
+                <label 
+                  htmlFor="video-upload" 
+                  className="flex items-center  rounded-lg cursor-pointer"
+                >
+                  <div className="flex gap-4 items-center">
+                    <img src={VideoUploadImg} alt="" />
+                    <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
+                      {video ? (t("changeVideo")) : (t("selectVideo"))}
+                    </Typography>
+                  </div>
+                </label>
+                
+                {videoError && (
+                  <Typography size={14} weight={400} color={COLORS_TEXT.red}>
+                    {videoError}
+                  </Typography>
+                )}
+                
+                {video && (
+                  <div className="relative">
+                    <video 
+                      src={video.preview} 
+                      controls 
+                      className="w-full rounded-lg"
+                      style={{ maxHeight: '200px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        URL.revokeObjectURL(video.preview);
+                        setVideo(null);
+                      }}
+                      className="absolute top-2 right-2 bg-white rounded-full p-1"
+                    >
+                      <img src={XIcon} className="w-[15px]" alt="" />
+                    </button>
+                    <div className="flex justify-between mt-1">
+                      <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>
+                        {(t("duration") || "Длительность") + ": " + Math.floor(video.duration / 60) + ":" + Math.floor(video.duration % 60).toString().padStart(2, '0')}
+                      </Typography>
+                      <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>
+                        {(t("size")) + ": " + (video.size / (1024 * 1024)).toFixed(2) + " МБ"}
+                      </Typography>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             <Controller
               name="phoneNumber"
               control={control}

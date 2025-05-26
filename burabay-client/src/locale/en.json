@@ -646,5 +646,9 @@
   "14_intellectual_property_text": "All interface elements, logos, texts, and content of the application are objects of copyright and cannot be copied without the written consent of the copyright holder.",
   "15_mobile_notifications_and_marketing_title": "15. Mobile Notifications and Marketing",
   "15_mobile_notifications_and_marketing_text": "The user may receive push notifications about special offers, changes, and news. Notifications can be turned off at any time via device settings.",
-  "you_were_banned": "Your account is blocked"
+  "you_were_banned": "Your account is blocked",
+  "selectVideo": "Select Video",
+  "changeVideo": "Change Video",
+  "uploadVideo": "Upload Video",
+  "size": "Size"
 }
