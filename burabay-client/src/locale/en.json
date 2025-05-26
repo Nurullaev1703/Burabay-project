@@ -652,5 +652,9 @@
   "personalRec": "Personal recommendations",
   "chooseRec": "Choose personal recommendations",
   "noRec": "No recommendations",
-  "noRecText": "For personalized recommendations, select the categories you are interested in in the settings."
+  "noRecText": "For personalized recommendations, select the categories you are interested in in the settings.",
+  "selectVideo": "Select Video",
+  "changeVideo": "Change Video",
+  "uploadVideo": "Upload Video",
+  "size": "Size"
 }
