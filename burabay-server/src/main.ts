@@ -3,11 +3,24 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { winstonLoggerOptions } from './logger'; // путь к logger.ts
+import { WinstonModule } from 'nest-winston';
 
 async function bootstrap() {
+  // Создаём Winston-логгер отдельно
+  const winstonLogger = WinstonModule.createLogger(winstonLoggerOptions);
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: true,
+    logger: winstonLogger,
   });
+
+  // Используем winstonLogger для перенаправления console.*
+  console.log = (...args: any[]) => winstonLogger.log('info', args.join(' '));
+  console.error = (...args: any[]) => winstonLogger.error(args.join(' '));
+  console.warn = (...args: any[]) => winstonLogger.warn(args.join(' '));
+  console.info = (...args: any[]) => winstonLogger.log('info', args.join(' '));
+  console.debug = (...args: any[]) => winstonLogger.debug(args.join(' '));
 
   const config = new DocumentBuilder()
     .setTitle('Burabay')

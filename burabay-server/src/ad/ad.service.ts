@@ -64,8 +64,7 @@ export class AdService {
     return JSON.stringify(newAd.id);
   }
 
-  /* Получения всех Объявлений.
-     Может принимать фильтр по категориям и соответствию названия. */
+  /** Получить все Объявления. Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
   async findAll(tokenData: TokenData, filter?: AdFilter) {
     let ads: Ad[];
@@ -73,7 +72,10 @@ export class AdService {
     if (filter.categoryNames) {
       const categoryNamesArr = filter.categoryNames.split(',');
       ads = await this.adRepository.find({
-        where: { subcategory: { category: { name: In(categoryNamesArr) } } },
+        where: {
+          subcategory: { category: { name: In(categoryNamesArr) } },
+          organization: { isBanned: false },
+        },
         relations: {
           bookingBanDate: true,
           organization: true,
@@ -90,6 +92,9 @@ export class AdService {
       // Без Подкатегории.
     } else {
       ads = await this.adRepository.find({
+        where: {
+          organization: { isBanned: false },
+        },
         relations: {
           bookingBanDate: true,
           organization: true,
@@ -186,10 +191,12 @@ export class AdService {
     Utils.checkEntity(user, 'Пользователь не найден');
     Utils.checkEntity(user.favorites, 'Пользователь не имеет любимых объявлений');
     const result = user.favorites.map((ad) => {
-      return {
-        ...ad,
-        isFavourite: true,
-      };
+      if (!ad.organization.isBanned) {
+        return {
+          ...ad,
+          isFavourite: true,
+        };
+      }
     });
     return result;
   }
