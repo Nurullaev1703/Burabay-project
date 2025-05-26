@@ -1,4 +1,4 @@
-export const baseUrl = "https://burabay-damu.kz/back";
+export const baseUrl = "http://localhost:3000";
 
 export enum HTTP_STATUS {
     CONFLICT = "409",
