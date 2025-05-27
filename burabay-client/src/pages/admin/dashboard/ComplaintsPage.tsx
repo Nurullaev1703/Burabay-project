@@ -791,7 +791,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                               (e.currentTarget.src = defaultImage)
                             }
                           />
-                          <div className="text-right">
+                          <div className="ml-2">
                             <p className="text-sm font-semibold text-gray-700">
                               {review.adName}
                             </p>

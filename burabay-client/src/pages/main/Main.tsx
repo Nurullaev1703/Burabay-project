@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { TabMenu, TabMenuItem } from "../../shared/ui/TabMenu";
 import { Button } from "../../shared/ui/Button";
 import { Loader } from "../../components/Loader";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   categories: Category[];
@@ -42,6 +43,7 @@ export const Main: FC<Props> = function Main({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
 
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -150,6 +152,15 @@ export const Main: FC<Props> = function Main({
       }
       setOriginalFavourites([...selectedFavourite]);
       setIsEditFavourite(false);
+      
+      // Инвалидируем кэш рекомендаций для полного обновления
+      await queryClient.invalidateQueries({ 
+        queryKey: ["recommended-ads"] 
+      });
+      // Также инвалидируем кэш категорий, если нужно обновить список любимых
+      await queryClient.invalidateQueries({ 
+        queryKey: ["main-page-categories"] 
+      });
     } catch (error) {
       console.error("Error updating favorites:", error);
     } finally {
@@ -182,7 +193,7 @@ export const Main: FC<Props> = function Main({
   };
 
   return (
-    <section className="overflow-y-scroll bg-almostWhite min-h-screen relative">
+    <section className="overflow-y-scroll bg-almostWhite min-h-screen relative pt-12">
       <div className="flex justify-between items-center text-center px-4 bg-white fixed top-0 left-0 z-[100] w-full py-2">
         <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
           <img src={SearchIcon} alt="" />
@@ -208,37 +219,39 @@ export const Main: FC<Props> = function Main({
       </div>
 
       {/* Отображаем предложения */}
-      <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full mt-12">
-        {banners
-          .slice()
-          .sort((a, b) => {
-            return b.id.localeCompare(a.id);
-          })
-          .map((banner) => {
-            return (
-              <div key={banner.id}>
-                <div
-                  className="relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden cursor-pointer"
-                  onClick={() => openModal(banner)}
-                >
-                  <img
-                    src={`${baseUrl}${banner.imagePath}`}
-                    className="absolute top-0 left-0 w-full h-full object-cover"
-                    alt={banner.text}
-                  />
+      {banners.length > 0 && (
+        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full">
+          {banners
+            .slice()
+            .sort((a, b) => {
+              return b.id.localeCompare(a.id);
+            })
+            .map((banner) => {
+              return (
+                <div key={banner.id}>
+                  <div
+                    className="relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden cursor-pointer"
+                    onClick={() => openModal(banner)}
+                  >
+                    <img
+                      src={`${baseUrl}${banner.imagePath}`}
+                      className="absolute top-0 left-0 w-full h-full object-cover"
+                      alt={banner.text}
+                    />
+                  </div>
+                  <Typography
+                    color={COLORS_TEXT.gray100}
+                    align="left"
+                    size={12}
+                    className="mt-2"
+                  >
+                    {`${t("beforeDelete")} ${format(banner.deleteDate, "dd.MM.yyyy")}`}
+                  </Typography>
                 </div>
-                <Typography
-                  color={COLORS_TEXT.gray100}
-                  align="left"
-                  size={12}
-                  className="mt-2"
-                >
-                  {`${t("beforeDelete")} ${format(banner.deleteDate, "dd.MM.yyyy")}`}
-                </Typography>
-              </div>
-            );
-          })}
-      </div>
+              );
+            })}
+        </div>
+      )}
 
       {isModalOpen && selectedBanner && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
