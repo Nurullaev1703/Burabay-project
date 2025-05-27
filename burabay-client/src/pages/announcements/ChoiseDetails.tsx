@@ -140,17 +140,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       })
     );
   };
-  const convertVideoToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        resolve(base64String.split(',')[1]); 
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
 
   const convertToJpg = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -315,7 +304,12 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [youtubeLink, _setYoutubeLink] = useState<string>(
     announcement?.youtubeLink || ""
   );
-  const [video, setVideo] = useState<VideoData | null>(null);
+  const [video, setVideo] = useState<VideoData | null>({
+    preview: baseUrl + announcement?.video,
+    file: null,
+    duration: 0,
+    size: 0,
+  });
   const [videoError, setVideoError] = useState<string>("");
   const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB в байтах
   const MAX_VIDEO_DURATION = 90; // 1.5 минуты в секундах
@@ -389,10 +383,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     if (!video?.file) return null;
     
     const formData = new FormData();
-    formData.append('video', video.file);
+    formData.append('file', video.file);
     
     try {
-      const response = await apiService.post<string>({
+      const response = await imageService.post<string>({
         url: "/video",
         dto: formData,
       });
@@ -407,7 +401,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const handleConfirmPublish = async () => {
     setIsLoading(true);
     const newImages = await handleUpload();
-    const videoUrl = await uploadVideo();
+    const video = await uploadVideo();
 
     try {
       const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
@@ -419,7 +413,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           title,
           description,
           youtubeLink,
-          videoUrl,
+          video,
           organizationId: user?.organization?.id,
           subcategoryId: subcategory.id,
           images: newImages,
@@ -540,6 +534,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
+            const videoPath = await uploadVideo(); // Получаем строку пути к видео
             
             if (announcement) {
               const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
@@ -553,7 +548,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
-                  video: video?.file ? await convertVideoToBase64(video.file) : "",
+                  video: videoPath,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
@@ -579,7 +574,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
-                  video: video?.file ? await convertVideoToBase64(video.file) : "",
+                  video: videoPath,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
@@ -733,9 +728,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   open={imageModal}
                   onClose={() => setImageModal(false)}
                   firstItem={imageIndex}
-                  onDelete={() => {
+                  onDelete={async () => {
                     if (images[imageIndex].serverPreview) {
-                      deleteImageFromServer(images[imageIndex].serverPreview);
+                      await deleteImageFromServer(images[imageIndex].serverPreview);
                     }
                     setImages((prevImages) =>
                       update(prevImages, {
@@ -801,8 +796,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        URL.revokeObjectURL(video.preview);
+                      onClick={async () => {
+                        // Если видео уже загружено на сервер, удаляем через API
+                        if (video.preview && video.preview.startsWith(baseUrl)) {
+                          await apiService.delete({
+                            url: "/video",
+                            dto: { filepath: video.preview.replace(baseUrl, "") },
+                          });
+                        }
                         setVideo(null);
                       }}
                       className="absolute top-2 right-2 bg-white rounded-full p-1"

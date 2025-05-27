@@ -48,6 +48,11 @@ import { redisStore } from 'cache-manager-redis-store';
       rootPath: join(__dirname, '..', 'public', 'icons'),
       serveRoot: '/icons',
     }),
+    ServeStaticModule.forRoot({
+      serveStaticOptions: { maxAge: '1d' },
+      rootPath: join(__dirname, '..', 'public', 'videos'),
+      serveRoot: '/videos',
+    }),
     MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([

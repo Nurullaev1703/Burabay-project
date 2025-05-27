@@ -81,6 +81,7 @@ export interface Announcement {
   images: string[];
   phoneNumber: string;
   details: AnnouncementDetails;
+  video: string;
   youtubeLink: string;
   isRoundTheClock: boolean;
   isFullDay: boolean;
