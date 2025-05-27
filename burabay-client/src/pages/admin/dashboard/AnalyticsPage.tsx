@@ -224,7 +224,7 @@ const AnalyticsPage = () => {
               className="h-full"
             >
               {data.ads.slice(0, visibleAdsCount).map((ad, index) => (
-                <div key={index} className="flex py-4 items-center">
+                <div key={index} className="flex py-4 items-center gap-2">
                   <span className="mr-2">{index + 1}</span>
                   <CoveredImage
                     width="w-[52px]"
