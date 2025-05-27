@@ -140,6 +140,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       })
     );
   };
+  const convertVideoToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        resolve(base64String.split(',')[1]); 
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const convertToJpg = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -382,7 +393,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     
     try {
       const response = await apiService.post<string>({
-        url: "/video/upload",
+        url: "/video",
         dto: formData,
       });
       
@@ -529,7 +540,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
-            const videoUrl = await uploadVideo();
             
             if (announcement) {
               const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
@@ -543,19 +553,12 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
-                  videoUrl,
-                  images: [
-                    ...images
-                      .map((item) => {
-                        if (item.serverPreview.replace(baseUrl, "").length) {
-                          return item.serverPreview.replace(baseUrl, "");
-                        }
-                      })
-                      .filter((item) => item != null),
-                    ...(newImages as string[]),
-                  ],
+                  video: video?.file ? await convertVideoToBase64(video.file) : "",
+                  organizationId: user?.organization?.id,
+                  subcategoryId: subcategory.id,
+                  images: newImages,
                   details: toggles,
-                  ...phoneNumberDto
+                  ...phoneNumberDto,
                 },
               });
               navigate({
@@ -576,7 +579,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
-                  videoUrl,
+                  video: video?.file ? await convertVideoToBase64(video.file) : "",
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
@@ -889,3 +892,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     </section>
   );
 };
+
+
+
