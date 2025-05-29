@@ -534,7 +534,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
-            const videoPath = await uploadVideo(); // Получаем строку пути к видео
+            const videoPath = await uploadVideo();
             
             if (announcement) {
               const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
@@ -551,7 +551,16 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   video: videoPath,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
-                  images: newImages,
+                  images: [
+                    ...images
+                      .map((item) => {
+                        if (item.serverPreview.replace(baseUrl, "").length) {
+                          return item.serverPreview.replace(baseUrl, "");
+                        }
+                      })
+                      .filter((item) => item != null),
+                    ...(newImages as string[]),
+                  ],
                   details: toggles,
                   ...phoneNumberDto,
                 },
