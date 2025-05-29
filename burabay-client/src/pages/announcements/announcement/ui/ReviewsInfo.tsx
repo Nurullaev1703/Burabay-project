@@ -223,7 +223,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
         <Button
           mode="transparent"
           className="mb-4"
-          onClick={() => navigate({ to: `/announcements/reviews/${ad.id}` })}
+          onClick={() => navigate({ to: `/announcements/reviews/${ad.id}`, replace:true })}
         >
           {t("viewAllReviews")}
         </Button>

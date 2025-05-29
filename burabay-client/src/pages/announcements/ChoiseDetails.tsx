@@ -28,7 +28,8 @@ import VideoUploadImg from "../../app/icons/profile/confirm/file.svg"
 interface ImageData {
   file: File | null; // Файл для выгрузки
   preview: string; // Превью для отображения
-  serverPreview: string; // ссылка с сервера на изображение
+  serverPreview: string;
+   // ссылка с сервера на изображение
 }
 
 interface VideoData {
@@ -36,6 +37,7 @@ interface VideoData {
   preview: string;
   duration: number;
   size: number;
+  serverPath: string; // Добавляем поле для хранения пути на сервере
 }
 
 interface Props {
@@ -304,11 +306,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [youtubeLink, _setYoutubeLink] = useState<string>(
     announcement?.youtubeLink || ""
   );
-  const [video, setVideo] = useState<VideoData | null>({
-    preview: baseUrl + announcement?.video,
-    file: null,
-    duration: 0,
-    size: 0,
+  const [video, setVideo] = useState<VideoData | null>(() => {
+    if (announcement?.video) {
+      return {
+        preview: baseUrl + announcement.video,
+        file: null,
+        duration: 0,
+        size: 0,
+        serverPath: baseUrl + announcement.video // Используем baseUrl как в images
+      };
+    }
+    return null;
   });
   const [videoError, setVideoError] = useState<string>("");
   const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB в байтах
@@ -346,13 +354,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     
     if (!file) return;
     
-    // Проверка размера файла
     if (file.size > MAX_VIDEO_SIZE) {
       setVideoError(t("videoSizeExceeded", { size: "200МБ" }) || "Размер видео превышает 200МБ");
       return;
     }
     
-    // Создаем элемент видео для проверки длительности
     const videoElement = document.createElement('video');
     videoElement.preload = 'metadata';
     
@@ -364,12 +370,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         return;
       }
       
-      setVideo({
+      setVideo(prev => ({
         file,
         preview: URL.createObjectURL(file),
         duration: videoElement.duration,
-        size: file.size
-      });
+        size: file.size,
+        serverPath: prev?.serverPath || '' // Сохраняем существующий путь
+      }));
     };
     
     videoElement.onerror = () => {
@@ -380,7 +387,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   };
   
   const uploadVideo = async (): Promise<string | null> => {
-    if (!video?.file) return null;
+    if (!video?.file) {
+      // Если файл не изменился, возвращаем существующий путь без baseUrl
+      return video?.serverPath ? video.serverPath.replace(baseUrl, '') : null;
+    }
     
     const formData = new FormData();
     formData.append('file', video.file);
@@ -391,7 +401,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         dto: formData,
       });
       
-      return response.data;
+      // Обновляем состояние с новым серверным путем, добавляя baseUrl
+      setVideo(prev => prev ? {
+        ...prev,
+        serverPath: baseUrl + response.data
+      } : null);
+      
+      return response.data; // Возвращаем путь без baseUrl для API
     } catch (error) {
       console.error("Ошибка при загрузке видео:", error);
       return null;
@@ -798,7 +814,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 {video && (
                   <div className="relative">
                     <video 
-                      src={video.preview} 
+                      src={video.preview || announcement?.video} 
                       controls 
                       className="w-full rounded-lg"
                       style={{ maxHeight: '200px' }}
@@ -806,7 +822,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     <button
                       type="button"
                       onClick={async () => {
-                        // Если видео уже загружено на сервер, удаляем через API
                         if (video.preview && video.preview.startsWith(baseUrl)) {
                           await apiService.delete({
                             url: "/video",

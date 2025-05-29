@@ -100,8 +100,8 @@ export const Announcement: FC<Props> = function Announcement({
             align="start"
             action={() =>
               role === "бизнес"
-                ? navigate({ to: `/announcements` })
-                : navigate({to: `/main`})
+                ? history.back()
+                : history.back()
             }
           >
             <img src={BackIcon} alt="" />

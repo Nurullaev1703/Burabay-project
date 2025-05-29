@@ -78,6 +78,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     if (window.google && window.google?.maps?.TravelMode) {
       setTravelMode(google.maps.TravelMode.DRIVING);
     }
+    if(location.href.includes("#")){
+      const hash = window.location.hash;
+     handleMarkerClick(hash.substring(1));
+    }
   }, []);
   const handleMapLoad = (map: google.maps.Map) => {
     mapRef.current = map;
@@ -368,6 +372,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           lng: selectedAnnouncement.address.latitude,
         });
       }
+      location.href = `#${announcementId}`;
     }
   };
 

@@ -136,7 +136,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         <div className="flex justify-between items-center text-center">
           <IconContainer
             align="start"
-            action={() => navigate({ to: `/announcements/${announcement.id}` })}
+            action={() => navigate({ to: `/announcements/${announcement.id}`, replace:true })}
           >
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -152,7 +152,6 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
           </div>
           <IconContainer
             align="end"
-            action={() => history.back()}
           ></IconContainer>
         </div>
       </Header>
