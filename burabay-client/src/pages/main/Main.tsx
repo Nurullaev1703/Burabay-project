@@ -68,6 +68,22 @@ export const Main: FC<Props> = function Main({
       title: t("recomendations"),
     },
   ];
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('mainPageScroll');
+    if (savedScroll) {
+      window.scrollTo(0, parseInt(savedScroll, 10));
+    }
+  
+    const handleScroll = () => {
+      sessionStorage.setItem('mainPageScroll', window.scrollY.toString());
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+    
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
