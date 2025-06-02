@@ -4,6 +4,7 @@ interface BookingAd {
   title: string;
   ad_id: string;
   img: string;
+  status: "в процессе" | "отменено" | "оплачено" | "исполнено" | "подтверждено";
   times: string[];
 }
 interface TouristBookingAd {

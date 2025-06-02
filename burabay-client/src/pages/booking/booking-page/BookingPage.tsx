@@ -27,7 +27,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const [adsList, _] = useState<BookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
-
   const filteredAds = adsList
     .map((category) => ({
       ...category,
@@ -77,62 +76,73 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               {t(category.header)}
             </span>
             <ul>
-              {category.ads.map((ad) => {
-                const [imageSrc, setImageSrc] = useState<string>(
-                  baseUrl + ad.img
-                );
-                return (
-                  <li className="py-3 border-b border-[#E4E9EA]">
-                    <Link
-                      className="flex justify-between"
-                      to={`/booking/${ad.ad_id}/${category.header}`}
-                    >
-                      <div className="flex">
-                        <img
-                          src={imageSrc}
-                          onError={() => setImageSrc(DefaultIcon)}
-                          alt={ad.title}
-                          className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                        />
-                        <div>
-                          <span>{ad.title}</span>
-                          <div className="max-w-[300px] truncate">
-                            {ad.times.slice(0, 5).map((time, index) => {
-                              if (!time) return null; // Пропускаем null значения
+              {category.ads
+                .slice()
+                .sort((a, b) => {
+                  const aTime = new Date(a.times[0] || "").getTime();
+                  const bTime = new Date(b.times[0] || "").getTime();
+                  if (aTime !== bTime) {
+                    return bTime - aTime;
+                  }
+                  const aInProgress = a.times.some(t => t === "в процессе");
+                  const bInProgress = b.times.some(t => t === "в процессе");
+                  if (aInProgress && !bInProgress) return -1;
+                  if (!bInProgress && aInProgress) return 1;
+                  
+                  return 0;
+                })
+                .map((ad) => {
+                  const [imageSrc, setImageSrc] = useState<string>(
+                    baseUrl + ad.img
+                  );
+                  return (
+                    <li className="py-3 border-b border-[#E4E9EA]">
+                      <Link
+                        className="flex justify-between items-center"
+                        to={`/booking/${ad.ad_id}/${category.header}`}
+                      >
+                        <div className="flex">
+                          <img
+                            src={imageSrc}
+                            onError={() => setImageSrc(DefaultIcon)}
+                            alt={ad.title}
+                            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                          />
+                          <div>
+                            <span>{ad.title}</span>
+                            <div className="max-w-[300px] truncate">
+                              {ad.times.slice(0, 5).map((time, index) => {
+                                if (!time) return null;
+                                const [timeStr] = time.split("_");
+                                const updatedTime = timeStr.replace(
+                                  /(\d{2}\.\d{2})\.\d{4}/g,
+                                  "$1"
+                                );
 
-                              const hasUnderscore = time.includes("_");
-                              const formattedTime = time.replace("_", "");
-                              // Убираем год из дат формата "дд.мм.гггг"
-                              const updatedTime = formattedTime.replace(
-                                /(\d{2}\.\d{2})\.\d{4}/g,
-                                "$1"
-                              );
+                                return (
+                                  <div className="flex">
+                                  <span key={index} className={COLORS_TEXT.blue200}>
+                                    {updatedTime}
+                                    {index < Math.min(5, ad.times.length) - 1 && ", "}
+                                  </span>
 
-                              return (
-                                <span
-                                  key={index}
-                                  className={
-                                    hasUnderscore
-                                      ? COLORS_TEXT.red
-                                      : COLORS_TEXT.blue200
-                                  }
-                                >
-                                  {updatedTime}
-                                  {index < Math.min(5, ad.times.length) - 1 &&
-                                    ", "}
-                                </span>
-                              );
-                            })}
-                            {ad.times.length > 5 && " ..."}
+                                  </div>
+                                );
+                              })}
+                              {ad.times.length > 5 && " ..."}
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      <img src={ArrowRightIcon} alt="Подробнее" />
-                    </Link>
-                  </li>
-                );
-              })}
+                        <div className="flex items-center gap-4">
+                        <span className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}>
+                          {ad.status === "в процессе" ? t("waiting") : ad.status === "отменено" ? t("cancelStatus") : ad.status === "подтверждено" ? t("confirmStatus") : ""}
+                        </span>
+                          <img src={ArrowRightIcon} alt="Подробнее" />
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
             </ul>
           </li>
         ))}
