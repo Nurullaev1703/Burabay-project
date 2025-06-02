@@ -173,6 +173,7 @@ async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
         ad_id: b.ad.id,
         img: b.ad.images[0],
         times: [],
+        createdAt: b.createdAt,
       };
       group.ads.push(adGroup);
     }
@@ -190,7 +191,6 @@ async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
       price: b.totalPrice,
       isPaid: b.isPaid,
       paymentType: b.paymentType,
-      createdAt: b.createdAt, // Добавлено поле createdAt
     };
     adGroup.times.push(newTime);
   }
