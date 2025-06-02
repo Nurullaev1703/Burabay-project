@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ArrowRightIcon from "../../../app/icons/arrow-right.svg";
@@ -11,6 +11,7 @@ import { formatPrice } from "../../announcements/announcement/Announcement";
 import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
+import React from "react";
 interface Props {
   ads: TouristBookingList[];
 }
@@ -18,6 +19,16 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
+  const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(
+    () => {
+      const initial = {};
+      ads.forEach(ad => {
+        (initial as Record<string, string>)[ad.ads[0].ad_id] = baseUrl + ad.ads[0].img;
+      });
+      return initial;
+    }
+  );
+  
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
@@ -35,21 +46,32 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
     completed;
   const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
-
-  const filteredAds = adsList
-    .map((category) => ({
-      ...category,
-      ads: category.ads.filter((ad) =>
-        ad.title.toLowerCase().includes(searchValue.toLowerCase())
-      ),
-    }))
-    .filter((category) => category.ads.length > 0);
-
+const navigate = useNavigate();
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      navigate({
+        to: "/booking/tourist",
+        search: {
+          adName: searchValue,
+        },
+      });
     }
   };
+  const allAdsFlat = adsList
+  .flatMap(category =>
+    category.ads.map(ad => ({
+      ...ad,
+      header: category.header, // добавляем header из родителя
+    }))
+  )
+  .filter(ad => ad.title.toLowerCase().includes(searchValue.toLowerCase())) 
+  .sort((a, b) => {
+    const aDate = new Date(a.createdAt || 0).getTime();
+    const bDate = new Date(b.createdAt || 0).getTime();
+    return bDate - aDate; 
+  });
+  
 
   return (
     <section>
@@ -75,46 +97,32 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           />
         </Link>
       </div>
+
       <ul className="px-4 mt-4 mb-32">
-        {filteredAds.map((category, index) => (
-          <li key={index} className="flex flex-col mb-8">
-            <span
-              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
-            >
-              {t(category.header)}
-            </span>
-            <ul>
-              {category.ads
-                .slice()
-                .sort((a, b) => {
-                  const aTime = new Date(a.times[0]?.time || "").getTime();
-                  const bTime = new Date(b.times[0]?.time || "").getTime();
-                  return bTime - aTime;
-                })
-                .map((ad) => {
-                  const groupedTimes = ad.times.reduce(
-                    (acc, time) => {
-                      if (!time.time) return acc;
-                      if (acc[time.time]) {
-                        acc[time.time].push(time);
-                      } else {
-                        acc[time.time] = [time];
-                      }
-                      return acc;
-                    },
-                    {} as Record<string, typeof ad.times>
-                  );
-                  return (
-                    <>
-                      {Object.entries(groupedTimes).map(([timeKey, times]) => (
-                        <li
-                          key={timeKey}
-                          className="py-3 border-b border-[#E4E9EA]"
-                        >
-                          <Link to={`/booking/${ad.ad_id}/${category.header}`}>
+      {allAdsFlat.map((ad) => {
+    const groupedTimes = ad.times.reduce(
+      (acc, time) => {
+        if (!time.time) return acc;
+        if (acc[time.time]) {
+          acc[time.time].push(time);
+        } else {
+          acc[time.time] = [time];
+        }
+        return acc;
+      },
+      {} as Record<string, typeof ad.times>
+    );
+    return (
+      <div key={`${ad.ad_id}-${ad.header}`}>
+        {Object.entries(groupedTimes).map(([timeKey, times]) => (
+          <li
+            key={`${ad.ad_id}-${timeKey}`}
+            className="py-3 border-b border-[#E4E9EA]"
+          >
+                          <Link to={`/booking/${ad.ad_id}/${ad.header}`}>
                             <div className="mb-2">
                               <div className="flex justify-between">
-                                <span
+                                <span 
                                   className={`font-bold ${
                                     timeKey.includes("_")
                                       ? COLORS_TEXT.red
@@ -136,9 +144,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               </div>
                             </div>
                             <div>
-                              {times.map((time, index) => {
-                                const [imageSrc, setImageSrc] =
-                                  useState<string>(baseUrl + ad.img);
+                              {times.slice().map((time, index) => {
+                                const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+                                // const [imageSrc, setImageSrc] =
+                                //   useState<string>(baseUrl + ad.img);
                                 return (
                                   <div
                                     key={index}
@@ -147,8 +156,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                     <div className="flex w-full">
                                       <img
                                         src={imageSrc}
-                                        onError={() => setImageSrc(DefaultIcon)}
-                                        alt={ad.title}
+                                        onError={() => setImagesSrc(prev => ({ ...prev, [ad.ad_id]: DefaultIcon }))}
                                         className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                                       />
                                       <div className="flex flex-col w-full">
@@ -162,17 +170,17 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                             </span>
                                             <span
                                               className={`text-sm
-                                                ${
-                                                  times[0].status ===
-                                                  "исполнено"
-                                                    ? "text-orange-400"
-                                                    : times[0].status ===
-                                                        "подтверждено"
-                                                      ? "text-green-500"
-                                                      : time.isPaid
-                                                        ? COLORS_TEXT.access
-                                                        : COLORS_TEXT.red
-                                                }`}
+                                                  ${
+                                                    times[0].status ===
+                                                    "исполнено"
+                                                      ? "text-orange-400"
+                                                      : times[0].status ===
+                                                          "подтверждено"
+                                                        ? "text-green-500"
+                                                        : time.isPaid
+                                                          ? COLORS_TEXT.access
+                                                          : COLORS_TEXT.red
+                                                  }`}
                                             >
                                               {times[0].status === "исполнено"
                                                 ? t("doneStatus")
@@ -205,15 +213,12 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                           </Link>
                         </li>
                       ))}
-                    </>
+                    </div>
                   );
                 })}
             </ul>
-          </li>
-        ))}
-      </ul>
-
-      <NavMenuClient />
+            <NavMenuClient />
     </section>
   );
+
 };

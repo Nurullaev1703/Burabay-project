@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
@@ -17,14 +17,25 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
-
+const navigate = useNavigate();
+  // @ts-ignore
+  // const queryParams = new URLSearchParams(location.search);
+  // const onlinePayment = queryParams.get("onlinePayment") === "true";
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
   const isFilterActive = onlinePayment || onSidePayment || canceled;
-
+  const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(
+    () => {
+      const initial = {};
+      ads.forEach(ad => {
+        (initial as Record<string, string>)[ad.ads[0].ad_id] = baseUrl + ad.ads[0].img;
+      });
+      return initial;
+    }
+  );
   const [adsList, _] = useState<BookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
   const filteredAds = adsList
@@ -38,8 +49,14 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение
+      event.preventDefault();
     }
+    navigate({
+      to: "/booking/business",
+      search: {
+        adName: searchValue,
+      },
+    });
   };
 
   return (
@@ -79,23 +96,17 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               {category.ads
                 .slice()
                 .sort((a, b) => {
-                  const aTime = new Date(a.times[0] || "").getTime();
-                  const bTime = new Date(b.times[0] || "").getTime();
-                  if (aTime !== bTime) {
-                    return bTime - aTime;
-                  }
-                  const aInProgress = a.times.some(t => t === "в процессе");
-                  const bInProgress = b.times.some(t => t === "в процессе");
-                  if (aInProgress && !bInProgress) return -1;
-                  if (!bInProgress && aInProgress) return 1;
-                  
-                  return 0;
+                  const aDate = new Date(a.createdAt || 0).getTime();
+                  const bDate = new Date(b.createdAt || 0).getTime();
+                  return bDate - aDate;
                 })
                 .map((ad) => {
-                  const [imageSrc, setImageSrc] = useState<string>(
-                    baseUrl + ad.img
-                  );
+                  const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+                  // const [imageSrc, setImageSrc] = useState<string>(
+                  //   baseUrl + ad.img
+                  // );
                   return (
+                    <div key={`${ad.ad_id}`}>
                     <li className="py-3 border-b border-[#E4E9EA]">
                       <Link
                         className="flex justify-between items-center"
@@ -104,7 +115,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                         <div className="flex">
                           <img
                             src={imageSrc}
-                            onError={() => setImageSrc(DefaultIcon)}
+                            onError={() => setImagesSrc(prev => ({ ...prev, [ad.ad_id]: DefaultIcon }))}
                             alt={ad.title}
                             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                           />
@@ -141,6 +152,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                         </div>
                       </Link>
                     </li>
+                    </div>
                   );
                 })}
             </ul>
