@@ -262,12 +262,6 @@ export class NotificationService {
   async createForCategory(dto: CreateAllNotificationDto, categoryId: string) {
     const { ...of } = dto;
     const createdAt = new Date();
-    const newNotification = this.notificationRepository.create({
-      ...of,
-      createdAt,
-      title: 'Burabay администратор',
-    });
-    await this.notificationRepository.save(newNotification);
 
     // Get all users who have this category in favorites
     const users = await this.userRepository.find({
@@ -299,6 +293,13 @@ export class NotificationService {
           },
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
+        const newNotification = this.notificationRepository.create({
+          ...of,
+          title: 'Burabay администратор',
+          createdAt: createdAt,
+          users: [user],
+        });
+        await this.notificationRepository.save(newNotification);
       }
     }
 
