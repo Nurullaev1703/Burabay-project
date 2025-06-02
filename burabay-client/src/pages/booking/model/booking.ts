@@ -6,12 +6,14 @@ interface BookingAd {
   img: string;
   status: "в процессе" | "отменено" | "оплачено" | "исполнено" | "подтверждено";
   times: string[];
+  createdAt: string;
 }
 interface TouristBookingAd {
   title: string;
   ad_id: string;
   img: string;
   times: TouristBookingTime[];
+  createdAt: string;
 }
 
 interface TouristBookingTime {
