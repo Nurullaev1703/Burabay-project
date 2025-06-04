@@ -132,6 +132,15 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
         {t("payment_and_return_4_2_3")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_4")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_5")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_2_6")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
         {t("payment_and_return_4_3")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
@@ -142,6 +151,24 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
         {t("payment_and_return_4_3_3")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_4")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_5")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_6")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_7")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_8")}
+        </Typography>
+        <Typography size={16} weight={400} className="text-black mt-2">
+        {t("payment_and_return_4_3_9")}
         </Typography>
         <Typography size={16} weight={400} className="text-black mt-2">
         {t("payment_and_return_4_4")}
@@ -159,7 +186,6 @@ export const TermsOfUse: FC<Props> = function TermsOfUse() {
         {t("goods_and_services_delivery_5_1")}
         </Typography>
       </div>
-
       <Typography size={16} weight={400} className="text-black mt-4">
       {t("goods_and_services_delivery_5_2")}
       </Typography>
