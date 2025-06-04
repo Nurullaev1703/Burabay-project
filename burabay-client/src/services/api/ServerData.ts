@@ -7,4 +7,5 @@ export enum HTTP_STATUS {
     UNAUTHORIZED = "401",
     SERVER_ERROR = "500",
     FAILED_DEPENDENCY = "424",
+    FORBIDDEN = "403",
 }

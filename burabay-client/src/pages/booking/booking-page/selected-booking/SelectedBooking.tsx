@@ -20,6 +20,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { apiService } from "../../../../services/api/ApiService";
+import ArrowRightIcon from "../../../../app/icons/arrow-right.svg";
 
 interface Props {
   announcement: Announcement;
@@ -162,9 +163,13 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                         </span>
                       )}
                     </div>
-                    <span className={`${COLORS_TEXT.blue200}`}>
+                    <span className={` flex justify-center items-center gap-4 ${COLORS_TEXT.blue200}`}>
                       {formatPrice(booking.price)}
+                      <img src={ArrowRightIcon} alt="" />
                     </span>
+                  </div>
+                  <div>
+
                   </div>
                 </li>
               ))}

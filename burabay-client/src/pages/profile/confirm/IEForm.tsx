@@ -130,9 +130,17 @@ export const IEForm: FC = function IEForm() {
           control={control}
           rules={{
             required: t("requiredField"),
+            minLength: {
+              value: 12,
+              message: t("minLengthRequired", { count: 12 }),
+            },
             maxLength: {
-              value: 40,
-              message: t("maxLengthExceeded", { count: 40 }),
+              value: 12,
+              message: t("maxLengthExceeded", { count: 12 }),
+            },
+            validate: (value: string) => {
+              const iinRegex = /^\d{12}$/;
+              return iinRegex.test(value) || t("invalidIIN");
             },
           }}
           render={({ field, fieldState: { error } }) => (
@@ -140,6 +148,15 @@ export const IEForm: FC = function IEForm() {
               {...field}
               error={Boolean(error?.message)}
               helperText={error?.message}
+              inputProps={{
+                inputMode: "numeric",
+                maxLength: 12
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLInputElement;
+                const value = target.value.replace(/\D/g, ''); 
+                target.value = value.slice(0, 12);
+              }}
               label={t("IIN")}
               fullWidth={true}
               variant="outlined"

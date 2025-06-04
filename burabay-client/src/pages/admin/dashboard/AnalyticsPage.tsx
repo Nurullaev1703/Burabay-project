@@ -193,14 +193,14 @@ const AnalyticsPage = () => {
               <div>
                 <div className="flex flex-wrap mb-6">
                   <div className="flex-grow mr-[48px] mb-2">
-                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-[#999999] text-[12px]">Логин</p>
                     <p className="text-4 text-[#000000]">
-                      Burabay_travel@gmail.com
+                    burabai.travel@gmail.com
                     </p>
                   </div>
                   <div className="flex-grow mb-2">
-                    <p className="text-[#999999] text-[12px]">Логин</p>
-                    <p className="text-4 text-[#000000]">Burabay_travel0099</p>
+                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-4 text-[#000000]">Qaz4321#$</p>
                   </div>
                 </div>
                 <div className="flex justify-center">
@@ -224,7 +224,7 @@ const AnalyticsPage = () => {
               className="h-full"
             >
               {data.ads.slice(0, visibleAdsCount).map((ad, index) => (
-                <div key={index} className="flex py-4 items-center">
+                <div key={index} className="flex py-4 items-center gap-2">
                   <span className="mr-2">{index + 1}</span>
                   <CoveredImage
                     width="w-[52px]"

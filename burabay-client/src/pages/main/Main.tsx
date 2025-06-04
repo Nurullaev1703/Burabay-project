@@ -1,27 +1,31 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
-import locationImg from "../../app/icons/main/location.png";
-import investirovanie from "../../app/icons/main/investirovanie.png";
 import { Category } from "../announcements/model/announcements";
 import { baseUrl } from "../../services/api/ServerData";
 import { AdCard } from "./ui/AdCard";
-import { categoryBgColors, COLORS, COLORS_TEXT } from "../../shared/ui/colors";
+import { categoryBgColors, categoryBorderColors, COLORS, COLORS_TEXT } from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
-import { useGetMainPageAnnouncements } from "./main-utils";
+import {
+  useGetMainPageAnnouncements,
+  useGetRecommendedAds,
+} from "./main-utils";
 import { RotatingLines } from "react-loader-spinner";
-import { IconContainer } from "../../shared/ui/IconContainer";
-import BackIcon from "../../app/icons/back-icon.svg";
-import FilterIcon from "../../app/icons/main/filter.svg";
-import FilterActiveIcon from "../../app/icons/main/filter-active.svg";
 import { MainPageFilter } from "./model/mainpage-types";
 import { apiService } from "../../services/api/ApiService";
 import Close from "../../../public/Close.png";
+import ProfileMark from "../../app/icons/profile/profile.svg";
+import { format } from "date-fns";
+import { TabMenu, TabMenuItem } from "../../shared/ui/TabMenu";
+import { Button } from "../../shared/ui/Button";
+import { Loader } from "../../components/Loader";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   categories: Category[];
+  favouriteCategories: Category[];
   filters: MainPageFilter;
 }
 
@@ -32,21 +36,58 @@ interface Banner {
   deleteDate: string;
 }
 
-export const Main: FC<Props> = function Main({ categories, filters }) {
+export const Main: FC<Props> = function Main({
+  categories,
+  filters,
+  favouriteCategories,
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
-  const [activeCategory, setActiveCategory] = useState<Category | null>(
-    categories.find((item) => item.name == filters?.category) || null
-  );
 
   const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [isEditFavourite, setIsEditFavourite] = useState<boolean>(false);
+  const [originalFavourites, setOriginalFavourites] =
+    useState<Category[]>(favouriteCategories);
+
+  const [selectedFavourite, setSelectedFavourite] =
+    useState<Category[]>(favouriteCategories);
+  const [isLoading, setIsLoading] = useState(false);
+  // данные для заполнения переключателя
+  const TABS_DATA: TabMenuItem[] = [
+    {
+      index: 0,
+      title: t("mainPage"),
+    },
+    {
+      index: 1,
+      title: t("recomendations"),
+    },
+  ];
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('mainPageScroll');
+    if (savedScroll) {
+      window.scrollTo(0, parseInt(savedScroll, 10));
+    }
+  
+    const handleScroll = () => {
+      sessionStorage.setItem('mainPageScroll', window.scrollY.toString());
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+    
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
+      event.preventDefault();
       navigate({
         to: "/main",
         search: {
@@ -59,10 +100,19 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetMainPageAnnouncements(filters);
 
+  const {
+    data: recommends,
+    fetchNextPage: fetchNextRec,
+    hasNextPage: hasNextRec,
+    isFetchingNextPage: isFetchindNextRec,
+  } = useGetRecommendedAds(filters);
+
   const announcements = data?.pages.flat() || [];
+  const recommendedAds = recommends?.pages.flat() || [];
 
   // Используем useRef для хранения observer
   const observer = useRef<IntersectionObserver | null>(null);
+  const observer_recs = useRef<IntersectionObserver | null>(null);
 
   // Callback для последнего элемента списка
   const lastElementRef = useCallback(
@@ -80,28 +130,59 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
     },
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   );
+  // Callback для последнего элемента списка
+  const lastElementRef_recs = useCallback(
+    (node: HTMLLIElement | null) => {
+      if (isFetchindNextRec) return;
+      if (observer_recs.current) observer_recs.current.disconnect();
 
-  // попытка сброса фильтров при использовании нативных жестов возврата назад
-  const handlePopState = () => {
-    setActiveCategory(null);
-    navigate({
-      to: "/main",
-      search: {
-        category: "",
-        adName: filters.adName,
-      },
-    });
-  };
-  useEffect(() => {
-    if (filters.category) {
-      window.addEventListener("popstate", handlePopState);
+      observer_recs.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextRec) {
+          fetchNextRec();
+        }
+      });
 
-      return () => {
-        window.removeEventListener("popstate", handlePopState);
-      };
+      if (node) observer_recs.current.observe(node);
+    },
+    [isFetchindNextRec, hasNextRec, fetchNextRec]
+  );
+
+  const addToFavourite = async () => {
+    setIsLoading(true);
+    try {
+      const originalIds = originalFavourites.map((cat) => cat.id);
+      const selectedIds = selectedFavourite.map((cat) => cat.id);
+      // Categories to add (were not in original, now selected)
+      const added = selectedFavourite.filter(
+        (cat) => !originalIds.includes(cat.id)
+      );
+      // Categories to remove (were in original, now not selected)
+      const removed = originalFavourites.filter(
+        (cat) => !selectedIds.includes(cat.id)
+      );
+      // Only send requests for changed categories
+      for (const cat of [...added, ...removed]) {
+        await apiService.patch({
+          url: "/category/favorite/" + cat.id,
+        });
+      }
+      setOriginalFavourites([...selectedFavourite]);
+      setIsEditFavourite(false);
+      
+      // Инвалидируем кэш рекомендаций для полного обновления
+      await queryClient.invalidateQueries({ 
+        queryKey: ["recommended-ads"] 
+      });
+      // Также инвалидируем кэш категорий, если нужно обновить список любимых
+      await queryClient.invalidateQueries({ 
+        queryKey: ["main-page-categories"] 
+      });
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [navigate, filters]);
-
+  };
   useEffect(() => {
     const fetchBanners = async () => {
       try {
@@ -128,25 +209,8 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
   };
 
   return (
-    <section className="overflow-y-scroll bg-almostWhite min-h-screen">
+    <section className="overflow-y-scroll bg-almostWhite min-h-screen relative pt-12">
       <div className="flex justify-between items-center text-center px-4 bg-white fixed top-0 left-0 z-[100] w-full py-2">
-        {activeCategory && (
-          <IconContainer
-            align="start"
-            action={() => {
-              setActiveCategory(null);
-              navigate({
-                to: "/main",
-                search: {
-                  category: "",
-                  adName: "",
-                },
-              });
-            }}
-          >
-            <img src={BackIcon} alt="" />
-          </IconContainer>
-        )}
         <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
           <img src={SearchIcon} alt="" />
           <input
@@ -168,54 +232,37 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
             }}
           />
         </div>
-        {activeCategory && (
-          <IconContainer
-            align="center"
-            action={() =>
-              navigate({
-                to: `/main/filter/${activeCategory.id}`,
-                search: filters,
-              })
-            }
-          >
-            <img
-              src={
-                filters.details ||
-                filters.isHighRating ||
-                filters.maxPrice ||
-                filters.minPrice ||
-                filters.subcategories
-                  ? FilterActiveIcon
-                  : FilterIcon
-              }
-              alt=""
-            />
-          </IconContainer>
-        )}
       </div>
 
-      {/* Отображаем предложения при отсутствии фильтров */}
-      {!activeCategory && !filters.adName && (
-        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full mt-12">
+      {/* Отображаем предложения */}
+      {banners.length > 0 && (
+        <div className="flex gap-4 overflow-x-scroll p-4 bg-white w-full">
           {banners
             .slice()
             .sort((a, b) => {
               return b.id.localeCompare(a.id);
             })
             .map((banner) => {
-              console.log("Image path:", banner.imagePath);
-
               return (
-                <div
-                  key={banner.id}
-                  className="relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden cursor-pointer"
-                  onClick={() => openModal(banner)}
-                >
-                  <img
-                    src={`${baseUrl}${banner.imagePath}`}
-                    className="absolute top-0 left-0 w-full h-full object-cover"
-                    alt={banner.text}
-                  />
+                <div key={banner.id}>
+                  <div
+                    className="relative min-w-[200px] h-[120px] rounded-2xl flex items-center justify-center text-white text-center overflow-hidden cursor-pointer"
+                    onClick={() => openModal(banner)}
+                  >
+                    <img
+                      src={`${baseUrl}${banner.imagePath}`}
+                      className="absolute top-0 left-0 w-full h-full object-cover"
+                      alt={banner.text}
+                    />
+                  </div>
+                  <Typography
+                    color={COLORS_TEXT.gray100}
+                    align="left"
+                    size={12}
+                    className="mt-2"
+                  >
+                    {`${t("beforeDelete")} ${format(banner.deleteDate, "dd.MM.yyyy")}`}
+                  </Typography>
                 </div>
               );
             })}
@@ -224,8 +271,9 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
 
       {isModalOpen && selectedBanner && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-full max-w-[455px] max-h-screen overflow-y-auto">
+          <div className="bg-white rounded-2xl w-[88%] max-w-[800px] max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center">
+              <div className="w-[44px] h-[44px] cursor-pointer"></div>
               <div className="flex-grow text-center">
                 <p className="text-[#0A7D9E] text-[18px] font-semibold">
                   Баннер
@@ -254,49 +302,20 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         </div>
       )}
 
-      {/* Отображаем выбранную категорию */}
-      {activeCategory && (
-        <div
-          key={activeCategory.id}
-          className="flex items-center justify-between py-4 px-2 w-full bg-white mt-14"
-        >
-          <div className="flex items-center gap-4 w-full">
-            <IconContainer align="end">
-              <img
-                src={baseUrl + activeCategory.imgPath}
-                className="w-[34px] h-[34px]"
-              />
-            </IconContainer>
-            <div className="flex items-center w-full">
-              <div className="w-full mr-2">
-                <Typography size={16} weight={400} className="text-black">
-                  {t(activeCategory.name)}
-                </Typography>
-                <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
-                  {t(activeCategory.description)}
-                </Typography>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Убираем категории, если есть активная */}
-      {!activeCategory && (
-        <div className="mt-2 flex justify-between items-center flex-wrap text-center p-2 bg-white">
+      {/* Отображаем категории */}
+      {activeIndex == 0 && (
+        <div className="mt-2 mb-2 flex justify-between items-center flex-wrap text-center p-2 bg-white">
           {categories.map(({ name, imgPath, id }) => (
             <div
               key={id}
               className={`flex flex-col w-1/3 py-2 rounded-xl items-center select-none bg-white active:bg-almostWhite active:bg-opacity-50`}
               onClick={() => {
-                setActiveCategory(
-                  categories.find((item) => item.name == name) || null
-                );
                 navigate({
-                  to: "/main",
+                  to: "/category/$categoryId",
+                  params: { categoryId: id },
                   search: {
                     ...filters,
-                    category: name == filters.category ? "" : name,
+                    category: name,
                   },
                 });
               }}
@@ -313,10 +332,107 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
           ))}
         </div>
       )}
+      {/* Отображение рекомендаций */}
+      {activeIndex == 1 && (
+        <div className="bg-white p-4 my-2">
+          <div className="flex justify-between items-center w-full gap-4 mb-2">
+            <Typography
+              size={16}
+              weight={500}
+              className={
+                !selectedFavourite.length ? "w-full text-center" : "text-left"
+              }
+            >
+              {isEditFavourite ? t("chooseRec") : t("personalRec")}
+            </Typography>
+            {!isEditFavourite && selectedFavourite.length > 0 && (
+              <button
+                className="font-medium text-[14px] text-blue100"
+                onClick={() => setIsEditFavourite(!isEditFavourite)}
+              >
+                {"Изменить"}
+              </button>
+            )}
+          </div>
+          {!isEditFavourite && selectedFavourite.length == 0 && (
+            <div className="mb-2" onClick={() => setIsEditFavourite(true)}>
+              <div
+                className={`w-full bg-gradient-to-r from-[#FFB863] to-[#FF7A2F] rounded-2xl p-3 flex justify-between items-center`}
+              >
+                <div className="max-w-72 flex flex-col">
+                  <Typography size={14} weight={600} color={COLORS_TEXT.white}>
+                    {t("chooseRec")}
+                  </Typography>
+                  <button className="border-white border-2 rounded-lg px-10 w-fit mt-2 text-white font-semibold">
+                    {t("choose")}
+                  </button>
+                </div>
+                <img className="" src={ProfileMark} />
+              </div>
+            </div>
+          )}
+          {!isEditFavourite && selectedFavourite.length > 0 && (
+            <div className="mt-2 flex justify-between gap-1 items-center flex-wrap text-center p-2 pb-0 bg-white">
+              {selectedFavourite.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex flex-col w-[32%] py-2 rounded-xl items-center select-none bg-white active:bg-almostWhite active:bg-opacity-50`}
+                >
+                  <div className={`w-12 h-12 flex items-center justify-center`}>
+                    <img src={baseUrl + item.imgPath} className="w-8 h-8" />
+                  </div>
+                  <span
+                    className={`text-sm text-center text-ellipsis overflow-hidden whitespace-nowrap w-20`}
+                  >
+                    {t(item.name)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {isEditFavourite && (
+            <div className="mt-2 flex justify-between gap-1 items-center flex-wrap text-center p-2 pb-0 bg-white">
+              {categories.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex flex-col w-[32%] py-2 rounded-xl items-center select-none bg-white active:bg-almostWhite active:bg-opacity-50 ${selectedFavourite.some((fav) => fav.id == item.id) ? `border ${categoryBorderColors[item.name]}` : "border border-transparent"}`}
+                  onClick={() => {
+                    setSelectedFavourite((prev) => {
+                      return prev.some((fav) => fav.id === item.id)
+                        ? prev.filter((fav) => fav.id !== item.id)
+                        : [...prev, item];
+                    });
+                  }}
+                >
+                  <div className={`w-12 h-12 flex items-center justify-center`}>
+                    <img src={baseUrl + item.imgPath} className="w-8 h-8" />
+                  </div>
+                  <span
+                    className={`text-sm text-center text-ellipsis overflow-hidden whitespace-nowrap w-20`}
+                  >
+                    {t(item.name)}
+                  </span>
+                </div>
+              ))}
+              <Button className="mt-4" onClick={addToFavourite}>
+                {t("accept")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="py-4 px-4 bg-white">
+        <TabMenu
+          data={TABS_DATA}
+          activeIndex={activeIndex}
+          onChangeIndex={setActiveIndex}
+        />
+      </div>
 
       {/* ANNOUNCEMENTS */}
-      {announcements.length > 0 ? (
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white p-4">
+      {activeIndex == 0 && announcements.length > 0 && (
+        <ul className="grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white px-4">
           {announcements.map((item) => {
             return (
               <AdCard
@@ -328,7 +444,8 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
             );
           })}
         </ul>
-      ) : (
+      )}
+      {activeIndex == 0 && announcements.length == 0 && (
         <div
           className={`rounded-xl mb-navContent ${filters.category ? categoryBgColors[filters.category] : "bg-blue200"} p-4 mx-2 mt-4`}
         >
@@ -338,12 +455,40 @@ export const Main: FC<Props> = function Main({ categories, filters }) {
         </div>
       )}
 
-      {/* Индикатор загрузки новых данных */}
-      {isFetchingNextPage && (
-        <div className="flex justify-center items-center my-4">
-          <RotatingLines strokeColor={COLORS.blue200} width="48px" />
+      {/* RECOMMENDATIONS */}
+      {activeIndex == 1 && recommendedAds.length > 0 && (
+        <ul className="grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white px-4">
+          {recommendedAds.map((item) => {
+            return (
+              <AdCard
+                ad={item}
+                key={item.id}
+                width={recommendedAds.length == 1 ? "w-[48%]" : ""}
+                ref={lastElementRef_recs}
+              />
+            );
+          })}
+        </ul>
+      )}
+      {activeIndex == 1 && recommendedAds.length == 0 && (
+        <div className={`py-16 bg-white mt-4`}>
+          <Typography size={18} weight={500} align="center" className="mb-2">
+            {t("noRec")}
+          </Typography>
+          <Typography weight={400} align="center">
+            {t("noRecText")}
+          </Typography>
         </div>
       )}
+
+      {/* Индикатор загрузки новых данных */}
+      {isFetchingNextPage ||
+        (isFetchindNextRec && (
+          <div className="flex justify-center items-center my-4">
+            <RotatingLines strokeColor={COLORS.blue200} width="48px" />
+          </div>
+        ))}
+      {isLoading && <Loader />}
 
       <NavMenuClient />
     </section>

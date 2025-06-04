@@ -3,7 +3,7 @@ import { baseUrl } from "./ServerData";
 // Данные необходимые для запроса
 interface RequestOptions {
   url: string;
-  dto?: any;
+  dto?: unknown;
   headers?: HeadersInit;
 }
 // Данные, которые приходят в результате запроса
@@ -56,16 +56,16 @@ class ApiService {
   }
 
   // методы для получения данных
-  async get<T extends unknown>(options: RequestOptions) {
+  async get<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "GET");
   }
-  async post<T extends unknown>(options: RequestOptions) {
+  async post<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "POST");
   }
-  async patch<T extends unknown>(options: RequestOptions) {
+  async patch<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "PATCH");
   }
-  async delete<T extends unknown>(options: RequestOptions) {
+  async delete<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "DELETE");
   }
 

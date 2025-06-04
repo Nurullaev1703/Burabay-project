@@ -8,6 +8,7 @@ import { baseUrl } from "../services/api/ServerData";
 export interface CarouselItem {
   index: number;
   imgUrl: string;
+  type?: 'image' | 'video';
 }
 
 interface Props {
@@ -84,13 +85,24 @@ export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "", curren
           key={item.index}
           className={`${height} ${ratio} w-full flex items-center justify-center relative`}
         >
-          <img
-            src={item.imgUrl}
-            className="absolute top-0 left-0 object-cover w-full h-full"
-            onError={(e) => {
-              e.currentTarget.src = DefaultImage; // Устанавливаем заглушку при ошибке загрузки
-            }}
-          />
+          {item.type === 'video' ? (
+            <video
+              src={item.imgUrl}
+              className="absolute top-0 left-0 object-cover w-full h-full"
+              controls
+              onError={(e) => {
+                e.currentTarget.src = DefaultImage;
+              }}
+            />
+          ) : (
+            <img
+              src={item.imgUrl}
+              className="absolute top-0 left-0 object-cover w-full h-full"
+              onError={(e) => {
+                e.currentTarget.src = DefaultImage;
+              }}
+            />
+          )}
         </div>
       ))}
     </Slider>

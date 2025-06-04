@@ -17,7 +17,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 export const TabMenu: FC<Props> = function TabMenu(props) {
   // разбиваем TabMenu на колонки по кол-ву поступивших даных
-  const styles = `columns-${props.data.length} gap-0 flex w-100 ${COLORS_BACKGROUND.almostWhite} rounded-tabs p-0.5 ${props.className}`;
+  const styles = `columns-${props.data.length} gap-0 flex ${COLORS_BACKGROUND.almostWhite} rounded-tab-item overflow-hidden ${props.className}`;
 
   // перериросовка TabMenu при изменении активного индекса
   const renderItem = useCallback(
@@ -32,8 +32,8 @@ export const TabMenu: FC<Props> = function TabMenu(props) {
             ? COLORS_TEXT.white
             : COLORS_TEXT.totalBlack
         }
-        className={`${props.activeIndex === item.index ? COLORS_BACKGROUND.blue200 : "bg-transparent"}
-                p-3 cursor-pointer w-full rounded-tab-item transition-colors text-center leading-none`}
+        className={`${props.activeIndex === item.index ? COLORS_BACKGROUND.blue200 + " rounded-tab-item" : "bg-almostWhite"}
+                p-3 cursor-pointer w-full text-center leading-none`}
         onClick={() => props.onChangeIndex(item.index)}
       >
         {item.title}

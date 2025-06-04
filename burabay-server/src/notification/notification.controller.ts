@@ -27,9 +27,27 @@ export class NotificationController {
     return this.notificationService.createForAll(createAllNotificationDto);
   }
 
+  @Post('/tourists')
+  createForTourists(@Body() dto: CreateAllNotificationDto) {
+    return this.notificationService.createForTourists(dto);
+  }
+
+  @Post('/organizations')
+  createForOrganizations(@Body() dto: CreateAllNotificationDto) {
+    return this.notificationService.createForOrganizations(dto);
+  }
+
+  @Post('/category/:categoryId')
+  createForCategory(
+    @Body() dto: CreateAllNotificationDto,
+    @Param('categoryId') categoryId: string,
+  ) {
+    return this.notificationService.createForCategory(dto, categoryId);
+  }
+
   @Get('/all')
-  findForAll(@Request() req: AuthRequest) {
-    return this.notificationService.findForAll(req.user);
+  findForAll() {
+    return this.notificationService.findForAll();
   }
 
   @Get('/user')

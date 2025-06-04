@@ -80,3 +80,14 @@ export const categoryColors: Record<string, string> = {
   Прокат: "#A16ACD",
   Безопасность: "#777CEF",
 };
+export const categoryBorderColors: Record<string, string> = {
+  Отдых: "border-[#39B598]",
+  Жилье: "border-[#5EBAE1]",
+  Здоровье: "border-[#DC53AD]",
+  Экстрим: "border-[#EF5C7F]",
+  Достопримечательности: "border-[#B49081]",
+  Питание: "border-[#F4A261]",
+  Развлечения: "border-[#E5C82F]",
+  Прокат: "border-[#A16ACD]",
+  Безопасность: "border-[#777CEF]",
+};

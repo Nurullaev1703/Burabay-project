@@ -95,6 +95,9 @@ export class AuthenticationService {
         await this.emailService.sendAcceptMessage(signInDto.email);
         return JSON.stringify(HttpStatus.UNAUTHORIZED);
       }
+      if (userExist && userExist.isBanned) {
+        return JSON.stringify(HttpStatus.FORBIDDEN);
+      }
 
       // если пользователь найден, значит уже зарегистрирован и авторизуем его
       if (userExist) {

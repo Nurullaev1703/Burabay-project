@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 import { Map, View } from "ol";
 import "ol/ol.css";
 import { Tile as TileLayer } from "ol/layer";
@@ -51,6 +51,9 @@ interface Props {
   announcements: Announcement[];
 }
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
+    const [center , _setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const [zoom, setZoom] = useState<number>(10);
   const role = roleService.getValue();
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY,
@@ -136,6 +139,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       { start: "friStart", end: "friEnd" },
       { start: "satStart", end: "satEnd" },
     ];
+    
 
     const currentDayIndex = new Date().getDay();
     const currentDay = days[currentDayIndex];
@@ -163,10 +167,10 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         }),
         vectorLayer,
       ],
-      view: new View({
-        center: fromLonLat([70.30456742278163, 53.08271195503471]),
-        zoom: 15,
-      }),
+          view: new View({
+            center: fromLonLat([53.08271195503471, 70.30456742278163 ]),
+            zoom: 14,
+        }),
     });
 
     // Добавляем обработчик на выбор фич
@@ -294,10 +298,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
 
   // Извлекаем из строки времени end только часы и минуты
   const [hours, minutes] = end?.split(":").map(Number) || [0, 0];
-  const center = {
-    lat: 53.08271195503471,
-    lng: 70.30456742278163,
-  };
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const handleMarkerClick = (announcementId: string) => {
     setSelectedMarker(announcementId);
@@ -308,6 +308,18 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       setAnnouncementInfo(selectedAnnouncement);
       setIsFavourite(selectedAnnouncement.isFavourite);
       setShowAnnouncementModal(true);
+      if (selectedAnnouncement.address) {
+        const { latitude, longitude } = selectedAnnouncement.address;
+        if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
+          if (mapRef.current) {
+            mapRef.current.panTo({
+              lat: longitude,
+              lng: latitude,
+            });
+            mapRef.current.setZoom(15); 
+          } 
+        } 
+      }
     }
   };
   // Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
@@ -367,6 +379,11 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
 
       {isLoaded ? (
         <GoogleMap
+        onZoomChanged={() =>{
+          if(mapRef.current) {
+            setZoom(mapRef.current.getZoom() ?? 10)
+          }
+        }}
           mapContainerStyle={containerStyle}
           center={center}
           zoom={15}
@@ -376,11 +393,14 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
             zoomControl: false,
             streetViewControl: false,
           }}
+          onLoad={(map) => {
+            mapRef.current = map; 
+          }}
         >
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
           )}
-          {announcements.map((announcement) => {
+          {announcements.map((announcement , index) => {
             const isSelected = selectedMarker === announcement.id;
             if (
               !announcement.address ||
@@ -393,7 +413,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
             const subcategoryImgPath = loadImage(
               announcement.subcategory?.category?.imgPath
             );
-
+            if (zoom < 10 && index%20  !== 0) return null;
             const categoryName = announcement.subcategory?.category?.name;
             const categoryColor = categoryColors[categoryName];
 
@@ -413,12 +433,12 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   icon={{
                     url: svgLocationWithColor,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 50 : 40,
-                      isSelected ? 50 : 40
+                      isSelected ? 60 : 40,
+                      isSelected ? 60 : 40
                     ),
                     fillColor: categoryColor,
                   }}
-                  zIndex={1}
+                  zIndex={index}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
@@ -430,17 +450,17 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   icon={{
                     url: subcategoryImgPath,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 18 : 16,
-                      isSelected ? 18 : 16
+                      isSelected ? 24 : 16,
+                      isSelected ? 24 : 16
                     ),
                     anchor: new google.maps.Point(
-                      isSelected ? 9 : 8,
-                      isSelected ? 38 : 32
+                      isSelected ? 12 : 8,
+                      isSelected ? 46 : 32
                     ),
                     fillColor: "white",
                     strokeColor: "white",
                   }}
-                  zIndex={2}
+                  zIndex={index +1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
@@ -452,15 +472,15 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                   icon={{
                     url: whiteCircle,
                     scaledSize: new google.maps.Size(
-                      isSelected ? 26 : 24,
-                      isSelected ? 26 : 24
+                      isSelected ? 32 : 24,
+                      isSelected ? 32 : 24
                     ),
                     anchor: new google.maps.Point(
-                      isSelected ? 13 : 12,
-                      isSelected ? 42 : 36
+                      isSelected ? 16 : 12,
+                      isSelected ? 51 : 36
                     ),
                   }}
-                  zIndex={1}
+                  zIndex={index}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
               </React.Fragment>

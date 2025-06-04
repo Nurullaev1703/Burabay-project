@@ -28,7 +28,10 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
   });
   const applyFilters = () => {
     navigate({
-      to: "/main",
+      to: "/category/$categoryId",
+      params: {
+        categoryId: category.id,
+      },
       search: selectedFilters,
     });
   };
@@ -64,7 +67,10 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             align="end"
             action={async () =>
               navigate({
-                to: "/main",
+                to: "/category/$categoryId",
+                params: {
+                  categoryId: category.id,
+                },
                 search: {
                   adName: selectedFilters.name || "",
                   category: selectedFilters.category,

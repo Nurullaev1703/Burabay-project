@@ -81,6 +81,7 @@ export class MainPageService {
         return cachedAds;
       }
       const ads = await this.adRepository.find({
+        where: { organization: { isBanned: false } },
         relations: {
           subcategory: { category: true },
           usersFavorited: true,
