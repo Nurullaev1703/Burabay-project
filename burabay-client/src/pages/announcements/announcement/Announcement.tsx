@@ -176,7 +176,7 @@ export const Announcement: FC<Props> = function Announcement({
           />
         </div>
         <div className="flex items-center justify-between mt-4 mb-2">
-          <h1 className="font-medium text-[28px] uppercase text-blue200">
+          <h1 className="font-medium text-[28px] capitalize text-blue200">
             {announcement.price || announcement.priceForChild
               ? formatPrice(announcement.price || announcement.priceForChild)
               : t("free")}
