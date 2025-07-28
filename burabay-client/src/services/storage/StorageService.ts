@@ -15,9 +15,18 @@ export class StorageService<T>{
         return JSON.parse(value) as T
     }
 
-    setValue(value:T){
-        localStorage.setItem(this.KEY_STORAGE, JSON.stringify(value))
-    }
+    setValue(value: T) {
+        localStorage.setItem(this.KEY_STORAGE, JSON.stringify(value));
+      
+        if (
+          typeof window !== "undefined" &&
+          window.webkit?.messageHandlers?.authTokenHandler?.postMessage
+        ) {
+          window.webkit.messageHandlers.authTokenHandler.postMessage(this.KEY_STORAGE);
+        }
+      }
+      
+      
 
     hasValue(){
         return localStorage.getItem(this.KEY_STORAGE) !== null
