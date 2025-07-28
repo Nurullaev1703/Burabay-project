@@ -68,12 +68,12 @@ export const AdCard: FC<Props> = function AdCard({
           <Typography
             size={18}
             weight={700}
-            color={COLORS_TEXT.blue200}
-            className="uppercase"
+            color={COLORS_TEXT.blue300}
+            className="capitalize"
           >
             {ad.price
               ? (ad.price || 0).toLocaleString("ru-RU") + " ₸"
-              : "Бесплатно"}
+              : "Свободный доступ"}
           </Typography>
           {!isOrganization && (
             <img
