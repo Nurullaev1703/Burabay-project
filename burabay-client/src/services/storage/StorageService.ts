@@ -22,11 +22,14 @@ export class StorageService<T>{
           typeof window !== "undefined" &&
           window.webkit?.messageHandlers?.authTokenHandler?.postMessage
         ) {
-          window.webkit.messageHandlers.authTokenHandler.postMessage(this.KEY_STORAGE);
+            window.webkit.messageHandlers.authTokenHandler.postMessage(
+                JSON.stringify({
+                  key: this.KEY_STORAGE,
+                  value,
+                })
+              );
         }
       }
-      
-      
 
     hasValue(){
         return localStorage.getItem(this.KEY_STORAGE) !== null
