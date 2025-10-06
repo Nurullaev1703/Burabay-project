@@ -213,7 +213,7 @@ const ReviewsPage: FC = () => {
                       <>
                         <div
                           key={review.id}
-                          className="h-full p-[32px] pr-[32px] flex flex-col border-r"
+                          className="h-full p-[32px] pr-[32px] flex flex-col"
                         >
                           <div className="flex justify-between items-start">
                             <div>
@@ -238,14 +238,14 @@ const ReviewsPage: FC = () => {
                               >
                                 {review.user.fullName || "Не указано"}
                               </p>
-                              <p className="text-gray-500 text-sm">
+                              <p className="text-gray-500 text-sm ">
                                 {formatDate(review.date)}
                               </p>
                               <RatingStars rating={review.stars} />
                             </div>
                             <div
                               key={review.ad.id}
-                              className="flex items-center"
+                              className="flex items-center gap-4"
                               onClick={() =>
                                 navigate({
                                   to: `/admin/announcements/${review.ad.id}`,

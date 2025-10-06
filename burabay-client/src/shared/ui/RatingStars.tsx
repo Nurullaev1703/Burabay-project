@@ -31,7 +31,7 @@ export const RatingStars: FC<RatingStarsProps> = ({
       ))}
 
       {/* Числовое значение рейтинга */}
-      <Typography>{rating.toFixed(1)}</Typography>
+      <Typography className="ml-3">{rating.toFixed(1)}</Typography>
 
       {/* Градиент для половинки звезды */}
       <svg width="0" height="0">

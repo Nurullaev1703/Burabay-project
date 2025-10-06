@@ -51,7 +51,7 @@ export class SeederService {
           'details': Object.keys(Reflect.construct(ChillDetails, [])),
         },
         'Жилье': {
-          'description': 'Гостиницы, санатории, квартиры, команты, дома и коттеджи, и т.д.',
+          'description': 'Гостиницы, санатории, квартиры, комнаты, дома и коттеджи, и т.д.',
           'imgPath': '/icons/home.svg',
           'subcategories': [
             'Гостиницы',
