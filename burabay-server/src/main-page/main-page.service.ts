@@ -126,8 +126,10 @@ export class MainPageService {
     else if (mainPageFilter.maxPrice) whereOptions.price = LessThanOrEqual(mainPageFilter.maxPrice);
     else if (mainPageFilter.minPrice) whereOptions.price = MoreThanOrEqual(mainPageFilter.minPrice);
 
-    // Фильтр только с высоким рейтингом
-    if (mainPageFilter.isHighRating) whereOptions.avgRating = MoreThan(4.5);
+    // Фильтр только с высоким рейтингом — учитываем, что параметр может прийти как boolean или как строка 'true'
+    if (mainPageFilter.isHighRating === true || String(mainPageFilter.isHighRating) === 'true') {
+      whereOptions.avgRating = MoreThan(4.5);
+    }
 
     // Поиск по свободным датам заселения и выезда.
     if (mainPageFilter.startDate && mainPageFilter.endDate) {

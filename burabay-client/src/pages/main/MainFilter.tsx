@@ -133,7 +133,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             <Typography
               size={16}
               weight={400}
-            >{`${filters.isHighRating ?? "4.5"}`}</Typography>
+            >{`4.5`}</Typography>
           </div>
           <Switch
             checked={selectedFilters.isHighRating ?? false}
