@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { ROLE_TYPE } from '../types/user-types';
 
 export class CreateUserDTO {
@@ -6,7 +6,6 @@ export class CreateUserDTO {
   @IsNotEmpty()
   full_name: string;
 
-  @IsPhoneNumber()
   @IsNotEmpty()
   phone_number: string;
 

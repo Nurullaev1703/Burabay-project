@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
-  IsPhoneNumber,
   IsBoolean,
 } from 'class-validator';
 import { AdDetailsType } from '../types/ad.details.type';
@@ -30,7 +29,6 @@ export class UpdateAdDto {
   @IsOptional()
   video: string;
 
-  @IsPhoneNumber()
   @IsOptional()
   phoneNumber: string;
 

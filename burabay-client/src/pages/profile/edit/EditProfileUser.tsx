@@ -43,13 +43,14 @@ export const EditProfileUser: FC = function EditProfileUser() {
     mode: "onChange",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { setError } = useForm<FormType>();
   const navigate = useNavigate();
-  const [error, setError] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
 
   const handleError = (errorText: string) => {
     setErrorText(errorText);
-    setError(true);
+    setHasError(true);
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -61,27 +62,75 @@ export const EditProfileUser: FC = function EditProfileUser() {
     try {
       setIsLoading(true);
 
+      // Дополнительная фронт-валидация номера телефона перед отправкой
+      // 1) Если есть плейсхолдеры маски (например '_' от input mask) — значит номер введён не полностью
+      if (form.phoneNumber.includes("_")) {
+        setIsLoading(false);
+        handleError(t("invalidNumber"));
+        return;
+      }
+
+      // 2) Проверяем только, что номер начинается с +7 (маска остаётся)
+      if (!form.phoneNumber.startsWith("+7")) {
+        setIsLoading(false);
+        handleError(t("invalidNumber"));
+        return;
+      }
+
       const updatedForm = {
         ...form,
         phoneNumber: formatPhoneNumber(form.phoneNumber),
       };
 
-      const response = await apiService.patch<Profile>({
-        url: "/profile",
-        dto: updatedForm,
-      });
+      try {
+        const response = await apiService.patch<Profile>({
+          url: "/profile",
+          dto: updatedForm,
+        });
 
+        if (response.data) {
+          setUser(response.data);
+          navigate({ to: "/profile" });
+        } else {
+          handleError(t("invalidCode"));
+        }
+      } catch (err: any) {
+        // Проверяем тело ответа на стандартное сообщение валидации по телефону
+        const serverMessage =
+          err?.response?.data?.message || err?.data?.message || err?.message;
+        // serverMessage может быть массивом
+        if (Array.isArray(serverMessage)) {
+          if (
+            serverMessage.some((m: string) =>
+              String(m).toLowerCase().includes("phonenumber must be a valid phone number")
+            )
+          ) {
+            // Помещаем ошибку в поле phoneNumber
+            setError("phoneNumber", {
+              type: "server",
+              message: t("invalidNumber"),
+            });
+            setIsLoading(false);
+            return;
+          }
+        } else if (
+          String(serverMessage).toLowerCase().includes("phonenumber must be a valid phone number")
+        ) {
+          setError("phoneNumber", {
+            type: "server",
+            message: t("invalidNumber"),
+          });
+          setIsLoading(false);
+          return;
+        }
 
-      if (response.data) {
-        setUser(response.data);
-        navigate({to:"/profile"});
-      } else {
-        handleError(t("invalidCode"))
+        handleError(t("defaultError"));
       }
 
       setIsLoading(false);
-    } catch {
-      handleError(t('defaultError'))
+    } catch (e) {
+      // на всякий случай оставляем общий обработчик
+      handleError(t("defaultError"));
     }
   };
 
@@ -187,7 +236,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
             )}
           />
 
-          {!error ? (
+          {!hasError ? (
             <Button
               className="fixed bottom-4 left-3 w-header z-10"
               type="submit"
