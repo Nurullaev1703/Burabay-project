@@ -72,7 +72,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
     } catch (error) {
     } finally {
       setLoading(false);
-      scrollToBottom();
+      setTimeout(() => scrollToBottom(), 300);
     }
   };
 
@@ -132,16 +132,17 @@ const MessagesPage: FC<Props> = ({ categories }) => {
       });
 
       setNewMessage("");
-      scrollToBottom();
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {}
   };
 
   const scrollToBottom = () => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
+      const scrollContainer = document.getElementById("messages-container");
+      if (scrollContainer) {
+        scrollContainer.style.scrollBehavior = "smooth";
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
     }, 100);
   };
 
@@ -169,7 +170,10 @@ const MessagesPage: FC<Props> = ({ categories }) => {
         <SideNav />
       </div>{" "}
       <div className="relative z-10 flex flex-col w-full p-4 ml-[94px] h-screen">
-        <div className="flex-1 overflow-y-auto pb-[140px] admin-scrollbar">
+        <div
+          className="flex-1 overflow-y-auto mb-[84px] admin-scrollbar"
+          id="messages-container"
+        >
           {loading ? (
             <Loader />
           ) : (
@@ -203,7 +207,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
                 </div>
               ))
           )}
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="" />
         </div>
 
         {/* Fixed bottom panel */}

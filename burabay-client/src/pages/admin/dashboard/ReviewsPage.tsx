@@ -138,11 +138,11 @@ const ReviewsPage: FC = () => {
         <SideNav />
       </div>
       <div className="flex-1 flex flex-col items-center transition-all duration-300 ease-linear ml-[94px] h-screen">
-        <div className="max-w-[1200px] w-full mx-auto h-full flex flex-col">
+        <div className="w-full mx-auto h-full flex flex-col px-4">
           {reviews.length > 0 && (
             <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px] flex-shrink-0">
               <div className="pl-[32px] h-full flex items-center">
-                <div className="text-left text-[24px] font-normal flex items-center ">
+                <div className="text-left text-[24px] font-normal flex items-center">
                   Отзывы
                 </div>
               </div>
