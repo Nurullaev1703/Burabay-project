@@ -266,29 +266,60 @@ export class AuthenticationService {
   }
 
   async changePassword(tokenData: TokenData, changePasswordDto: ChangePasswordDto) {
-    const user = await this.userRepository.findOne({
-      where: {
-        id: tokenData.id,
-      },
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          id: tokenData.id,
+        },
+      });
 
-    if (!user) {
-      return JSON.stringify(HttpStatus.CONFLICT);
+      if (!user) {
+        // user not found
+        // eslint-disable-next-line @typescript-eslint/no-throw-literal
+        throw new Error('USER_NOT_FOUND');
+      }
+
+      if (!user.password) {
+        // no existing password set
+        // eslint-disable-next-line @typescript-eslint/no-throw-literal
+        throw new Error('NO_PASSWORD_SET');
+      }
+
+      const isPasswordMatch = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
+
+      if (!isPasswordMatch) {
+        // old password doesn't match
+        // eslint-disable-next-line @typescript-eslint/no-throw-literal
+        throw new Error('PASSWORD_MISMATCH');
+      }
+
+      const salt = await bcrypt.genSalt();
+      const hash = await bcrypt.hash(changePasswordDto.newPassword, salt);
+      const newUser = new User({
+        ...user,
+        password: hash,
+      });
+      await this.entityManager.save(newUser);
+
+      return { statusCode: HttpStatus.OK };
+    } catch (err: any) {
+      // Log unexpected error for debugging
+      // eslint-disable-next-line no-console
+
+      const msg = String(err?.message || err || '');
+      if (msg === 'USER_NOT_FOUND') {
+        // throw http exception so controller responds with correct status
+        throw new (require('@nestjs/common').HttpException)('User not found', HttpStatus.CONFLICT);
+      }
+      if (msg === 'NO_PASSWORD_SET') {
+        throw new (require('@nestjs/common').HttpException)('No password set for this account', HttpStatus.BAD_REQUEST);
+      }
+      if (msg === 'PASSWORD_MISMATCH') {
+        throw new (require('@nestjs/common').HttpException)('Old password is incorrect', HttpStatus.CONFLICT);
+      }
+
+      throw new (require('@nestjs/common').HttpException)('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    const isPasswordMatch = await bcrypt.compare(changePasswordDto.oldPassword, user.password);
-
-    if (!isPasswordMatch) {
-      throw JSON.stringify(HttpStatus.CONFLICT);
-    }
-    const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(changePasswordDto.newPassword, salt);
-    const newUser = new User({
-      ...user,
-      password: hash,
-    });
-    await this.entityManager.save(newUser);
-    return JSON.stringify(HttpStatus.OK);
   }
 
   async updateUserEmail(tokenData: TokenData, updateEmailDto: UpdateEmailDto) {

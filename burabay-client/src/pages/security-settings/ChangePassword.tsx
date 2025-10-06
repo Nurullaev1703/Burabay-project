@@ -64,11 +64,14 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
           if (response.data == HTTP_STATUS.CONFLICT) {
             setErrorMessage(t("incorrectPassword"));
             setPasswordError(true);
-          } 
-          else if(response.data == HTTP_STATUS.OK){
-            navigate({
-                to:"/auth"
-            })
+          } else if (
+            response.status === 200 ||
+            response.data == HTTP_STATUS.OK ||
+            (typeof response.data === "object" && (response.data as any)?.statusCode === 200) ||
+            String(response.data) === "200"
+          ) {
+            // При успешной смене пароля перенаправляем пользователя на страницу профиля
+            navigate({ to: "/profile" });
           }
           setIsLoading(false);
         })}
