@@ -90,7 +90,6 @@ export const LEForm: FC = function LEForm() {
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
     } catch (e) {
-      console.error(e);
     }
   };
 

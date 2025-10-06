@@ -101,7 +101,6 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
       setAnswerText({ reviewId: "", text: "" });
       closeModal(answerText.reviewId);
     } catch (e) {
-      console.error("Ошибка:", e);
       setIsLoading(false);
     }
   };

@@ -13,7 +13,6 @@ interface AuthFormData {
 }
 
 const AuthPage: React.FC = () => {
-  console.log("Rendering AuthForm");
   const [formData, setFormData] = useState<AuthFormData>({
     email: "",
     password: "",

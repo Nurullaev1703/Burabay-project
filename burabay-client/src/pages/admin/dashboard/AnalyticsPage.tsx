@@ -46,10 +46,9 @@ const AnalyticsPage = () => {
         if (response.status === 200) {
           setData(response.data);
         } else {
-          console.error("Ошибка загрузки данных", response);
         }
       })
-      .catch(console.error)
+      .catch()
       .finally(() => setLoading(false));
   },[]);
 

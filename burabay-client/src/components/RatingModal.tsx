@@ -57,7 +57,6 @@ export const RatingModal: FC<Props> = function RatingModal({ open, onClose }) {
   //         setValue("text", response.data.text);
   //       }
   //     } catch (e) {
-  //       console.log(e);
   //     } finally {
   //       setIsLoading(false);
   //     }

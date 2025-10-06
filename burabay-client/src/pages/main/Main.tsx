@@ -178,7 +178,6 @@ export const Main: FC<Props> = function Main({
         queryKey: ["main-page-categories"] 
       });
     } catch (error) {
-      console.error("Error updating favorites:", error);
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +190,6 @@ export const Main: FC<Props> = function Main({
         });
         setBanners(response.data);
       } catch (error) {
-        console.error("Ошибка при загрузке баннеров:", error);
       }
     };
 

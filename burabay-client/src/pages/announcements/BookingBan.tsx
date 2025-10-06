@@ -71,7 +71,6 @@ export const BookingBan: FC<Props> = function BookingBan({
   function transformData(data: BookingBanDate[]): TransformedData {
     return data.reduce<TransformedData>((acc, item) => {
       if (!item.date || isNaN(new Date(item.date).getTime())) {
-        console.warn("Некорректная дата в bookingBanDate:", item);
         return acc;
       }
 
@@ -370,7 +369,6 @@ export const BookingBan: FC<Props> = function BookingBan({
 
                       setDates((prev) => prev.filter((item) => item !== date));
                     } catch (error) {
-                      console.error("Ошибка при удалении даты:", error);
                     }
                   }}
                   mode="border"

@@ -49,10 +49,6 @@ const MessagesPage: FC<Props> = ({ categories }) => {
       });
 
       if (!Array.isArray(response.data)) {
-        console.error(
-          "Ошибка: Ожидался массив уведомлений, но получено другое значение",
-          response.data
-        );
         return;
       }
 
@@ -74,7 +70,6 @@ const MessagesPage: FC<Props> = ({ categories }) => {
 
       setMessages(groupMessagesByDate(notificationsAsMessages));
     } catch (error) {
-      console.error("Ошибка загрузки уведомлений: ", error);
     } finally {
       setLoading(false);
       scrollToBottom();
@@ -139,7 +134,6 @@ const MessagesPage: FC<Props> = ({ categories }) => {
       setNewMessage("");
       scrollToBottom();
     } catch (error) {
-      console.error("Ошибка отправки уведомления: ", error);
     }
   };
 

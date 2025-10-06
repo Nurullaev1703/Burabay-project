@@ -137,10 +137,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             })
           );
         } else {
-          console.error("Ошибка загрузки данных:", response);
         }
       } catch (error) {
-        console.error("Ошибка запроса:", error);
       } finally {
         setIsLoading(false);
       }
@@ -162,7 +160,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   };
 
   useEffect(() => {
-    console.log("Проверка таймеров");
     const storedDeletions = localStorage.getItem(LOCAL_STORAGE_DELETION_KEY);
     const parsedDeletions: Record<string, number> = storedDeletions
       ? JSON.parse(storedDeletions)
@@ -175,9 +172,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       : {};
 
     const handleExpiredDeletion = async (reviewId: string) => {
-      console.log(
-        `Время удаления для отзыва ${reviewId} истекло. Попытка удалить.`
-      );
       try {
         const response = await apiService.delete({
           url: `/review/${reviewId}`,
@@ -192,21 +186,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             LOCAL_STORAGE_DELETION_KEY,
             JSON.stringify(updatedDeletions)
           );
-          console.log(
-            "Отзыв успешно удален (после истечения времени)",
-            reviewId
-          );
         } else {
-          console.error(
-            "Ошибка удаления отзыва (после истечения времени):",
-            response
-          );
         }
       } catch (error) {
-        console.error(
-          "Ошибка запроса на удаление (после истечения времени):",
-          error
-        );
       } finally {
         const updatedDeletions = { ...parsedDeletions };
         delete updatedDeletions[reviewId];
@@ -220,13 +202,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     Object.keys(parsedDeletions).forEach((reviewId) => {
       const expiryTime = parsedDeletions[reviewId];
       const timeLeft = expiryTime - Date.now();
-      console.log(`Отзыв ${reviewId}, время до удаления: ${timeLeft}`);
 
       if (timeLeft > 0 && !timers.current[reviewId]) {
-        console.log(`Запускается таймер для удаления отзыва ${reviewId}`);
         timers.current[reviewId] = setTimeout(async () => {
           try {
-            console.log("Выполняется удаление отзыва (из useEffect)", reviewId);
             const response = await apiService.delete({
               url: `/review/${reviewId}`,
             });
@@ -240,10 +219,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 LOCAL_STORAGE_DELETION_KEY,
                 JSON.stringify(updatedDeletions)
               );
-              console.log("Отзыв успешно удален (из useEffect)", reviewId);
             }
           } catch (error) {
-            console.error("Ошибка удаления отзыва (из useEffect):", error);
             setReviews((prevReviews) =>
               prevReviews.map((review) =>
                 review.reviewId === reviewId
@@ -275,9 +252,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     });
 
     const handleExpiredAcceptance = async (reviewId: string) => {
-      console.log(
-        `Время принятия для отзыва ${reviewId} истекло. Попытка принять.`
-      );
       try {
         const response = await apiService.patch({
           url: `/admin/check-review/${reviewId}`,
@@ -293,21 +267,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             LOCAL_STORAGE_ACCEPTANCE_KEY,
             JSON.stringify(updatedAcceptances)
           );
-          console.log(
-            "Отзыв успешно принят (после истечения времени)",
-            reviewId
-          );
         } else {
-          console.error(
-            "Ошибка принятия отзыва (после истечения времени):",
-            response
-          );
         }
       } catch (error) {
-        console.error(
-          "Ошибка запроса на принятие (после истечения времени):",
-          error
-        );
       } finally {
         const updatedAcceptances = { ...parsedAcceptances };
         delete updatedAcceptances[reviewId];
@@ -321,13 +283,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     Object.keys(parsedAcceptances).forEach((reviewId) => {
       const expiryTime = parsedAcceptances[reviewId];
       const timeLeft = expiryTime - Date.now();
-      console.log(`Отзыв ${reviewId}, время до принятия: ${timeLeft}`);
 
       if (timeLeft > 0 && !timers.current[reviewId]) {
-        console.log(`Запускается таймер для принятия отзыва ${reviewId}`);
         timers.current[reviewId] = setTimeout(async () => {
           try {
-            console.log("Выполняется принятие отзыва (из useEffect)", reviewId);
             const response = await apiService.patch({
               url: `/admin/check-review/${reviewId}`,
               dto: {},
@@ -342,10 +301,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 LOCAL_STORAGE_ACCEPTANCE_KEY,
                 JSON.stringify(updatedAcceptances)
               );
-              console.log("Отзыв успешно принят (из useEffect)", reviewId);
             }
           } catch (error) {
-            console.error("Ошибка принятия отзыва (из useEffect):", error);
             setReviews((prevReviews) =>
               prevReviews.map((review) =>
                 review.reviewId === reviewId
@@ -382,7 +339,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   }, [reviews]);
 
   const handleDeleteReview = async (reviewId: string) => {
-    console.log("Удалить отзыв", reviewId);
     const deletionTime = Date.now() + 4000;
     const updatedDeletions = JSON.parse(
       localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
@@ -415,7 +371,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
     timers.current[reviewId] = setTimeout(async () => {
       try {
-        console.log("Выполняется удаление отзыва", reviewId);
         const response = await apiService.delete({
           url: `/review/${reviewId}`,
         });
@@ -431,10 +386,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             LOCAL_STORAGE_DELETION_KEY,
             JSON.stringify(storedDeletions)
           );
-          console.log("Отзыв успешно удален", reviewId);
         }
       } catch (error) {
-        console.error("Ошибка удаления отзыва:", error);
         setReviews((prevReviews) =>
           prevReviews.map((review) =>
             review.reviewId === reviewId
@@ -516,7 +469,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           );
         }
       } catch (error) {
-        console.error("Ошибка принятия отзыва:", error);
         setReviews((prevReviews) =>
           prevReviews.map((review) =>
             review.reviewId === reviewId
@@ -553,12 +505,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       });
 
       if (response.status === 200) {
-        console.log("Информация об организации:", response.data);
         setSelectedOrg(response.data);
         setIsModalOpen(true);
       }
     } catch (error) {
-      console.error("Ошибка загрузки данных организации:", error);
     }
   };
 
@@ -569,13 +519,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       });
 
       if (response.status === 200) {
-        console.log("Информация о туристе:", response.data);
-
         setSelectedTourist(response.data);
         setIsTouristModalOpen(true);
       }
     } catch (error) {
-      console.error("Ошибка загрузки данных туриста:", error);
     }
   };
 
@@ -629,7 +576,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки пользователя:", error);
     }
   };
 
@@ -644,7 +590,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка разблокировки пользователя:", error);
     }
   };
 
@@ -659,7 +604,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
     }
   };
 
@@ -757,12 +701,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                                 fetchTouristInfo(review.userId);
                                 fetchTouristInfo(review.user.id);
                               } else if (isLoading) {
-                                console.warn("Данные еще загружаются.");
                               } else {
-                                console.log("review:", review);
-                                console.warn(
-                                  "Не удалось получить ID пользователя для данного отзыва."
-                                );
                               }
                             }}
                           >

@@ -221,7 +221,6 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
 
       setIsLoading(false);
     } catch (e) {
-      console.error("Ошибка при сохранении графика:", e);
       setIsLoading(false);
     }
   };

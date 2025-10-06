@@ -179,7 +179,6 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
       setIsLoading(false);
     } catch (e) {
-      console.error("Ошибка при сохранении графика:", error);
     }
   };
   return (

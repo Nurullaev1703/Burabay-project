@@ -152,9 +152,7 @@ export const AddReview: FC = function AddReview() {
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-      console.log(`✅ Изображение ${imageUrl} удалено с сервера`);
     } catch (error) {
-      console.error("❌ Ошибка при удалении изображения:", error);
     }
   };
 
@@ -250,9 +248,7 @@ export const AddReview: FC = function AddReview() {
         url: "/images/ads",
         dto: { images: uploadedImages },
       });
-      console.log("🗑️ Удалены неиспользованные фото:", uploadedImages);
     } catch (error) {
-      console.error("❌ Ошибка при удалении изображений:", error);
     }
   };
 

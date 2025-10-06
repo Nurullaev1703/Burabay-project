@@ -183,7 +183,6 @@ export default function UsersList({ filters }: Props) {
       setSelectedOrganization(null);
       setIsConfirmModalOpen(false);
     } catch (error) {
-      console.error("Ошибка при выполнении действия:", error);
     }
   };
 
@@ -216,7 +215,6 @@ export default function UsersList({ filters }: Props) {
         });
         if (response.status === 200) {
           setOrganizationAnnouncements(response.data);
-          console.log("Полученные объявления:", response.data);
         } else {
           setAnnouncementsError(
             `Ошибка при загрузке объявлений: ${response.status}`
@@ -246,7 +244,6 @@ export default function UsersList({ filters }: Props) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки пользователя:", error);
     }
   };
 
@@ -262,7 +259,6 @@ export default function UsersList({ filters }: Props) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка разблокировки пользователя:", error);
     }
   };
 
@@ -278,7 +274,6 @@ export default function UsersList({ filters }: Props) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
     }
   };
   const handleUnblockTourist = async (userId: string) => {
@@ -293,7 +288,6 @@ export default function UsersList({ filters }: Props) {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
     }
   };
 

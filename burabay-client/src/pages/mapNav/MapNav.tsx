@@ -107,7 +107,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           setIsLocationDenied(false); // Если доступ есть, сбрасываем флаг отказа
         },
         (error) => {
-          console.error("Ошибка при получении геолокации:", error);
           if (error.code === error.PERMISSION_DENIED) {
             setIsLocationDenied(true); // Если юзер отказался, показываем модалку
           } else {
@@ -116,14 +115,12 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         }
       );
     } else {
-      console.error("Геолокация не поддерживается этим браузером.");
       setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
     }
   }, []);
 
   const calculateRoute = async (latitude: number, longitude: number) => {
     if (!userLocation) {
-      console.error("Геолокация пользователя недоступна!");
       return;
     }
     if (!isLoaded || !window.google || !window.google.maps) {
@@ -139,7 +136,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       setDirectionsResponse(results);
     } catch (error) {
-      console.error("Ошибка при построении маршрута:", error);
     }
   };
 

@@ -202,9 +202,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-      console.log(`Изображение ${imageUrl} удалено с сервера`);
     } catch (error) {
-      console.error(error);
     }
   };
 
@@ -288,9 +286,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/images/ads",
         dto: { images: uploadedImages },
       });
-      console.log("🗑️ Удалены неиспользованные фото:", uploadedImages);
     } catch (error) {
-      console.error("❌ Ошибка при удалении изображений:", error);
     }
   };
 
@@ -409,7 +405,6 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       
       return response.data; // Возвращаем путь без baseUrl для API
     } catch (error) {
-      console.error("Ошибка при загрузке видео:", error);
       return null;
     }
   };

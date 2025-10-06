@@ -136,7 +136,6 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
 
         setAddress(fullAddress || display_name); // Устанавливаем полный адрес или "display_name" как fallback
       } catch (error) {
-        console.error("Ошибка при получении адреса:", error);
       }
     });
 

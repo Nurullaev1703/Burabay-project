@@ -87,7 +87,6 @@ export const IEForm: FC = function IEForm() {
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
     } catch (e) {
-      console.error(e);
     }
   };
   return (

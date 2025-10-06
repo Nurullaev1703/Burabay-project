@@ -431,9 +431,7 @@ export class AdminPanelService {
 
     if (banners.length > 0) {
       await this.bannerRepository.remove(banners);
-      console.log(`Удалено ${banners.length} баннеров`);
     } else {
-      console.log('Нет баннеров для удаления');
     }
   }
 

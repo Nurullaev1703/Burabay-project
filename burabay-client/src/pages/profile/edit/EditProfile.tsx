@@ -62,7 +62,6 @@ export const EditProfile: FC = function EditProfile() {
 
       setIsLoading(false);
     } catch (error) {
-      console.error("Ошибка при сохранении пользователя:", error);
     }
   };
 

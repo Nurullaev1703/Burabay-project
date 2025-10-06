@@ -386,7 +386,6 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     const bookedDates = [];
     ad.bookings.forEach((booking) => {
-      console.log(booking);
       if (!booking.date) {
         bookedDates.push({
           startDate: Utils.dateToString(booking.dateStart),

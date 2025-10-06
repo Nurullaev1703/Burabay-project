@@ -37,10 +37,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ }) => {
                 navigator.serviceWorker
                     .register('/firebase-messaging-sw.js')
                     .then((registration) => {
-                        console.log('Service Worker registered with scope:', registration.scope);
                     })
                     .catch((error) => {
-                        console.error('Service Worker registration failed:', error);
                     });
             }
     
@@ -60,13 +58,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ }) => {
                         // Получение токена для push-уведомлений
                         return messaging.getToken();
                     } else {
-                        console.error('Permission not granted');
                         return null;
                     }
                 })
                 .then(async(token: string | null) => {
                     if (token) {
-                        console.log('Push token:', token);
                         setPushToken(token);
                         // Отправка токена на сервер для сохранения
                         await apiService.post({
@@ -78,7 +74,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ }) => {
                     }
                 })
                 .catch((error: any) => {
-                    console.error('Error getting push token:', error);
                 })
                 .finally(() => {
                     // Скрыть модальное окно после обработки разрешения

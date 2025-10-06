@@ -160,11 +160,9 @@ export const Profile: FC = function Profile() {
         setImgSrc(baseUrl + response.data);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error uploading file:", error);
         setIsLoading(false);
       }
     } else {
-      console.error("No file selected");
     }
   };
 
@@ -173,7 +171,6 @@ export const Profile: FC = function Profile() {
     if (selectedFiles && selectedFiles.length > 0) {
       imageChange(selectedFiles[0]);
     } else {
-      console.error("Не выбрано изображение");
     }
   };
 

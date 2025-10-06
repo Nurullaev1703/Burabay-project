@@ -95,11 +95,9 @@ export const Booking: FC = function Booking() {
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
         navigate({ to: `/booking/tourist` });
       } else {
-        console.error(response.data);
       }
       setIsLoading(false);
     } catch (e) {
-      console.error(e);
     } finally {
       setIsLoading(false);
     }

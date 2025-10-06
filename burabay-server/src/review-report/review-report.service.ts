@@ -28,7 +28,6 @@ export class ReviewReportService {
 
   @CatchErrors()
   async create(createReviewReportDto: CreateReviewReportDto, tokenData: TokenData) {
-    console.log(tokenData);
     return await this.dataSource.transaction(async () => {
       const user = await this.userRepository.findOne({
         where: { id: tokenData.id },

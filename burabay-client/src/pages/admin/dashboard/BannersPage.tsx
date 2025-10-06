@@ -50,7 +50,6 @@ const BannersPage: React.FC = () => {
     setError(null);
 
     try {
-      console.log(banner);
       const imagePath = await uploadImage(banner.image, "banners");
 
       const response = await apiService.post({
@@ -63,13 +62,11 @@ const BannersPage: React.FC = () => {
       });
 
       if (response.data) {
-        console.log("Баннер добавлен");
         setBanner({ text: "", image: null, deleteDate: "" });
         setImagePreview(null);
       }
     } catch (error) {
       setError("Ошибка сети");
-      console.error(error);
     } finally {
       setLoading(false);
     }

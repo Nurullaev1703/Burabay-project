@@ -26,10 +26,8 @@ export const OrganizationModal: React.FC<OrganizationModalProps> = ({ orgId, onC
         if (response.status === 200) {
           setOrganization(response.data);
         } else {
-          console.error("Ошибка загрузки данных об организации:", response);
         }
       } catch (error) {
-        console.error("Ошибка запроса:", error);
       } finally {
         setIsLoading(false);
       }

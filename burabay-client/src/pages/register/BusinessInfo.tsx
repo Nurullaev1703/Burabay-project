@@ -97,7 +97,6 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
                 to: "/profile",
               });
             } else {
-              console.error("Ошибка при регистрации");
             }
           }
           setIsLoading(false);

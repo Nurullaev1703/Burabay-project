@@ -27,10 +27,8 @@ export const CancelBooking: FC<Props> = function CancelBooking({
         await queryClient.invalidateQueries({ queryKey: [`/booking/org`] });
         history.back();
       } else {
-        console.log("Ошибка чечни");
       }
     } catch (e) {
-      console.error(e);
     }
   };
 

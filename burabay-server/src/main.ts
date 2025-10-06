@@ -15,13 +15,6 @@ async function bootstrap() {
     logger: winstonLogger,
   });
 
-  // Используем winstonLogger для перенаправления console.*
-  console.log = (...args: any[]) => winstonLogger.log('info', args.join(' '));
-  console.error = (...args: any[]) => winstonLogger.error(args.join(' '));
-  console.warn = (...args: any[]) => winstonLogger.warn(args.join(' '));
-  console.info = (...args: any[]) => winstonLogger.log('info', args.join(' '));
-  console.debug = (...args: any[]) => winstonLogger.debug(args.join(' '));
-
   const config = new DocumentBuilder()
     .setTitle('Burabay')
     .setDescription('server configuration')

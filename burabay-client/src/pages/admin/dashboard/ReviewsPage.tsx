@@ -93,7 +93,6 @@ const ReviewsPage: FC = () => {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка разблокировки пользователя:", error);
     }
   };
 
@@ -108,7 +107,6 @@ const ReviewsPage: FC = () => {
       } else {
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
     }
   };
   const fetchTouristInfo = async (userId: string) => {
@@ -118,13 +116,11 @@ const ReviewsPage: FC = () => {
       });
 
       if (response.status === 200) {
-        console.log("Информация о туристе:", response.data);
 
         setSelectedTourist(response.data);
         setIsTouristModalOpen(response.data);
       }
     } catch (error) {
-      console.error("Ошибка загрузки данных туриста:", error);
     }
   };
 
@@ -227,12 +223,7 @@ const ReviewsPage: FC = () => {
                                   if (!isLoading && review && review.user.id) {
                                     fetchTouristInfo(review.user.id);
                                   } else if (isLoading) {
-                                    console.warn("Данные еще загружаются.");
                                   } else {
-                                    console.log("review:", review);
-                                    console.warn(
-                                      "Не удалось получить ID пользователя для данного отзыва."
-                                    );
                                   }
                                 }}
                               >
