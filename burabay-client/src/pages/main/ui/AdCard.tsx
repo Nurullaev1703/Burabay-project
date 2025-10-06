@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useTransition } from "react";
 import { Announcement } from "../../announcements/model/announcements";
 import { Carousel } from "../../../components/Carousel";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -11,6 +11,7 @@ import FavouriteActiveIcon from "../../../app/icons/favourite-active.svg";
 import { Link } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
+import { useTranslation } from "react-i18next";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
@@ -35,6 +36,7 @@ export const AdCard: FC<Props> = function AdCard({
       };
     })
   );
+  const { t } = useTranslation();
   const addToFavourite = async () => {
     await apiService.get({
       url: `/ad/favorite/${ad.id}`,
@@ -73,7 +75,7 @@ export const AdCard: FC<Props> = function AdCard({
           >
             {ad.price
               ? (ad.price || 0).toLocaleString("ru-RU") + " ₸"
-              : "Свободный доступ"}
+              : (t("free"))}
           </Typography>
           {!isOrganization && (
             <img

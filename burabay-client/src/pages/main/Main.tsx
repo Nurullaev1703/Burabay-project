@@ -268,31 +268,31 @@ export const Main: FC<Props> = function Main({
       )}
 
       {isModalOpen && selectedBanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-[88%] max-w-[800px] max-h-screen overflow-y-auto">
-            <div className="flex justify-between items-center">
-              <div className="w-[44px] h-[44px] cursor-pointer"></div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 mt-12">
+          <div className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[90vh] overflow-y-auto">
+            {/* Header: sticky so title and close are always visible */}
+            <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b">
+              <div className="w-[44px] h-[44px]" />
               <div className="flex-grow text-center">
-                <p className="text-[#0A7D9E] text-[18px] font-semibold">
-                  Баннер
-                </p>
+                <p className="text-[#0A7D9E] text-[18px] font-semibold">Баннер</p>
               </div>
-              <img
-                src={Close}
-                alt="Закрыть"
-                className="w-[44px] h-[44px] cursor-pointer"
+              <button
+                aria-label="Закрыть баннер"
+                className="w-[44px] h-[44px] flex items-center justify-center"
                 onClick={closeModal}
-              />
+              >
+                <img src={Close} alt="Закрыть" className="w-11 h-11" />
+              </button>
             </div>
 
             {/* Контейнер для изображения и текста */}
-            <div className="w-full max-w-full">
+            <div className="w-full max-w-full p-4">
               <img
                 src={`${baseUrl}${selectedBanner.imagePath}`}
                 alt={selectedBanner.text}
-                className="w-full max-w-full max-h-64 mb-4"
+                className="w-full max-w-full max-h-[60vh] object-contain mb-4 rounded-lg"
               />
-              <p className="text-[18px] p-4 break-words box-border w-full max-w-full">
+              <p className="text-[18px] break-words box-border w-full max-w-full">
                 {selectedBanner.text}
               </p>
             </div>
@@ -348,7 +348,7 @@ export const Main: FC<Props> = function Main({
                 className="font-medium text-[14px] text-blue100"
                 onClick={() => setIsEditFavourite(!isEditFavourite)}
               >
-                {"Изменить"}
+                {t("change")}
               </button>
             )}
           </div>
