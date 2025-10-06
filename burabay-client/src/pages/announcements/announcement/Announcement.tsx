@@ -250,6 +250,7 @@ export const Announcement: FC<Props> = function Announcement({
           open={showModal}
           onClose={() => setShowModal(false)}
           adId={announcement.id}
+          isAdmin={roleService.getValue() === ROLE_TYPE.BUSINESS ? false : undefined}
         />
       )}
       {isFavouriteModal && <FavouriteHint />}

@@ -10,9 +10,11 @@ interface Props {
   onClose: () => void;
   adId: string
   isAdmin?: boolean;
+  returnTo?: string;
+  onAfterDelete?: () => void;
 }
 
-export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId, isAdmin }) {
+export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId, isAdmin, returnTo, onAfterDelete }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const handleDeleteAd = async() => {
@@ -20,9 +22,31 @@ export const ModalDelete: FC<Props> = function ModalDelete({ open, onClose, adId
       url: `/ad/${adId}`
     })
     if (response.data) {
-      navigate({
-        to:"/announcements"
-      })
+      // Если передан callback — вызываем его (позволяет родителю сам управлять редиректом)
+      if (onAfterDelete) {
+        try {
+          onAfterDelete();
+        } catch (e) {
+          // ignore
+        }
+        return;
+      }
+
+      // Если явно передан путь возврата — переходим по нему
+      if (returnTo) {
+        navigate({ to: returnTo });
+        return;
+      }
+
+      // По умолчанию: для админа — вернуться назад в истории (чтобы попасть на страницу,
+      // с которой открылся просмотр объявления), для остальных — на список объявлений
+      if (isAdmin) {
+        // history.back() используется в приложении в других местах и корректно работает
+        // для возврата на предыдущую страницу
+        history.back();
+      } else {
+        navigate({ to: "/announcements" });
+      }
     }
   }
   return (

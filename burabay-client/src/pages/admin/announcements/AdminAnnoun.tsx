@@ -25,7 +25,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
-import { useNavigate } from "@tanstack/react-router";
+// ...existing imports...
 import VerticalIcon from "../../../app/icons/exitBlueSvg.svg";
 import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
@@ -49,7 +49,6 @@ export const AdminAnnoun: FC<Props> = function Announcement({
   review,
 }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [isFavouriteModal, setIsFavouriteModal] = useState<boolean>(false);
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
@@ -102,14 +101,7 @@ export const AdminAnnoun: FC<Props> = function Announcement({
               {t("ad")}
             </Typography>
           </div>
-            <IconContainer
-              align="end"
-              action={() => navigate(
-                {
-                    to: "/admin/dashboard/complaints"
-                }
-              )}
-            >
+            <IconContainer align="end" action={() => history.back()}>
               <img src={VerticalIcon} alt="" />
             </IconContainer>
         </div>
