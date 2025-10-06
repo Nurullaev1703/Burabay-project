@@ -50,7 +50,7 @@ const AnalyticsPage = () => {
       })
       .catch()
       .finally(() => setLoading(false));
-  },[]);
+  }, []);
 
   const loadMoreAds = () => {
     setVisibleAdsCount((prevCount) => prevCount + 20);
@@ -93,7 +93,7 @@ const AnalyticsPage = () => {
       <SideNav className="fixed top-0 left-0 z-50" />
 
       {/* 🔹 Контейнер с аналитикой */}
-      <main className="relative flex flex-wrap h-full p-4 overflow-x-auto ml-[94px] transition-all duration-300 custom-admin:flex-nowrap custom-admin:flex-col">
+      <main className="relative flex flex-wrap h-full p-4 overflow-x-auto admin-scrollbar ml-[94px] transition-all duration-300 custom-admin:flex-nowrap custom-admin:flex-col">
         <div className="flex flex-wrap gap-4 w-full">
           {/* ✅ 1 Колонка */}
           <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
@@ -194,7 +194,7 @@ const AnalyticsPage = () => {
                   <div className="flex-grow mr-[48px] mb-2">
                     <p className="text-[#999999] text-[12px]">Логин</p>
                     <p className="text-4 text-[#000000]">
-                    burabai.travel@gmail.com
+                      burabai.travel@gmail.com
                     </p>
                   </div>
                   <div className="flex-grow mb-2">
@@ -301,7 +301,7 @@ const ScrollableBlock: React.FC<{
   isAscending,
 }) => (
   <div
-    className={`bg-white p-6 rounded-lg shadow-md overflow-auto ${className}`}
+    className={`bg-white p-6 rounded-lg shadow-md overflow-auto admin-scrollbar ${className}`}
   >
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-lg font-semibold">{title}</h2>

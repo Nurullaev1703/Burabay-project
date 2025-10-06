@@ -182,8 +182,7 @@ export default function UsersList({ filters }: Props) {
       setIsConfirmActionModalOpen(false);
       setSelectedOrganization(null);
       setIsConfirmModalOpen(false);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   function capitalizeFirstLetter(string: string): string {
@@ -243,8 +242,7 @@ export default function UsersList({ filters }: Props) {
         setIsModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleUnblockUser = async (userId: string) => {
@@ -258,8 +256,7 @@ export default function UsersList({ filters }: Props) {
         setIsModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleBlockTourist = async (userId: string) => {
@@ -273,8 +270,7 @@ export default function UsersList({ filters }: Props) {
         setIsTouristModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   const handleUnblockTourist = async (userId: string) => {
     try {
@@ -287,8 +283,7 @@ export default function UsersList({ filters }: Props) {
         setIsTouristModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   return (
@@ -301,7 +296,7 @@ export default function UsersList({ filters }: Props) {
       <div className="relative z-50">
         <SideNav />
       </div>
-      <div className="relative z-10 flex flex-col w-full p-4 mt-4 ml-[94px]">
+      <div className="relative z-10 flex flex-col w-full ml-[94px] h-screen pt-4">
         <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
           <input
             type="text"
@@ -416,7 +411,7 @@ export default function UsersList({ filters }: Props) {
           </div>
         </div>
 
-        <div className="mt-16">
+        <div className="flex-1 overflow-y-auto admin-scrollbar p-4 pt-24">
           {isLoading && users.length === 0 ? (
             <Loader />
           ) : (
@@ -485,8 +480,7 @@ export default function UsersList({ filters }: Props) {
                           >
                             {user.isBanned
                               ? UsersFilterStatus.BAN
-                              : "Подтвержден"
-                            }
+                              : "Подтвержден"}
                           </p>
                         )}
 
@@ -772,7 +766,7 @@ export default function UsersList({ filters }: Props) {
       {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto w-[772px]">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"

@@ -508,8 +508,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         setSelectedOrg(response.data);
         setIsModalOpen(true);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const fetchTouristInfo = async (userId: string) => {
@@ -522,8 +521,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         setSelectedTourist(response.data);
         setIsTouristModalOpen(true);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleCancelHint = (reviewId: string) => {
@@ -575,8 +573,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         setIsModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleUnblockUser = async (userId: string) => {
@@ -589,8 +586,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         setIsModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleBlockTourist = async (userId: string) => {
@@ -603,8 +599,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         setIsTouristModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   return (
@@ -641,7 +636,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           </div>
         )}
         <div
-          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto"
+          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto admin-scrollbar"
           style={{ maxHeight: "calc(100vh - 68px)" }}
         >
           {isLoading ? (
@@ -849,7 +844,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg max-h-[90vh] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg max-h-[90vh] w-[772px] overflow-y-auto admin-scrollbar relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"
@@ -962,7 +957,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       )}
       {isTouristModalOpen && selectedTourist && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto admin-scrollbar relative">
             <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
               <button
                 className="h-[44px] w-[44px]"

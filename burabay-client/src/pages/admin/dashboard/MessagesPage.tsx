@@ -133,8 +133,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
 
       setNewMessage("");
       scrollToBottom();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const scrollToBottom = () => {
@@ -170,7 +169,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
         <SideNav />
       </div>{" "}
       <div className="relative z-10 flex flex-col w-full p-4 ml-[94px] h-screen">
-        <div className="flex-1 overflow-y-auto pb-[140px]">
+        <div className="flex-1 overflow-y-auto pb-[140px] admin-scrollbar">
           {loading ? (
             <Loader />
           ) : (
@@ -211,7 +210,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
         <div className="fixed bottom-0 left-[94px] right-0 z-20 backdrop-blur-lg px-4 py-2">
           {selectedRole.toLowerCase() == "турист" && (
             <div className="w-full pb-2">
-              <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent max-h-[80px]">
+              <div className="flex flex-wrap gap-2 overflow-x-auto admin-scrollbar max-h-[80px]">
                 {categories.map((item) => {
                   return (
                     <button

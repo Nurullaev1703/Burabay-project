@@ -57,7 +57,7 @@ const ReviewsPage: FC = () => {
   );
   const [selectedTourist, setSelectedTourist] = useState<Review | null>(null);
   const navigate = useNavigate();
-  const take = 8;
+  const take = 9;
 
   const {
     data,
@@ -92,8 +92,7 @@ const ReviewsPage: FC = () => {
         setIsModalOpen(false);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleBlockTourist = async (userId: string) => {
@@ -106,8 +105,7 @@ const ReviewsPage: FC = () => {
         setIsTouristModalOpen(null);
       } else {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   const fetchTouristInfo = async (userId: string) => {
     try {
@@ -116,12 +114,10 @@ const ReviewsPage: FC = () => {
       });
 
       if (response.status === 200) {
-
         setSelectedTourist(response.data);
         setIsTouristModalOpen(response.data);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const loadMoreReviews = () => {
@@ -141,10 +137,10 @@ const ReviewsPage: FC = () => {
       >
         <SideNav />
       </div>
-      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
-        <div className="max-w-[1200px] w-full mx-auto">
+      <div className="flex-1 flex flex-col items-center transition-all duration-300 ease-linear ml-[94px] h-screen">
+        <div className="max-w-[1200px] w-full mx-auto h-full flex flex-col">
           {reviews.length > 0 && (
-            <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px]">
+            <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px] flex-shrink-0">
               <div className="pl-[32px] h-full flex items-center">
                 <div className="text-left text-[24px] font-normal flex items-center ">
                   Отзывы
@@ -152,183 +148,241 @@ const ReviewsPage: FC = () => {
               </div>
             </div>
           )}
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 py-[10px]">
-            {isLoading ? (
-              <Loader />
-            ) : reviews.length > 0 ? (
-              <>
-                {reviews.slice(0, visibleReviewsCount).map((review) => (
-                  <div
-                    key={review.id}
-                    className={`rounded-[16px] bg-white shadow-md flex flex-col justify-between min-w-[300px] max-w-[600px] w-full mx-auto
+          <div className="flex-1 overflow-y-auto admin-scrollbar px-2">
+            <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-6 py-[10px]">
+              {isLoading ? (
+                <Loader />
+              ) : reviews.length > 0 ? (
+                <>
+                  {reviews.slice(0, visibleReviewsCount).map((review) => (
+                    <div
+                      key={review.id}
+                      className={`rounded-[16px] shadow-md flex flex-col justify-between min-w-[300px] max-w-[400px] w-full mx-auto transition-all duration-300 ease-in-out transform
                       ${
                         reviewHints[review.id]?.status
                           ? reviewHints[review.id].status === "pending"
-                            ? "bg-[#FF5959]"
+                            ? "bg-gradient-to-br from-red-400 to-red-600 scale-95 opacity-90"
                             : reviewHints[review.id].status === "deleted"
-                              ? "bg-[#FF5959]"
-                              : "bg-[#59C183]"
-                          : "bg-white"
+                              ? "bg-gradient-to-br from-red-500 to-red-700 scale-90 opacity-75"
+                              : "bg-gradient-to-br from-green-400 to-green-600 scale-100 opacity-100"
+                          : "bg-white scale-100 opacity-100"
                       }`}
-                    style={{
-                      width: "100%",
-                      maxWidth: "600px",
-                    }}
-                  >
-                    {reviewHints[review.id]?.status ? (
-                      <div
-                        className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
-                          reviewHints[review.id].status === "pending"
-                            ? "bg-[#FF5959]"
-                            : reviewHints[review.id].status === "deleted"
-                              ? "bg-[#FF5959]"
-                              : "bg-[#59C183]"
-                        }`}
-                      >
-                        <div className="p-2 text-white rounded">
-                          {reviewHints[review.id].status === "pending"
-                            ? "Удаление..."
-                            : reviewHints[review.id].status === "deleted"
-                              ? "Комментарий удален"
-                              : "Комментарий оставлен"}
-                        </div>
-                        <button
-                          onClick={() => handleCancelHint(review.id)}
-                          className={`p-2 text-white rounded bg-inherit ${
+                      style={{
+                        width: "100%",
+                        maxWidth: "600px",
+                      }}
+                    >
+                      {reviewHints[review.id]?.status ? (
+                        <div
+                          className={`flex flex-col items-center justify-center p-8 text-center h-full min-h-[200px] rounded-[16px]
+                          ${
                             reviewHints[review.id].status === "pending"
-                              ? "bg-[#FF5959] text-black"
+                              ? "bg-red-600 border-2 border-red-700"
                               : reviewHints[review.id].status === "deleted"
-                                ? "bg-[#FF5959]"
-                                : "bg-[#59C183]"
+                                ? "bg-red-700 border-2 border-red-800"
+                                : "bg-gradient-to-br from-green-400 to-green-600"
                           }`}
                         >
-                          Отменить
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          key={review.id}
-                          className="h-full p-[32px] pr-[32px] flex flex-col"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p
-                                className={`text-sm font-semibold text-gray-700 ${
-                                  !isLoading
-                                    ? "cursor-pointer text-blue-500"
-                                    : "text-gray-500 cursor-default"
-                                }`}
-                                onClick={() => {
-                                  if (!isLoading && review && review.user.id) {
-                                    fetchTouristInfo(review.user.id);
-                                  } else if (isLoading) {
-                                  } else {
-                                  }
-                                }}
-                              >
-                                {review.user.fullName || "Не указано"}
-                              </p>
-                              <p className="text-gray-500 text-sm ">
-                                {formatDate(review.date)}
-                              </p>
-                              <RatingStars rating={review.stars} />
+                          {reviewHints[review.id].status === "pending" ? (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                              <div className="text-white font-bold text-lg">
+                                УДАЛЕНИЕ ОТЗЫВА
+                              </div>
+                              <div className="text-white text-sm font-medium">
+                                Операция выполняется...
+                              </div>
                             </div>
-                            <div
-                              key={review.ad.id}
-                              className="flex items-center gap-4"
-                              onClick={() =>
-                                navigate({
-                                  to: `/admin/announcements/${review.ad.id}`,
-                                })
-                              }
-                            >
-                              <img
-                                src={`${BASE_URL}${review.ad.images[0]}`}
-                                alt="Фото курорта"
-                                className="w-[52px] h-[52px] rounded-md object-cover"
-                                onError={(e) =>
-                                  (e.currentTarget.src = defaultImage)
-                                }
-                              />
-                              <div className="text-right">
-                                <p className="text-sm font-semibold text-gray-700">
-                                  {review.ad.title || "Без названия"}
+                          ) : reviewHints[review.id].status === "deleted" ? (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                <svg
+                                  className="w-6 h-6 text-red-700"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="text-white font-bold text-lg">
+                                ОТЗЫВ УДАЛЕН
+                              </div>
+                              <div className="text-white text-sm font-medium">
+                                Операция выполнена
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-6 h-6 text-green-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="text-white font-medium text-lg">
+                                Операция выполнена
+                              </div>
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => handleCancelHint(review.id)}
+                            className={`mt-6 px-6 py-2 font-bold rounded-lg transition-all duration-200 border-2 shadow-lg
+                              ${
+                                reviewHints[review.id].status === "pending" ||
+                                reviewHints[review.id].status === "deleted"
+                                  ? "bg-white text-red-700 border-white hover:bg-red-50 hover:text-red-800"
+                                  : "bg-white text-green-700 border-white hover:bg-green-50 hover:text-green-800"
+                              }`}
+                          >
+                            Отменить
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            key={review.id}
+                            className="h-full p-5 flex flex-col"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p
+                                  className={`text-sm font-semibold text-gray-700 ${
+                                    !isLoading
+                                      ? "cursor-pointer text-blue-500"
+                                      : "text-gray-500 cursor-default"
+                                  }`}
+                                  onClick={() => {
+                                    if (
+                                      !isLoading &&
+                                      review &&
+                                      review.user.id
+                                    ) {
+                                      fetchTouristInfo(review.user.id);
+                                    } else if (isLoading) {
+                                    } else {
+                                    }
+                                  }}
+                                >
+                                  {review.user.fullName || "Не указано"}
                                 </p>
-                                <div className="text-[16px] text-black flex items-center">
-                                  ⭐ {review.stars}
+                                <p className="text-gray-500 text-sm ">
+                                  {formatDate(review.date)}
+                                </p>
+                                <RatingStars rating={review.stars} />
+                              </div>
+                              <div
+                                key={review.ad.id}
+                                className="flex items-center gap-4"
+                                onClick={() =>
+                                  navigate({
+                                    to: `/admin/announcements/${review.ad.id}`,
+                                  })
+                                }
+                              >
+                                <img
+                                  src={`${BASE_URL}${review.ad.images[0]}`}
+                                  alt="Фото курорта"
+                                  className="w-[52px] h-[52px] rounded-md object-cover"
+                                  onError={(e) =>
+                                    (e.currentTarget.src = defaultImage)
+                                  }
+                                />
+                                <div className="text-right">
+                                  <p className="text-sm font-semibold text-gray-700">
+                                    {review.ad.title || "Без названия"}
+                                  </p>
+                                  <div className="text-[16px] text-black flex items-center">
+                                    ⭐ {review.stars}
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                              {review.text}
+                            </p>
+                            {review.images && (
+                              <div className="flex gap-2 mt-2">
+                                {review.images.map(
+                                  (img: string, idx: number) => (
+                                    <img
+                                      key={idx}
+                                      src={`${BASE_URL}${img}`}
+                                      alt="Фото орагнизации"
+                                      className="w-[80px] h-[80px] rounded-md object-cover"
+                                      onError={(
+                                        e: React.SyntheticEvent<
+                                          HTMLImageElement,
+                                          Event
+                                        >
+                                      ) => (e.currentTarget.src = defaultImage)}
+                                    />
+                                  )
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
-                            {review.text}
-                          </p>
-                          {review.images && (
-                            <div className="flex gap-2 mt-2">
-                              {review.images.map((img: string, idx: number) => (
-                                <img
-                                  key={idx}
-                                  src={`${BASE_URL}${img}`}
-                                  alt="Фото орагнизации"
-                                  className="w-[80px] h-[80px] rounded-md object-cover"
-                                  onError={(
-                                    e: React.SyntheticEvent<
-                                      HTMLImageElement,
-                                      Event
-                                    >
-                                  ) => (e.currentTarget.src = defaultImage)}
-                                />
-                              ))}
+                          {!review.status && (
+                            <div className="flex flex-col items-center space-y-3 w-full pb-8">
+                              <button
+                                onClick={() => handleDeleteReview(review.id)}
+                                className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                              >
+                                Удалить отзыв
+                              </button>
                             </div>
                           )}
-                        </div>
-                        {!review.status && (
-                          <div className="flex flex-col items-center space-y-3 w-full pb-8">
-                            <button
-                              onClick={() => handleDeleteReview(review.id)}
-                              className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                            >
-                              Удалить отзыв
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
+                  <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
+                    <img
+                      src={noComp}
+                      alt="Нет отзывов"
+                      className="w-[150px] h-[150px] mb-4"
+                    />
+                    <p className="text-center text-black text-lg">
+                      Отзывов пока нет
+                    </p>
                   </div>
-                ))}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
-                <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
-                  <img
-                    src={noComp}
-                    alt="Нет отзывов"
-                    className="w-[150px] h-[150px] mb-4"
-                  />
-                  <p className="text-center text-black text-lg">
-                    Отзывов пока нет
-                  </p>
                 </div>
+              )}
+            </div>
+            {hasNextPage && (
+              <div className="flex justify-center mt-8 mb-8 w-full">
+                <button
+                  onClick={loadMoreReviews}
+                  className="bg-[#0A7D9E] text-white w-[400px] h-[54px] rounded-[32px] px-4 py-2 mx-auto"
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Загрузка..." : "Загрузить ещё"}
+                </button>
               </div>
             )}
           </div>
 
-          {hasNextPage && (
-            <div className="flex justify-center mt-8 mb-8 w-full">
-              <button
-                onClick={loadMoreReviews}
-                className="bg-[#0A7D9E] text-white w-[400px] h-[54px] rounded-[32px] px-4 py-2"
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? "Загрузка..." : "Загрузить ещё"}
-              </button>
-            </div>
-          )}
-
           {isTouristModalOpen && selectedTourist && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto admin-scrollbar relative">
                 <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
                   <button
                     className="h-[44px] w-[44px]"
