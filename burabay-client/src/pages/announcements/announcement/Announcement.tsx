@@ -156,8 +156,8 @@ export const Announcement: FC<Props> = function Announcement({
         </div>
       </Header>
 
-      <div className="mx-auto mt-[38px]">
-        <div className="px-4 bg-white pb-4 mb-2">
+      <div className="mx-auto md:max-w-3xl mt-[36px]">
+        <div className="px-4 bg-white pb-4 mb-2 pt-2">
           <div className="relative">
             <div
               className={`absolute w-7 h-7 rounded-full ${categoryBgColors[announcement.subcategory.category.name]} z-10 right-2.5 top-2.5`}
