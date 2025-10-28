@@ -54,7 +54,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
             width="w-[128px]"
             height="h-[128px]"
             borderRadius="rounded-full"
-            imageSrc={`${baseUrl}${org.imgUrl}`}
+            imageSrc={`${org.imgUrl}`}
             errorImage={DefaultImage}
           />
         </div>
