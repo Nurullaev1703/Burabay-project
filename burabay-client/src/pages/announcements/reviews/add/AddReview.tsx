@@ -152,8 +152,7 @@ export const AddReview: FC = function AddReview() {
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleImageUpload = async (index: number, files: FileList) => {
@@ -248,8 +247,7 @@ export const AddReview: FC = function AddReview() {
         url: "/images/ads",
         dto: { images: uploadedImages },
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   // ❗️ Вызываем удаление при размонтировании компонента (например, при отмене создания объявления)
@@ -365,6 +363,7 @@ export const AddReview: FC = function AddReview() {
                 error={Boolean(error?.message)}
                 helperText={error?.message}
                 fullWidth={true}
+                multiline
                 label={t("review")}
                 variant="outlined"
                 placeholder={t("describeImpressions")}

@@ -290,6 +290,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                     value={review.answer.text}
                     sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
                     variant="outlined"
+                    multiline
                     fullWidth={true}
                     label={t("theAnswer")}
                     InputProps={{ readOnly: true }}
@@ -305,6 +306,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                         "&.Mui-focused": { color: "red" },
                       },
                     }}
+                    multiline
                     value={review.report.text}
                     sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
                     variant="outlined"
