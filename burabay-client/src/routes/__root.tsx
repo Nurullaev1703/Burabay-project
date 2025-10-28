@@ -9,10 +9,12 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 import {
   notificationService,
+  roleService,
   tokenService,
 } from "../services/storage/Factory";
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 import { NotFound } from "../pages/not-found/NotFound";
+import { ROLE_TYPE } from "../pages/auth/model/auth-model";
 
 export const AUTH_PATH = [
   "/auth",
@@ -32,11 +34,19 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     if (token && !isAuthenticated) {
       return <InitPage />;
     }
-      // запрещаем переходы на Десктоп кроме админа
+
+    // Проверяем роль пользователя
+    const userRole = roleService.getValue();
+    const isAdmin = userRole === ROLE_TYPE.ADMIN;
+
+    // Разрешаем доступ к announcements для админов на десктопе
+    const isAnnouncementPath = location.pathname.includes("/announcements");
+
+    // запрещаем переходы на Десктоп кроме админа и путей announcements для админа
     if (
       device.type == "desktop" &&
-      !location.pathname.includes("/admin")
-
+      !location.pathname.includes("/admin") &&
+      !(isAdmin && isAnnouncementPath)
     ) {
       return <NotFound />;
     }

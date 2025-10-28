@@ -23,8 +23,8 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-background rounded-lg">
-      <Header>
+    <div className="bg-background rounded-lg max-w-3xl mx-auto">
+      <Header className="md:max-w-3xl md:mx-auto">
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -48,7 +48,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
         </div>
       </Header>
 
-      <div className="px-4 bg-white">
+      <div className="px-4 bg-white md:rounded-lg">
         <div className="flex justify-center px-4 ">
           <CoveredImage
             width="w-[128px]"
@@ -65,9 +65,13 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
           {org.description || "Описание отсутствует"}
         </p>
         <div className="mt-4 pb-4 mb-2">
-          <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
+          <div className="w-full md:w-auto h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
             <div className="flex flex-col items-start select-text">
-              <a href={org.siteUrl} target="_blank" className=" text-[16px] leading-[20px] tracking-[0.4px] text-black select-text">
+              <a
+                href={org.siteUrl}
+                target="_blank"
+                className=" text-[16px] leading-[20px] tracking-[0.4px] text-black select-text"
+              >
                 {org.siteUrl || t("notSpecified")}
               </a>
               <strong className="text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -78,7 +82,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
         </div>
       </div>
       {org.ads.length > 0 ? (
-        <div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white p-4">
+        <div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent md:mb-4 bg-white p-4 md:rounded-lg">
           {org.ads.map((ad, index) => (
             <div
               key={index}
@@ -93,7 +97,9 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500">{t("emptyAd")}</p>
+        <p className="text-gray-500 p-4 bg-white md:rounded-lg">
+          {t("emptyAd")}
+        </p>
       )}
     </div>
   );

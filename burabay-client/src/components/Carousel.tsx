@@ -77,7 +77,7 @@ export const Carousel: FC<Props> = ({ height = "h-60", items, ratio = "", curren
   return (
     <Slider
       {...settings}
-      className={radius + " overflow-y-hidden"}
+      className={radius + " overflow-y-hidden max-h-80"}
       ref={sliderRef}
     >
       {displayedItems.map((item) => (
