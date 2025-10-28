@@ -586,7 +586,7 @@ export default function UsersList({ filters }: Props) {
               <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
                 <p className="text-[#999999] text-[12px] flex">БИН</p>
                 <Typography className="font-medium">
-                  {selectedOrganization.bin ? "—" : "Не указан"}
+                  {selectedOrganization.bin || "Не указан"}
                 </Typography>
               </div>
 
@@ -594,7 +594,9 @@ export default function UsersList({ filters }: Props) {
                 <p className="text-[#999999] text-[12px] flex">
                   {"Номер телефона"}
                 </p>
-                <Typography>Не указан</Typography>
+                <Typography>
+                  {selectedOrganization.phoneNumber || "Не указан"}
+                </Typography>
               </div>
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-[32px]">
@@ -606,26 +608,29 @@ export default function UsersList({ filters }: Props) {
                         Талон о гос.регистрации ИП
                       </p>
                       {selectedOrganization.regCouponPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`regFile.${selectedOrganization.regCouponPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.regCouponPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.regCouponPath
+                            .split("/")
+                            .pop() || "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.regCouponPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.regCouponPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -634,26 +639,28 @@ export default function UsersList({ filters }: Props) {
                     <div>
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`ibanFile.${selectedOrganization.ibanDocPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.ibanDocPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.ibanDocPath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.ibanDocPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.ibanDocPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -664,26 +671,28 @@ export default function UsersList({ filters }: Props) {
                         Устав организации
                       </p>
                       {selectedOrganization.orgRulePath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline"
-                          download="ruleFile"
-                        >
-                          <span>
-                            {selectedOrganization.orgRulePath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.orgRulePath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.orgRulePath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.orgRulePath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

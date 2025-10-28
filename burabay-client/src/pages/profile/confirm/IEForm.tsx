@@ -58,7 +58,11 @@ export const IEForm: FC = function IEForm() {
       if (form.registerFile) formData.append("registerFile", form.registerFile);
       if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
 
-      const responseDocs = await imageService.post<string>({
+      const responseDocs = await imageService.post<{
+        registerFile: string | null;
+        IBANFile: string | null;
+        charterFile: string | null;
+      }>({
         url: `/full-docs`,
         dto: formData,
       });
@@ -68,12 +72,12 @@ export const IEForm: FC = function IEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
-          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
+          regCouponPath: responseDocs.data.registerFile,
+          ibanDocPath: responseDocs.data.IBANFile,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
-      }); 
+      });
       if (user) {
         setUser({
           ...user,
@@ -86,8 +90,7 @@ export const IEForm: FC = function IEForm() {
       if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
-    } catch (e) {
-    }
+    } catch (e) {}
   };
   return (
     <section className="min-h-screen bg-background">
@@ -149,11 +152,11 @@ export const IEForm: FC = function IEForm() {
               helperText={error?.message}
               inputProps={{
                 inputMode: "numeric",
-                maxLength: 12
+                maxLength: 12,
               }}
               onInput={(e) => {
                 const target = e.target as HTMLInputElement;
-                const value = target.value.replace(/\D/g, ''); 
+                const value = target.value.replace(/\D/g, "");
                 target.value = value.slice(0, 12);
               }}
               label={t("IIN")}
