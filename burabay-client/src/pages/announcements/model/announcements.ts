@@ -104,7 +104,7 @@ export interface Announcement {
   createdAt: Date;
   organization: AnnouncementOrganization;
   breaks: Breaks[];
-  schedule: Schedule;
+  schedule: Schedule | null;
   views: number;
   favCount: number;
   avgRating: number;
