@@ -268,8 +268,8 @@ export const Main: FC<Props> = function Main({
       )}
 
       {isModalOpen && selectedBanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 mt-12">
-          <div className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[90vh] overflow-y-auto">
+        <div className="fixed top-0 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[85vh] overflow-y-auto">
             {/* Header: sticky so title and close are always visible */}
             <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b">
               <div className="w-[44px] h-[44px]" />
