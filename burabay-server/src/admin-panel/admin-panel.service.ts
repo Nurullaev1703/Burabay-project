@@ -227,23 +227,28 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      const skipForBoth = filter.page * 15 - 15;
-      users = await this.userRepository.find({
+      // Сначала получаем всех пользователей для фильтрации по имени
+      const allUsers = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди туристов.
+
+      // Применяем поиск по имени если есть
       if (filter.name) {
-        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
+        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, allUsers);
         users = searchedUsers;
+      } else {
+        users = allUsers;
       }
+
+      // Теперь применяем пагинацию к отфильтрованным результатам
+      const skipForBoth = filter.page * 15 - 15;
+      users = users.slice(skipForBoth, skipForBoth + 15);
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
-      const skipForBoth = filter.page * 15 - 15;
-      orgsUsers = await this.userRepository.find({
+      // Сначала получаем все организации для фильтрации по имени
+      const allOrgs = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
         select: {
@@ -265,63 +270,72 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди организацей.
+
+      // Применяем поиск по имени если есть
       if (filter.name) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
+        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, allOrgs);
         orgsUsers = searchedOrgs;
+      } else {
+        orgsUsers = allOrgs;
       }
+
+      // Теперь применяем пагинацию к отфильтрованным результатам
+      const skipForBoth = filter.page * 15 - 15;
+      orgsUsers = orgsUsers.slice(skipForBoth, skipForBoth + 15);
     }
     // Поиск всех пользователей.
     else {
-      // Если параметр both при целочисленном делении равен нулю, то не отправлять запрос для организаций.
-      const skipForOrgs = filter.page * 7 - 7;
-      const skipForUsers = filter.page * 8 - 8;
-      orgsUsers = await this.userRepository.find({
-        where: { organization: orgWhereOptions },
-        relations: {
-          organization: true,
-        },
-        select: {
-          ...selectOptions,
-          organization: {
-            id: true,
-            imgUrl: true,
-            name: true,
-            bin: true,
-            regCouponPath: true,
-            ibanDocPath: true,
-            orgRulePath: true,
-            rating: true,
-            reviewCount: true,
-            isConfirmed: true,
-            isConfirmCanceled: true,
-            description: true,
-            siteUrl: true,
-            isBanned: true,
+      // Получаем всех пользователей и организации для фильтрации
+      const [allOrgs, allUsers] = await Promise.all([
+        this.userRepository.find({
+          where: { organization: orgWhereOptions },
+          relations: { organization: true },
+          select: {
+            ...selectOptions,
+            organization: {
+              id: true,
+              imgUrl: true,
+              name: true,
+              bin: true,
+              regCouponPath: true,
+              ibanDocPath: true,
+              orgRulePath: true,
+              rating: true,
+              reviewCount: true,
+              isConfirmed: true,
+              isConfirmCanceled: true,
+              description: true,
+              siteUrl: true,
+              isBanned: true,
+            },
           },
-        },
-        take: 7,
-        skip: skipForOrgs,
-      });
-      users = await this.userRepository.find({
-        where: usersWhereOptions,
-        select: selectOptions,
-        take: 8,
-        skip: skipForUsers,
-      });
-      // Поиск по имени среди всех пользователей.
+        }),
+        this.userRepository.find({
+          where: usersWhereOptions,
+          select: selectOptions,
+        }),
+      ]);
+
+      // Применяем поиск по имени если есть
       if (filter.name) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
           filter.name,
-          users,
-          orgsUsers,
+          allUsers,
+          allOrgs,
         );
         users = searchedUsers;
         orgsUsers = searchedOrgs;
+      } else {
+        users = allUsers;
+        orgsUsers = allOrgs;
       }
+
+      // Применяем пагинацию к отфильтрованным результатам
+      const skipForOrgs = filter.page * 7 - 7;
+      const skipForUsers = filter.page * 8 - 8;
+      orgsUsers = orgsUsers.slice(skipForOrgs, skipForOrgs + 7);
+      users = users.slice(skipForUsers, skipForUsers + 8);
     }
 
     return [...users, ...orgsUsers];

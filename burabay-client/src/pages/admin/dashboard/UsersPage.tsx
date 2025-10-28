@@ -423,11 +423,11 @@ export default function UsersList({ filters }: Props) {
                   className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                 >
                   <div
-                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px]"
+                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2"
                     onClick={() => openUserDetailsModal(user)}
                     style={{ cursor: "pointer" }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 flex-1">
                       <img
                         src={
                           user.picture
@@ -439,48 +439,42 @@ export default function UsersList({ filters }: Props) {
                         onError={(e) => (e.currentTarget.src = defaultImage)}
                       />
 
-                      <div className="h-[58px] flex flex-col justify-center">
+                      <div className="h-[58px] flex flex-col justify-center flex-1 min-w-0">
                         {user.role === "бизнес" && user.organization?.name ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.organization.name.length > 8
-                              ? user.organization.name.substring(0, 8) + "..."
-                              : user.organization.name}
+                          <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                            {user.organization.name}
                           </h2>
                         ) : user.fullName ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.fullName.length > 6
-                              ? user.fullName.substring(0, 6) + "..."
-                              : user.fullName}
+                          <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                            {user.fullName}
                           </h2>
                         ) : (
-                          <div>
-                            <p>Без названия</p>
-                          </div>
+                          <h2 className="text-[16px] font-roboto">
+                            Без названия
+                          </h2>
                         )}
 
                         {user.role === "бизнес" && (
                           <p
-                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red" : "text-[#39B56B]"}`}
+                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red-500" : "text-[#39B56B]"}`}
                           >
                             {user.organization?.isConfirmCanceled
                               ? "Отклонена"
                               : user.organization?.isBanned
                                 ? "Заблокирован"
-                                : ""}
+                                : user.organization?.isConfirmed
+                                  ? "Подтвержден"
+                                  : ""}
                           </p>
                         )}
 
                         {user.role === "турист" && (
                           <p
                             className={`text-sm ${
-                              user.isBanned
-                                ? "text-red"
-                                : "text-[14px] text-[#39B56B]"
+                              user.isBanned ? "text-red-500" : "text-[#39B56B]"
                             }`}
                           >
-                            {user.isBanned
-                              ? UsersFilterStatus.BAN
-                              : "Подтвержден"}
+                            {user.isBanned ? "Заблокирован" : "Подтвержден"}
                           </p>
                         )}
 
@@ -519,18 +513,18 @@ export default function UsersList({ filters }: Props) {
                       ))}
                   </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center">
-                    <div className="pl-[32px] flex-1">
-                      <p>{user.phoneNumber || "—"}</p>
+                  <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center min-w-0">
+                    <div className="pl-[32px] flex-1 min-w-0">
+                      <p className="truncate">{user.phoneNumber || "—"}</p>
                       <p className="text-[12px] text-[#999999]">
                         Номер телефона для связи
                       </p>
                     </div>
                   </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center">
-                    <div>
-                      <p>{user.email || "—"}</p>
+                  <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center min-w-0">
+                    <div className="min-w-0 pr-4">
+                      <p className="truncate">{user.email || "—"}</p>
                       <p className="text-[12px] text-[#999999]">
                         Email адрес для связи
                       </p>
@@ -558,7 +552,7 @@ export default function UsersList({ filters }: Props) {
           <div className="bg-white h-[636px] p-4 rounded-lg shadow-lg w-[470px]">
             <div className="space-y-[8px]">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1">
                   <img
                     src={`${BASE_URL}${selectedOrganization.imgUrl}`}
                     alt="Лого"
