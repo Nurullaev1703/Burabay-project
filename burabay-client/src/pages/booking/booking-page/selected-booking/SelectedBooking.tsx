@@ -179,7 +179,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           {booking.type === "Аренда" && (
             <div className="px-4 mt-4">
               {booking.bookings.map((b, index) => {
-                  const [isConfirmed, setIsConfirmed] = useState<boolean>(b.status == "подтверждено");
+                  const [isConfirmed, setIsConfirmed] = useState<boolean>(b.status == "подтверждено" || b.status == "завершено" || b.status == "отменено" ? true : false);
                 const [imageSrc, setImageSrc] = useState<string>(
                   baseUrl + b.avatar
                 );
