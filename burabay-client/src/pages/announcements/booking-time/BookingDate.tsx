@@ -90,7 +90,7 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   // Функция проверки, можно ли выбрать эту дату
   const blockedDaysOfWeek = announcement.isFullDay
     ? [] // Если isFullDay === true, не блокируем дни недели
-    : Object.entries(announcement.schedule)
+    : Object.entries(announcement.schedule ?? {})
         .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
         .map(([key]) => {
           const dayMap: Record<string, number> = {

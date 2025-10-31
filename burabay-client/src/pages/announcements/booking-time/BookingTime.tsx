@@ -95,8 +95,8 @@ export const BookingTime: FC<Props> = function BookingTime({
     });
   };
   const blockedDaysOfWeek = announcement.isFullDay
-    ? [] 
-    : Object.entries(announcement.schedule)
+    ? []
+    : Object.entries(announcement.schedule ?? {})
         .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
         .map(([key]) => {
           const dayMap: Record<string, number> = {
