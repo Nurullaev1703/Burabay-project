@@ -67,7 +67,7 @@ export const Announcement: FC<Props> = function Announcement({
       type: "image" as const,
     })),
   ]);
-  const role = roleService.getValue();
+  const role = roleService.hasValue() ? roleService.getValue() : null;
   const [isFavourite, setIsFavourite] = useState<boolean>(
     announcement.isFavourite || false
   );
@@ -114,7 +114,7 @@ export const Announcement: FC<Props> = function Announcement({
               {t("ad")}
             </Typography>
           </div>
-          {roleService.getValue() == ROLE_TYPE.BUSINESS ? (
+          {role === ROLE_TYPE.BUSINESS ? (
             <IconContainer
               align="end"
               action={() => setIsAdActions(!isAdActions)}
@@ -180,7 +180,7 @@ export const Announcement: FC<Props> = function Announcement({
                 ? formatPrice(announcement.price || announcement.priceForChild)
                 : t("free")}
             </h1>
-            {roleService.getValue() === ROLE_TYPE.TOURIST && (
+            {role === ROLE_TYPE.TOURIST && (
               <div onClick={addToFavourite}>
                 <img
                   src={isFavourite ? FavouriteActiveIcon : FavouriteFocusedIcon}
@@ -201,7 +201,7 @@ export const Announcement: FC<Props> = function Announcement({
             </span>
 
             {/* Для организации блок */}
-            {roleService.getValue() === ROLE_TYPE.BUSINESS && (
+            {role === ROLE_TYPE.BUSINESS && (
               <div className="flex">
                 <div className="flex mr-4 items-center">
                   <span className="mr-1 text-sm">
@@ -219,7 +219,7 @@ export const Announcement: FC<Props> = function Announcement({
             )}
 
             {/* Для туриста блок */}
-            {roleService.getValue() === ROLE_TYPE.TOURIST && (
+            {role === ROLE_TYPE.TOURIST && (
               <div className="flex items-center">
                 <div className="flex items-center mr-2">
                   <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
@@ -250,9 +250,7 @@ export const Announcement: FC<Props> = function Announcement({
           open={showModal}
           onClose={() => setShowModal(false)}
           adId={announcement.id}
-          isAdmin={
-            roleService.getValue() === ROLE_TYPE.BUSINESS ? false : undefined
-          }
+          isAdmin={role === ROLE_TYPE.BUSINESS ? false : undefined}
         />
       )}
       {isFavouriteModal && <FavouriteHint />}

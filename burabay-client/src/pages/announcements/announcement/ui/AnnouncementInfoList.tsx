@@ -93,11 +93,12 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
               {t("contactPhone")}
             </span>
           </div>
-          {roleService.getValue() === ROLE_TYPE.TOURIST && (
-            <a href={`tel:${ad.phoneNumber}`}>
-              <img src={PhoneIcon} alt="Звонить" />
-            </a>
-          )}
+          {roleService.hasValue() &&
+            roleService.getValue() === ROLE_TYPE.TOURIST && (
+              <a href={`tel:${ad.phoneNumber}`}>
+                <img src={PhoneIcon} alt="Звонить" />
+              </a>
+            )}
         </li>
       )}
       <li className="border-b border-[#E4E9EA] py-3">

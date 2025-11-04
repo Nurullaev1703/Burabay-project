@@ -50,7 +50,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   const [reviewData, setReviewData] = useState<ReviewAnnouncement>(review);
   const [sortModal, setSortModal] = useState<boolean>(false);
   const [sort, setSort] = useState<"highReview" | "lowReview">("highReview");
-  const role = roleService.getValue();
+  const role = roleService.hasValue() ? roleService.getValue() : null;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toggleReviewText = (index: number) => {
@@ -135,7 +135,12 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         <div className="flex justify-between items-center text-center">
           <IconContainer
             align="start"
-            action={() => navigate({ to: `/announcements/${announcement.id}`, replace:true })}
+            action={() =>
+              navigate({
+                to: `/announcements/${announcement.id}`,
+                replace: true,
+              })
+            }
           >
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -149,9 +154,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
               {t("С высокой оценкой")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-          ></IconContainer>
+          <IconContainer align="end"></IconContainer>
         </div>
       </Header>
 
@@ -409,15 +412,14 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
           </li>
         ))}
       </ul>
-      { 
-        role === ROLE_TYPE.TOURIST && 
+      {role === ROLE_TYPE.TOURIST && (
         <Button
           className="fixed bottom-6 left-4 w-header mt-8 z-10"
           onClick={() => addReview(announcement)}
         >
           {t("writeReview")}
         </Button>
-      }
+      )}
 
       {sortModal && (
         <SortModal

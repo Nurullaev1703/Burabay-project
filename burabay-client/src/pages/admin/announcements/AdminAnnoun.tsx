@@ -129,14 +129,17 @@ export const AdminAnnoun: FC<Props> = function Announcement({
                 ? formatPrice(announcement.price || announcement.priceForChild)
                 : t("free")}
             </h1>
-            {roleService.getValue() === ROLE_TYPE.TOURIST && (
-              <div onClick={addToFavourite}>
-                <img
-                  src={isFavourite ? FavouriteActiveIcon : FavouriteFocusedIcon}
-                  alt="Избранное"
-                />
-              </div>
-            )}
+            {roleService.hasValue() &&
+              roleService.getValue() === ROLE_TYPE.TOURIST && (
+                <div onClick={addToFavourite}>
+                  <img
+                    src={
+                      isFavourite ? FavouriteActiveIcon : FavouriteFocusedIcon
+                    }
+                    alt="Избранное"
+                  />
+                </div>
+              )}
           </div>
           <h1 className="font-medium text-[22px]">{announcement.title}</h1>
 
@@ -150,41 +153,43 @@ export const AdminAnnoun: FC<Props> = function Announcement({
             </span>
 
             {/* Для организации блок */}
-            {roleService.getValue() === ROLE_TYPE.BUSINESS && (
-              <div className="flex">
-                <div className="flex mr-4 items-center">
-                  <span className="mr-1 text-sm">
-                    {announcement.views ? announcement.views : 0}
-                  </span>
-                  <img src={EyeIcon} className="w-[18px]" />
+            {roleService.hasValue() &&
+              roleService.getValue() === ROLE_TYPE.BUSINESS && (
+                <div className="flex">
+                  <div className="flex mr-4 items-center">
+                    <span className="mr-1 text-sm">
+                      {announcement.views ? announcement.views : 0}
+                    </span>
+                    <img src={EyeIcon} className="w-[18px]" />
+                  </div>
+                  <div className="flex items-center">
+                    <span className="mr-1 text-sm">
+                      {announcement.favCount ? announcement.favCount : 0}
+                    </span>
+                    <img src={FavouriteIcon} className="w-[14px]" />
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <span className="mr-1 text-sm">
-                    {announcement.favCount ? announcement.favCount : 0}
-                  </span>
-                  <img src={FavouriteIcon} className="w-[14px]" />
-                </div>
-              </div>
-            )}
+              )}
 
             {/* Для туриста блок */}
-            {roleService.getValue() === ROLE_TYPE.TOURIST && (
-              <div className="flex items-center">
-                <div className="flex items-center mr-2">
-                  <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
-                  <span className="mr-1">
-                    {announcement.avgRating ? announcement.avgRating : 0}
+            {roleService.hasValue() &&
+              roleService.getValue() === ROLE_TYPE.TOURIST && (
+                <div className="flex items-center">
+                  <div className="flex items-center mr-2">
+                    <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
+                    <span className="mr-1">
+                      {announcement.avgRating ? announcement.avgRating : 0}
+                    </span>
+                  </div>
+                  <div
+                    className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
+                  ></div>
+                  <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
+                    {announcement.reviewCount ? announcement.reviewCount : 0}{" "}
+                    {t("grades")}
                   </span>
                 </div>
-                <div
-                  className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
-                ></div>
-                <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
-                  {announcement.reviewCount ? announcement.reviewCount : 0}{" "}
-                  {t("grades")}
-                </span>
-              </div>
-            )}
+              )}
           </div>
 
           <p className="mb-4 leading-5">{announcement.description}</p>

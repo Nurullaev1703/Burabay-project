@@ -36,7 +36,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     }
 
     // Проверяем роль пользователя
-    const userRole = roleService.getValue();
+    const userRole = roleService.hasValue() ? roleService.getValue() : null;
     const isAdmin = userRole === ROLE_TYPE.ADMIN;
 
     // Разрешаем доступ к announcements для админов на десктопе

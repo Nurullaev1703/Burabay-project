@@ -31,11 +31,11 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
 }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isCancel, setIsCancel] = useState<boolean>(false);
-  const userRole = roleService.getValue();
+  const userRole = roleService.hasValue() ? roleService.getValue() : null;
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
@@ -163,14 +163,14 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                         </span>
                       )}
                     </div>
-                    <span className={` flex justify-center items-center gap-4 ${COLORS_TEXT.blue200}`}>
+                    <span
+                      className={` flex justify-center items-center gap-4 ${COLORS_TEXT.blue200}`}
+                    >
                       {formatPrice(booking.price)}
                       <img src={ArrowRightIcon} alt="" />
                     </span>
                   </div>
-                  <div>
-
-                  </div>
+                  <div></div>
                 </li>
               ))}
             </ul>
@@ -179,7 +179,13 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           {booking.type === "Аренда" && (
             <div className="px-4 mt-4">
               {booking.bookings.map((b, index) => {
-                  const [isConfirmed, setIsConfirmed] = useState<boolean>(b.status == "подтверждено" || b.status == "завершено" || b.status == "отменено" ? true : false);
+                const [isConfirmed, setIsConfirmed] = useState<boolean>(
+                  b.status == "подтверждено" ||
+                    b.status == "завершено" ||
+                    b.status == "отменено"
+                    ? true
+                    : false
+                );
                 const [imageSrc, setImageSrc] = useState<string>(
                   baseUrl + b.avatar
                 );
@@ -245,20 +251,20 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                       </li>
                     </ul>
                     {!isConfirmed && (
-                    <Button
-                    className={isConfirmed ? "hidden" : ""}
-                    onClick={async() => {
-                       await apiService.patch({
-                        url: `/booking/${booking.bookings[0].bookingId}/confirm`
-                        
-                      })
-                      setIsConfirmed(true);
-                      navigate({
-                        to: "/booking/business"
-                      })
-                    }}>
-                      {t("accept")}
-                    </Button>
+                      <Button
+                        className={isConfirmed ? "hidden" : ""}
+                        onClick={async () => {
+                          await apiService.patch({
+                            url: `/booking/${booking.bookings[0].bookingId}/confirm`,
+                          });
+                          setIsConfirmed(true);
+                          navigate({
+                            to: "/booking/business",
+                          });
+                        }}
+                      >
+                        {t("accept")}
+                      </Button>
                     )}
                     {b.status !== "отменено" && (
                       <Button
@@ -274,11 +280,11 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                       onClose={() => setIsCancel(false)}
                       bookingId={b.bookingId}
                     />
-                  </div>    
-                );            
-              })}      
-          </div>
-          )}        
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
       {/* РОЛЬ ТУРИСТА */}
@@ -291,7 +297,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           open={showModal}
           onClose={() => setShowModal(false)}
           booking={selectedBooking}
-        />     
+        />
       )}
     </section>
   );

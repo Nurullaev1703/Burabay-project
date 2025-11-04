@@ -223,22 +223,26 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
         <Button
           mode="transparent"
           className="mb-4"
-          onClick={() => navigate({ to: `/announcements/reviews/${ad.id}`, replace:true })}
+          onClick={() =>
+            navigate({ to: `/announcements/reviews/${ad.id}`, replace: true })
+          }
         >
           {t("viewAllReviews")}
         </Button>
       )}
-      {roleService.getValue() === ROLE_TYPE.TOURIST && ad.isBookable && (
-        <Button
-          onClick={() =>
-            ad.subcategory.category.name === "Жилье"
-              ? navigate({ to: `/announcements/booking-date/${ad.id}` })
-              : navigate({ to: `/announcements/booking-time/${ad.id}` })
-          }
-        >
-          {t("toBook")}
-        </Button>
-      )}
+      {roleService.hasValue() &&
+        roleService.getValue() === ROLE_TYPE.TOURIST &&
+        ad.isBookable && (
+          <Button
+            onClick={() =>
+              ad.subcategory.category.name === "Жилье"
+                ? navigate({ to: `/announcements/booking-date/${ad.id}` })
+                : navigate({ to: `/announcements/booking-time/${ad.id}` })
+            }
+          >
+            {t("toBook")}
+          </Button>
+        )}
     </div>
   );
 };
