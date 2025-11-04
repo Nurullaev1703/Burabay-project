@@ -42,6 +42,12 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     // Разрешаем доступ к announcements для админов на десктопе
     const isAnnouncementPath = location.pathname.includes("/announcements");
 
+    // Блокируем доступ к административным путям со смартфонов и планшетов
+    const isAdminPath = location.pathname.includes("/admin");
+    if (isAdminPath && device.type !== "desktop") {
+      return <NotFound />;
+    }
+
     // запрещаем переходы на Десктоп кроме админа и путей announcements для админа
     if (
       device.type == "desktop" &&

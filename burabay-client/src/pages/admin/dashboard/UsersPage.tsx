@@ -825,26 +825,29 @@ export default function UsersList({ filters }: Props) {
                   </Typography>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockTourist(selectedUser.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockTourist(selectedUser.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
+                  {selectedUser.isBanned ? (
+                    <div>
+                      <button
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleUnblockTourist(selectedUser.id);
+                        }}
+                      >
+                        Разблокировать
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleBlockTourist(selectedUser.id);
+                        }}
+                      >
+                        Заблокировать пользователя
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : selectedUser.role === "бизнес" ? (
@@ -909,26 +912,29 @@ export default function UsersList({ filters }: Props) {
                 </div>
 
                 <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
+                  {selectedUser.organization?.isBanned ? (
+                    <div>
+                      <button
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleUnblockUser(selectedUser.organization.id);
+                        }}
+                      >
+                        Разблокировать
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleBlockUser(selectedUser.organization.id);
+                        }}
+                      >
+                        Заблокировать пользователя
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

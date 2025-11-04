@@ -15,6 +15,7 @@ import { DefaultForm } from "../auth/ui/DefaultForm";
 import ClosedEye from "../../app/icons/close-eye.svg";
 import OpenedEye from "../../app/icons/open-eye.svg";
 import { HTTP_STATUS } from "../../services/api/ServerData";
+import { Hint } from "../../shared/ui/Hint";
 
 // форма отслеживает данные
 interface FormType {
@@ -29,6 +30,7 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showErrorHint, setShowErrorHint] = useState<boolean>(false);
   const {
     handleSubmit,
     control,
@@ -57,23 +59,55 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
       <DefaultForm
         onSubmit={handleSubmit(async (form) => {
           setIsLoading(true);
-          const response = await apiService.patch<string>({
-            url: "/auth/change-password",
-            dto: form,
-          });
-          if (response.data == HTTP_STATUS.CONFLICT) {
-            setErrorMessage(t("incorrectPassword"));
-            setPasswordError(true);
-          } else if (
-            response.status === 200 ||
-            response.data == HTTP_STATUS.OK ||
-            (typeof response.data === "object" && (response.data as any)?.statusCode === 200) ||
-            String(response.data) === "200"
-          ) {
-            // При успешной смене пароля перенаправляем пользователя на страницу профиля
-            navigate({ to: "/profile" });
+          setPasswordError(false);
+          setErrorMessage("");
+          setShowErrorHint(false);
+
+          try {
+            const response = await apiService.patch<string>({
+              url: "/auth/change-password",
+              dto: form,
+            });
+
+            // Проверяем успешный ответ
+            if (
+              response.status === 200 ||
+              response.data == HTTP_STATUS.OK ||
+              (typeof response.data === "object" &&
+                (response.data as any)?.statusCode === 200) ||
+              String(response.data) === "200"
+            ) {
+              // При успешной смене пароля перенаправляем пользователя на страницу профиля
+              navigate({ to: "/profile" });
+            } else if (
+              response.data == HTTP_STATUS.CONFLICT ||
+              response.status === 409
+            ) {
+              // Неправильный старый пароль
+              setErrorMessage(t("incorrectPassword"));
+              setPasswordError(true);
+              setShowErrorHint(true);
+              setTimeout(() => {
+                setShowErrorHint(false);
+              }, 3000);
+            } else {
+              // Другая ошибка
+              setErrorMessage(t("defaultError"));
+              setShowErrorHint(true);
+              setTimeout(() => {
+                setShowErrorHint(false);
+              }, 3000);
+            }
+          } catch (error) {
+            // Обработка ошибок сети или сервера
+            setErrorMessage(t("defaultError"));
+            setShowErrorHint(true);
+            setTimeout(() => {
+              setShowErrorHint(false);
+            }, 3000);
+          } finally {
+            setIsLoading(false);
           }
-          setIsLoading(false);
         })}
         className="flex flex-col h-[60vh]"
       >
@@ -166,6 +200,15 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
             />
           </div>
         </div>
+        {showErrorHint && (
+          <div className="px-4 mb-4">
+            <Hint
+              title={errorMessage}
+              mode="error"
+              className="flex items-center justify-center"
+            />
+          </div>
+        )}
         <Button
           disabled={!isValid || isSubmitting}
           loading={isLoading}
