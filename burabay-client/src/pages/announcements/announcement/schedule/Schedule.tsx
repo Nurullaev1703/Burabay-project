@@ -71,7 +71,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
     mode: "onBlur",
   });
   return (
-    <section className="bg-background min-h-screen">
+    <section className="bg-background md:bg-transparent min-h-screen md:max-w-[1200px] md:mx-auto">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -240,7 +240,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
       </div>
 
       <Button
-        className="fixed bottom-4 left-4 w-header z-10"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-header z-10 md:max-w-[1200px] md:mx-auto"
         onClick={() => history.back()}
       >
         {t("back")}

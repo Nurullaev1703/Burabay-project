@@ -19,8 +19,8 @@ export const Details: FC<Props> = function Details({ announcement }) {
     announcement.details || {}
   );
   return (
-    <section className="bg-background min-h-screen">
-      <Header>
+    <section className="bg-background md:bg-transparent min-h-screen">
+      <Header className="md:max-w-[1200px] md:mx-auto">
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -42,7 +42,7 @@ export const Details: FC<Props> = function Details({ announcement }) {
         </div>
       </Header>
 
-      <div className="bg-white m-4 rounded-lg">
+      <div className="bg-white m-4 rounded-lg md:max-w-[1200px] md:mx-auto">
         <ul>
           {Object.keys(services).map((service, index) => (
             <li
