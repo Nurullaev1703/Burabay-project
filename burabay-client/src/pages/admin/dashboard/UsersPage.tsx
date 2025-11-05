@@ -525,7 +525,7 @@ export default function UsersList({ filters }: Props) {
                           </div>
                         ) : (
                           <button
-                            className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
+                            className="text-[#39B56B] items-center py-3 px-4 gap-2 flex border-[1px] border-[#39B56B] h-[48px] min-w-fit rounded-[16px] mr-[32px]"
                             onClick={(e) => {
                               e.stopPropagation();
                               openConfirmModal(user.organization!);
@@ -535,7 +535,7 @@ export default function UsersList({ filters }: Props) {
                             <img
                               src={arrow}
                               alt=""
-                              className="h-[14px] w-2"
+                              className="w-2"
                             ></img>
                           </button>
                         ))}
