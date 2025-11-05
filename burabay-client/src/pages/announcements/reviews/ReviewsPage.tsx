@@ -22,6 +22,7 @@ import { roleService } from "../../../services/storage/Factory";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import { ImageViewModal } from "./ui/ImageViewModal";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
+import { Hint } from "../../../shared/ui/Hint";
 interface Props {
   announcement: Announcement;
   review: any;
@@ -192,226 +193,232 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
         </div>
       </div>
 
-      <ul className="px-4 flex flex-col gap-2 bg-white pb-32">
-        {sortedReviews.map((review, index) => (
-          <li key={index} className="border-b border-[#E4E9EA] py-4">
-            <div className="flex justify-between items-center mb-2.5">
-              <div className="flex flex-col">
-                <span>
-                  {review.user.fullName ? review.user.fullName : "Безымянный"}
-                </span>
-                <span className={`text-xs ${COLORS_TEXT.gray100}`}>
-                  {review.date
-                    ? new Date(review.date).toLocaleDateString()
-                    : "Нет даты"}
-                </span>
-              </div>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, starIndex) => (
-                  <img
-                    key={starIndex}
-                    src={
-                      starIndex < review.stars ? StarIcon : UnfocusedStarIcon
-                    }
-                    alt={
-                      starIndex < review.stars
-                        ? "Активная звезда"
-                        : "Неактивная звезда"
-                    }
-                    width={16}
-                    height={16}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="leading-5 mb-2.5 break-words">
-              {expandedReviews[index] ? (
-                <>
-                  {review.text}{" "}
-                  <span
-                    className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
-                    onClick={() => toggleReviewText(index)}
-                  >
-                    {t("hide")}
+      {sortedReviews.length === 0 ? (
+        <div className="px-4 py-8 bg-white flex items-center justify-center">
+          <Hint title="Отзывов пока нет" align="center" className="bg-blue200" />
+        </div>
+      ) : (
+        <ul className="px-4 flex flex-col gap-2 bg-white">
+          {sortedReviews.map((review, index) => (
+            <li key={index} className="border-b border-[#E4E9EA] py-4">
+              <div className="flex justify-between items-center mb-2.5">
+                <div className="flex flex-col">
+                  <span>
+                    {review.user.fullName ? review.user.fullName : "Безымянный"}
                   </span>
-                </>
-              ) : (
-                <>
-                  {review.text.length > 150
-                    ? `${review.text.slice(0, 150)}...`
-                    : review.text}{" "}
-                  {review.text.length > 150 && (
+                  <span className={`text-xs ${COLORS_TEXT.gray100}`}>
+                    {review.date
+                      ? new Date(review.date).toLocaleDateString()
+                      : "Нет даты"}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, starIndex) => (
+                    <img
+                      key={starIndex}
+                      src={
+                        starIndex < review.stars ? StarIcon : UnfocusedStarIcon
+                      }
+                      alt={
+                        starIndex < review.stars
+                          ? "Активная звезда"
+                          : "Неактивная звезда"
+                      }
+                      width={16}
+                      height={16}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="leading-5 mb-2.5 break-words">
+                {expandedReviews[index] ? (
+                  <>
+                    {review.text}{" "}
                     <span
                       className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
                       onClick={() => toggleReviewText(index)}
                     >
-                      {t("more")}
+                      {t("hide")}
                     </span>
-                  )}
-                </>
+                  </>
+                ) : (
+                  <>
+                    {review.text.length > 150
+                      ? `${review.text.slice(0, 150)}...`
+                      : review.text}{" "}
+                    {review.text.length > 150 && (
+                      <span
+                        className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
+                        onClick={() => toggleReviewText(index)}
+                      >
+                        {t("more")}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
+                {review.images.map((image, index) => (
+                  <li
+                    key={index}
+                    className="w-20 h-20 flex-shrink-0"
+                    onClick={() => {
+                      setSelectedImages(review.images);
+                      setImageIndex(index);
+                      setImageModal(true);
+                    }}
+                  >
+                    <img
+                      src={baseUrl + image}
+                      alt="Изображение"
+                      className="rounded-lg  w-full h-full object-cover"
+                    />
+                  </li>
+                ))}
+              </ul>
+              {imageModal && (
+                <ImageViewModal
+                  images={selectedImages.map((image, index) => {
+                    return {
+                      index: index,
+                      imgUrl: baseUrl + image,
+                    };
+                  })}
+                  open={imageModal}
+                  onClose={() => setImageModal(false)}
+                  firstItem={imageIndex}
+                />
               )}
-            </div>
 
-            <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
-              {review.images.map((image, index) => (
-                <li
-                  key={index}
-                  className="w-20 h-20 flex-shrink-0"
-                  onClick={() => {
-                    setSelectedImages(review.images);
-                    setImageIndex(index);
-                    setImageModal(true);
-                  }}
-                >
+              <ul>
+                {review.answer && (
+                  <li key={index}>
+                    <TextField
+                      value={review.answer.text}
+                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                      variant="outlined"
+                      multiline
+                      fullWidth={true}
+                      label={t("theAnswer")}
+                      InputProps={{ readOnly: true }}
+                    />
+                  </li>
+                )}
+                {review.report && (
+                  <li key={index}>
+                    <TextField
+                      InputLabelProps={{
+                        sx: {
+                          color: "red",
+                          "&.Mui-focused": { color: "red" },
+                        },
+                      }}
+                      multiline
+                      value={review.report.text}
+                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                      variant="outlined"
+                      fullWidth={true}
+                      label={t("complaint")}
+                      InputProps={{ readOnly: true }}
+                    />
+                  </li>
+                )}
+              </ul>
+
+              {role === "бизнес" && (
+                <div className="flex justify-between mb-4">
                   <img
-                    src={baseUrl + image}
-                    alt="Изображение"
-                    className="rounded-lg  w-full h-full object-cover"
+                    src={WarningIcon}
+                    alt="Опровергнуть"
+                    onClick={() => openModal(review.id, "complain")}
                   />
-                </li>
-              ))}
-            </ul>
-            {imageModal && (
-              <ImageViewModal
-                images={selectedImages.map((image, index) => {
-                  return {
-                    index: index,
-                    imgUrl: baseUrl + image,
-                  };
-                })}
-                open={imageModal}
-                onClose={() => setImageModal(false)}
-                firstItem={imageIndex}
-              />
-            )}
+                  <span
+                    className={`font-semibold ${COLORS_TEXT.blue200}`}
+                    onClick={() => openModal(review.id, "answer")}
+                  >
+                    {t("answer")}
+                  </span>
+                </div>
+              )}
 
-            <ul>
-              {review.answer && (
-                <li key={index}>
+              {modalAnswer[review.id] === "answer" && (
+                <div>
                   <TextField
-                    value={review.answer.text}
                     sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
                     variant="outlined"
-                    multiline
                     fullWidth={true}
-                    label={t("theAnswer")}
-                    InputProps={{ readOnly: true }}
+                    label={t("yourAnswer")}
+                    placeholder={t("writeAnswer")}
+                    onChange={(e) =>
+                      setAnswerText({
+                        reviewId: review.id,
+                        text: e.target.value,
+                      })
+                    }
                   />
-                </li>
+                  <div className="flex justify-between">
+                    <Button
+                      className="mr-2.5"
+                      mode="border"
+                      onClick={() => closeModal(review.id)}
+                    >
+                      {t("cancelBtn")}
+                    </Button>
+                    <Button
+                      onClick={() => handleSubmitAnswer("answer")}
+                      loading={isLoading}
+                    >
+                      {t("answer")}
+                    </Button>
+                  </div>
+                </div>
               )}
-              {review.report && (
-                <li key={index}>
+
+              {modalAnswer[review.id] === "complain" && (
+                <div>
                   <TextField
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    label={t("complaint")}
+                    placeholder={t("writeComplaint")}
+                    onChange={(e) =>
+                      setAnswerText({
+                        reviewId: review.id,
+                        text: e.target.value,
+                      })
+                    }
                     InputLabelProps={{
                       sx: {
                         color: "red",
                         "&.Mui-focused": { color: "red" },
                       },
                     }}
-                    multiline
-                    value={review.report.text}
-                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                    variant="outlined"
-                    fullWidth={true}
-                    label={t("complaint")}
-                    InputProps={{ readOnly: true }}
                   />
-                </li>
+                  <div className="flex justify-between">
+                    <Button
+                      className="mr-2.5"
+                      mode="border"
+                      onClick={() => closeModal(review.id)}
+                    >
+                      {t("cancelBtn")}
+                    </Button>
+                    <Button
+                      onClick={() => handleSubmitAnswer("complain")}
+                      mode="error"
+                      loading={isLoading}
+                    >
+                      {t("complain")}
+                    </Button>
+                  </div>
+                </div>
               )}
-            </ul>
-
-            {role === "бизнес" && (
-              <div className="flex justify-between mb-4">
-                <img
-                  src={WarningIcon}
-                  alt="Опровергнуть"
-                  onClick={() => openModal(review.id, "complain")}
-                />
-                <span
-                  className={`font-semibold ${COLORS_TEXT.blue200}`}
-                  onClick={() => openModal(review.id, "answer")}
-                >
-                  {t("answer")}
-                </span>
-              </div>
-            )}
-
-            {modalAnswer[review.id] === "answer" && (
-              <div>
-                <TextField
-                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                  variant="outlined"
-                  fullWidth={true}
-                  label={t("yourAnswer")}
-                  placeholder={t("writeAnswer")}
-                  onChange={(e) =>
-                    setAnswerText({
-                      reviewId: review.id,
-                      text: e.target.value,
-                    })
-                  }
-                />
-                <div className="flex justify-between">
-                  <Button
-                    className="mr-2.5"
-                    mode="border"
-                    onClick={() => closeModal(review.id)}
-                  >
-                    {t("cancelBtn")}
-                  </Button>
-                  <Button
-                    onClick={() => handleSubmitAnswer("answer")}
-                    loading={isLoading}
-                  >
-                    {t("answer")}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {modalAnswer[review.id] === "complain" && (
-              <div>
-                <TextField
-                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                  variant="outlined"
-                  fullWidth={true}
-                  label={t("complaint")}
-                  placeholder={t("writeComplaint")}
-                  onChange={(e) =>
-                    setAnswerText({
-                      reviewId: review.id,
-                      text: e.target.value,
-                    })
-                  }
-                  InputLabelProps={{
-                    sx: {
-                      color: "red",
-                      "&.Mui-focused": { color: "red" },
-                    },
-                  }}
-                />
-                <div className="flex justify-between">
-                  <Button
-                    className="mr-2.5"
-                    mode="border"
-                    onClick={() => closeModal(review.id)}
-                  >
-                    {t("cancelBtn")}
-                  </Button>
-                  <Button
-                    onClick={() => handleSubmitAnswer("complain")}
-                    mode="error"
-                    loading={isLoading}
-                  >
-                    {t("complain")}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
       {role === ROLE_TYPE.TOURIST && (
         <Button
           className="fixed bottom-6 left-4 w-header mt-8 z-10"

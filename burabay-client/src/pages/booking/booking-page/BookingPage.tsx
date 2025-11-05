@@ -17,7 +17,7 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
-const navigate = useNavigate();
+  const navigate = useNavigate();
   // @ts-ignore
   // const queryParams = new URLSearchParams(location.search);
   // const onlinePayment = queryParams.get("onlinePayment") === "true";
@@ -27,15 +27,14 @@ const navigate = useNavigate();
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
   const isFilterActive = onlinePayment || onSidePayment || canceled;
-  const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(
-    () => {
-      const initial = {};
-      ads.forEach(ad => {
-        (initial as Record<string, string>)[ad.ads[0].ad_id] = baseUrl + ad.ads[0].img;
-      });
-      return initial;
-    }
-  );
+  const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(() => {
+    const initial = {};
+    ads.forEach((ad) => {
+      (initial as Record<string, string>)[ad.ads[0].ad_id] =
+        baseUrl + ad.ads[0].img;
+    });
+    return initial;
+  });
   const [adsList, _] = useState<BookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
   const filteredAds = adsList
@@ -107,51 +106,65 @@ const navigate = useNavigate();
                   // );
                   return (
                     <div key={`${ad.ad_id}`}>
-                    <li className="py-3 border-b border-[#E4E9EA]">
-                      <Link
-                        className="flex justify-between items-center"
-                        to={`/booking/${ad.ad_id}/${category.header}`}
-                      >
-                        <div className="flex">
-                          <img
-                            src={imageSrc}
-                            onError={() => setImagesSrc(prev => ({ ...prev, [ad.ad_id]: DefaultIcon }))}
-                            alt={ad.title}
-                            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                          />
-                          <div>
-                            <span>{ad.title}</span>
-                            <div className="max-w-[300px] truncate">
-                              {ad.times.slice(0, 5).map((time, index) => {
-                                if (!time) return null;
-                                const [timeStr] = time.split("_");
-                                const updatedTime = timeStr.replace(
-                                  /(\d{2}\.\d{2})\.\d{4}/g,
-                                  "$1"
-                                );
+                      <li className="py-3 border-b border-[#E4E9EA]">
+                        <Link
+                          className="flex justify-between items-center"
+                          to={`/booking/${ad.ad_id}/${category.header}`}
+                        >
+                          <div className="flex">
+                            <img
+                              src={imageSrc}
+                              onError={() =>
+                                setImagesSrc((prev) => ({
+                                  ...prev,
+                                  [ad.ad_id]: DefaultIcon,
+                                }))
+                              }
+                              alt={ad.title}
+                              className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                            />
+                            <div>
+                              <span>{ad.title}</span>
+                              <div className="max-w-[300px] truncate">
+                                {ad.times.slice(0, 5).map((time, index) => {
+                                  if (!time) return null;
+                                  const [timeStr] = time.split("_");
+                                  const updatedTime = timeStr.replace(
+                                    /(\d{2}\.\d{2})\.\d{4}/g,
+                                    "$1"
+                                  );
 
-                                return (
-                                  <div className="flex">
-                                  <span key={index} className={COLORS_TEXT.blue200}>
-                                    {updatedTime}
-                                    {index < Math.min(5, ad.times.length) - 1 && ", "}
-                                  </span>
-
-                                  </div>
-                                );
-                              })}
-                              {ad.times.length > 5 && " ..."}
+                                  return (
+                                    <div key={index} className="flex">
+                                      <span className={COLORS_TEXT.blue200}>
+                                        {updatedTime}
+                                        {index <
+                                          Math.min(5, ad.times.length) - 1 &&
+                                          ", "}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                                {ad.times.length > 5 && " ..."}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                        <span className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}>
-                          {ad.status === "в процессе" ? t("waiting") : ad.status === "отменено" ? t("cancelStatus") : ad.status === "подтверждено" ? t("confirmStatus") : ""}
-                        </span>
-                          <img src={ArrowRightIcon} alt="Подробнее" />
-                        </div>
-                      </Link>
-                    </li>
+                          <div className="flex items-center gap-4">
+                            <span
+                              className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}
+                            >
+                              {ad.status === "в процессе"
+                                ? t("waiting")
+                                : ad.status === "отменено"
+                                  ? t("cancelStatus")
+                                  : ad.status === "подтверждено"
+                                    ? t("confirmStatus")
+                                    : ""}
+                            </span>
+                            <img src={ArrowRightIcon} alt="Подробнее" />
+                          </div>
+                        </Link>
+                      </li>
                     </div>
                   );
                 })}
