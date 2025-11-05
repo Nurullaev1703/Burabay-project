@@ -427,6 +427,7 @@
   "optional": "Optional",
   "addDateToBan": "Add a date when booking is unavailable",
   "banTo": "Booking ban for",
+  "selectTimeOrAllDay": "Select time to block or enable 'All day'",
   "newService": "New service",
   "countClient": "Unlimited number of clients",
   "clientsService": "This service or place can be used by an unlimited number of people simultaneously",
@@ -577,7 +578,7 @@
   "contactPhoneDa": "Phone: 87010921405",
   "sectionConsent": "2.8. Consent to Personal Data Processing",
   "sectionConsentText1": "2.8.1. By using the Application, the user confirms their consent to the processing of personal data in accordance with the Law of the Republic of Kazakhstan 'On Personal Data and Their Protection.'",
-  
+
   "terms_of_use": "Terms of Use (Public Offer Agreement)",
   "terms_of_use_description": "These Terms of Use are a public offer in accordance with Article 395 of the Civil Code of the Republic of Kazakhstan. The acceptance of the terms (acceptance) is carried out by the User by starting to use the Burabay Travel Application, which is considered equivalent to concluding an agreement.",
   "general_conditions": "1. General Provisions",
