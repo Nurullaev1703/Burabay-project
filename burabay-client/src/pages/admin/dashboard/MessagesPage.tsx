@@ -81,12 +81,15 @@ const MessagesPage: FC<Props> = ({ categories }) => {
 
     try {
       if (categoryNames.length > 0 && selectedRole.toLowerCase() !== "бизнес") {
-        categoryNames.forEach((category) => {
-          apiService.post({
-            url: "/notification/category/" + category.id,
-            dto: { type: "позитивное", message: newMessage },
-          });
-        });
+        // Отправка уведомлений по всем выбранным категориям параллельно
+        await Promise.all(
+          categoryNames.map((category) =>
+            apiService.post({
+              url: "/notification/category/" + category.id,
+              dto: { type: "позитивное", message: newMessage },
+            })
+          )
+        );
       } else if (selectedRole.toLowerCase() === "бизнес") {
         await apiService.post({
           url: "/notification/organizations",
@@ -133,7 +136,10 @@ const MessagesPage: FC<Props> = ({ categories }) => {
 
       setNewMessage("");
       setTimeout(() => scrollToBottom(), 100);
-    } catch (error) {}
+    } catch (error) {
+      console.error("Ошибка при отправке уведомления:", error);
+      alert("Не удалось отправить уведомление. Попробуйте снова.");
+    }
   };
 
   const scrollToBottom = () => {

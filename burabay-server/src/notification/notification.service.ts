@@ -80,16 +80,19 @@ export class NotificationService {
   async createForAll(createAllNotificationDto: CreateAllNotificationDto) {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
-    const newNotification = this.notificationRepository.create({
-      ...of,
-      createdAt,
-      title: 'Burabay администратор',
-    });
-    await this.notificationRepository.save(newNotification);
 
     // Отправка push-уведомлений всем пользователям
     const users = await this.userRepository.find();
     for (const user of users) {
+      // Создаём уведомление для каждого пользователя
+      const newNotification = this.notificationRepository.create({
+        ...of,
+        createdAt,
+        title: 'Burabay администратор',
+        users: [user],
+      });
+      await this.notificationRepository.save(newNotification);
+
       if (user.pushToken) {
         const payload = {
           data: {
@@ -176,12 +179,6 @@ export class NotificationService {
   async createForTourists(createAllNotificationDto: CreateAllNotificationDto) {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
-    const newNotification = this.notificationRepository.create({
-      ...of,
-      createdAt,
-      title: 'Burabay администратор',
-    });
-    await this.notificationRepository.save(newNotification);
 
     // Получить всех туристов.
     const tourists = await this.userRepository.find({
@@ -190,6 +187,15 @@ export class NotificationService {
 
     // Отправить уведомление всем туристам.
     for (const tourist of tourists) {
+      // Создаём уведомление для каждого туриста
+      const newNotification = this.notificationRepository.create({
+        ...of,
+        createdAt,
+        title: 'Burabay администратор',
+        users: [tourist],
+      });
+      await this.notificationRepository.save(newNotification);
+
       if (tourist.pushToken) {
         const payload = {
           data: {
@@ -219,12 +225,6 @@ export class NotificationService {
   async createForOrganizations(createAllNotificationDto: CreateAllNotificationDto) {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
-    const newNotification = this.notificationRepository.create({
-      ...of,
-      createdAt,
-      title: 'Burabay администратор',
-    });
-    await this.notificationRepository.save(newNotification);
 
     // Получить все организации.
     const organizations = await this.userRepository.find({
@@ -233,6 +233,15 @@ export class NotificationService {
 
     // Отправить всем пользователям организациям уведомления.
     for (const organization of organizations) {
+      // Создаём уведомление для каждой организации
+      const newNotification = this.notificationRepository.create({
+        ...of,
+        createdAt,
+        title: 'Burabay администратор',
+        users: [organization],
+      });
+      await this.notificationRepository.save(newNotification);
+
       if (organization.pushToken) {
         const payload = {
           data: {
@@ -263,15 +272,14 @@ export class NotificationService {
     const { ...of } = dto;
     const createdAt = new Date();
 
-    // Get all users who have this category in favorites
-    const users = await this.userRepository.find({
-      where: {
-        role: ROLE_TYPE.TOURIST,
-        categoriesFavorited: {
-          id: categoryId,
-        },
-      },
-    });
+    // Get all users who have this category in favorites using QueryBuilder
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.categoriesFavorited', 'category', 'category.id = :categoryId', {
+        categoryId,
+      })
+      .where('user.role = :role', { role: ROLE_TYPE.TOURIST })
+      .getMany();
 
     // Send notifications to users with this category in favorites
     for (const user of users) {
