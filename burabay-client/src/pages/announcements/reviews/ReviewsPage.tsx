@@ -195,7 +195,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
       {sortedReviews.length === 0 ? (
         <div className="px-4 py-8 bg-white flex items-center justify-center">
-          <Hint title="Отзывов пока нет" align="center" className="bg-blue200" />
+          <Hint
+            title="Отзывов пока нет"
+            align="center"
+            className="bg-blue200"
+          />
         </div>
       ) : (
         <ul className="px-4 flex flex-col gap-2 bg-white">
@@ -294,7 +298,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
               <ul>
                 {review.answer && (
-                  <li key={index}>
+                  <li key={`answer-${index}`}>
                     <TextField
                       value={review.answer.text}
                       sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
@@ -306,8 +310,8 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                     />
                   </li>
                 )}
-                {review.report && (
-                  <li key={index}>
+                {review.report && role === ROLE_TYPE.BUSINESS && (
+                  <li key={`report-${index}`}>
                     <TextField
                       InputLabelProps={{
                         sx: {
