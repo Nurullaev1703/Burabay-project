@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import NotFoundImg from "../../app/icons/404.svg";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { Button } from "../../shared/ui/Button";
-import { useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 export const NotFound: FC = function NotFound() {
   const { t } = useTranslation();
-  const { history } = useRouter()
+  const { history } = useRouter();
+  const navigate = useNavigate()
   return (
     <section className="flex flex-col items-center min-h-screen">
       <h1
@@ -20,13 +21,14 @@ export const NotFound: FC = function NotFound() {
         alt={t("pageNotFound")}
         className="max-w-72 mx-auto"
       />
-
-      <Button
-        className="fixed bottom-4 left-3 w-header z-10"
-        onClick={() => history.back()}
-      >
-        {t("back")}
-      </Button>
+      <div className="fixed bottom-4 left-3 w-header z-10 space-y-4">
+        <Button mode="transparent" className="" onClick={() => history.back()}>
+          {t("back")}
+        </Button>
+        <Button onClick={() => navigate({ to: "/welcome" })}>
+          {t("returnToMain")}
+        </Button>
+      </div>
     </section>
   );
 };

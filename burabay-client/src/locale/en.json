@@ -666,5 +666,6 @@
   "selectVideo": "Select Video",
   "changeVideo": "Change Video",
   "uploadVideo": "Upload Video",
-  "size": "Size"
+  "size": "Size",
+  "returnToMain": "Return to main"
 }
