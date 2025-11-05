@@ -14,15 +14,8 @@ import { useMatch, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, BookingBanDate } from "./model/announcements";
-import { format } from "date-fns";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
-import "dayjs/locale/ru";
-import "dayjs/locale/kk";
-import "dayjs/locale/en";
 import dayjs, { Dayjs } from "dayjs";
+import { BookingBanCalendar } from "./ui/BookingBanCalendar";
 
 interface Props {
   adId: string;
@@ -32,24 +25,10 @@ interface Props {
 interface DateSettings {
   allDay: boolean;
   times: string[];
+  id?: string; // ID записи на сервере для обновления/удаления
 }
 interface TransformedData {
   [key: string]: DateSettings;
-}
-
-// Кастомный компонент для дня календаря
-function Day(props: PickersDayProps<Dayjs> & { dates?: string[] }) {
-  const { dates = [], day, ...other } = props;
-  const formattedDate = day.format("DD.MM.YYYY");
-  const isAlreadySelected = dates.includes(formattedDate);
-
-  return (
-    <PickersDay
-      {...other}
-      day={day}
-      className={isAlreadySelected ? "already-selected" : ""}
-    />
-  );
 }
 
 export const BookingBan: FC<Props> = function BookingBan({
@@ -65,15 +44,22 @@ export const BookingBan: FC<Props> = function BookingBan({
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
   const { t, i18n } = useTranslation();
 
-  const [dates, setDates] = useState<string[]>(
-    announcement?.bookingBanDate
-      ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime())) // фильтруем нормальные даты
-      ?.map((item) => format(new Date(item.date), "dd.MM.yyyy")) || []
-  );
+  const [dates, setDates] = useState<string[]>(() => {
+    const result =
+      announcement?.bookingBanDate
+        ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime()))
+        ?.map((item) => dayjs(item.date).format("DD.MM.YYYY")) || [];
+    console.log("Инициализация дат:", result);
+    return result;
+  });
 
   const [dateSettings, setDateSettings] = useState<
     Record<string, DateSettings>
-  >(transformData(announcement?.bookingBanDate || []) || {});
+  >(() => {
+    const result = transformData(announcement?.bookingBanDate || []) || {};
+    console.log("Инициализация настроек дат:", result);
+    return result;
+  });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModals, setShowModals] = useState<Record<string, boolean>>({});
   const [showCalendar, setShowCalendar] = useState(false);
@@ -92,7 +78,7 @@ export const BookingBan: FC<Props> = function BookingBan({
       setDates([...dates, newDate]);
       setDateSettings({
         ...dateSettings,
-        [newDate]: { allDay: false, times: [] }, // Изначально нет заблокированных времен
+        [newDate]: { allDay: false, times: [] }, // Изначально нет заблокированных времен, нет ID (новая дата)
       });
     }
   };
@@ -121,12 +107,13 @@ export const BookingBan: FC<Props> = function BookingBan({
         return acc;
       }
 
-      const formattedDate = format(new Date(item.date), "dd.MM.yyyy");
+      const formattedDate = dayjs(item.date).format("DD.MM.YYYY");
 
       if (!acc[formattedDate]) {
         acc[formattedDate] = {
           allDay: item.allDay,
           times: [...item.times],
+          id: item.id, // Сохраняем ID для обновления/удаления
         };
       } else {
         acc[formattedDate].times.push(...item.times);
@@ -202,20 +189,30 @@ export const BookingBan: FC<Props> = function BookingBan({
     setCurrentSelectedDate(null);
   };
 
+  // Конвертируем дату из DD.MM.YYYY в ISO формат для сервера
+  const convertToISODate = (dateString: string): string => {
+    const [day, month, year] = dateString.split(".");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = async () => {
     // Массив, который содержит все данные для отправки
     const datesToSend = dates.map((date) => ({
       adId: adId,
-      date: date,
+      date: convertToISODate(date), // Конвертируем в ISO формат
       allDay: dateSettings[date].allDay,
       times: dateSettings[date].times, // Отправляем заблокированные времена
     }));
+
+    console.log("Отправка дат на сервер:", datesToSend);
 
     // Отправляем один запрос с массивом всех дат
     const response = await apiService.post<string>({
       url: `/booking-ban-date`,
       dto: datesToSend, // отправляем массив с датами
     });
+
+    console.log("Ответ сервера:", response);
 
     // После успешного ответа редиректим пользователя
     if (response.data) {
@@ -325,204 +322,15 @@ export const BookingBan: FC<Props> = function BookingBan({
         </button>
 
         {/* Модальное окно с календарём */}
-        {showCalendar && (
-          <Modal
-            className="flex w-full h-full justify-center items-center p-4"
-            open={showCalendar}
-            onClose={closeCalendar}
-          >
-            <div className="relative w-full max-w-md bg-white rounded-lg">
-              {/* Кнопка закрытия календаря */}
-              <button
-                onClick={closeCalendar}
-                className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-              >
-                <img src={XIcon} className="w-4 h-4" alt="Закрыть" />
-              </button>
-
-              <LocalizationProvider
-                dateAdapter={AdapterDayjs}
-                adapterLocale={locale}
-              >
-                <DateCalendar
-                  showDaysOutsideCurrentMonth
-                  value={currentSelectedDate}
-                  onChange={handleDateChange}
-                  shouldDisableDate={shouldDisableDate}
-                  slots={{
-                    day: Day,
-                  }}
-                  slotProps={{
-                    day: {
-                      dates,
-                    } as any,
-                  }}
-                  sx={{
-                    width: "100%",
-                    maxHeight: "none",
-
-                    // Стили для текущего дня (синий кружок сверху)
-                    "& .MuiPickersDay-today": {
-                      border: "none !important",
-                      position: "relative",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: "4px",
-                        right: "4px",
-                        width: "4px",
-                        height: "4px",
-                        borderRadius: "50%",
-                        backgroundColor: "#0A7D9E",
-                      },
-                    },
-
-                    // Красный фон для выбранной даты
-                    "& .Mui-selected": {
-                      backgroundColor: "#FF4545 !important",
-                      color: "#fff !important",
-                      borderRadius: "50%",
-                      opacity: "1 !important",
-                    },
-                    "& .Mui-selected:hover": {
-                      backgroundColor: "#FF4545 !important",
-                      opacity: "1 !important",
-                    },
-                    "& .Mui-selected:focus": {
-                      backgroundColor: "#FF4545 !important",
-                      opacity: "1 !important",
-                    },
-                    // Убираем opacity для disabled и selected одновременно
-                    "& .Mui-disabled.Mui-selected": {
-                      opacity: "1 !important",
-                      backgroundColor: "#FF4545 !important",
-                    },
-
-                    // Убираем подсветку соседних дат
-                    "& .MuiPickersDay-root": {
-                      fontSize: "14px",
-                      fontWeight: 400,
-                      color: "#000",
-                      borderRadius: "50%",
-                      margin: "2px",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 0, 0, 0.04)",
-                      },
-                      "&:focus": {
-                        backgroundColor: "transparent",
-                      },
-                    },
-
-                    // Убираем эффекты для соседних дат при выборе
-                    "& .MuiPickersDay-root.MuiPickersDay-dayOutsideRangeInterval":
-                      {
-                        backgroundColor: "transparent !important",
-                      },
-
-                    "& .MuiPickersDay-root.MuiPickersDay-dayInsideRangeInterval":
-                      {
-                        backgroundColor: "transparent !important",
-                      },
-
-                    // Стили для уже заблокированных дат (красный круг вокруг)
-                    "& .MuiPickersDay-root.already-selected": {
-                      position: "relative",
-                      color: "#fff !important",
-                      backgroundColor: "#FF4545 !important",
-                      opacity: "1 !important",
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "50%",
-                        backgroundColor: "#FF4545 !important",
-                        pointerEvents: "none",
-                        zIndex: -1,
-                      },
-                    },
-                    "& .MuiPickersDay-root.already-selected:hover": {
-                      backgroundColor: "#FF4545 !important",
-                      opacity: "1 !important",
-                    },
-
-                    // Стили для недоступных дат (серый цвет)
-                    "& .Mui-disabled": {
-                      color: "#DBDBDB !important",
-                    },
-
-                    // Дни вне текущего месяца
-                    "& .MuiPickersDay-dayOutsideMonth": {
-                      color: "#DBDBDB !important",
-                    },
-
-                    // Заголовок календаря - стрелки по бокам, заголовок в центре
-                    "& .MuiPickersCalendarHeader-root": {
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      paddingLeft: "16px",
-                      paddingRight: "16px",
-                      marginTop: "8px",
-                      marginBottom: "8px",
-                      position: "relative",
-                    },
-
-                    // Контейнер с заголовком - растягиваем на всю ширину
-                    "& .MuiPickersCalendarHeader-labelContainer": {
-                      position: "absolute",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      pointerEvents: "none",
-                      textTransform: "capitalize",
-                    },
-
-                    // Название месяца по центру
-                    "& .MuiPickersCalendarHeader-label": {
-                      fontSize: "16px",
-                      fontWeight: 500,
-                      color: "#999999",
-                      textAlign: "center",
-                    },
-
-                    // Стрелки навигации - размещаем по краям
-                    "& .MuiPickersArrowSwitcher-root": {
-                      width: "100%",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      position: "relative",
-                    },
-
-                    "& .MuiPickersArrowSwitcher-button": {
-                      padding: "8px",
-                      color: "#0A7D9E",
-                      zIndex: 1,
-                    },
-
-                    "& .MuiPickersArrowSwitcher-spacer": {
-                      display: "none",
-                    },
-
-                    // Скрываем кнопку переключения вида
-                    "& .MuiPickersCalendarHeader-switchViewButton": {
-                      display: "none",
-                    },
-
-                    // Названия дней недели
-                    "& .MuiDayCalendar-weekDayLabel": {
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      color: "#999999",
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
-          </Modal>
-        )}
+        <BookingBanCalendar
+          open={showCalendar}
+          onClose={closeCalendar}
+          value={currentSelectedDate}
+          onChange={handleDateChange}
+          shouldDisableDate={shouldDisableDate}
+          blockedDates={dates}
+          locale={locale}
+        />
 
         {dates.map((date) => (
           <div
@@ -627,15 +435,25 @@ export const BookingBan: FC<Props> = function BookingBan({
                 </Button>
                 <Button
                   onClick={async () => {
-                    const banDateId = announcement?.bookingBanDate[0]?.id;
-                    try {
-                      await apiService.delete({
-                        url: `/booking-ban-date/${banDateId}`,
-                        dto: { date },
-                      });
+                    const banDateId = dateSettings[date]?.id;
 
-                      setDates((prev) => prev.filter((item) => item !== date));
-                    } catch (error) {}
+                    if (banDateId) {
+                      // Если есть ID - удаляем на сервере
+                      try {
+                        await apiService.delete({
+                          url: `/booking-ban-date/${banDateId}`,
+                        });
+                      } catch (error) {
+                        console.error("Ошибка при удалении даты:", error);
+                      }
+                    }
+
+                    // Удаляем из локального состояния
+                    setDates((prev) => prev.filter((item) => item !== date));
+                    const newSettings = { ...dateSettings };
+                    delete newSettings[date];
+                    setDateSettings(newSettings);
+                    setShowModals((prev) => ({ ...prev, [date]: false }));
                   }}
                   mode="border"
                 >
