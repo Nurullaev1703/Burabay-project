@@ -49,7 +49,6 @@ export const BookingBan: FC<Props> = function BookingBan({
       announcement?.bookingBanDate
         ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime()))
         ?.map((item) => dayjs(item.date).format("DD.MM.YYYY")) || [];
-    console.log("Инициализация дат:", result);
     return result;
   });
 
@@ -57,7 +56,6 @@ export const BookingBan: FC<Props> = function BookingBan({
     Record<string, DateSettings>
   >(() => {
     const result = transformData(announcement?.bookingBanDate || []) || {};
-    console.log("Инициализация настроек дат:", result);
     return result;
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -116,7 +114,9 @@ export const BookingBan: FC<Props> = function BookingBan({
           id: item.id, // Сохраняем ID для обновления/удаления
         };
       } else {
-        acc[formattedDate].times.push(...item.times);
+        // Объединяем времена и удаляем дубликаты
+        const combinedTimes = [...acc[formattedDate].times, ...item.times];
+        acc[formattedDate].times = Array.from(new Set(combinedTimes));
       }
       return acc;
     }, {});
@@ -196,37 +196,87 @@ export const BookingBan: FC<Props> = function BookingBan({
   };
 
   const handleSubmit = async () => {
-    // Массив, который содержит все данные для отправки
-    const datesToSend = dates.map((date) => ({
-      adId: adId,
-      date: convertToISODate(date), // Конвертируем в ISO формат
-      allDay: dateSettings[date].allDay,
-      times: dateSettings[date].times, // Отправляем заблокированные времена
-    }));
+    try {
+      // Разделяем даты на новые (без ID) и существующие (с ID)
+      const newDates: Array<{
+        adId: string;
+        date: string;
+        allDay: boolean;
+        times: string[];
+      }> = [];
+      const existingDates: Array<{
+        id: string;
+        date: string;
+        allDay: boolean;
+        times: string[];
+      }> = [];
 
-    console.log("Отправка дат на сервер:", datesToSend);
+      dates.forEach((date) => {
+        const settings = dateSettings[date];
+        const dateData = {
+          date: convertToISODate(date),
+          allDay: settings.allDay,
+          times: settings.times,
+        };
 
-    // Отправляем один запрос с массивом всех дат
-    const response = await apiService.post<string>({
-      url: `/booking-ban-date`,
-      dto: datesToSend, // отправляем массив с датами
-    });
+        if (settings.id) {
+          // Существующая дата - будем обновлять
+          existingDates.push({
+            id: settings.id,
+            ...dateData,
+          });
+        } else {
+          // Новая дата - будем создавать
+          newDates.push({
+            adId: adId,
+            ...dateData,
+          });
+        }
+      });
+      // Создаём новые даты и сохраняем их ID
+      if (newDates.length > 0) {
+        const response = await apiService.post<BookingBanDate[]>({
+          url: `/booking-ban-date`,
+          dto: newDates,
+        });
 
-    console.log("Ответ сервера:", response);
+        // Обновляем dateSettings с полученными ID
+        if (response.data) {
+          const updatedSettings = { ...dateSettings };
+          response.data.forEach((createdDate) => {
+            const formattedDate = dayjs(createdDate.date).format("DD.MM.YYYY");
+            if (updatedSettings[formattedDate]) {
+              updatedSettings[formattedDate].id = createdDate.id;
+            }
+          });
+          setDateSettings(updatedSettings);
+        }
+      }
 
-    // После успешного ответа редиректим пользователя
-    if (response.data) {
+      // Обновляем существующие даты
+      for (const dateData of existingDates) {
+        const { id, ...updateDto } = dateData;
+        await apiService.patch<string>({
+          url: `/booking-ban-date/${id}`,
+          dto: updateDto,
+        });
+      }
+
+
+      // После успешного сохранения редиректим пользователя
       navigate({
         to: "/announcements/newService/$adId",
         params: {
           adId: adId,
         },
       });
+    } catch (error) {
+      console.error("Ошибка при сохранении дат:", error);
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#F1F2F6]">
+    <main className="min-h-screen bg-[#F1F2F6] pb-16">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -355,10 +405,10 @@ export const BookingBan: FC<Props> = function BookingBan({
                 </Typography>
               ) : (
                 <div className="flex overflow-x-scroll gap-1 mt-1">
-                  {dateSettings[date]?.times.map((time) => (
+                  {dateSettings[date]?.times.map((time, index) => (
                     <Typography
                       color={COLORS_TEXT.gray100}
-                      key={time}
+                      key={`${date}-${time}-${index}`}
                       className="border-gray100 border px-10 py-2.5 rounded-2xl mr-2"
                     >
                       {time}
@@ -403,12 +453,12 @@ export const BookingBan: FC<Props> = function BookingBan({
 
               {!dateSettings[date]?.allDay && serviceTime.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {serviceTime.map((time) => {
+                  {serviceTime.map((time, index) => {
                     const isTimeSelected = selectedTimes.includes(time);
 
                     return (
                       <button
-                        key={time}
+                        key={`${date}-service-${time}-${index}`}
                         onClick={() => toggleTimeSelection(time)}
                         className={`border rounded-2xl px-7 py-2 ${
                           isTimeSelected

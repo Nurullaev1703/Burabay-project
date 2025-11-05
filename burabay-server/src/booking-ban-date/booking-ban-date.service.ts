@@ -29,8 +29,9 @@ export class BookingBanDateService {
       });
       newBookingBanDates.push(newBookingBanDate);
     }
-    await this.bookingBanDateRepository.save(newBookingBanDates);
-    return JSON.stringify(HttpStatus.CREATED);
+    const savedDates = await this.bookingBanDateRepository.save(newBookingBanDates);
+    // Возвращаем созданные записи с ID вместо просто статуса
+    return savedDates;
   }
 
   async findAllByAd(adId: string) {
