@@ -485,6 +485,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             fullscreenControl: false,
             zoomControl: false,
             streetViewControl: false,
+            rotateControl: false,
+            tilt: 0,
+            gestureHandling: "greedy",
           }}
           onLoad={handleMapLoad}
         >

@@ -389,6 +389,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
             fullscreenControl: false,
             zoomControl: false,
             streetViewControl: false,
+            rotateControl: false,
+            tilt: 0,
+            gestureHandling: "greedy",
           }}
           onLoad={(map) => {
             mapRef.current = map;

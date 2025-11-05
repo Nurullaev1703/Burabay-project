@@ -13,6 +13,7 @@ import { Vector as VectorSource } from "ol/source";
 import { Icon, Style } from "ol/style";
 import location from "../../app/icons/main/markerMap.png";
 import { Typography } from "../../shared/ui/Typography";
+import { defaults as defaultInteractions } from "ol/interaction";
 import { Header } from "../../components/Header";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
@@ -92,8 +93,14 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 14,
+        enableRotation: false,
+        constrainRotation: false,
       }),
       controls: [],
+      interactions: defaultInteractions({
+        altShiftDragRotate: false,
+        pinchRotate: false,
+      }),
     });
 
     map.on("click", async (e) => {
@@ -135,8 +142,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         const fullAddress = `${street} ${houseNumber}`.trim(); // Формируем полный адрес
 
         setAddress(fullAddress || display_name); // Устанавливаем полный адрес или "display_name" как fallback
-      } catch (error) {
-      }
+      } catch (error) {}
     });
 
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
