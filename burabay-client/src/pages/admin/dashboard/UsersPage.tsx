@@ -385,10 +385,10 @@ export default function UsersList({ filters }: Props) {
               )}
           </div>
 
-          <div className="relative" ref={statusFilterRef}>
+          <div className="relative min-w-fit" ref={statusFilterRef}>
             <button
               type="button"
-              className="w-[264.5px] flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
+              className="w-[264.5px] min-w-fit flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
               {filters.status
