@@ -192,11 +192,15 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
-    // Если страница не указана, то 1.
-    if (!filter.page) filter.page = 1;
+    // Значения по умолчанию
+    const page = filter.page || 1;
+    const take = filter.take || 10;
+    const skip = (page - 1) * take;
 
     let users: User[] = [],
       orgsUsers: User[] = [];
+    let totalCount = 0;
+
     const selectOptions = {
       id: true,
       fullName: true,
@@ -227,27 +231,27 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      // Сначала получаем всех пользователей для фильтрации по имени
+      // Сначала получаем всех пользователей для фильтрации
       const allUsers = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
       });
 
-      // Применяем поиск по имени если есть
-      if (filter.name) {
-        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, allUsers);
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        const { searchedUsers } = this._searchUsersOrOrgs(filter.searchQuery, allUsers);
         users = searchedUsers;
       } else {
         users = allUsers;
       }
 
-      // Теперь применяем пагинацию к отфильтрованным результатам
-      const skipForBoth = filter.page * 15 - 15;
-      users = users.slice(skipForBoth, skipForBoth + 15);
+      totalCount = users.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      users = users.slice(skip, skip + take);
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
-      // Сначала получаем все организации для фильтрации по имени
+      // Сначала получаем все организации для фильтрации
       const allOrgs = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
@@ -272,17 +276,17 @@ export class AdminPanelService {
         },
       });
 
-      // Применяем поиск по имени если есть
-      if (filter.name) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, allOrgs);
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        const { searchedOrgs } = this._searchUsersOrOrgs(filter.searchQuery, undefined, allOrgs);
         orgsUsers = searchedOrgs;
       } else {
         orgsUsers = allOrgs;
       }
 
-      // Теперь применяем пагинацию к отфильтрованным результатам
-      const skipForBoth = filter.page * 15 - 15;
-      orgsUsers = orgsUsers.slice(skipForBoth, skipForBoth + 15);
+      totalCount = orgsUsers.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      orgsUsers = orgsUsers.slice(skip, skip + take);
     }
     // Поиск всех пользователей.
     else {
@@ -317,10 +321,10 @@ export class AdminPanelService {
         }),
       ]);
 
-      // Применяем поиск по имени если есть
-      if (filter.name) {
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
-          filter.name,
+          filter.searchQuery,
           allUsers,
           allOrgs,
         );
@@ -331,14 +335,27 @@ export class AdminPanelService {
         orgsUsers = allOrgs;
       }
 
-      // Применяем пагинацию к отфильтрованным результатам
-      const skipForOrgs = filter.page * 7 - 7;
-      const skipForUsers = filter.page * 8 - 8;
-      orgsUsers = orgsUsers.slice(skipForOrgs, skipForOrgs + 7);
-      users = users.slice(skipForUsers, skipForUsers + 8);
+      // Объединяем результаты и применяем пагинацию
+      const combined = [...orgsUsers, ...users];
+      totalCount = combined.length;
+      const paginatedCombined = combined.slice(skip, skip + take);
+
+      return {
+        data: paginatedCombined,
+        total: totalCount,
+        page,
+        take,
+        totalPages: Math.ceil(totalCount / take),
+      };
     }
 
-    return [...users, ...orgsUsers];
+    return {
+      data: [...orgsUsers, ...users],
+      total: totalCount,
+      page,
+      take,
+      totalPages: Math.ceil(totalCount / take),
+    };
   }
 
   /** Подтверждение Организации. */
@@ -385,19 +402,25 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  /** Поиск по названию среди Пользователей или Организациий.  */
+  /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */
   private _searchUsersOrOrgs(
-    name: string,
+    searchQuery: string,
     users?: User[],
     orgsUsers?: User[],
   ): { searchedUsers: User[]; searchedOrgs: User[] } {
     const searchedUsers: User[] = [],
       searchedOrgs: User[] = [];
 
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
     if (users) {
       for (const user of users) {
-        const simValue = stringSimilarity(user.fullName, name);
-        if (simValue > 0.2) {
+        // Поиск по имени, email и номеру телефона
+        const nameMatch = stringSimilarity(user.fullName.toLowerCase(), normalizedQuery);
+        const emailMatch = user.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = user.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (nameMatch > 0.2 || emailMatch || phoneMatch) {
           searchedUsers.push(user);
         }
       }
@@ -405,8 +428,12 @@ export class AdminPanelService {
 
     if (orgsUsers) {
       for (const org of orgsUsers) {
-        const simValue = stringSimilarity(org.organization.name, name);
-        if (simValue > 0.2) {
+        // Поиск по названию организации, email и номеру телефона
+        const orgNameMatch = stringSimilarity(org.organization.name.toLowerCase(), normalizedQuery);
+        const emailMatch = org.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = org.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (orgNameMatch > 0.2 || emailMatch || phoneMatch) {
           searchedOrgs.push(org);
         }
       }

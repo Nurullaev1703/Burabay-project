@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -34,46 +34,16 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
-  // const [users, setUsers] = useState<Profile[]>([]);
-  // const [skip, setSkip] = useState(0);
-  // const take = 10;
 
-  useEffect(() => {}, [filters.name, filters.role, filters.status]);
+  // Получаем пользователей с учетом пагинации
+  const { data, isLoading } = useGetUsers({
+    ...filters,
+  });
 
-  // Получаем пользователей с учетом skip/take
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetUsers({
-      ...filters,
-    });
-
-  const users = data?.pages.flat() || [];
-
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  // Callback для последнего элемента списка
-  const lastElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
-
-  // useEffect(() => {
-  //   if (skip === 0) {
-  //     setUsers(fetchedUsers);
-  //   } else if (fetchedUsers.length > 0) {
-  //     setUsers((prev) => [...prev, ...fetchedUsers]);
-  //   }
-  // }, [fetchedUsers, skip]);
+  const users = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 0;
+  const currentPage = data?.page ?? 1;
+  const total = data?.total ?? 0;
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
@@ -102,13 +72,37 @@ export default function UsersList({ filters }: Props) {
 
   const queryClient = useQueryClient();
 
-  // Обновляем фильтры и сбрасываем skip
+  // Обновляем фильтры и сбрасываем на первую страницу
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
       to: "/admin/dashboard/users",
       search: {
         ...filters,
         ...newFilters,
+        page: 1, // Сбрасываем на первую страницу при изменении фильтров
+      },
+    });
+  };
+
+  // Метод для смены страницы
+  const changePage = (newPage: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        page: newPage,
+      },
+    });
+  };
+
+  // Метод для смены количества записей на странице
+  const changePageSize = (newTake: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        take: newTake,
+        page: 1, // Сбрасываем на первую страницу
       },
     });
   };
@@ -185,14 +179,48 @@ export default function UsersList({ filters }: Props) {
     } catch (error) {}
   };
 
+  // Генерация номеров страниц для отображения
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5; // Максимальное количество видимых кнопок страниц
+
+    if (totalPages <= maxVisible + 2) {
+      // Если страниц мало, показываем все
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Всегда показываем первую страницу
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push("...");
+      }
+
+      // Показываем страницы вокруг текущей
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push("...");
+      }
+
+      // Всегда показываем последнюю страницу
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
   function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
-
-  // Загрузка следующей порции пользователей
-  const loadMoreUsers = () => {
-    fetchNextPage();
-  };
 
   const closeUserDetailsModal = () => {
     setSelectedUser(null);
@@ -300,10 +328,10 @@ export default function UsersList({ filters }: Props) {
         <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
           <input
             type="text"
-            placeholder="Поиск"
+            placeholder="Поиск по email, телефону или названию"
             className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
-            value={filters.name ?? ""}
-            onChange={(e) => updateFilters({ name: e.target.value })}
+            value={filters.searchQuery ?? ""}
+            onChange={(e) => updateFilters({ searchQuery: e.target.value })}
           />
 
           <div className="relative" ref={roleFilterRef}>
@@ -412,137 +440,221 @@ export default function UsersList({ filters }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto admin-scrollbar p-4 pt-24">
-          {isLoading && users.length === 0 ? (
+          {isLoading ? (
             <Loader />
           ) : (
-            <div className="grid gap-4">
-              {users.map((user) => (
-                <div
-                  ref={lastElementRef}
-                  key={user.id}
-                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
-                >
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4">
+                {users.map((user) => (
                   <div
-                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2"
-                    onClick={() => openUserDetailsModal(user)}
-                    style={{ cursor: "pointer" }}
+                    key={user.id}
+                    className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                   >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <img
-                        src={
-                          user.picture
-                            ? `${BASE_URL}${user.picture}`
-                            : `${BASE_URL}${user.organization?.imgUrl}`
-                        }
-                        alt={user.fullName}
-                        className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
-                        onError={(e) => (e.currentTarget.src = defaultImage)}
-                      />
+                    <div
+                      className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2"
+                      onClick={() => openUserDetailsModal(user)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="flex items-center space-x-4 flex-1">
+                        <img
+                          src={
+                            user.picture
+                              ? `${BASE_URL}${user.picture}`
+                              : `${BASE_URL}${user.organization?.imgUrl}`
+                          }
+                          alt={user.fullName}
+                          className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
+                          onError={(e) => (e.currentTarget.src = defaultImage)}
+                        />
 
-                      <div className="h-[58px] flex flex-col justify-center flex-1 min-w-0">
-                        {user.role === "бизнес" && user.organization?.name ? (
-                          <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
-                            {user.organization.name}
-                          </h2>
-                        ) : user.fullName ? (
-                          <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
-                            {user.fullName}
-                          </h2>
+                        <div className="h-[58px] flex flex-col justify-center flex-1 min-w-0">
+                          {user.role === "бизнес" && user.organization?.name ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.organization.name}
+                            </h2>
+                          ) : user.fullName ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.fullName}
+                            </h2>
+                          ) : (
+                            <h2 className="text-[16px] font-roboto">
+                              Без названия
+                            </h2>
+                          )}
+
+                          {user.role === "бизнес" && (
+                            <p
+                              className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red-500" : "text-[#39B56B]"}`}
+                            >
+                              {user.organization?.isConfirmCanceled
+                                ? "Отклонена"
+                                : user.organization?.isBanned
+                                  ? "Заблокирован"
+                                  : user.organization?.isConfirmed
+                                    ? "Подтвержден"
+                                    : ""}
+                            </p>
+                          )}
+
+                          {user.role === "турист" && (
+                            <p
+                              className={`text-sm ${
+                                user.isBanned
+                                  ? "text-red-500"
+                                  : "text-[#39B56B]"
+                              }`}
+                            >
+                              {user.isBanned ? "Заблокирован" : "Подтвержден"}
+                            </p>
+                          )}
+
+                          <span className="text-[12px] text-[#999999]">
+                            {user.role === "бизнес"
+                              ? "Организация"
+                              : user.role === "турист"
+                                ? "Турист"
+                                : user.role}
+                          </span>
+                        </div>
+                      </div>
+                      {user.role === ROLE_TYPE.BUSINESS &&
+                        (user.organization?.isConfirmed ? (
+                          <div className="flex items-center mr-8">
+                            <span className="text-[#0A7D9E] mr-4">
+                              Подтвержден
+                            </span>
+                            <img src={confirmed} alt="confirmed" />
+                          </div>
                         ) : (
-                          <h2 className="text-[16px] font-roboto">
-                            Без названия
-                          </h2>
-                        )}
-
-                        {user.role === "бизнес" && (
-                          <p
-                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red-500" : "text-[#39B56B]"}`}
+                          <button
+                            className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openConfirmModal(user.organization!);
+                            }}
                           >
-                            {user.organization?.isConfirmCanceled
-                              ? "Отклонена"
-                              : user.organization?.isBanned
-                                ? "Заблокирован"
-                                : user.organization?.isConfirmed
-                                  ? "Подтвержден"
-                                  : ""}
-                          </p>
-                        )}
+                            Подтверждение
+                            <img
+                              src={arrow}
+                              alt=""
+                              className="h-[14px] w-2"
+                            ></img>
+                          </button>
+                        ))}
+                    </div>
 
-                        {user.role === "турист" && (
-                          <p
-                            className={`text-sm ${
-                              user.isBanned ? "text-red-500" : "text-[#39B56B]"
-                            }`}
-                          >
-                            {user.isBanned ? "Заблокирован" : "Подтвержден"}
-                          </p>
-                        )}
-
-                        <span className="text-[12px] text-[#999999]">
-                          {user.role === "бизнес"
-                            ? "Организация"
-                            : user.role === "турист"
-                              ? "Турист"
-                              : user.role}
-                        </span>
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center min-w-0">
+                      <div className="pl-[32px] flex-1 min-w-0">
+                        <p className="truncate">{user.phoneNumber || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Номер телефона для связи
+                        </p>
                       </div>
                     </div>
-                    {user.role === ROLE_TYPE.BUSINESS &&
-                      (user.organization?.isConfirmed ? (
-                        <div className="flex items-center mr-8">
-                          <span className="text-[#0A7D9E] mr-4">
-                            Подтвержден
+
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center min-w-0">
+                      <div className="min-w-0 pr-4">
+                        <p className="truncate">{user.email || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Email адрес для связи
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Пагинация */}
+              <div className="flex flex-col gap-4 mt-6 bg-white p-4 rounded-[16px]">
+                {/* Информация о записях */}
+                <div className="flex justify-between items-center text-[14px] text-[#999999]">
+                  <span>
+                    Показано{" "}
+                    {users.length > 0
+                      ? (currentPage - 1) * (filters.take ?? 10) + 1
+                      : 0}{" "}
+                    - {Math.min(currentPage * (filters.take ?? 10), total)} из{" "}
+                    {total} записей
+                  </span>
+
+                  {/* Селектор количества записей */}
+                  <div className="flex items-center gap-2">
+                    <span>Показывать:</span>
+                    <select
+                      value={filters.take ?? 10}
+                      onChange={(e) => changePageSize(Number(e.target.value))}
+                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white cursor-pointer hover:border-[#0A7D9E] transition-colors"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span>записей</span>
+                  </div>
+                </div>
+
+                {/* Кнопки переключения страниц */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2">
+                    {/* Кнопка "Назад" */}
+                    <button
+                      onClick={() => changePage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                      title="Предыдущая страница"
+                    >
+                      <img src={Back} alt="Назад" className="w-4 h-4" />
+                    </button>
+
+                    {/* Номера страниц */}
+                    {getPageNumbers().map((pageNum, index) => {
+                      if (pageNum === "...") {
+                        return (
+                          <span
+                            key={`ellipsis-${index}`}
+                            className="px-3 py-2 text-[#999999]"
+                          >
+                            ...
                           </span>
-                          <img src={confirmed} alt="confirmed" />
-                        </div>
-                      ) : (
+                        );
+                      }
+
+                      const isActive = pageNum === currentPage;
+                      return (
                         <button
-                          className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConfirmModal(user.organization!);
-                          }}
+                          key={pageNum}
+                          onClick={() => changePage(pageNum as number)}
+                          className={`
+                            min-w-[40px] px-3 py-2 border rounded-[8px] transition-all
+                            ${
+                              isActive
+                                ? "bg-[#0A7D9E] text-white border-[#0A7D9E] font-semibold"
+                                : "bg-white text-[#333] border-[#EDECEA] hover:bg-[#F5F5F5] hover:border-[#0A7D9E]"
+                            }
+                          `}
                         >
-                          Подтверждение
-                          <img
-                            src={arrow}
-                            alt=""
-                            className="h-[14px] w-2"
-                          ></img>
+                          {pageNum}
                         </button>
-                      ))}
-                  </div>
+                      );
+                    })}
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center min-w-0">
-                    <div className="pl-[32px] flex-1 min-w-0">
-                      <p className="truncate">{user.phoneNumber || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Номер телефона для связи
-                      </p>
-                    </div>
+                    {/* Кнопка "Вперед" */}
+                    <button
+                      onClick={() => changePage(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                      title="Следующая страница"
+                    >
+                      <img
+                        src={arrow}
+                        alt="Вперед"
+                        className="w-4 h-4 rotate-180"
+                      />
+                    </button>
                   </div>
-
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center min-w-0">
-                    <div className="min-w-0 pr-4">
-                      <p className="truncate">{user.email || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Email адрес для связи
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {hasNextPage && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={loadMoreUsers}
-                    disabled={isFetchingNextPage}
-                    className="bg-[#0A7D9E] w-[400px] h-[54px] text-white text-[16px] rounded-[32px] px-4 py-2"
-                  >
-                    {isFetchingNextPage ? "Загрузка..." : "Загрузить еще"}
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../../../../services/api/ApiService";
 import { Profile } from "../../../profile/model/profile";
 
@@ -13,15 +13,27 @@ export enum RoleType {
 }
 
 export interface UsersFilter {
-  name?: string;
+  searchQuery?: string; // Универсальный поиск по email, phone, name организации
   role?: RoleType;
   status?: UsersFilterStatus;
+  page?: number;
+  take?: number; // Количество записей на странице
+}
+
+export interface UsersResponse {
+  data: Profile[];
+  total: number;
+  page: number;
+  take: number;
+  totalPages: number;
 }
 
 export function useGetUsers(filters: UsersFilter) {
-  const name = filters.name ?? "";
+  const searchQuery = filters.searchQuery ?? "";
   const role = filters.role ?? "";
   const status = filters.status ?? "";
+  const page = filters.page ?? 1;
+  const take = filters.take ?? 10;
 
   let isBanned = "";
   let isEmailConfirmed = "";
@@ -32,17 +44,22 @@ export function useGetUsers(filters: UsersFilter) {
     isEmailConfirmed = "false";
   }
 
-  return useInfiniteQuery({
-    queryKey: ["admin-users", filters],
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiService.get<Profile[]>({
-        url: `/admin/users?name=${name}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&page=${pageParam}`,
+  // Нормализованный ключ кеша чтобы избежать дублирования запросов
+  const normalizedKey = {
+    searchQuery,
+    role,
+    status,
+    page,
+    take,
+  };
+
+  return useQuery({
+    queryKey: ["admin-users", normalizedKey],
+    queryFn: async () => {
+      const response = await apiService.get<UsersResponse>({
+        url: `/admin/users?searchQuery=${searchQuery}&role=${role}&isBanned=${isBanned}&isEmailConfirmed=${isEmailConfirmed}&status=${status}&page=${page}&take=${take}`,
       });
       return response.data;
-    },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length === 15 ? allPages.length + 1 : undefined;
     },
   });
 }
