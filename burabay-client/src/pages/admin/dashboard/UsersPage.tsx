@@ -179,41 +179,39 @@ export default function UsersList({ filters }: Props) {
     } catch (error) {}
   };
 
-  // Генерация номеров страниц для отображения
+  // Простая пагинация - показываем только текущую страницу
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisible = 5; // Максимальное количество видимых кнопок страниц
 
-    if (totalPages <= maxVisible + 2) {
-      // Если страниц мало, показываем все
+    // Если страниц мало (до 7), показываем все
+    if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
-    } else {
-      // Всегда показываем первую страницу
-      pages.push(1);
-
-      if (currentPage > 3) {
-        pages.push("...");
-      }
-
-      // Показываем страницы вокруг текущей
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push("...");
-      }
-
-      // Всегда показываем последнюю страницу
-      if (totalPages > 1) {
-        pages.push(totalPages);
-      }
+      return pages;
     }
+
+    // Всегда показываем первую страницу
+    pages.push(1);
+
+    // Логика для отображения средних страниц
+    if (currentPage <= 3) {
+      // Если в начале: 1 2 3 4 ... последняя
+      pages.push(2, 3, 4);
+      pages.push("...");
+    } else if (currentPage >= totalPages - 2) {
+      // Если в конце: 1 ... предпоследние 3 страницы
+      pages.push("...");
+      pages.push(totalPages - 3, totalPages - 2, totalPages - 1);
+    } else {
+      // Если в середине: 1 ... текущая-1 текущая текущая+1 ... последняя
+      pages.push("...");
+      pages.push(currentPage - 1, currentPage, currentPage + 1);
+      pages.push("...");
+    }
+
+    // Всегда показываем последнюю страницу
+    pages.push(totalPages);
 
     return pages;
   };
@@ -565,95 +563,93 @@ export default function UsersList({ filters }: Props) {
               </div>
 
               {/* Пагинация */}
-              <div className="flex flex-col gap-4 mt-6 bg-white p-4 rounded-[16px]">
-                {/* Информация о записях */}
-                <div className="flex justify-between items-center text-[14px] text-[#999999]">
-                  <span>
-                    Показано{" "}
-                    {users.length > 0
-                      ? (currentPage - 1) * (filters.take ?? 10) + 1
-                      : 0}{" "}
-                    - {Math.min(currentPage * (filters.take ?? 10), total)} из{" "}
-                    {total} записей
-                  </span>
+              <div className="bg-white p-4 rounded-[16px]">
+                <div className="flex justify-between items-center">
+                  {/* Левая часть: информация и селектор */}
+                  <div className="flex items-center gap-3 text-[13px] text-[#666]">
+                    <span className="whitespace-nowrap">
+                      {users.length > 0
+                        ? (currentPage - 1) * (filters.take ?? 10) + 1
+                        : 0}
+                      –{Math.min(currentPage * (filters.take ?? 10), total)} из{" "}
+                      {total}
+                    </span>
 
-                  {/* Селектор количества записей */}
-                  <div className="flex items-center gap-2">
-                    <span>Показывать:</span>
+                    {/* Селектор количества записей */}
                     <select
                       value={filters.take ?? 10}
                       onChange={(e) => changePageSize(Number(e.target.value))}
-                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white cursor-pointer hover:border-[#0A7D9E] transition-colors"
+                      className="text-[#0A7D9E] py-2 pr-6 pl-4 border-[1px] rounded-[8px] border-[#0A7D9E] bg-white cursor-pointer appearance-none bg-no-repeat bg-right outline-none"
+                      style={{
+                        backgroundImage: `url(${Down})`,
+                        backgroundPosition: "right 8px center",
+                        backgroundSize: "8px 8px",
+                      }}
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
                       <option value={50}>50</option>
                       <option value={100}>100</option>
                     </select>
-                    <span>записей</span>
                   </div>
-                </div>
 
-                {/* Кнопки переключения страниц */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2">
-                    {/* Кнопка "Назад" */}
-                    <button
-                      onClick={() => changePage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
-                      title="Предыдущая страница"
-                    >
-                      <img src={Back} alt="Назад" className="w-4 h-4" />
-                    </button>
+                  {/* Правая часть: компактная пагинация */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      {/* Кнопка "Назад" */}
+                      <button
+                        onClick={() => changePage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Назад"
+                      >
+                        <img src={Back} alt="←" className="w-3 h-3" />
+                      </button>
 
-                    {/* Номера страниц */}
-                    {getPageNumbers().map((pageNum, index) => {
-                      if (pageNum === "...") {
+                      {/* Номера страниц */}
+                      {getPageNumbers().map((pageNum, index) => {
+                        if (pageNum === "...") {
+                          return (
+                            <span
+                              key={`ellipsis-${index}`}
+                              className="w-7 h-7 flex items-center justify-center text-[12px] text-[#999]"
+                            >
+                              ···
+                            </span>
+                          );
+                        }
+
+                        const isActive = pageNum === currentPage;
                         return (
-                          <span
-                            key={`ellipsis-${index}`}
-                            className="px-3 py-2 text-[#999999]"
+                          <button
+                            key={pageNum}
+                            onClick={() => changePage(pageNum as number)}
+                            className={`
+                              w-7 h-7 flex items-center justify-center text-[12px] border rounded-[6px] transition-all
+                              ${
+                                isActive
+                                  ? "bg-[#0A7D9E] text-white border-[#0A7D9E] font-semibold"
+                                  : "bg-white text-[#333] border-[#E0E0E0] hover:bg-[#F5F5F5] hover:border-[#0A7D9E]"
+                              }
+                            `}
                           >
-                            ...
-                          </span>
+                            {pageNum}
+                          </button>
                         );
-                      }
+                      })}
 
-                      const isActive = pageNum === currentPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => changePage(pageNum as number)}
-                          className={`
-                            min-w-[40px] px-3 py-2 border rounded-[8px] transition-all
-                            ${
-                              isActive
-                                ? "bg-[#0A7D9E] text-white border-[#0A7D9E] font-semibold"
-                                : "bg-white text-[#333] border-[#EDECEA] hover:bg-[#F5F5F5] hover:border-[#0A7D9E]"
-                            }
-                          `}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-
-                    {/* Кнопка "Вперед" */}
-                    <button
-                      onClick={() => changePage(currentPage + 1)}
-                      disabled={currentPage >= totalPages}
-                      className="px-3 py-2 border rounded-[8px] border-[#EDECEA] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
-                      title="Следующая страница"
-                    >
-                      <img
-                        src={arrow}
-                        alt="Вперед"
-                        className="w-4 h-4 rotate-180"
-                      />
-                    </button>
-                  </div>
-                )}
+                      {/* Кнопка "Вперед" */}
+                      <button
+                        onClick={() => changePage(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Вперед"
+                      >
+                        <img src={arrow} alt="→" className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

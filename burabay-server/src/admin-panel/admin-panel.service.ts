@@ -192,9 +192,9 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
-    // Значения по умолчанию
-    const page = filter.page || 1;
-    const take = filter.take || 10;
+    // Значения по умолчанию и преобразование в числа
+    const page = filter.page ? Number(filter.page) : 1;
+    const take = filter.take ? Number(filter.take) : 10;
     const skip = (page - 1) * take;
 
     let users: User[] = [],
