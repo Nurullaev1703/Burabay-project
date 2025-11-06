@@ -8,11 +8,21 @@ export class StorageService<T>{
     getValue():T{
         const value = localStorage.getItem(this.KEY_STORAGE)
 
-        if(!value){
+        // localStorage.getItem can return the string "undefined" in some environments
+        // (for example if something set it incorrectly). Treat null/undefined/"undefined"/"null" as missing.
+        if (value === null || value === undefined || value === 'undefined' || value === 'null') {
             throw Error(`${this.KEY_STORAGE} does not exist`)
         }
 
-        return JSON.parse(value) as T
+        try {
+            return JSON.parse(value) as T
+        } catch (e) {
+            // If stored value is corrupted (not valid JSON) — remove it and surface a clear error.
+            try {
+                localStorage.removeItem(this.KEY_STORAGE)
+            } catch (ignore) {}
+            throw Error(`${this.KEY_STORAGE} contains invalid JSON`) 
+        }
     }
 
     setValue(value: T) {
@@ -32,7 +42,10 @@ export class StorageService<T>{
       }
 
     hasValue(){
-        return localStorage.getItem(this.KEY_STORAGE) !== null
+        const value = localStorage.getItem(this.KEY_STORAGE)
+        if (value === null || value === undefined) return false
+        if (value === 'undefined' || value === 'null') return false
+        return true
     }
     deleteValue(){
         localStorage.removeItem(this.KEY_STORAGE)

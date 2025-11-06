@@ -96,6 +96,13 @@ export class AuthenticationService {
         return JSON.stringify(HttpStatus.UNAUTHORIZED);
       }
       if (userExist && (userExist.isBanned || (userExist.organization && userExist.organization.isBanned))) {
+        // Возвращаем объект с кодом и сообщением чтобы фронт мог показать локализованный hint
+        if (userExist.isBanned) {
+          return { message: 'Ваш аккаунт заблокирован', statusCode: 401 };
+        }
+        if (userExist.organization && userExist.organization.isBanned) {
+          return { message: 'Ваша организация заблокирована', statusCode: 401 };
+        }
         return JSON.stringify(HttpStatus.FORBIDDEN);
       }
 

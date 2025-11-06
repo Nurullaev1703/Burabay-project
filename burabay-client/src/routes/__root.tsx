@@ -36,7 +36,24 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     }
 
     // Проверяем роль пользователя
-    const userRole = roleService.hasValue() ? roleService.getValue() : null;
+    let userRole: string | null = null;
+    try {
+      if (roleService.hasValue()) {
+        userRole = roleService.getValue();
+      }
+    } catch (e) {
+      // Если значение в storage повреждено — удаляем токен/роль и редиректим на авторизацию
+      try {
+        tokenService.deleteValue();
+      } catch (err) {}
+      try {
+        roleService.deleteValue();
+      } catch (err) {}
+      // Обходим рендер и сразу отправляем на страницу авторизации
+      window.location.assign('/auth');
+      return null;
+    }
+
     const isAdmin = userRole === ROLE_TYPE.ADMIN;
 
     // Разрешаем доступ к announcements для админов на десктопе
