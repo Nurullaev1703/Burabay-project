@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useRef } from "react";
 import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
 import bacground from "../../app/icons/announcements/bacground.png";
@@ -22,6 +22,12 @@ export const NotificationsClient: FC<Props> = function Notifications({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Прокручиваем вниз при загрузке компонента
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "auto" });
+  }, []);
 
   const getColorByType = (type: string) => {
     const typeToColorMap: Record<string, string> = {
@@ -62,7 +68,7 @@ export const NotificationsClient: FC<Props> = function Notifications({
   return (
     <div className="min-h-screen relative">
       <img
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="fixed inset-0 w-full h-screen object-cover z-0"
         src={bacground}
         alt=""
       />
@@ -137,11 +143,13 @@ export const NotificationsClient: FC<Props> = function Notifications({
               ))}
             </div>
           ))}
+          {/* Маркер для автоматической прокрутки вниз */}
+          <div ref={bottomRef} />
         </div>
       ) : (
         <>
           <img
-            className="absolute inset-0 w-full h-full object-cover z-0"
+            className="fixed inset-0 w-full h-screen object-cover z-0"
             src={bacground}
             alt=""
           />
