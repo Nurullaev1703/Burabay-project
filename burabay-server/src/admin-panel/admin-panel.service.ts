@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
@@ -19,6 +19,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AdminPanelService {
+  private readonly logger = new Logger(AdminPanelService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -33,7 +35,7 @@ export class AdminPanelService {
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
-  ) {}
+  ) { }
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
@@ -463,16 +465,22 @@ export class AdminPanelService {
   @CatchErrors()
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async deleteBannersByDate() {
+    this.logger.log('Запуск задачи по удалению старых баннеров...');
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
 
-    const banners = await this.bannerRepository.find({
-      where: { deleteDate: LessThanOrEqual(today) },
-    });
+    this.logger.log(`Сегодняшняя дата: ${today.toISOString()}`);
+
+    const banners = await this.bannerRepository.find({ where: { deleteDate: LessThanOrEqual(today) } });
+
+    this.logger.log(`Найдено баннеров для удаления: ${banners.length}`);
 
     if (banners.length > 0) {
       await this.bannerRepository.remove(banners);
+      this.logger.log(`Удалено баннеров: ${banners.length}`);
     } else {
+      this.logger.log('Нет баннеров для удаления');
     }
   }
 
