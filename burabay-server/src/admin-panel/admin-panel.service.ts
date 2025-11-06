@@ -186,7 +186,7 @@ export class AdminPanelService {
       relations: { report: true },
     });
     review.isCheked = true;
-    await this.reviewReportRepository.remove(review.report);
+    await this.reviewReportRepository.delete({ review: { id: reviewId } });
     await this.reviewRepository.save(review);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -466,7 +466,7 @@ export class AdminPanelService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async deleteBannersByDate() {
     this.logger.log('Запуск задачи по удалению старых баннеров...');
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
 
