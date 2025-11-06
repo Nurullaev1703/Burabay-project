@@ -49,18 +49,32 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
     },
   });
   const validateTime = (value: string) => {
+    // Проверяем, что значение не пустое
+    if (!value || value.trim() === "") {
+      return t("invalidTimeFormat");
+    }
+
+    // Проверяем формат ЧЧ:ММ
     const isValidFormat = /^\d{2}:\d{2}$/.test(value);
-    if (!isValidFormat) return t("invalidTimeFormat");
-  
+    if (!isValidFormat) {
+      return t("invalidTimeFormat");
+    }
+
     const [hours, minutes] = value.split(":");
     const hoursNumber = parseInt(hours, 10);
     const minutesNumber = parseInt(minutes, 10);
-  
-    if (hoursNumber > 23 || minutesNumber > 59) {
+
+    // Проверяем диапазон: часы 00-23, минуты 00-59
+    if (
+      hoursNumber < 0 ||
+      hoursNumber > 23 ||
+      minutesNumber < 0 ||
+      minutesNumber > 59
+    ) {
       return t("invalidTimeRange");
     }
-  
-    return true; 
+
+    return true;
   };
   const fullDay = watch("isFullDay");
   const isDuration = watch("isDuration");
@@ -74,19 +88,17 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
 
-  // Логика валидации
+  // Логика валидации кнопки
   const isButtonValid = () => {
     if (fullDay) {
-      // Кнопка всегда валидна, если первый свитч активен
       return true;
     }
     if (isDuration) {
-      // Если второй свитч активен, кнопка невалидна, если duration пустое или невалидно
-      return !!duration && validateTime(duration) === true; // Проверяем duration
+      // Проверяем валидность duration
+      return !!duration && validateTime(duration) === true;
     }
-    // Проверяем, что все времена в servicesTime валидны
-    const areAllTimesValid = servicesTime.every((time) => validateTime(time) === true);
-    return serviceTime.length > 0 && areAllTimesValid;
+    // Если не fullDay и не isDuration, проверяем наличие времен услуг
+    return serviceTime.length > 0;
   };
 
   // Добавление времени
@@ -112,30 +124,18 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
   // При отвода фокуса от поля
   const handleBlur = () => {
-    const isValidTime = validateTime(tempTime) === true; // Используем validateTime
-  
     if (isCreating && tempTime) {
-      if (!isValidTime) {
-        setError(true); // Устанавливаем ошибку
-        return;
-      }
       const updatedServices = [...servicesTime, tempTime];
-      setServicesTime(updatedServices); // Обновляем список
-      setValue("startTime", updatedServices); // Сохраняем весь массив
-      setIsCreating(false); // Завершаем создание
-      setTempTime(""); // Сбрасываем временное значение
-      setError(false); // Убираем ошибку, если формат корректный
+      setServicesTime(updatedServices);
+      setValue("startTime", updatedServices);
+      setIsCreating(false);
+      setTempTime("");
     }
-  
+
     if (editingIndex !== null) {
-      if (!isValidTime) {
-        setError(true); // Устанавливаем ошибку
-        return;
-      }
       const updatedServices = [...servicesTime];
-      setValue("startTime", updatedServices); // Сохраняем весь массив
-      setEditingIndex(null); // Завершаем редактирование
-      setError(false); // Убираем ошибку
+      setValue("startTime", updatedServices);
+      setEditingIndex(null);
     }
   };
 
@@ -159,9 +159,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
         url: `/ad/${id}`,
         dto: form,
       });
-      
+
       if (response.data) {
-        await queryClient.refetchQueries({queryKey: [`/ad/${id}`]})
+        await queryClient.refetchQueries({ queryKey: [`/ad/${id}`] });
         navigate({
           to: `/announcements/bookingBan/${id}?serviceTime=${form.startTime.join(",")}`,
           params: {
@@ -178,8 +178,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       }
 
       setIsLoading(false);
-    } catch (e) {
-    }
+    } catch (e) {}
   };
   return (
     <section>
@@ -462,7 +461,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
             rules={{
               required: t("requiredField"),
               validate: (value: any) => {
-                return validateTime(value); // Используем validateTime
+                return validateTime(value);
               },
             }}
             render={({ field, fieldState: { error } }) => {
@@ -475,21 +474,59 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                   M: /[0-9]/,
                 },
               });
+
+              const handleTimeChange = (
+                e: React.ChangeEvent<HTMLInputElement>
+              ) => {
+                const value = e.target.value;
+                field.onChange(value);
+
+                // Проверяем в реальном времени, если введено полное время
+                if (value.length === 5) {
+                  const [hours, minutes] = value.split(":");
+                  const hoursNumber = parseInt(hours, 10);
+                  const minutesNumber = parseInt(minutes, 10);
+
+                  // Если часы больше 23 или минуты больше 59, сбрасываем на 23:59
+                  if (hoursNumber > 23) {
+                    const corrected = `23:${minutes}`;
+                    field.onChange(corrected);
+                    e.target.value = corrected;
+                  } else if (minutesNumber > 59) {
+                    const corrected = `${hours}:59`;
+                    field.onChange(corrected);
+                    e.target.value = corrected;
+                  }
+                }
+              };
+
               return (
-                <div className="flex items-center">
-                  <TextField
-                    {...field}
-                    inputRef={timeMask}
-                    error={Boolean(error?.message)}
-                    variant="standard"
-                    style={{
-                      width: "50px",
-                      marginRight: "16px",
-                      fontWeight: "bold",
-                    }}
-                    placeholder="00:00"
-                  />
-                  <span>ч</span>
+                <div className="mb-4">
+                  <div className="flex items-center">
+                    <TextField
+                      {...field}
+                      onChange={handleTimeChange}
+                      inputRef={timeMask}
+                      error={Boolean(error?.message)}
+                      variant="standard"
+                      style={{
+                        width: "50px",
+                        marginRight: "16px",
+                        fontWeight: "bold",
+                      }}
+                      placeholder="00:00"
+                    />
+                    <span>ч</span>
+                  </div>
+                  {error?.message && (
+                    <Typography
+                      size={12}
+                      weight={400}
+                      className="text-red-500 mt-1"
+                    >
+                      {error.message}
+                    </Typography>
+                  )}
                 </div>
               );
             }}
