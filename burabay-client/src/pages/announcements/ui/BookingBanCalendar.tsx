@@ -40,6 +40,12 @@ const calendarStyles = {
   width: "100%",
   maxHeight: "none",
 
+  // Добавляем padding для контейнера с датами
+  "& .MuiPickersFadeTransitionGroup-root": {
+    paddingLeft: "16px",
+    paddingRight: "16px",
+  },
+
   // Стили для текущего дня (синий кружок сверху)
   "& .MuiPickersDay-today": {
     border: "none !important",
@@ -47,12 +53,14 @@ const calendarStyles = {
     "&::before": {
       content: '""',
       position: "absolute",
-      top: "4px",
-      right: "4px",
-      width: "4px",
-      height: "4px",
+      top: "8px",
+      right: "10px",
+      width: "8px",
+      height: "8px",
       borderRadius: "50%",
       backgroundColor: "#0A7D9E",
+      border: "2px solid white",
+      zIndex: 1,
     },
   },
 
@@ -79,11 +87,16 @@ const calendarStyles = {
 
   // Убираем подсветку соседних дат
   "& .MuiPickersDay-root": {
+    width: "32px",
+    height: "32px",
     fontSize: "14px",
     fontWeight: 400,
     color: "#000",
     borderRadius: "50%",
-    margin: "2px",
+    margin: "6px auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     "&:hover": {
       backgroundColor: "rgba(0, 0, 0, 0.04)",
     },
@@ -188,11 +201,36 @@ const calendarStyles = {
     display: "none",
   },
 
+  // Сетка для дней недели
+  "& .MuiDayCalendar-header": {
+    display: "grid",
+    gridTemplateColumns: "repeat(7, 1fr)",
+    gap: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
+    marginBottom: "8px",
+  },
+
   // Названия дней недели
   "& .MuiDayCalendar-weekDayLabel": {
-    fontSize: "12px",
+    width: "44px",
+    height: "44px",
+    margin: 0,
+    padding: 0,
+    fontSize: "16px",
     fontWeight: 400,
     color: "#999999",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Сетка для недель
+  "& .MuiDayCalendar-weekContainer": {
+    display: "grid",
+    gridTemplateColumns: "repeat(7, 1fr)",
+    gap: 0,
+    margin: 0,
   },
 };
 
@@ -226,6 +264,7 @@ export const BookingBanCalendar: FC<BookingBanCalendarProps> = ({
             value={value}
             onChange={onChange}
             shouldDisableDate={shouldDisableDate}
+            dayOfWeekFormatter={(day) => day.format("dd")}
             slots={{
               day: CalendarDay,
             }}

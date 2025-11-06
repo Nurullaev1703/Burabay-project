@@ -291,7 +291,6 @@ export const PriceService: FC<Props> = function PriceService({
                 </label>
                 <input
                   {...field}
-                  defaultValue={0}
                   ref={inputRef}
                   id="amount"
                   type="text"
