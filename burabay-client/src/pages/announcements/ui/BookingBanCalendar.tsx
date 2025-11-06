@@ -53,8 +53,8 @@ const calendarStyles = {
     "&::before": {
       content: '""',
       position: "absolute",
-      top: "8px",
-      right: "10px",
+      top: "0",
+      right: "2px",
       width: "8px",
       height: "8px",
       borderRadius: "50%",

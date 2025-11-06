@@ -49,11 +49,13 @@ export const BookingTime: FC<Props> = function BookingTime({
   // Получаем локаль для календаря
   const locale =
     i18n.language === "kk" ? "kk" : i18n.language === "en" ? "en" : "ru";
+
+  // Проверяем, заблокирована ли дата полностью (allDay: true)
   const isDateBlocked = (date: dayjs.Dayjs): boolean => {
     return (
       serviceSchedule?.some(
         ({ date: blockedDate, allDay }) =>
-          allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
+          allDay && dayjs(blockedDate).isSame(date, "day")
       ) ?? false
     );
   };
@@ -64,18 +66,27 @@ export const BookingTime: FC<Props> = function BookingTime({
 
     setSelectedTime("");
     setSelectedDate(date);
-    const formattedDate = date.format("DD.MM.YYYY");
+    const formattedDate = date.format("YYYY-MM-DD");
 
-    const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === formattedDate
+    // Находим все записи для выбранной даты
+    const matchingDates = serviceSchedule.filter((currDate) =>
+      dayjs(currDate.date).isSame(date, "day")
     );
 
     const availableTimes = announcement.startTime || []; // Общие временные интервалы
-    if (matchingDate) {
-      const blockedTimes = matchingDate.times; // Временные интервалы, которые заблокированы
+
+    if (matchingDates.length > 0) {
+      // Собираем все заблокированные времена из всех записей для этой даты
+      const allBlockedTimes = matchingDates.reduce((acc, curr) => {
+        return [...acc, ...curr.times];
+      }, [] as string[]);
+
+      // Убираем дубликаты
+      const uniqueBlockedTimes = [...new Set(allBlockedTimes)];
+
       const combinedTimes = availableTimes.map((time) => ({
         time,
-        isBlocked: blockedTimes.includes(time),
+        isBlocked: uniqueBlockedTimes.includes(time),
       }));
       setTimes(combinedTimes);
     } else {

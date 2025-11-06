@@ -65,6 +65,15 @@ export const NotificationsClient: FC<Props> = function Notifications({
   };
   const groupedNotifications = groupNotificationsByDate(notifications);
 
+  // Сортируем даты в прямом порядке (старые вверху, новые внизу)
+  const sortedDates = Object.keys(groupedNotifications).sort((a, b) => {
+    const [dayA, monthA, yearA] = a.split(".").map(Number);
+    const [dayB, monthB, yearB] = b.split(".").map(Number);
+    const dateA = new Date(yearA, monthA - 1, dayA);
+    const dateB = new Date(yearB, monthB - 1, dayB);
+    return dateA.getTime() - dateB.getTime(); // старые даты первыми
+  });
+
   return (
     <div className="min-h-screen relative">
       <img
@@ -75,74 +84,93 @@ export const NotificationsClient: FC<Props> = function Notifications({
 
       {notifications.length > 0 ? (
         <div className="relative z-10 min-h-screen py-4 px-4 mb-20">
-          {Object.entries(groupedNotifications).map(([date, items]) => (
-            <div key={date}>
-              <div className="flex justify-center items-center">
-                <Typography
-                  size={14}
-                  weight={400}
-                  color={COLORS_TEXT.gray100}
-                  className="text-center font-medium mb-2 mt-8 rounded-full w-[28%] px-3 bg-[#FFFFFF80]"
-                >
-                  {date}
-                </Typography>
-              </div>
+          {sortedDates.map((date) => {
+            const items = groupedNotifications[date];
+            // Сортируем уведомления внутри каждой даты (старые первыми)
+            const sortedItems = [...items].sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime()
+            );
 
-              {items.map((notification) => (
-                <div
-                  key={notification.id}
-                  className="bg-[#FFFFFFBF] rounded-[18px] p-3 mt-2 flex items-start gap-3"
-                >
-                  <div
-                    className={`w-0.5 h-[84px] ${getColorByType(notification.type)} rounded-full`}
-                  ></div>
-
-                  <div className="flex-1">
-                    <Typography
-                      size={18}
-                      weight={500}
-                      color={COLORS_TEXT.totalBlack}
-                      className="mb-2 break-all"
-                    >
-                      {notification.title}
-                    </Typography>
-
-                    <Typography
-                      size={14}
-                      weight={400}
-                      color={COLORS_TEXT.totalBlack}
-                      className="leading-5 break-all whitespace-normal"
-                    >
-                      {notification.message}
-                    </Typography>
-
-                    {notification.type === NotificationType.NEGATIVE && (
-                      <div className="mt-1">
-                        <span
-                          className="text-[14px] font-semibold text-blue200 cursor-pointer"
-                          onClick={() => navigate({ to: "/help/TermsOfUse" })}
-                        >
-                          {t("PolitikLearn")}
-                        </span>
-                      </div>
-                    )}
-
-                    <Typography
-                      size={14}
-                      weight={400}
-                      color={COLORS_TEXT.gray100}
-                      className="text-right"
-                    >
-                      {new Date(notification.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Typography>
-                  </div>
+            return (
+              <div key={date}>
+                <div className="flex justify-center items-center">
+                  <Typography
+                    size={14}
+                    weight={400}
+                    color={COLORS_TEXT.gray100}
+                    className="text-center font-medium mb-2 mt-8 rounded-full w-[28%] px-3 bg-[#FFFFFF80]"
+                  >
+                    {date}
+                  </Typography>
                 </div>
+<<<<<<< HEAD
               ))}
             </div>
           ))}
+=======
+
+                {sortedItems.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="bg-[#FFFFFFBF] rounded-[18px] p-3 mt-2 flex items-start gap-3"
+                  >
+                    <div
+                      className={`w-0.5 h-[84px] ${getColorByType(notification.type)} rounded-full`}
+                    ></div>
+
+                    <div className="flex-1">
+                      <Typography
+                        size={18}
+                        weight={500}
+                        color={COLORS_TEXT.totalBlack}
+                        className="mb-2 break-all"
+                      >
+                        {notification.title}
+                      </Typography>
+
+                      <Typography
+                        size={14}
+                        weight={400}
+                        color={COLORS_TEXT.totalBlack}
+                        className="leading-5 break-all whitespace-normal"
+                      >
+                        {notification.message}
+                      </Typography>
+
+                      {notification.type === NotificationType.NEGATIVE && (
+                        <div className="mt-1">
+                          <span
+                            className="text-[14px] font-semibold text-blue200 cursor-pointer"
+                            onClick={() => navigate({ to: "/help/TermsOfUse" })}
+                          >
+                            {t("PolitikLearn")}
+                          </span>
+                        </div>
+                      )}
+
+                      <Typography
+                        size={14}
+                        weight={400}
+                        color={COLORS_TEXT.gray100}
+                        className="text-right"
+                      >
+                        {new Date(notification.createdAt).toLocaleTimeString(
+                          "ru-RU",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </Typography>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+>>>>>>> 05e71af023db8c2f6e3bb3fc2f10ec4bf3f259b8
           {/* Маркер для автоматической прокрутки вниз */}
           <div ref={bottomRef} />
         </div>
