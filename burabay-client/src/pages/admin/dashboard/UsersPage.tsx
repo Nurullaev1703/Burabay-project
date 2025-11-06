@@ -516,6 +516,7 @@ export default function UsersList({ filters }: Props) {
                         </div>
                       </div>
                       {user.role === ROLE_TYPE.BUSINESS &&
+                        !user.organization?.isBanned &&
                         (user.organization?.isConfirmed ? (
                           <div className="flex items-center mr-8">
                             <span className="text-[#0A7D9E] mr-4">

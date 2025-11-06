@@ -43,6 +43,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
     Record<number, boolean>
   >({});
   const navigate = useNavigate();
+  const role = roleService.hasValue() ? roleService.getValue() : null;
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -200,7 +201,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
                     />
                   </li>
                 )}
-                {review.report && (
+                {review.report && role === ROLE_TYPE.BUSINESS && (
                   <li key={index}>
                     <TextField
                       InputLabelProps={{
