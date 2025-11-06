@@ -62,7 +62,7 @@ export const Notifications: FC<Props> = function Notifications({
   };
   const groupedNotifications = groupNotificationsByDate(notifications);
 
-  // Сортируем даты в обратном порядке (старые вверху, новые внизу)
+  // Сортируем даты в прямом порядке (старые вверху, новые внизу)
   const sortedDates = Object.keys(groupedNotifications).sort((a, b) => {
     const [dayA, monthA, yearA] = a.split(".").map(Number);
     const [dayB, monthB, yearB] = b.split(".").map(Number);
@@ -149,7 +149,7 @@ export const Notifications: FC<Props> = function Notifications({
                         className="text-right"
                       >
                         {new Date(notification.createdAt).toLocaleTimeString(
-                          [],
+                          "ru-RU",
                           {
                             hour: "2-digit",
                             minute: "2-digit",

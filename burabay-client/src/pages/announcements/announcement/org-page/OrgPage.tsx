@@ -87,7 +87,13 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
           </div>
 
           {org.ads.length > 0 ? (
-            <div className="mt-2 grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] gap-2 mb-navContent md:mb-4 bg-white p-4 md:rounded-lg ">
+            <div
+              className={`mt-2 grid gap-2 mb-navContent md:mb-4 bg-white p-4 md:rounded-lg ${
+                org.ads.length === 1
+                  ? "grid-cols-[repeat(auto-fit,_minmax(140px,_48%))] md:grid-cols-[repeat(auto-fit,_minmax(180px,_48%))]"
+                  : "grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))]"
+              }`}
+            >
               {org.ads.map((ad, index) => (
                 <div
                   key={index}
