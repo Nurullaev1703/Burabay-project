@@ -61,9 +61,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
             {t("С высокой оценкой")}
           </h2>
           {!isAdmin && (
-            <Link className="w-6 h-6 flex justify-center items-center">
+            <div className="w-6 h-6 flex justify-center items-center">
               <img src={ArrowIcon} alt="Стрелка" className="mt-0.5" />
-            </Link>
+            </div>
           )}
           {isAdmin && (
             <button
@@ -103,7 +103,11 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
                   </span>
                   <span className={`text-xs ${COLORS_TEXT.gray100}`}>
                     {review.date
-                      ? new Date(review.date).toLocaleDateString()
+                      ? new Date(review.date).toLocaleDateString("ru-RU", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                       : "Нет даты"}
                   </span>
                 </div>

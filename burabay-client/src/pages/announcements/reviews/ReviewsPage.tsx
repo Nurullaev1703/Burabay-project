@@ -212,7 +212,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                   </span>
                   <span className={`text-xs ${COLORS_TEXT.gray100}`}>
                     {review.date
-                      ? new Date(review.date).toLocaleDateString()
+                      ? new Date(review.date).toLocaleDateString("ru-RU", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                       : "Нет даты"}
                   </span>
                 </div>
