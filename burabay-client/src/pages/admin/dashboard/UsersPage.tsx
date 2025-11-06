@@ -482,7 +482,7 @@ export default function UsersList({ filters }: Props) {
 
                           {user.role === "бизнес" && (
                             <p
-                              className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red-500" : "text-[#39B56B]"}`}
+                              className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-[#FF5959]" : "text-[#39B56B]"}`}
                             >
                               {user.organization?.isConfirmCanceled
                                 ? "Отклонена"
