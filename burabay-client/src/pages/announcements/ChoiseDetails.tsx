@@ -673,6 +673,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     helperText={error?.message || errorMessage}
                     fullWidth={true}
                     type={"text"}
+                    multiline
                     variant="outlined"
                     label={t("description")}
                     inputProps={{ maxLength: 300 }}
