@@ -418,23 +418,52 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
         phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
       } : null
-      const response = await apiService.post<string>({
-        url: "/ad",
-        dto: {
-          title,
-          description,
-          youtubeLink,
-          video,
-          organizationId: user?.organization?.id,
-          subcategoryId: subcategory.id,
-          images: newImages,
-          details: toggles,
-          ...phoneNumberDto
-        },
-      });
+      if (announcement) {
+        // If editing an existing announcement, send a PATCH and merge existing images with newly uploaded ones
+        await apiService.patch<string>({
+          url: `/ad/${announcement.id}`,
+          dto: {
+            title,
+            description,
+            youtubeLink,
+            video,
+            organizationId: user?.organization?.id,
+            subcategoryId: subcategory.id,
+            images: [
+              ...images
+                .map((item) => {
+                  if (item.serverPreview.replace(baseUrl, "").length) {
+                    return item.serverPreview.replace(baseUrl, "");
+                  }
+                })
+                .filter((item) => item != null),
+              ...(newImages as string[]),
+            ],
+            details: toggles,
+            ...phoneNumberDto,
+          },
+        });
 
-      if (response.data) {
         navigate({ to: "/announcements" });
+      } else {
+        const response = await apiService.post<string>({
+          url: "/ad",
+          dto: {
+            title,
+            description,
+            youtubeLink,
+            video,
+            organizationId: user?.organization?.id,
+            subcategoryId: subcategory.id,
+            images: newImages,
+            details: toggles,
+            ...phoneNumberDto,
+          },
+        });
+
+        if (response.data) {
+          navigate({ to: "/announcements" });
+        }
       }
     } catch (error) {
     } finally {
