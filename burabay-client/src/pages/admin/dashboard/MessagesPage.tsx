@@ -8,7 +8,7 @@ import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
 import { baseUrl } from "../../../services/api/ServerData";
 import { Typography } from "../../../shared/ui/Typography";
 import cancel from "../../../app/icons/announcements/xCancel.svg";
-import Down from "../../../../public/down-arrow.svg";
+import Down from "/down-arrow.svg?url";
 import { Category } from "../../announcements/model/announcements";
 import { RoleType } from "./model/user-filter";
 import UsersIcon from "../../../app/icons/admin/users.svg";

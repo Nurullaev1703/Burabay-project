@@ -4,7 +4,12 @@ import SearchIcon from "../../app/icons/search-icon.svg";
 import { Category } from "../announcements/model/announcements";
 import { baseUrl } from "../../services/api/ServerData";
 import { AdCard } from "./ui/AdCard";
-import { categoryBgColors, categoryBorderColors, COLORS, COLORS_TEXT } from "../../shared/ui/colors";
+import {
+  categoryBgColors,
+  categoryBorderColors,
+  COLORS,
+  COLORS_TEXT,
+} from "../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
@@ -15,7 +20,7 @@ import {
 import { RotatingLines } from "react-loader-spinner";
 import { MainPageFilter } from "./model/mainpage-types";
 import { apiService } from "../../services/api/ApiService";
-import Close from "../../../public/Close.png";
+import Close from "/Close.png?url";
 import ProfileMark from "../../app/icons/profile/profile.svg";
 import { format } from "date-fns";
 import { TabMenu, TabMenuItem } from "../../shared/ui/TabMenu";
@@ -69,21 +74,20 @@ export const Main: FC<Props> = function Main({
     },
   ];
   useEffect(() => {
-    const savedScroll = sessionStorage.getItem('mainPageScroll');
+    const savedScroll = sessionStorage.getItem("mainPageScroll");
     if (savedScroll) {
       window.scrollTo(0, parseInt(savedScroll, 10));
     }
-  
+
     const handleScroll = () => {
-      sessionStorage.setItem('mainPageScroll', window.scrollY.toString());
+      sessionStorage.setItem("mainPageScroll", window.scrollY.toString());
     };
-  
+
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-    
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -168,14 +172,14 @@ export const Main: FC<Props> = function Main({
       }
       setOriginalFavourites([...selectedFavourite]);
       setIsEditFavourite(false);
-      
+
       // Инвалидируем кэш рекомендаций для полного обновления
-      await queryClient.invalidateQueries({ 
-        queryKey: ["recommended-ads"] 
+      await queryClient.invalidateQueries({
+        queryKey: ["recommended-ads"],
       });
       // Также инвалидируем кэш категорий, если нужно обновить список любимых
-      await queryClient.invalidateQueries({ 
-        queryKey: ["main-page-categories"] 
+      await queryClient.invalidateQueries({
+        queryKey: ["main-page-categories"],
       });
     } catch (error) {
     } finally {
@@ -189,8 +193,7 @@ export const Main: FC<Props> = function Main({
           url: "/main-pages/banners",
         });
         setBanners(response.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchBanners();
@@ -274,7 +277,9 @@ export const Main: FC<Props> = function Main({
             <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b">
               <div className="w-[44px] h-[44px]" />
               <div className="flex-grow text-center">
-                <p className="text-[#0A7D9E] text-[18px] font-semibold">Баннер</p>
+                <p className="text-[#0A7D9E] text-[18px] font-semibold">
+                  Баннер
+                </p>
               </div>
               <button
                 aria-label="Закрыть баннер"

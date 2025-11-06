@@ -7,8 +7,8 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { baseUrl } from "../../../services/api/ServerData";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 
-import Up from "../../../../public/up.svg";
-import Down from "../../../../public/down.svg";
+import Up from "/up.svg?url";
+import Down from "/down.svg?url";
 
 interface AnalyticsData {
   tourists: number;

@@ -17,12 +17,12 @@ import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
 
-import document from "../../../../public/document.svg";
-import confirmed from "../../../../public/confirmed.svg";
-import Close from "../../../../public/Close.png";
-import Down from "../../../../public/down-arrow.svg";
-import Back from "../../../../public/Back.svg";
-import arrow from "../../../../public/arrow.svg";
+import document from "/document.svg?url";
+import confirmed from "/confirmed.svg?url";
+import Close from "/Close.png?url";
+import Down from "/down-arrow.svg?url";
+import Back from "/Back.svg?url";
+import arrow from "/arrow.svg?url";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
 import { useQueryClient } from "@tanstack/react-query";
@@ -532,11 +532,7 @@ export default function UsersList({ filters }: Props) {
                             }}
                           >
                             Подтверждение
-                            <img
-                              src={arrow}
-                              alt=""
-                              className="w-2"
-                            ></img>
+                            <img src={arrow} alt="" className="w-2"></img>
                           </button>
                         ))}
                     </div>
