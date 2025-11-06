@@ -81,6 +81,8 @@
   "emailBusy": "Email is already registered to a tourist account. Change the email in the account or use a different address.",
   "createPassword": "Create a password of at least 8 characters",
   "defaultError": "An error occurred",
+  "cannotDeleteAdWithBookings": "Cannot delete the announcement because there are active bookings.",
+  "edit": "Edit",
   "wrongPassword": "Wrong password",
   "auth": "Authorization",
   "passwordFor": "Enter the password for the account",

@@ -25,6 +25,7 @@ import { CostInfoList } from "./ui/CostInfoList";
 import { Carousel, CarouselItem } from "../../../components/Carousel";
 import { baseUrl } from "../../../services/api/ServerData";
 import { ModalDelete } from "./ui/ModalDelete";
+import { Hint } from "../../../shared/ui/Hint";
 import { roleService } from "../../../services/storage/Factory";
 import { ROLE_TYPE } from "../../auth/model/auth-model";
 import { ReviewsInfo } from "./ui/ReviewsInfo";
@@ -72,6 +73,7 @@ export const Announcement: FC<Props> = function Announcement({
     announcement.isFavourite || false
   );
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAdActions, setIsAdActions] = useState<boolean>(false);
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -142,14 +144,14 @@ export const Announcement: FC<Props> = function Announcement({
                 }
               >
                 <img src={EditIcon} alt="" />
-                <Typography size={14}>{"Редактировать"}</Typography>
+                <Typography size={14}>{t("edit")}</Typography>
               </li>
               <li
                 className="flex gap-2 items-center p-4"
                 onClick={() => setShowModal(true)}
               >
                 <img src={DeleteIcon} alt="" />
-                <Typography size={14}>{"Удалить"}</Typography>
+                <Typography size={14}>{t("delete")}</Typography>
               </li>
             </ul>
           )}
@@ -251,7 +253,13 @@ export const Announcement: FC<Props> = function Announcement({
           onClose={() => setShowModal(false)}
           adId={announcement.id}
           isAdmin={role === ROLE_TYPE.BUSINESS ? false : undefined}
+          onError={(msg) => setDeleteError(msg)}
         />
+      )}
+      {deleteError && (
+        <div className="max-w-3xl mx-auto px-4 mt-4">
+          <Hint title={deleteError} mode="error" className="w-full" />
+        </div>
       )}
       {isFavouriteModal && <FavouriteHint />}
     </section>
