@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CatchErrors, Utils } from 'src/utilities';
@@ -29,7 +29,7 @@ export class BookingService {
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -522,6 +522,7 @@ export class BookingService {
         relations: { user: true, ad: true },
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
+      if (booking.status == BookingStatus.CANCELED) throw new HttpException('Бронь отменена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
       const notificationDto = {
