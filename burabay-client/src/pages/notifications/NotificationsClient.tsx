@@ -105,11 +105,6 @@ export const NotificationsClient: FC<Props> = function Notifications({
                     {date}
                   </Typography>
                 </div>
-<<<<<<< HEAD
-              ))}
-            </div>
-          ))}
-=======
 
                 {sortedItems.map((notification) => (
                   <div
@@ -156,13 +151,10 @@ export const NotificationsClient: FC<Props> = function Notifications({
                         color={COLORS_TEXT.gray100}
                         className="text-right"
                       >
-                        {new Date(notification.createdAt).toLocaleTimeString(
-                          "ru-RU",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(notification.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </Typography>
                     </div>
                   </div>
@@ -170,7 +162,6 @@ export const NotificationsClient: FC<Props> = function Notifications({
               </div>
             );
           })}
->>>>>>> 05e71af023db8c2f6e3bb3fc2f10ec4bf3f259b8
           {/* Маркер для автоматической прокрутки вниз */}
           <div ref={bottomRef} />
         </div>
