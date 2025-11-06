@@ -218,7 +218,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               <div className="flex flex-col w-full">
                                 <span className="">{ad.title}</span>
                                 <div className="flex justify-between w-full gap-2 items-center">
-                                  <div className="flex gap-2 items-baseline">
+                                  <div className="flex gap-2 items-center">
                                     <span className="text-sm">
                                       {time.paymentType === "online"
                                         ? t("onlinePayment")
@@ -234,13 +234,15 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                         times[0].status as BookingStatus,
                                         time.isPaid,
                                         t
-                                      )}{" "}
+                                      )}
                                     </span>
                                   </div>
 
-                                  <span className={`${COLORS_TEXT.blue200}`}>
-                                    {formatPrice(time.price)}
-                                  </span>
+                                  <div className="flex items-center">
+                                    <span className={`${COLORS_TEXT.blue200} whitespace-nowrap`}>
+                                      {formatPrice(time.price)}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>

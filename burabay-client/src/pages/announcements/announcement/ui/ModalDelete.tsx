@@ -13,6 +13,7 @@ interface Props {
   isAdmin?: boolean;
   returnTo?: string;
   onAfterDelete?: () => void;
+  onError?: (message: string) => void;
 }
 
 export const ModalDelete: FC<Props> = function ModalDelete({
@@ -22,6 +23,7 @@ export const ModalDelete: FC<Props> = function ModalDelete({
   isAdmin,
   returnTo,
   onAfterDelete,
+  onError,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -36,8 +38,25 @@ export const ModalDelete: FC<Props> = function ModalDelete({
       }>({
         url: `/ad/${adId}`,
       });
+      // Если в теле пришёл код ошибки (например code === 409), обрабатываем это как ошибку
+      if (response.data?.code === 409 || response.status === 409) {
+        // Всегда показываем локализованное сообщение для 409 —
+        // чтобы не отображать строку на языке бэка (например, русский).
+        const msg = t("cannotDeleteAdWithBookings");
+        setErrorMessage(msg);
+        setIsError(true);
+        try {
+          onError?.(msg);
+        } catch (e) {
+          // ignore
+        }
+        setTimeout(() => {
+          setIsError(false);
+        }, 5000);
+        return;
+      }
 
-      // Проверяем успешное удаление
+      // Проверяем успешное удаление по статусу
       if (response.status === 200) {
         // Если передан callback — вызываем его (позволяет родителю сам управлять редиректом)
         if (onAfterDelete) {
@@ -66,23 +85,40 @@ export const ModalDelete: FC<Props> = function ModalDelete({
         }
       } else if (response.status === 409 || response.data?.code === 409) {
         // Ошибка из-за активных бронирований
-        setErrorMessage(
-          response.data?.message || t("cannotDeleteAdWithBookings")
-        );
+        const msg = response.data?.message || t("cannotDeleteAdWithBookings");
+        setErrorMessage(msg);
         setIsError(true);
+        // Сообщаем родителю (если нужно показать hint вне модалки)
+        try {
+          onError?.(msg);
+        } catch (e) {
+          // ignore
+        }
         setTimeout(() => {
           setIsError(false);
         }, 5000);
       } else {
-        setErrorMessage(t("defaultError"));
+        const msg = t("defaultError");
+        setErrorMessage(msg);
         setIsError(true);
+        try {
+          onError?.(msg);
+        } catch (e) {
+          // ignore
+        }
         setTimeout(() => {
           setIsError(false);
         }, 3000);
       }
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || t("defaultError"));
+      const msg = error.response?.data?.message || t("defaultError");
+      setErrorMessage(msg);
       setIsError(true);
+      try {
+        onError?.(msg);
+      } catch (e) {
+        // ignore
+      }
       setTimeout(() => {
         setIsError(false);
       }, 3000);
