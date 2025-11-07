@@ -472,10 +472,10 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  @CatchErrors()
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async deleteBannersByDate() {
-    this.logger.log('Запуск задачи по удалению старых баннеров...');
+  async deleteExpiredBanners() {
+    this.logger.log('Запуск задачи по удалению устаревших баннеров...');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Сравниваем только дату
 
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
@@ -491,9 +491,7 @@ export class AdminPanelService {
     if (banners.length > 0) {
       await this.bannerRepository.remove(banners);
       this.logger.log(`Удалено баннеров: ${banners.length}`);
-    } else {
-      this.logger.log('Нет баннеров для удаления');
-    }
+    } else this.logger.log('Нет устаревших баннеров для удаления');
   }
 
   /** Быстрая сортировка Объявлений по количеству бронирований. */

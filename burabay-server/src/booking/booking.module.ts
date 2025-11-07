@@ -18,5 +18,6 @@ import { FirebaseAdminService } from 'src/notification/firebase-admin.service';
   ],
   controllers: [BookingController],
   providers: [BookingService, NotificationService, FirebaseAdminService],
+  exports: [BookingService],
 })
 export class BookingModule {}

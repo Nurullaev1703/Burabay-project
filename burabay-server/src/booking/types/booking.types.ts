@@ -15,4 +15,5 @@ export interface BookingFilter {
   canceled?: boolean;
   onSidePayment?: boolean;
   onlinePayment?: boolean;
+  status?: "ACTIVE" | "DONE"
 }

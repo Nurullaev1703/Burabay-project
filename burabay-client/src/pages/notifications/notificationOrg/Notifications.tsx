@@ -117,7 +117,11 @@ export const Notifications: FC<Props> = function Notifications({
                         size={18}
                         weight={500}
                         color={COLORS_TEXT.totalBlack}
-                        className="mb-2 break-all"
+                        className="mb-2 break-words hyphens-auto"
+                        style={{
+                          wordBreak: "normal",
+                          overflowWrap: "break-word",
+                        }}
                       >
                         {notification.title}
                       </Typography>
@@ -126,7 +130,11 @@ export const Notifications: FC<Props> = function Notifications({
                         size={14}
                         weight={400}
                         color={COLORS_TEXT.totalBlack}
-                        className="leading-5 break-all whitespace-normal"
+                        className="leading-5 break-words hyphens-auto whitespace-normal"
+                        style={{
+                          wordBreak: "normal",
+                          overflowWrap: "break-word",
+                        }}
                       >
                         {notification.message}
                       </Typography>
