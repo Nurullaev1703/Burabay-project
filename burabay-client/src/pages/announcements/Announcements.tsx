@@ -73,7 +73,7 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
             <img src={SearchIcon} alt="" />
             <input
               type="search"
-              placeholder="Поиск"
+              placeholder={t("adSearch")}
               className="flex-grow bg-transparent outline-none text-gray-700"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
