@@ -64,7 +64,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   };
 
   const confirmLogout = () => {
-    navigate({ to: "/main" }); // Выполняем выход
+    navigate({ to: "/admin/auth" }); // Выполняем выход
     setIsModalOpen(false); // Закрываем модальное окно
   };
 
