@@ -169,10 +169,9 @@ export class BookingService {
         header = b.date;
       }
 
-      // Проверяем "Сегодня" и "Завтра".
-      const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-      if (diffDays === 0) header = 'Сегодня';
-      if (diffDays === 1) header = 'Завтра';
+      // Не меняем header, оставляем дату для URL
+      // const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+      // Дата всегда остаётся в header для использования в URL
 
       let group = groups.find((g) => g.header === header);
       if (!group) {
@@ -288,17 +287,18 @@ export class BookingService {
         header = b.date;
       }
 
-      if (
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-      ) {
-        header = 'Сегодня';
-      }
+      // Не меняем header на 'today'/'tomorrow', оставляем дату для URL
+      // if (
+      //   date.getDate() === today.getDate() &&
+      //   date.getMonth() === today.getMonth() &&
+      //   date.getFullYear() === today.getFullYear()
+      // ) {
+      //   header = 'today';
+      // }
 
-      if (date.getDate() === today.getDate() + 1) {
-        header = 'Завтра';
-      }
+      // if (date.getDate() === today.getDate() + 1) {
+      //   header = 'tomorrow';
+      // }
 
       // if (b.status === BookingStatus.CANCELED) {
       //   isRent ? (b.dateEnd = b.dateEnd + '_') : (b.date = b.date + '_');
@@ -363,20 +363,12 @@ export class BookingService {
 
     // Получение даты для поиска
     let findDate: string;
-    if (date === 'Сегодня') {
-      const today = new Date();
-      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-    } else if (date === 'Завтра') {
-      const today = new Date();
-      today.setDate(today.getDate() + 1);
-      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-    } else {
-      const parts = date.split('.');
-      if (parts.length === 3 && parts[2].length === 2) {
-        parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
-      }
-      findDate = parts.join('.');
+    // date теперь всегда приходит как DD.MM.YYYY, а не 'today'/'tomorrow'
+    const parts = date.split('.');
+    if (parts.length === 3 && parts[2].length === 2) {
+      parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
     }
+    findDate = parts.join('.');
 
     let whereOptions: any;
     // Если Турист, то получить только свои брони.

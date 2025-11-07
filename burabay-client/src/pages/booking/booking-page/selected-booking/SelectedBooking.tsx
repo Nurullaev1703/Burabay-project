@@ -53,6 +53,34 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
     user_number: "",
   });
   const { t } = useTranslation();
+
+  // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
+  const formatDateHeader = (dateStr: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const parts = dateStr.split(".");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year =
+        parts[2].length === 2
+          ? 2000 + parseInt(parts[2], 10)
+          : parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 0) return t("today");
+      if (diffDays === 1) return t("tomorrow");
+    }
+
+    return dateStr;
+  };
+
   const getDaySuffix = (days: number | undefined = 0) => {
     if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "день"
     if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
@@ -82,7 +110,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t(booking.date)}
+              {formatDateHeader(booking.date)}
             </Typography>
           </div>
           <IconContainer
@@ -97,7 +125,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           <Link
             className="flex items-center justify-between py-3"
             to={`/announcements/$announcementId`}
-            params = { {announcementId: announcement.id }}
+            params={{ announcementId: announcement.id }}
           >
             <div className="flex items-center">
               <img

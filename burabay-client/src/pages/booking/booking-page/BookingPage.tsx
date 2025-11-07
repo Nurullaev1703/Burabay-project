@@ -21,6 +21,34 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
+  const formatDateHeader = (dateStr: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Парсим дату из строки DD.MM.YYYY
+    const parts = dateStr.split(".");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year =
+        parts[2].length === 2
+          ? 2000 + parseInt(parts[2], 10)
+          : parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 0) return t("today");
+      if (diffDays === 1) return t("tomorrow");
+    }
+
+    return dateStr;
+  };
+
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
@@ -147,7 +175,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             <span
               className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
             >
-              {t(category.header)}
+              {formatDateHeader(category.header)}
             </span>
             <ul>
               {category.ads
