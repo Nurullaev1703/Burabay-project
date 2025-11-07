@@ -84,6 +84,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
     setIsSending(true);
     try {
       if (categoryNames.length > 0 && selectedRole.toLowerCase() !== "бизнес") {
+        const categoryId = categoryNames.map((c) => c.id)
         // Отправка уведомления одним запросом с массивом id выбранных категорий
         // Предположение: бэк ожидает поле `categories` как массив id
         await apiService.post({
@@ -91,7 +92,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
           dto: {
             type: "позитивное",
             message: newMessage,
-            categories: categoryNames.map((c) => c.id),
+            categoryIds: categoryId,
           },
         });
       } else if (selectedRole.toLowerCase() === "бизнес") {
