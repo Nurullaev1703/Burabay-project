@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { baseUrl } from "../../../../services/api/ServerData";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
 import DefaultImage from "../../../../app/icons/abstract-bg.svg"
+import { Button } from "../../../../shared/ui/Button";
 
 interface Props {
   announcement: Announcement;
@@ -179,6 +180,13 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
             {t("serviceFullDay")}
           </span>
         )}
+      </div>
+
+      {/* Кнопка назад внизу страницы, как на других шагах */}
+      <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
+        <Button onClick={() => history.back()}>
+          {t("back")}
+        </Button>
       </div>
     </section>
   );
