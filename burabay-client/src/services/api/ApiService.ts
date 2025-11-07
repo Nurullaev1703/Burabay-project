@@ -1,4 +1,5 @@
 import { baseUrl } from "./ServerData";
+import { tokenService, roleService } from "../storage/Factory";
 
 // Данные необходимые для запроса
 interface RequestOptions {
@@ -48,6 +49,27 @@ class ApiService {
       },
     }).then(async (response) => {
       const data = await response.json();
+
+      // Если сервер вернул ошибку JWT (например "jwt malformed"), очищаем токен/роль и
+      // перенаправляем пользователя на страницу входа, чтобы не показывать необработанное
+      // техническое сообщение пользователю и не пытаться дальше делать запросы с некорректным токеном.
+      const message = data?.message || "";
+      if (response.status === 401 && typeof message === "string") {
+        const lower = message.toLowerCase();
+        if (lower.includes("jwt malformed") || lower.includes("invalid token") || lower.includes("jwt expired")) {
+          try {
+            this.deleteBearerToken();
+          } catch (e) {}
+          try {
+            tokenService.deleteValue();
+          } catch (e) {}
+          try {
+            roleService.deleteValue();
+          } catch (e) {}
+          // Навигация через assign — безопаснее внутри async хуков/сервисов
+          window.location.assign("/auth");
+        }
+      }
 
       // Проверка на ошибки блокировки
       if (response.status === 401 && data.message) {
