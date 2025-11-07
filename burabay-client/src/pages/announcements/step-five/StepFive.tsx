@@ -55,7 +55,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     return `${hours}:${minutes}`;
   };
 
-  const { handleSubmit, control, setValue, watch } = useForm<FormType>({
+  const { handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormType>({
     defaultValues: {
       isRoundTheClock: announcement?.isRoundTheClock || false,
       workingDays: {
@@ -84,6 +84,27 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
+
+  // helper: get first nested error message from react-hook-form errors
+  const getFirstErrorMessage = (errObj: any): string | null => {
+    if (!errObj) return null;
+    if (errObj.message) return String(errObj.message);
+    if (Array.isArray(errObj)) {
+      for (const item of errObj) {
+        const m = getFirstErrorMessage(item);
+        if (m) return m;
+      }
+    }
+    if (typeof errObj === "object") {
+      for (const k of Object.keys(errObj)) {
+        const m = getFirstErrorMessage(errObj[k]);
+        if (m) return m;
+      }
+    }
+    return null;
+  };
+
+  const firstFormError = getFirstErrorMessage(errors) || (error ? errorText : null);
 
   // -------------- Дни недели
 
@@ -226,7 +247,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   };
 
   return (
-    <section className="min-h-screen bg-background pb-2">
+    <section className="min-h-screen bg-background pb-24">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer
@@ -342,7 +363,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               {daysOfWeek.map((day) => (
                 <li key={day} className="mt-4">
                   <div className="flex justify-between items-center">
-                    <span>{t(day)}</span>
+                      <span>{t(day)}</span>
                     <Controller
                       name={`workingDays.${day}Start`}
                       control={control}
@@ -404,6 +425,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginRight: "16px" }}
+                              
                             />
                           );
                         }}
@@ -435,6 +457,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginLeft: "16px" }}
+                              
                             />
                           );
                         }}
@@ -491,6 +514,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginRight: "16px" }}
+                              
                             />
                           );
                   }}
@@ -526,6 +550,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginLeft: "16px" }}
+                              
                             />
                           );
                   }}
@@ -549,23 +574,24 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           </div>
         )}
       </div>
-      {!error ? (
-        <Button
-          className="fixed bottom-4 left-4 w-header z-10"
-          onClick={(e) => {
-            e.preventDefault();
-            handleSubmit(saveSchedule)();
-          }}
-          loading={isLoading}
-          disabled={!isButtonValid()}
-        >
-          {t("continue")}
-        </Button>
-      ) : (
-        <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
-          {errorText}
-        </Button>
-      )}
+      {/* reserve fixed bottom area: show either error text or continue button inside fixed container */}
+      <div className="fixed bottom-4 left-4 w-header z-10">
+        {firstFormError ? (
+          <div className={`w-full text-center py-4 font-semibold ${COLORS_TEXT.red} bg-transparent`}>{firstFormError}</div>
+        ) : (
+          <Button
+            className="w-full"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(saveSchedule)();
+            }}
+            loading={isLoading}
+            disabled={!isButtonValid()}
+          >
+            {t("continue")}
+          </Button>
+        )}
+      </div>
     </section>
   );
 };
