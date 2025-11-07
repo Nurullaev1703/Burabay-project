@@ -113,7 +113,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("С высокой оценкой")}
+              {t("reviews")}
             </Typography>
           </div>
           <IconContainer

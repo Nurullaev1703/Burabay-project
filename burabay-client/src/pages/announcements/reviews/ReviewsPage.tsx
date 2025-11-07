@@ -152,7 +152,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("С высокой оценкой")}
+              {t("reviews")}
             </Typography>
           </div>
           <IconContainer align="end"></IconContainer>
@@ -195,11 +195,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
       {sortedReviews.length === 0 ? (
         <div className="px-4 py-8 bg-white flex items-center justify-center">
-          <Hint
-            title="Отзывов пока нет"
-            align="center"
-            className="bg-blue200"
-          />
+          <Hint title={t("reviewsNav")} align="center" className="bg-blue200" />
         </div>
       ) : (
         <ul className="px-4 flex flex-col gap-2 bg-white">

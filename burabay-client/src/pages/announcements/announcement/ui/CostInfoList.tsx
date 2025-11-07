@@ -51,7 +51,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({ ad, isAdmin }) {
           <span>
             {t("adults") +
               " — " +
-              (ad.adultsNumber ? ad.adultsNumber : "без ограничений")}
+              (ad.adultsNumber ? ad.adultsNumber : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxAdults")}
@@ -61,7 +61,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({ ad, isAdmin }) {
           <span>
             {t("kids") +
               " — " +
-              (ad.kidsNumber ? ad.kidsNumber : "без ограничений")}
+              (ad.kidsNumber ? ad.kidsNumber : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxKids")}
