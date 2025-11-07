@@ -220,26 +220,42 @@ export const Main: FC<Props> = function Main({
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.width = '';
+      document.documentElement.style.overflow = '';
     };
   }, []);
 
   const openModal = (banner: Banner) => {
     setSelectedBanner(banner);
     setIsModalOpen(true);
+    // Сохраняем текущую позицию скролла
+    const scrollY = window.scrollY;
     // Блокируем скролл страницы на iOS и Android
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    // Дополнительно блокируем html для iOS
+    document.documentElement.style.overflow = 'hidden';
   };
 
   const closeModal = () => {
     setSelectedBanner(null);
     setIsModalOpen(false);
     // Восстанавливаем скролл
+    const scrollY = document.body.style.top;
     document.body.style.overflow = '';
     document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.width = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.documentElement.style.overflow = '';
+    // Возвращаем позицию скролла
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
   };
 
   // Мемоизируем отсортированные баннеры
@@ -322,7 +338,7 @@ export const Main: FC<Props> = function Main({
                   color={COLORS_TEXT.totalBlack}
                   align="left"
                   size={14}
-                  className="mt-2 font-semibold"
+                  className="mt-2 font-semibold line-clamp-2 max-w-[200px]"
                 >
                   {banner.title}
                 </Typography>
@@ -341,8 +357,15 @@ export const Main: FC<Props> = function Main({
       )}
 
       {isModalOpen && selectedBanner && (
-        <div className="fixed top-0 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
-          <div className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[85vh] overflow-y-auto">
+        <div 
+          className="fixed top-0 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]"
+          onClick={closeModal}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div 
+            className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header: sticky so title and close are always visible */}
             <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b">
               <div className="w-[44px] h-[44px]" />
