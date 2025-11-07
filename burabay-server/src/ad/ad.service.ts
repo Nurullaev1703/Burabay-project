@@ -16,6 +16,7 @@ import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.e
 import { ImagesService } from 'src/images/images.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { BookingStatus } from 'src/booking/types/booking.types';
 
 @Injectable()
 export class AdService {
@@ -302,7 +303,10 @@ export class AdService {
 
       // Проверка на наличие активных бронирований (где дата еще не прошла).
       const activeBookings = ad.bookings.filter(
-        (booking) => new Date(booking.dateEnd) >= new Date(),
+        (booking) =>
+          booking.status === BookingStatus.CONFIRM ||
+          booking.status === BookingStatus.PAYED ||
+          booking.status === BookingStatus.IN_PROCESS,
       );
 
       if (activeBookings.length > 0) {
@@ -461,8 +465,6 @@ export class AdService {
       ads,
     };
   }
-
-  
 
   /* Поиск среди Объявлений. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
