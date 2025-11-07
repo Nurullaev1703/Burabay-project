@@ -28,22 +28,20 @@ interface FormType {
   breaks: Breaks[];
 }
 
-
-
 export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
-   const validateTime = (value: string) => {
+  const validateTime = (value: string) => {
     const isValidFormat = /^\d{2}:\d{2}$/.test(value);
     if (!isValidFormat) return t("invalidTimeFormat");
-    
+
     const [hours, minutes] = value.split(":");
     const hoursNumber = parseInt(hours, 10);
     const minutesNumber = parseInt(minutes, 10);
-  
+
     if (hoursNumber > 23 || minutesNumber > 59) {
       return t("invalidTimeRange");
     }
-  
-    return true; 
+
+    return true;
   };
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
@@ -55,7 +53,13 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     return `${hours}:${minutes}`;
   };
 
-  const { handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormType>({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormType>({
     defaultValues: {
       isRoundTheClock: announcement?.isRoundTheClock || false,
       workingDays: {
@@ -104,7 +108,8 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     return null;
   };
 
-  const firstFormError = getFirstErrorMessage(errors) || (error ? errorText : null);
+  const firstFormError =
+    getFirstErrorMessage(errors) || (error ? errorText : null);
 
   // -------------- Дни недели
 
@@ -363,7 +368,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               {daysOfWeek.map((day) => (
                 <li key={day} className="mt-4">
                   <div className="flex justify-between items-center">
-                      <span>{t(day)}</span>
+                    <span>{t(day)}</span>
                     <Controller
                       name={`workingDays.${day}Start`}
                       control={control}
@@ -398,7 +403,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
 
                   {isDayActive(day) && (
                     <div className="mb-2.5 items-center flex">
-                      <span className="mr-4">{"с"}</span>
+                      <span className="mr-4">{t("from")}</span>
                       <Controller
                         name={`workingDays.${day}Start`}
                         control={control}
@@ -425,12 +430,11 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginRight: "16px" }}
-                              
                             />
                           );
                         }}
                       />
-                      <span className="mr-4">{"до"}</span>
+                      <span className="mr-4">{t("to")}</span>
                       <Controller
                         name={`workingDays.${day}End`}
                         control={control}
@@ -457,7 +461,6 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               type="tel"
                               inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginLeft: "16px" }}
-                              
                             />
                           );
                         }}
@@ -483,7 +486,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           {breaks.map((_, index) => (
             <li key={index} className="mt-4 flex items-center justify-between">
               <div className="flex items-center">
-                <span className="mr-4">{"с"}</span>
+                <span className="mr-4">{t("from")}</span>
                 <Controller
                   name={`breaks.${index}.start`}
                   control={control}
@@ -501,25 +504,24 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         M: /[0-9]/,
                       },
                     });
-                          return (
-                            <TextField
-                              {...field}
-                              inputRef={timeMask}
-                              error={Boolean(error?.message)}
-                              placeholder="00:00"
-                              onChange={(e) =>
-                                handleBreakChange(index, "start", e.target.value)
-                              }
-                              variant="standard"
-                              type="tel"
-                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
-                              style={{ width: "80px", marginRight: "16px" }}
-                              
-                            />
-                          );
+                    return (
+                      <TextField
+                        {...field}
+                        inputRef={timeMask}
+                        error={Boolean(error?.message)}
+                        placeholder="00:00"
+                        onChange={(e) =>
+                          handleBreakChange(index, "start", e.target.value)
+                        }
+                        variant="standard"
+                        type="tel"
+                        inputProps={{ inputMode: "tel", pattern: "\\d*" }}
+                        style={{ width: "80px", marginRight: "16px" }}
+                      />
+                    );
                   }}
                 />
-                <span className="mr-4">{"до"}</span>
+                <span className="mr-4">{t("to")}</span>
                 <Controller
                   name={`breaks.${index}.end`}
                   control={control}
@@ -537,22 +539,21 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         M: /[0-9]/,
                       },
                     });
-                          return (
-                            <TextField
-                              {...field}
-                              inputRef={timeMask}
-                              error={Boolean(error?.message)}
-                              variant="standard"
-                              placeholder="00:00"
-                              onChange={(e) =>
-                                handleBreakChange(index, "end", e.target.value)
-                              }
-                              type="tel"
-                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
-                              style={{ width: "80px", marginLeft: "16px" }}
-                              
-                            />
-                          );
+                    return (
+                      <TextField
+                        {...field}
+                        inputRef={timeMask}
+                        error={Boolean(error?.message)}
+                        variant="standard"
+                        placeholder="00:00"
+                        onChange={(e) =>
+                          handleBreakChange(index, "end", e.target.value)
+                        }
+                        type="tel"
+                        inputProps={{ inputMode: "tel", pattern: "\\d*" }}
+                        style={{ width: "80px", marginLeft: "16px" }}
+                      />
+                    );
                   }}
                 />
               </div>
@@ -577,7 +578,11 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
       {/* reserve fixed bottom area: show either error text or continue button inside fixed container */}
       <div className="fixed bottom-4 left-4 w-header z-10">
         {firstFormError ? (
-          <div className={`w-full text-center py-4 font-semibold ${COLORS_TEXT.red} bg-transparent`}>{firstFormError}</div>
+          <div
+            className={`w-full text-center py-4 font-semibold ${COLORS_TEXT.red} bg-transparent`}
+          >
+            {firstFormError}
+          </div>
         ) : (
           <Button
             className="w-full"

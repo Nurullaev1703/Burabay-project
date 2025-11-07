@@ -29,7 +29,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   // Обработка обьекта с расписанием работы
   const renderSchedule = () => {
     if (!ad.schedule || typeof ad.schedule === "string") {
-      return "Нет расписания";
+      return t("noSchedule");
     }
 
     const daysMap: { [key: string]: string } = {

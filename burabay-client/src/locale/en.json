@@ -394,6 +394,8 @@
   "grades": "ratings",
   "todayWith": "Today from",
   "to": "to",
+  "from": "from",
+  "noSchedule": "No schedule",
   "open": "Open",
   "BuildTheRoad": "Build the route",
   "MoreDetails": "More details",
