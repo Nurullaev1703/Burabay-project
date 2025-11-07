@@ -107,7 +107,7 @@ const BannersPage: React.FC = () => {
     fetchBannersList();
   }, [currentPage, itemsPerPage, sortDir, debouncedSearchQuery]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setBanner((prev) => ({ ...prev, [name]: value }));
   };
@@ -435,8 +435,8 @@ const BannersPage: React.FC = () => {
                 className="w-full max-h-[70vh] object-contain mb-4 rounded-lg cursor-pointer"
                 onClick={() => window.open(`${baseUrl}${modalBanner.imagePath}`, '_blank')}
               />
-              <h3 className="text-xl text-black font-semibold mb-2">{modalBanner.title}</h3>
-              <p className="text-black whitespace-pre-wrap">{modalBanner.text}</p>
+              <h3 className="text-xl text-black font-semibold mb-2 break-words">{modalBanner.title}</h3>
+              <p className="text-black whitespace-pre-wrap break-words overflow-wrap-anywhere">{modalBanner.text}</p>
             </div>
           </div>
         </div>
@@ -497,13 +497,13 @@ const BannersPage: React.FC = () => {
                 <label htmlFor="title" className="block text-sm text-gray-700 font-medium mb-2">
                   Заголовок:
                 </label>
-                <input
-                  type="text"
+                <textarea
                   id="title"
                   name="title"
                   value={banner.title}
                   onChange={handleChange}
-                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                  rows={2}
+                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent resize-y"
                   placeholder="Введите заголовок баннера"
                   required
                 />
@@ -513,13 +513,13 @@ const BannersPage: React.FC = () => {
                 <label htmlFor="text" className="block text-sm text-gray-700 font-medium mb-2">
                   Текст:
                 </label>
-                <input
-                  type="text"
+                <textarea
                   id="text"
                   name="text"
                   value={banner.text}
                   onChange={handleChange}
-                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                  rows={4}
+                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent resize-y"
                   placeholder="Введите текст баннера"
                   required
                 />

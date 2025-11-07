@@ -215,14 +215,31 @@ export const Main: FC<Props> = function Main({
     fetchBanners();
   }, []);
 
+  // Очистка стилей body при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, []);
+
   const openModal = (banner: Banner) => {
     setSelectedBanner(banner);
     setIsModalOpen(true);
+    // Блокируем скролл страницы на iOS и Android
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
   };
 
   const closeModal = () => {
     setSelectedBanner(null);
     setIsModalOpen(false);
+    // Восстанавливаем скролл
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
   };
 
   // Мемоизируем отсортированные баннеры
