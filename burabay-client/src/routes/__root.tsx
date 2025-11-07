@@ -50,7 +50,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         roleService.deleteValue();
       } catch (err) {}
       // Обходим рендер и сразу отправляем на страницу авторизации
-      window.location.assign('/auth');
+      window.location.assign("/auth");
       return null;
     }
 
@@ -76,7 +76,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     return (
       <>
         <div
-          className={`overflow-y-auto mx-auto ${device.type == "desktop" ? "" : "container max-w-fullWidth"} relative overflow-x-hidden`}
+          className={`ios-scrollable-content overflow-y-auto mx-auto ${device.type == "desktop" ? "" : "container max-w-fullWidth"} relative overflow-x-hidden`}
         >
           <Outlet />
           {!notificationService.hasValue() && token && <NotificationModal />}
