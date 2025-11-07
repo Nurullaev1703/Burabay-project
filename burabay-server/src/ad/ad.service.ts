@@ -109,6 +109,7 @@ export class AdService {
         },
       });
     }
+    console.log(ads[0].description);
     if (filter.adName) ads = this._searchAd(filter.adName, ads);
     const result = ads.map((ad) => {
       const isFavourite =
