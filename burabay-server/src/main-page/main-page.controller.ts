@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Request } from '@nestjs/common';
+import { Controller, Get, Query, Request, Param } from '@nestjs/common';
 import { MainPageService } from './main-page.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/constants';
@@ -31,6 +31,7 @@ export class MainPageController {
 
   @Get('/banners')
   @ApiBearerAuth()
+  @Public()
   getBanners(
     @Query('skip') skip?: string,
     @Query('take') take?: string,
@@ -40,5 +41,12 @@ export class MainPageController {
     const skipNum = skip ? Number(skip) : undefined;
     const takeNum = take ? Number(take) : undefined;
     return this.mainPageService.getBanners(skipNum, takeNum, search, sortDir);
+  }
+
+  @Get('/banners/:id')
+  @ApiBearerAuth()
+  @Public()
+  getBannerById(@Param('id') id: string) {
+    return this.mainPageService.getBannerById(id);
   }
 }

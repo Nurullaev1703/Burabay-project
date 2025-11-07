@@ -324,6 +324,13 @@ export class MainPageService {
     return result;
   }
 
+  async getBannerById(id: string) {
+    const banner = await this.bannerRepository.findOne({
+      where: { id },
+    });
+    return banner;
+  }
+
   /** Поиск объявлений по имени. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];

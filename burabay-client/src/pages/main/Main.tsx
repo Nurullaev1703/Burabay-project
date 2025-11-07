@@ -53,8 +53,6 @@ export const Main: FC<Props> = function Main({
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
 
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isEditFavourite, setIsEditFavourite] = useState<boolean>(false);
   const [originalFavourites, setOriginalFavourites] =
@@ -215,47 +213,12 @@ export const Main: FC<Props> = function Main({
     fetchBanners();
   }, []);
 
-  // Очистка стилей body при размонтировании компонента
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, []);
-
   const openModal = (banner: Banner) => {
-    setSelectedBanner(banner);
-    setIsModalOpen(true);
-    // Сохраняем текущую позицию скролла
-    const scrollY = window.scrollY;
-    // Блокируем скролл страницы на iOS и Android
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    // Дополнительно блокируем html для iOS
-    document.documentElement.style.overflow = 'hidden';
-  };
-
-  const closeModal = () => {
-    setSelectedBanner(null);
-    setIsModalOpen(false);
-    // Восстанавливаем скролл
-    const scrollY = document.body.style.top;
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.documentElement.style.overflow = '';
-    // Возвращаем позицию скролла
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    // Навигация на страницу просмотра баннера
+    navigate({
+      to: "/banner/$bannerId",
+      params: { bannerId: banner.id },
+    });
   };
 
   // Мемоизируем отсортированные баннеры
@@ -263,34 +226,6 @@ export const Main: FC<Props> = function Main({
     if (!Array.isArray(banners)) return [];
     return banners.slice().sort((a, b) => b.id.localeCompare(a.id));
   }, [banners]);
-
-  // Блокировка скролла страницы при открытии модального окна
-  useEffect(() => {
-    if (isModalOpen) {
-      // Сохраняем текущую позицию скролла
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
-    } else {
-      // Восстанавливаем скролл при закрытии
-      const scrollY = document.body.style.top;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, parseInt(scrollY || "0") * -1);
-    }
-
-    return () => {
-      // Очистка при размонтировании компонента
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-    };
-  }, [isModalOpen]);
 
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen relative pt-12">
@@ -353,51 +288,6 @@ export const Main: FC<Props> = function Main({
               </div>
             );
           })}
-        </div>
-      )}
-
-      {isModalOpen && selectedBanner && (
-        <div 
-          className="fixed top-0 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]"
-          onClick={closeModal}
-          onTouchMove={(e) => e.preventDefault()}
-        >
-          <div 
-            className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header: sticky so title and close are always visible */}
-            <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b">
-              <div className="w-[44px] h-[44px]" />
-              <div className="flex-grow text-center">
-                <p className="text-[#0A7D9E] text-[18px] font-semibold">
-                  Баннер
-                </p>
-              </div>
-              <button
-                aria-label="Закрыть баннер"
-                className="w-[44px] h-[44px] flex items-center justify-center"
-                onClick={closeModal}
-              >
-                <img src={Close} alt="Закрыть" className="w-11 h-11" />
-              </button>
-            </div>
-
-            {/* Контейнер для изображения и текста */}
-            <div className="w-full max-w-full p-4">
-              <img
-                src={`${baseUrl}${selectedBanner.imagePath}`}
-                alt={selectedBanner.text}
-                className="w-full max-w-full max-h-[60vh] object-contain mb-4 rounded-lg"
-              />
-              <h3 className="text-[20px] font-semibold text-black mb-2 break-words box-border w-full max-w-full">
-                {selectedBanner.title}
-              </h3>
-              <p className="text-[18px] break-words box-border w-full max-w-full">
-                {selectedBanner.text}
-              </p>
-            </div>
-          </div>
         </div>
       )}
 
