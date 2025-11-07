@@ -15,9 +15,7 @@ export class EmailService {
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private _generateCode() {
     let code = '';
     for (let i = 0; i < 4; i++) {
@@ -39,6 +37,7 @@ export class EmailService {
       await this.transporter.sendMail(data);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
+      console.error(error);
       return JSON.stringify(HttpStatus.FAILED_DEPENDENCY);
     }
   }
@@ -60,15 +59,14 @@ export class EmailService {
     }
   }
   async verifyCode(verifyCodeDto: VerifyCodeDto) {
-    try{
+    try {
       const storedCode = await this.cacheManager.get(verifyCodeDto.email);
       if (storedCode !== verifyCodeDto.code) {
         return JSON.stringify(HttpStatus.CONFLICT);
       }
       return JSON.stringify(HttpStatus.OK);
-    }
-    catch{
-      return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR)
+    } catch {
+      return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
