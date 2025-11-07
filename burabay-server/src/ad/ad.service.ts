@@ -331,7 +331,12 @@ export class AdService {
       if (ad.images?.length) {
         await Promise.all(
           ad.images.map(async (image) => {
-            await this.imageService.deleteImage({ filepath: image });
+            try {
+              await this.imageService.deleteImage({ filepath: image });
+            } catch (error) {
+              // Логируем ошибку, но не останавливаем процесс удаления
+              console.warn(`Не удалось удалить изображение ${image}:`, error.message);
+            }
           }),
         );
       }
