@@ -33,13 +33,13 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
     }
 
     const daysMap: { [key: string]: string } = {
-      mon: "Пн",
-      tue: "Вт",
-      wen: "Ср",
-      thu: "Чт",
-      fri: "Пт",
-      sat: "Сб",
-      sun: "Вс",
+      mon: "monShort",
+      tue: "tueShort",
+      wen: "wenShort",
+      thu: "thuShort",
+      fri: "friShort",
+      sat: "satShort",
+      sun: "sunShort",
     };
 
     // Фильтрация дней с рабочим временем не равным "00:00"
@@ -52,7 +52,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           ad.schedule?.[endKey as keyof Schedule] !== "00:00"
         );
       })
-      .map(([, value]) => value);
+      .map(([, value]) => t(value));
 
     return workingDays.length > 0
       ? workingDays.join(", ")
@@ -63,7 +63,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
     <ul>
       <li className="py-3">
         <Link
-          to={`/announcements/org-page/${ad.organization.id}`}
+          to="/announcements/org-page/$organizationId"
+          params={{ organizationId: ad.organization.id }}
           className="flex justify-between"
         >
           <div className="flex items-center relative">
@@ -103,7 +104,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       )}
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
-          to={`/announcements/schedule/${ad.id}`}
+          to="/announcements/schedule/$announcementId"
+          params={{ announcementId: ad.id }}
           className="flex justify-between"
         >
           <div className="flex flex-col">
@@ -119,7 +121,11 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       </li>
       {!isAdmin && ad.address && (
         <li className="border-b border-[#E4E9EA] py-3">
-          <Link className="flex justify-between" to={`/mapNav?adId=${ad.id}`}>
+          <Link
+            className="flex justify-between"
+            to="/mapNav"
+            search={{ adId: ad.id }}
+          >
             <span>{t("locationOnMap")}</span>
             <img src={ArrowRight} alt="Стрелка" />
           </Link>
@@ -127,7 +133,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       )}
       <li className="py-3">
         <Link
-          to={`/announcements/details/${ad.id}`}
+          to="/announcements/details/$announcementId"
+          params={{ announcementId: ad.id }}
           className="flex justify-between"
         >
           <span>{t("details")}</span>

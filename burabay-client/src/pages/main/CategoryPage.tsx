@@ -21,7 +21,10 @@ interface Props {
   filters: MainPageFilter;
 }
 
-export const CategoryPage: FC<Props> = function CategoryPage({ category, filters }) {
+export const CategoryPage: FC<Props> = function CategoryPage({
+  category,
+  filters,
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
@@ -39,11 +42,11 @@ export const CategoryPage: FC<Props> = function CategoryPage({ category, filters
       });
     }
   };
-  
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetMainPageAnnouncements({
       ...filters,
-      category: category.name
+      category: category.name,
     });
 
   const announcements = data?.pages.flat() || [];
@@ -149,7 +152,7 @@ export const CategoryPage: FC<Props> = function CategoryPage({ category, filters
                 {t(category.name)}
               </Typography>
               <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
-                {t(category.description)}
+                {t(`categoryDescriptions.${category.name}`)}
               </Typography>
             </div>
           </div>
