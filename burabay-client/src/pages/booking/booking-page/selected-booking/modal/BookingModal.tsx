@@ -46,6 +46,7 @@ export const BookingModal: FC<Props> = function BookingModal({
           justifyContent: "center",
           overflow: "auto",
           maxHeight: "100%",
+          zIndex: 1400,
         }}
       >
         <Box
