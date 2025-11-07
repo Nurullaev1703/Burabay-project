@@ -18,6 +18,6 @@ import { Banner } from './entities/baner.entity';
   ],
   controllers: [AdminPanelController, AnalyticsController],
   providers: [AdminPanelService, AnalyticsService],
-  exports: [],
+  exports: [AdminPanelService],
 })
 export class AdminPanelModule {}

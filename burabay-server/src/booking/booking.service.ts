@@ -4,7 +4,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
@@ -29,7 +29,7 @@ export class BookingService {
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -227,6 +227,19 @@ export class BookingService {
           paymentType: PaymentType.ONLINE,
         };
       }
+    }
+
+    if (!filter.canceled && filter.status === 'ACTIVE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    }
+    if (!filter.canceled && filter.status === 'DONE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.DONE, BookingStatus.CANCELED]),
+      };
     }
 
     const bookings = await this.bookingRepository.find({
@@ -522,7 +535,11 @@ export class BookingService {
         relations: { user: true, ad: true },
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
-      if (booking.status == BookingStatus.CANCELED) throw new HttpException('Бронь отменена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
+      if (booking.status == BookingStatus.CANCELED)
+        throw new HttpException(
+          'Бронь отменена и не может быть подтверждена',
+          HttpStatus.BAD_REQUEST,
+        );
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
       const notificationDto = {
@@ -558,6 +575,28 @@ export class BookingService {
 
       return JSON.stringify(HttpStatus.OK);
     });
+  }
+
+  @CatchErrors()
+  async cancelExpiredUnacceptedBookings() {
+    const now = new Date();
+    const expiredBookings = await this.bookingRepository.find({
+      where: {
+        status: BookingStatus.IN_PROCESS,
+        createdAt: LessThanOrEqual(now),
+      },
+    });
+    for (const booking of expiredBookings) {
+      booking.status = BookingStatus.CANCELED;
+      await this.bookingRepository.save(booking);
+      const notificationDto = {
+        email: booking.user.email,
+        title: '',
+        type: NotificationType.NEGATIVE,
+        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена из-за истечения срока подтверждения`,
+      };
+      await this.notificationService.createForUser(notificationDto);
+    }
   }
 
   @CatchErrors()
