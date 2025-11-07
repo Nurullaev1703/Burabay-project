@@ -209,6 +209,34 @@ export const Main: FC<Props> = function Main({
     setIsModalOpen(false);
   };
 
+  // Блокировка скролла страницы при открытии модального окна
+  useEffect(() => {
+    if (isModalOpen) {
+      // Сохраняем текущую позицию скролла
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Восстанавливаем скролл при закрытии
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    return () => {
+      // Очистка при размонтировании компонента
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [isModalOpen]);
+
   return (
     <section className="overflow-y-scroll bg-almostWhite min-h-screen relative pt-12">
       <div className="flex justify-between items-center text-center px-4 bg-white fixed top-0 left-0 z-[100] w-full py-2">
