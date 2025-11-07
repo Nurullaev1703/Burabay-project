@@ -20,6 +20,7 @@ import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { title } from 'process';
 
 @Injectable()
 export class MainPageService {
@@ -289,7 +290,7 @@ export class MainPageService {
     // Поиск по заголовку
     if (search) {
       findOptions.where = {
-        text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+        title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
           search: `%${search}%`,
         }),
       };
