@@ -281,8 +281,24 @@ export class NotificationService {
       .where('user.role = :role', { role: ROLE_TYPE.TOURIST })
       .getMany();
 
+    // Используем Set для отслеживания уже обработанных пользователей
+    const processedUserIds = new Set<string>();
+
     // Send notifications to users with this category in favorites
     for (const user of users) {
+      // Пропускаем, если пользователь уже получил уведомление
+      if (processedUserIds.has(user.id)) continue;
+
+      // Создаём уведомление для пользователя
+      const newNotification = this.notificationRepository.create({
+        ...of,
+        title: 'Burabay администратор',
+        createdAt: createdAt,
+        users: [user],
+      });
+      await this.notificationRepository.save(newNotification);
+
+      // Отправляем push-уведомление только если есть токен
       if (user.pushToken) {
         const payload = {
           data: {
@@ -301,14 +317,10 @@ export class NotificationService {
           },
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
-        const newNotification = this.notificationRepository.create({
-          ...of,
-          title: 'Burabay администратор',
-          createdAt: createdAt,
-          users: [user],
-        });
-        await this.notificationRepository.save(newNotification);
       }
+
+      // Помечаем пользователя как обработанного
+      processedUserIds.add(user.id);
     }
 
     return JSON.stringify(HttpStatus.CREATED);

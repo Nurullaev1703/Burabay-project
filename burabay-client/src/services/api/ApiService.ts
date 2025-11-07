@@ -48,6 +48,23 @@ class ApiService {
       },
     }).then(async (response) => {
       const data = await response.json();
+
+      // Проверка на ошибки блокировки
+      if (response.status === 401 && data.message) {
+        const message = data.message;
+        if (
+          message === "Ваш аккаунт заблокирован" ||
+          message === "Ваша организация заблокирована"
+        ) {
+          // Удаляем токен
+          this.deleteBearerToken();
+          // Очищаем localStorage
+          localStorage.clear();
+          // Редирект на страницу авторизации
+          window.location.href = "/auth";
+        }
+      }
+
       return {
         status: response.status,
         data,
