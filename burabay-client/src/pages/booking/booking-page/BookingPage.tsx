@@ -159,9 +159,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                 })
                 .map((ad) => {
                   const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                  // const [imageSrc, setImageSrc] = useState<string>(
-                  //   baseUrl + ad.img
-                  // );
                   return (
                     <div key={`${ad.ad_id}`}>
                       <li className="py-3 border-b border-[#E4E9EA]">

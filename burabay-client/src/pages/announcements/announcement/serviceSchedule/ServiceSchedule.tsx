@@ -10,15 +10,12 @@ import {
 } from "../../../../shared/ui/colors";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import "dayjs/locale/ru";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { baseUrl } from "../../../../services/api/ServerData";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
-import DefaultImage from "../../../../app/icons/abstract-bg.svg"
+import DefaultImage from "../../../../app/icons/abstract-bg.svg";
 import { Button } from "../../../../shared/ui/Button";
+import { BookingCalendar } from "../../booking-time/ui/BookingCalendar";
 
 interface Props {
   announcement: Announcement;
@@ -29,18 +26,23 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
   serviceSchedule,
   announcement,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
     []
   );
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
+
   // Установка времени с учетом заблокированных
-  const handleDateChange = (date: any) => {
-    const selectedDate = date?.format("DD.MM.YYYY");
+  const handleDateChange = (date: Dayjs | null) => {
+    setSelectedDate(date);
+    if (!date) return;
+
+    const formattedDate = date.format("DD.MM.YYYY");
     const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === selectedDate
+      (currDate) => currDate.date === formattedDate
     );
 
     const availableTimes = announcement.startTime || []; // Общие временные интервалы
@@ -114,44 +116,13 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
         </div>
       </div>
 
-      <div className="mb-8 border-y border-[#E4E9EA]">
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-          <DateCalendar
-            showDaysOutsideCurrentMonth
-            onChange={handleDateChange}
-            shouldDisableDate={(date: any) => date.isBefore(dayjs(), "day")}
-            sx={{
-              "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
-                {
-                  padding: "0px !important",
-                },
-              "& .css-1e9nyoq-MuiPickersCalendarHeader-labelContainer": {
-                marginLeft: "20% !important",
-              },
-              "& .css-1chuxo2-MuiPickersCalendarHeader-label": {
-                color: "#999999",
-              },
-              "& .css-1nxbkmn-MuiPickersCalendarHeader-root": {
-                flexDirection: "row-reverse !important",
-                position: "relative",
-              },
-              "& .css-17nrfho-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button":
-                {
-                  position: "absolute",
-                  right: "25px",
-                  padding: "0px",
-                },
-              "& .css-iupya1-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-              "& .css-1rf3jwr-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-            }}
-          />
-        </LocalizationProvider>
+      <div className="mb-8 px-4">
+        <BookingCalendar
+          value={selectedDate}
+          onChange={handleDateChange}
+          shouldDisableDate={(date: Dayjs) => date.isBefore(dayjs(), "day")}
+          locale={i18n.language as "ru" | "kk" | "en"}
+        />
       </div>
 
       <div className="px-4">
@@ -184,9 +155,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
 
       {/* Кнопка назад внизу страницы, как на других шагах */}
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
-        <Button onClick={() => history.back()}>
-          {t("back")}
-        </Button>
+        <Button onClick={() => history.back()}>{t("back")}</Button>
       </div>
     </section>
   );
