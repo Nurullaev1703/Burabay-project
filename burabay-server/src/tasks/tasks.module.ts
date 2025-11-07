@@ -5,9 +5,10 @@ import { User } from 'src/users/entities/user.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { UsersModule } from 'src/users/user.module';
 import { AdminPanelModule } from 'src/admin-panel/admin-panel.module';
+import { BookingModule } from 'src/booking/booking.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Organization]), UsersModule, AdminPanelModule],
+  imports: [TypeOrmModule.forFeature([User, Organization]), UsersModule, AdminPanelModule, BookingModule],
   providers: [TasksService],
 })
 export class TasksModule {}
