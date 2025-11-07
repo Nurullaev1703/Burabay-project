@@ -590,13 +590,14 @@ export class BookingService {
     });
   }
 
+  /** Отмена просроченных не принятых заказов */
   @CatchErrors()
   async cancelExpiredUnacceptedBookings() {
     const now = new Date();
     const expiredBookings = await this.bookingRepository.find({
       where: {
         status: BookingStatus.IN_PROCESS,
-        createdAt: LessThanOrEqual(now),
+        dateEnd: LessThanOrEqual(now),
       },
     });
     for (const booking of expiredBookings) {
@@ -609,6 +610,22 @@ export class BookingService {
         message: `Ваша бронь на объявление "${booking.ad.title}" была отменена из-за истечения срока подтверждения`,
       };
       await this.notificationService.createForUser(notificationDto);
+    }
+  }
+
+  /** Завершение просроченных принятых заказов */
+  @CatchErrors()
+  async doneExpiredAcceptedBookings() {
+    const now = new Date();
+    const expiredBookings = await this.bookingRepository.find({
+      where: {
+        status: BookingStatus.PAYED,
+        dateEnd: LessThanOrEqual(now),
+      },
+    });
+    for (const booking of expiredBookings) {
+      booking.status = BookingStatus.DONE;
+      await this.bookingRepository.save(booking);
     }
   }
 
