@@ -74,7 +74,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
                 search: {
                   adName: selectedFilters.name || "",
                   category: selectedFilters.category,
-                }
+                },
               })
             }
           >
@@ -90,26 +90,25 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             color={COLORS_TEXT.gray100}
             className="mb-2"
           >
-            {"Цена"}
+            {t("Цена")}
           </Typography>
           <div className="flex space-x-2">
-              <input
-                type="number"
-                placeholder="От"
-              className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              value={selectedFilters.minPrice ?? ""}
-                onChange={(e) => {
-                  const value = e.target.value.slice(0, 9);
-                  setSelectedFilters((prev) => ({
-                    ...prev,
-                    minPrice: value ? Number(value) : undefined,
-                  }));
-                }}
-              />
             <input
               type="number"
-              
-              placeholder="До"
+              placeholder={t("От")}
+              className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
+              value={selectedFilters.minPrice ?? ""}
+              onChange={(e) => {
+                const value = e.target.value.slice(0, 9);
+                setSelectedFilters((prev) => ({
+                  ...prev,
+                  minPrice: value ? Number(value) : undefined,
+                }));
+              }}
+            />
+            <input
+              type="number"
+              placeholder={t("До")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
               value={selectedFilters.maxPrice ?? ""}
               onChange={(e) => {
@@ -128,12 +127,11 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-5 flex items-center justify-between">
           <div className="flex">
-            <Typography size={16} weight={400}>{`С рейтингом выше`}</Typography>
+            <Typography size={16} weight={400}>
+              {t("С рейтингом выше")}
+            </Typography>
             <img src={StarIcon} className="w-[16px] mr-1 ml-2" />
-            <Typography
-              size={16}
-              weight={400}
-            >{`4.5`}</Typography>
+            <Typography size={16} weight={400}>{`4.5`}</Typography>
           </div>
           <Switch
             checked={selectedFilters.isHighRating ?? false}
@@ -148,7 +146,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-4">
           <Typography size={18} weight={500} className=" mb-2">
-            {"Подкатегория"}
+            {t("Подкатегория")}
           </Typography>
           {category.subcategories?.map((subcategory, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
@@ -216,7 +214,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
               />
 
               <Typography size={16} weight={400}>
-                {subcategory.name}
+                {t(`subcategories.${subcategory.name}`)}
               </Typography>
             </label>
           ))}
@@ -224,7 +222,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-4">
           <Typography size={18} weight={500} className=" mb-2">
-            {"Подробности"}
+            {t("Подробности")}
           </Typography>
           {category.details?.map((detail, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
@@ -289,14 +287,14 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           className="w-full  text-white p-3 rounded"
           onClick={() => applyFilters()}
         >
-          {"Применить"}
+          {t("Применить")}
         </Button>
         <Button
           mode="border"
           className="w-full p-3 mt-2"
           onClick={resetFilters}
         >
-          {"Сбросить все фильтры"}
+          {t("Сбросить все фильтры")}
         </Button>
       </div>
     </div>

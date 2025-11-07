@@ -71,5 +71,7 @@ export function useGetBooking(bookingId: string, category: string) {
       });
       return response.data;
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 }

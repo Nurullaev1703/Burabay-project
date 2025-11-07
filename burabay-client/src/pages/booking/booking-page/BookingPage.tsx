@@ -159,9 +159,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                 })
                 .map((ad) => {
                   const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                  // const [imageSrc, setImageSrc] = useState<string>(
-                  //   baseUrl + ad.img
-                  // );
                   return (
                     <div key={`${ad.ad_id}`}>
                       <li className="py-3 border-b border-[#E4E9EA]">
@@ -197,14 +194,15 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   );
 
                                   return (
-                                    <div key={index} className="flex">
-                                      <span className={COLORS_TEXT.blue200}>
-                                        {updatedTime}
-                                        {index <
-                                          Math.min(5, ad.times.length) - 1 &&
-                                          ", "}
-                                      </span>
-                                    </div>
+                                    <span
+                                      key={index}
+                                      className={COLORS_TEXT.blue200}
+                                    >
+                                      {updatedTime}
+                                      {index <
+                                        Math.min(5, ad.times.length) - 1 &&
+                                        ", "}
+                                    </span>
                                   );
                                 })}
                                 {ad.times.length > 5 && " ..."}

@@ -183,7 +183,7 @@ const BannersPage: React.FC = () => {
                 name="text"
                 value={banner.text}
                 onChange={handleChange}
-                className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                className="mt-1 p-3 border border-gray-300 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
                 placeholder="Введите текст баннера"
                 required
               />
@@ -203,7 +203,7 @@ const BannersPage: React.FC = () => {
                 value={banner.deleteDate}
                 onChange={handleChange}
                 onBlur={handleDateBlur}
-                className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                className="mt-1 p-3 border border-gray-300 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
                 required
                 min={new Date().toISOString().split("T")[0]}
               />
@@ -214,7 +214,7 @@ const BannersPage: React.FC = () => {
               <label className="block text-sm text-gray-700 font-medium">
                 Изображение:
               </label>
-              <div className="relative w-32 h-32 border-2 border-gray-300 rounded-md overflow-hidden hover:border-[#0A7D9E] transition-colors">
+              <div className="relative w-32 h-32 border-2 border-gray-300 rounded-2xl overflow-hidden hover:border-[#0A7D9E] transition-colors">
                 {imagePreview ? (
                   <img
                     src={imagePreview}

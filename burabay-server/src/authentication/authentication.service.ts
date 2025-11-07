@@ -398,18 +398,20 @@ export class AuthenticationService {
       },
     });
 
-    // если у пользователя есть пароль, то проверяем
-    if (user.password.length) {
-      const isPasswordMatch = await bcrypt.compare(signInDto.password, user.password);
-
-      if (!isPasswordMatch) {
-        return JSON.stringify(HttpStatus.CONFLICT);
-      }
-      const payload: TokenData = { id: user.id };
-      const token = await this.jwtService.signAsync(payload);
-
-      return JSON.stringify(token);
+    // если пользователь не найден
+    if (!user) {
+      return JSON.stringify(HttpStatus.NOT_FOUND);
     }
+
+    const isPasswordMatch = await bcrypt.compare(signInDto.password, user.password);
+
+    if (!isPasswordMatch) {
+      return JSON.stringify(HttpStatus.CONFLICT);
+    }
+    const payload: TokenData = { id: user.id };
+    const token = await this.jwtService.signAsync(payload);
+
+    return JSON.stringify(token);
   }
 
   private async createAdminAccount(signInDto: SignInDto) {

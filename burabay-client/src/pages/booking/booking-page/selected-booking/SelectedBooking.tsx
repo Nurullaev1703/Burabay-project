@@ -21,6 +21,7 @@ import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { apiService } from "../../../../services/api/ApiService";
 import ArrowRightIcon from "../../../../app/icons/arrow-right.svg";
+import { queryClient } from "../../../../ini/InitializeApp";
 
 interface Props {
   announcement: Announcement;
@@ -95,7 +96,8 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         {userRole === "турист" ? (
           <Link
             className="flex items-center justify-between py-3"
-            to={`/announcements/${announcement.id}`}
+            to={`/announcements/$announcementId`}
+            params = { {announcementId: announcement.id }}
           >
             <div className="flex items-center">
               <img
@@ -258,6 +260,14 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                             url: `/booking/${booking.bookings[0].bookingId}/confirm`,
                           });
                           setIsConfirmed(true);
+                          // Инвалидируем кэш после подтверждения
+                          await queryClient.invalidateQueries({
+                            queryKey: [`/booking/org`],
+                          });
+                          await queryClient.invalidateQueries({
+                            queryKey: [`/booking/by-ad`],
+                            refetchType: "all",
+                          });
                           navigate({
                             to: "/booking/business",
                           });

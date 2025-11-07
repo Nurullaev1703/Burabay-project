@@ -24,12 +24,16 @@ export const CancelBooking: FC<Props> = function CancelBooking({
         url: `/booking/${idBooking}/cancel`,
       });
       if (parseInt(response.data) === parseInt(HTTP_STATUS.OK)) {
+        // Инвалидируем все связанные запросы
         await queryClient.invalidateQueries({ queryKey: [`/booking/org`] });
+        await queryClient.invalidateQueries({
+          queryKey: [`/booking/by-ad`],
+          refetchType: "all",
+        });
         history.back();
       } else {
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   return (
@@ -45,6 +49,7 @@ export const CancelBooking: FC<Props> = function CancelBooking({
           justifyContent: "center",
           overflow: "auto",
           maxHeight: "100%",
+          zIndex: 1400,
         }}
       >
         <Box

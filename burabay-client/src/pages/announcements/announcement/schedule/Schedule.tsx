@@ -135,7 +135,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
                             <span>{t("dayOff")}</span>
                           ) : (
                             <>
-                              <span className="mr-2">{"с"}</span>
+                              <span className="mr-2">{t("from")}</span>
                               <TextField
                                 {...startField}
                                 variant="standard"
@@ -149,7 +149,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
                                   },
                                 }}
                               />
-                              <span className="mx-2">{"до"}</span>
+                              <span className="mx-2">{t("to")}</span>
                               <TextField
                                 {...endField}
                                 variant="standard"
@@ -199,7 +199,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
                         control={control}
                         render={({ field: endField }) => (
                           <>
-                            <span className="mr-2">{"с"}</span>
+                            <span className="mr-2">{t("from")}</span>
                             <TextField
                               {...startField}
                               variant="standard"
@@ -213,7 +213,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
                                 },
                               }}
                             />
-                            <span className="mx-2">{"до"}</span>
+                            <span className="mx-2">{t("to")}</span>
                             <TextField
                               {...endField}
                               variant="standard"
