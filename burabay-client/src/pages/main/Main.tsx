@@ -302,10 +302,18 @@ export const Main: FC<Props> = function Main({
                   />
                 </div>
                 <Typography
+                  color={COLORS_TEXT.totalBlack}
+                  align="left"
+                  size={14}
+                  className="mt-2 font-semibold"
+                >
+                  {banner.title}
+                </Typography>
+                <Typography
                   color={COLORS_TEXT.gray100}
                   align="left"
                   size={12}
-                  className="mt-2"
+                  className="mt-1"
                 >
                   {`${t("beforeDelete")} ${format(banner.deleteDate, "dd.MM.yyyy")}`}
                 </Typography>
