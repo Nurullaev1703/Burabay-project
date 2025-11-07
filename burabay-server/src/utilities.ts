@@ -63,6 +63,7 @@ export function CatchErrors() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error) {
+        console.error(error);
         throw new HttpException(
           error.message,
           error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
