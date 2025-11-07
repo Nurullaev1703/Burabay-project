@@ -81,7 +81,16 @@ export const AdCard: FC<Props> = function AdCard({
             <img
               src={isFavourite ? FavouriteActiveIcon : FavouriteIcon}
               alt=""
-              onClick={addToFavourite}
+              onClick={(e) => {
+                // предотвратить переход по ссылке на мобильных (всплытие)
+                e.stopPropagation();
+                e.preventDefault();
+                addToFavourite();
+              }}
+              onTouchStart={(e) => {
+                // на iOS иногда сначала идет touch, остановим всплытие
+                e.stopPropagation();
+              }}
             />
           )}
         </div>
