@@ -455,8 +455,9 @@ export class AdminPanelService {
 
   @CatchErrors()
   async createBanner(dto: BannerCreateDto) {
-    const { text, imagePath, deleteDate } = dto;
+    const { title, text, imagePath, deleteDate } = dto;
     const banner = this.bannerRepository.create({
+      title: title,
       text: text,
       imagePath: imagePath,
       deleteDate: Utils.stringDateToDate(deleteDate),
