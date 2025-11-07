@@ -51,27 +51,27 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
       isRoundTheClock: false,
       workingDays: {
         adId: announcement.id || "",
-        monStart: formatTime(announcement.schedule.monStart),
-        monEnd: formatTime(announcement.schedule.monEnd),
-        tueStart: formatTime(announcement.schedule.tueStart),
-        tueEnd: formatTime(announcement.schedule.tueEnd),
-        wenStart: formatTime(announcement.schedule.wenStart),
-        wenEnd: formatTime(announcement.schedule.wenEnd),
-        thuStart: formatTime(announcement.schedule.thuStart),
-        thuEnd: formatTime(announcement.schedule.thuEnd),
-        friStart: formatTime(announcement.schedule.friStart),
-        friEnd: formatTime(announcement.schedule.friEnd),
-        satStart: formatTime(announcement.schedule.satStart),
-        satEnd: formatTime(announcement.schedule.satEnd),
-        sunStart: formatTime(announcement.schedule.sunStart),
-        sunEnd: formatTime(announcement.schedule.sunEnd),
+        monStart: formatTime(announcement.schedule?.monStart),
+        monEnd: formatTime(announcement.schedule?.monEnd),
+        tueStart: formatTime(announcement.schedule?.tueStart),
+        tueEnd: formatTime(announcement.schedule?.tueEnd),
+        wenStart: formatTime(announcement.schedule?.wenStart),
+        wenEnd: formatTime(announcement.schedule?.wenEnd),
+        thuStart: formatTime(announcement.schedule?.thuStart),
+        thuEnd: formatTime(announcement.schedule?.thuEnd),
+        friStart: formatTime(announcement.schedule?.friStart),
+        friEnd: formatTime(announcement.schedule?.friEnd),
+        satStart: formatTime(announcement.schedule?.satStart),
+        satEnd: formatTime(announcement.schedule?.satEnd),
+        sunStart: formatTime(announcement.schedule?.sunStart),
+        sunEnd: formatTime(announcement.schedule?.sunEnd),
       },
       breaks: formattedBreaks,
     },
     mode: "onBlur",
   });
   return (
-    <section className="bg-background min-h-screen">
+    <section className="bg-background md:bg-transparent min-h-screen md:max-w-[1200px] md:mx-auto">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -240,7 +240,7 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
       </div>
 
       <Button
-        className="fixed bottom-4 left-4 w-header z-10"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-header z-10 md:max-w-[1200px] md:mx-auto"
         onClick={() => history.back()}
       >
         {t("back")}

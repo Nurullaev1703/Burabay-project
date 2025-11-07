@@ -27,10 +27,10 @@ export class AuthenticationService {
     private jwtService: JwtService,
   ) {
     this.createAdminAccount({
-      email: "burabai.travel@gmail.com",
+      email: 'burabai.travel@gmail.com',
       role: ROLE_TYPE.ADMIN,
-      password: "burAdmin2025"
-    })
+      password: 'burAdmin2025',
+    });
   }
 
   // регистрация нового пользователя
@@ -81,6 +81,9 @@ export class AuthenticationService {
         where: {
           email: signInDto.email,
         },
+        relations: {
+          organization: true,
+        },
       });
 
       // если почта уже зарегистрирована на туриста
@@ -90,13 +93,25 @@ export class AuthenticationService {
         }
       }
 
+      // Проверка блокировки пользователя или организации
+      if (
+        userExist &&
+        (userExist.isBanned || (userExist.organization && userExist.organization.isBanned))
+      ) {
+        // Возвращаем объект с кодом и сообщением чтобы фронт мог показать локализованный hint
+        if (userExist.isBanned) {
+          return { message: 'Ваш аккаунт заблокирован', statusCode: 401 };
+        }
+        if (userExist.organization && userExist.organization.isBanned) {
+          return { message: 'Ваша организация заблокирована', statusCode: 401 };
+        }
+        return JSON.stringify(HttpStatus.FORBIDDEN);
+      }
+
       // если пользователь зарегистрирован, но не подтвержден
       if (userExist && !userExist.isEmailConfirmed) {
         await this.emailService.sendAcceptMessage(signInDto.email);
         return JSON.stringify(HttpStatus.UNAUTHORIZED);
-      }
-      if (userExist && userExist.isBanned) {
-        return JSON.stringify(HttpStatus.FORBIDDEN);
       }
 
       // если пользователь найден, значит уже зарегистрирован и авторизуем его
@@ -125,10 +140,19 @@ export class AuthenticationService {
         where: {
           email: userInfo.email,
         },
+        relations: {
+          organization: true,
+        },
       });
 
       // если пользователь существует, отправляем на авторизацию
       if (userExist) {
+        // Проверка блокировки пользователя или организации
+        if (userExist.isBanned || (userExist.organization && userExist.organization.isBanned)) {
+          // Возвращаем статус Forbidden для заблокированных
+          return JSON.stringify(HttpStatus.FORBIDDEN);
+        }
+
         // если пользователь есть, но без пароля
         if (!userExist.password.length) {
           return JSON.stringify(HttpStatus.CREATED);
@@ -159,9 +183,18 @@ export class AuthenticationService {
         where: {
           email: userInfo.email,
         },
+        relations: {
+          organization: true,
+        },
       });
       // если пользователь существует, отправляем на авторизацию
       if (userExist) {
+        // Проверка блокировки пользователя или организации
+        if (userExist.isBanned || (userExist.organization && userExist.organization.isBanned)) {
+          // Возвращаем статус Forbidden для заблокированных
+          return JSON.stringify(HttpStatus.FORBIDDEN);
+        }
+
         // если пользователь есть, но без пароля
         if (!userExist.password?.length) {
           return JSON.stringify(HttpStatus.CREATED);
@@ -191,7 +224,15 @@ export class AuthenticationService {
       where: {
         email: loginDto.email,
       },
+      relations: {
+        organization: true,
+      },
     });
+
+    // Проверка блокировки пользователя или организации
+    if (user.isBanned || (user.organization && user.organization.isBanned)) {
+      return JSON.stringify(HttpStatus.FORBIDDEN);
+    }
 
     // если у пользователя есть пароль, то проверяем
     if (user.password.length) {
@@ -259,7 +300,7 @@ export class AuthenticationService {
       description: updateDto.description,
       siteUrl: updateDto.siteUrl || user.organization.siteUrl,
     });
-    
+
     const payload: TokenData = { id: user.id };
     const token = await this.jwtService.signAsync(payload);
     return JSON.stringify(token);
@@ -312,13 +353,22 @@ export class AuthenticationService {
         throw new (require('@nestjs/common').HttpException)('User not found', HttpStatus.CONFLICT);
       }
       if (msg === 'NO_PASSWORD_SET') {
-        throw new (require('@nestjs/common').HttpException)('No password set for this account', HttpStatus.BAD_REQUEST);
+        throw new (require('@nestjs/common').HttpException)(
+          'No password set for this account',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (msg === 'PASSWORD_MISMATCH') {
-        throw new (require('@nestjs/common').HttpException)('Old password is incorrect', HttpStatus.CONFLICT);
+        throw new (require('@nestjs/common').HttpException)(
+          'Old password is incorrect',
+          HttpStatus.CONFLICT,
+        );
       }
 
-      throw new (require('@nestjs/common').HttpException)('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new (require('@nestjs/common').HttpException)(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -362,13 +412,12 @@ export class AuthenticationService {
     }
   }
 
-
   private async createAdminAccount(signInDto: SignInDto) {
     const user = await this.userRepository.findOne({
       where: {
-        email: signInDto.email
-      }
-    })
+        email: signInDto.email,
+      },
+    });
     if (user) {
       return JSON.stringify(HttpStatus.CONFLICT);
     }
@@ -386,5 +435,4 @@ export class AuthenticationService {
     await this.entityManager.save(newUser);
     return JSON.stringify(HttpStatus.CREATED);
   }
-  
 }

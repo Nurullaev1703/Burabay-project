@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
@@ -19,6 +19,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AdminPanelService {
+  private readonly logger = new Logger(AdminPanelService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -33,7 +35,7 @@ export class AdminPanelService {
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
-  ) {}
+  ) { }
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
@@ -184,7 +186,7 @@ export class AdminPanelService {
       relations: { report: true },
     });
     review.isCheked = true;
-    await this.reviewReportRepository.remove(review.report);
+    await this.reviewReportRepository.delete({ review: { id: reviewId } });
     await this.reviewRepository.save(review);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -192,11 +194,15 @@ export class AdminPanelService {
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
   async getUsers(filter?: UsersFilter) {
-    // Если страница не указана, то 1.
-    if (!filter.page) filter.page = 1;
+    // Значения по умолчанию и преобразование в числа
+    const page = filter.page ? Number(filter.page) : 1;
+    const take = filter.take ? Number(filter.take) : 10;
+    const skip = (page - 1) * take;
 
     let users: User[] = [],
       orgsUsers: User[] = [];
+    let totalCount = 0;
+
     const selectOptions = {
       id: true,
       fullName: true,
@@ -227,23 +233,28 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      const skipForBoth = filter.page * 15 - 15;
-      users = await this.userRepository.find({
+      // Сначала получаем всех пользователей для фильтрации
+      const allUsers = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди туристов.
-      if (filter.name) {
-        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        const { searchedUsers } = this._searchUsersOrOrgs(filter.searchQuery, allUsers);
         users = searchedUsers;
+      } else {
+        users = allUsers;
       }
+
+      totalCount = users.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      users = users.slice(skip, skip + take);
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
-      const skipForBoth = filter.page * 15 - 15;
-      orgsUsers = await this.userRepository.find({
+      // Сначала получаем все организации для фильтрации
+      const allOrgs = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
         select: {
@@ -265,66 +276,88 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди организацей.
-      if (filter.name) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        const { searchedOrgs } = this._searchUsersOrOrgs(filter.searchQuery, undefined, allOrgs);
         orgsUsers = searchedOrgs;
+      } else {
+        orgsUsers = allOrgs;
       }
+
+      totalCount = orgsUsers.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      orgsUsers = orgsUsers.slice(skip, skip + take);
     }
     // Поиск всех пользователей.
     else {
-      // Если параметр both при целочисленном делении равен нулю, то не отправлять запрос для организаций.
-      const skipForOrgs = filter.page * 7 - 7;
-      const skipForUsers = filter.page * 8 - 8;
-      orgsUsers = await this.userRepository.find({
-        where: { organization: orgWhereOptions },
-        relations: {
-          organization: true,
-        },
-        select: {
-          ...selectOptions,
-          organization: {
-            id: true,
-            imgUrl: true,
-            name: true,
-            bin: true,
-            regCouponPath: true,
-            ibanDocPath: true,
-            orgRulePath: true,
-            rating: true,
-            reviewCount: true,
-            isConfirmed: true,
-            isConfirmCanceled: true,
-            description: true,
-            siteUrl: true,
-            isBanned: true,
+      // Получаем всех пользователей и организации для фильтрации
+      const [allOrgs, allUsers] = await Promise.all([
+        this.userRepository.find({
+          where: { organization: orgWhereOptions },
+          relations: { organization: true },
+          select: {
+            ...selectOptions,
+            organization: {
+              id: true,
+              imgUrl: true,
+              name: true,
+              bin: true,
+              regCouponPath: true,
+              ibanDocPath: true,
+              orgRulePath: true,
+              rating: true,
+              reviewCount: true,
+              isConfirmed: true,
+              isConfirmCanceled: true,
+              description: true,
+              siteUrl: true,
+              isBanned: true,
+            },
           },
-        },
-        take: 7,
-        skip: skipForOrgs,
-      });
-      users = await this.userRepository.find({
-        where: usersWhereOptions,
-        select: selectOptions,
-        take: 8,
-        skip: skipForUsers,
-      });
-      // Поиск по имени среди всех пользователей.
-      if (filter.name) {
+        }),
+        this.userRepository.find({
+          where: usersWhereOptions,
+          select: selectOptions,
+        }),
+      ]);
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
         const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
-          filter.name,
-          users,
-          orgsUsers,
+          filter.searchQuery,
+          allUsers,
+          allOrgs,
         );
         users = searchedUsers;
         orgsUsers = searchedOrgs;
+      } else {
+        users = allUsers;
+        orgsUsers = allOrgs;
       }
+
+      // Объединяем результаты и применяем пагинацию
+      const combined = [...orgsUsers, ...users];
+      totalCount = combined.length;
+      const paginatedCombined = combined.slice(skip, skip + take);
+
+      return {
+        data: paginatedCombined,
+        total: totalCount,
+        page,
+        take,
+        totalPages: Math.ceil(totalCount / take),
+      };
     }
 
-    return [...users, ...orgsUsers];
+    return {
+      data: [...orgsUsers, ...users],
+      total: totalCount,
+      page,
+      take,
+      totalPages: Math.ceil(totalCount / take),
+    };
   }
 
   /** Подтверждение Организации. */
@@ -371,19 +404,25 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  /** Поиск по названию среди Пользователей или Организациий.  */
+  /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */
   private _searchUsersOrOrgs(
-    name: string,
+    searchQuery: string,
     users?: User[],
     orgsUsers?: User[],
   ): { searchedUsers: User[]; searchedOrgs: User[] } {
     const searchedUsers: User[] = [],
       searchedOrgs: User[] = [];
 
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
     if (users) {
       for (const user of users) {
-        const simValue = stringSimilarity(user.fullName, name);
-        if (simValue > 0.2) {
+        // Поиск по имени, email и номеру телефона
+        const nameMatch = stringSimilarity(user.fullName.toLowerCase(), normalizedQuery);
+        const emailMatch = user.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = user.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (nameMatch > 0.2 || emailMatch || phoneMatch) {
           searchedUsers.push(user);
         }
       }
@@ -391,8 +430,12 @@ export class AdminPanelService {
 
     if (orgsUsers) {
       for (const org of orgsUsers) {
-        const simValue = stringSimilarity(org.organization.name, name);
-        if (simValue > 0.2) {
+        // Поиск по названию организации, email и номеру телефона
+        const orgNameMatch = stringSimilarity(org.organization.name.toLowerCase(), normalizedQuery);
+        const emailMatch = org.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = org.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (orgNameMatch > 0.2 || emailMatch || phoneMatch) {
           searchedOrgs.push(org);
         }
       }
@@ -422,16 +465,22 @@ export class AdminPanelService {
   @CatchErrors()
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async deleteBannersByDate() {
+    this.logger.log('Запуск задачи по удалению старых баннеров...');
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
 
-    const banners = await this.bannerRepository.find({
-      where: { deleteDate: LessThanOrEqual(today) },
-    });
+    this.logger.log(`Сегодняшняя дата: ${today.toISOString()}`);
+
+    const banners = await this.bannerRepository.find({ where: { deleteDate: LessThanOrEqual(today) } });
+
+    this.logger.log(`Найдено баннеров для удаления: ${banners.length}`);
 
     if (banners.length > 0) {
       await this.bannerRepository.remove(banners);
+      this.logger.log(`Удалено баннеров: ${banners.length}`);
     } else {
+      this.logger.log('Нет баннеров для удаления');
     }
   }
 

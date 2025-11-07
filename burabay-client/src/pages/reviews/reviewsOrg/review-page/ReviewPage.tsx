@@ -14,7 +14,7 @@ import { TextField } from "@mui/material";
 import { Button } from "../../../../shared/ui/Button";
 import { apiService } from "../../../../services/api/ApiService";
 import { queryClient } from "../../../../ini/InitializeApp";
-import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
+import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { ImageViewModal } from "../../../announcements/reviews/ui/ImageViewModal";
 
 interface Props {
@@ -86,8 +86,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
       setIsLoading(false);
       setAnswerText({ reviewId: "", text: "" });
       closeModal(answerText.reviewId);
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   // Функция для открытия модалки для конкретного отзыва
@@ -161,7 +160,11 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                 </span>
                 <span className={`text-xs ${COLORS_TEXT.gray100}`}>
                   {review.date
-                    ? new Date(review.date).toLocaleDateString()
+                    ? new Date(review.date).toLocaleDateString("ru-RU", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
                     : "Нет даты"}
                 </span>
               </div>

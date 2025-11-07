@@ -2,12 +2,15 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Request,
+  Res,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   AnyFilesInterceptor,
@@ -18,6 +21,9 @@ import { ImagesService } from './images.service';
 import { Public } from 'src/constants';
 import { DeleteFileDto as DeleteFileDto } from './dto/delete-image.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 @ApiBearerAuth()
 @ApiTags('Images')
@@ -95,5 +101,23 @@ export class ImagesController {
   @Delete('image')
   async deleteImage(@Body() deleteImageDto: DeleteFileDto) {
     return await this.imageService.deleteImage(deleteImageDto);
+  }
+
+  @Public()
+  @Get('download/docs/:orgId/:filename')
+  async downloadDocument(
+    @Param('orgId') orgId: string,
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    const filePath = join(__dirname, '..', '..', 'public', 'docs', orgId, filename);
+
+    // Проверяем существование файла
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`Файл не найден: ${filename}`);
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    return res.sendFile(filePath);
   }
 }

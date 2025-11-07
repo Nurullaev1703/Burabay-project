@@ -12,8 +12,8 @@ import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 
-import Back from "../../../../public/Back.svg";
-import Close from "../../../../public/Close.png";
+import Back from "/Back.svg?url";
+import Close from "/Close.png?url";
 
 const LOCAL_STORAGE_DELETION_KEY = "delayedDeletions";
 const LOCAL_STORAGE_ACCEPTANCE_KEY = "delayedAcceptances";
@@ -153,9 +153,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
       year: "numeric",
-      month: "long",
-      day: "numeric",
     });
   };
 

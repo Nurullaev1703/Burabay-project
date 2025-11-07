@@ -10,4 +10,4 @@ import { Schedule } from './entities/schedule.entity';
   controllers: [ScheduleController],
   providers: [ScheduleService],
 })
-export class ScheduleModule {}
+export class JobScheduleModule {}

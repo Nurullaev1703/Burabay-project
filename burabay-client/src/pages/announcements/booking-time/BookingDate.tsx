@@ -10,10 +10,6 @@ import {
 } from "../../../shared/ui/colors";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import "dayjs/locale/ru";
 import { baseUrl } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
@@ -21,6 +17,8 @@ import { useNavigate } from "@tanstack/react-router";
 import dayjs, { Dayjs } from "dayjs";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import isBetween from "dayjs/plugin/isBetween";
+import { BookingCalendar } from "./ui/BookingCalendar";
+
 dayjs.extend(isBetween);
 
 interface Props {
@@ -34,12 +32,15 @@ interface TDates {
 }
 
 export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedDateStart, setSelectedDateStart] = useState<string | null>(
     null
   );
   const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<"start" | "end">("start"); // Текущее активное поле
+  const [currentSelectedDate, setCurrentSelectedDate] = useState<Dayjs | null>(
+    null
+  );
   const navigate = useNavigate();
   const [errorMessage, _setErrorMessage] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string>(
@@ -50,6 +51,10 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
     !selectedDateEnd ||
     selectedDateStart === selectedDateEnd;
 
+  // Получаем локаль для календаря
+  const locale =
+    i18n.language === "kk" ? "kk" : i18n.language === "en" ? "en" : "ru";
+
   const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (!date) return;
 
@@ -57,6 +62,7 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
 
     if (activeField === "start") {
       setSelectedDateStart(formattedDate);
+      setCurrentSelectedDate(date);
 
       if (selectedDateEnd) {
         const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
@@ -73,7 +79,82 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
         return;
       }
 
+      // Проверяем, есть ли заблокированные даты между startDate и date
+      const hasBlockedDatesInRange =
+        bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
+          const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
+            "day"
+          );
+          const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
+
+          return (
+            bannedStartDate.isBetween(startDate, date, null, "[]") ||
+            bannedEndDate.isBetween(startDate, date, null, "[]") ||
+            (startDate.isBefore(bannedStartDate) && date.isAfter(bannedEndDate))
+          );
+        }) ?? false;
+
+      if (hasBlockedDatesInRange) {
+        // Находим ближайшую заблокированную дату в диапазоне
+        const blockedRange = bannedDates?.find(
+          ({ startDate: bannedStart, endDate: bannedEnd }) => {
+            const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
+              "day"
+            );
+            const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
+
+            return (
+              bannedStartDate.isBetween(startDate, date, null, "[]") ||
+              bannedEndDate.isBetween(startDate, date, null, "[]") ||
+              (startDate.isBefore(bannedStartDate) &&
+                date.isAfter(bannedEndDate))
+            );
+          }
+        );
+
+        if (blockedRange) {
+          // Ищем первую доступную дату после окончания заблокированного диапазона
+          let newStartDate = dayjs(blockedRange.endDate, "DD.MM.YYYY").add(
+            1,
+            "day"
+          );
+
+          // Проверяем, что новая дата доступна (не заблокирована и соответствует графику)
+          while (
+            newStartDate.isBefore(date) ||
+            newStartDate.isSame(date, "day")
+          ) {
+            if (
+              !isDateBanned(newStartDate) &&
+              !isDayBlockedBySchedule(newStartDate)
+            ) {
+              // Нашли доступную дату
+              break;
+            }
+            newStartDate = newStartDate.add(1, "day");
+          }
+
+          // Проверяем, что новая дата заезда не позже даты отъезда
+          if (newStartDate.isBefore(date) || newStartDate.isSame(date, "day")) {
+            if (
+              !isDateBanned(newStartDate) &&
+              !isDayBlockedBySchedule(newStartDate)
+            ) {
+              setSelectedDateStart(newStartDate.format("DD.MM.YYYY"));
+              setCurrentSelectedDate(newStartDate);
+            } else {
+              // Если не можем найти доступную дату, не разрешаем выбор
+              return;
+            }
+          } else {
+            // Если не можем скорректировать, просто не разрешаем выбор
+            return;
+          }
+        }
+      }
+
       setSelectedDateEnd(formattedDate);
+      setCurrentSelectedDate(date);
     }
   };
 
@@ -90,7 +171,7 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
   // Функция проверки, можно ли выбрать эту дату
   const blockedDaysOfWeek = announcement.isFullDay
     ? [] // Если isFullDay === true, не блокируем дни недели
-    : Object.entries(announcement.schedule)
+    : Object.entries(announcement.schedule ?? {})
         .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
         .map(([key]) => {
           const dayMap: Record<string, number> = {
@@ -118,26 +199,8 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
     if (isDayBlockedBySchedule(date)) return true; // Блокируем дни с "00:00"
     if (isDateBanned(date)) return true; // Блокируем заблокированные даты
 
-    if (activeField === "end" && selectedDateStart) {
-      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
-      const endDate = date;
-
-      return (
-        bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
-          const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
-            "day"
-          );
-          const bannedEndDate = dayjs(bannedEnd, "DD.MM.YYYY").endOf("day");
-
-          return (
-            bannedStartDate.isBetween(startDate, endDate, null, "[]") ||
-            bannedEndDate.isBetween(startDate, endDate, null, "[]") ||
-            (startDate.isBefore(bannedStartDate) &&
-              endDate.isAfter(bannedEndDate))
-          );
-        }) ?? false
-      );
-    }
+    // Не блокируем даты при выборе даты отъезда, даже если между ними есть заблокированные
+    // Логика коррекции даты заезда находится в handleDateChange
 
     return false;
   };
@@ -221,55 +284,16 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
         </div>
       </div>
 
-      {/* Календарь */}
-      <div className="mb-4 border-y border-[#E4E9EA] mx-4">
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-          <DateCalendar
-            showDaysOutsideCurrentMonth
-            onChange={handleDateChange}
-            shouldDisableDate={shouldDisableDate}
-            sx={{
-              "& .Mui-selected": {
-                backgroundColor: "#0A7D9E !important",
-                color: "white !important",
-              },
-              "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
-                {
-                  padding: "0px !important",
-                },
-              "& .css-1e9nyoq-MuiPickersCalendarHeader-labelContainer": {
-                marginLeft: "20% !important",
-              },
-              "& .css-1chuxo2-MuiPickersCalendarHeader-label": {
-                color: "#999999",
-              },
-              "& .css-1nxbkmn-MuiPickersCalendarHeader-root": {
-                flexDirection: "row-reverse !important",
-                position: "relative",
-              },
-              "& .css-17nrfho-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button":
-                {
-                  position: "absolute",
-                  right: "25px",
-                  padding: "0px",
-                },
-              "& .css-iupya1-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-              "& .css-1rf3jwr-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-            }}
-            slotProps={{
-              day: {
-                disableHighlightToday: true,
-              },
-            }}
-          />
-        </LocalizationProvider>
-      </div>
+      {/* Модальное окно с календарём */}
+      <BookingCalendar
+        value={currentSelectedDate}
+        onChange={handleDateChange}
+        shouldDisableDate={shouldDisableDate}
+        locale={locale}
+        isFullDay={announcement.isFullDay}
+        selectedDateStart={selectedDateStart}
+        selectedDateEnd={selectedDateEnd}
+      />
 
       {/* Выбор дат */}
       <div className="px-4 mb-32">
@@ -282,7 +306,9 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
                 ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
                 : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
             }`}
-            onClick={() => setActiveField("start")}
+            onClick={() => {
+              setActiveField("start");
+            }}
           >
             <span
               className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${
@@ -305,7 +331,9 @@ export const BookingDate: FC<Props> = ({ announcement, bannedDates }) => {
                 ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
                 : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
             }`}
-            onClick={() => setActiveField("end")}
+            onClick={() => {
+              setActiveField("end");
+            }}
           >
             <span
               className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${

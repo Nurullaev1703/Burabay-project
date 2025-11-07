@@ -14,7 +14,6 @@ import { SeederModule } from './seeder/seeder.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
-import { ScheduleModule } from './schedule/schedule.module';
 import { BreaksModule } from './breaks/breaks.module';
 import { AddressModule } from './address/address.module';
 import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
@@ -30,6 +29,8 @@ import { ReviewReportModule } from './review-report/review-report.module';
 import { AppController } from './app.controller';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JobScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -79,7 +80,8 @@ import { redisStore } from 'cache-manager-redis-store';
     SubcategoryModule,
     TasksModule,
     SeederModule,
-    ScheduleModule,
+    ScheduleModule.forRoot(),
+    JobScheduleModule,
     BreaksModule,
     AddressModule,
     BookingBanDateModule,

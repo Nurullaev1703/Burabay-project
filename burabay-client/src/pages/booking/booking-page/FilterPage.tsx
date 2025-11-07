@@ -20,7 +20,7 @@ export const FilterPage: FC = function FilterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const userRole = roleService.getValue();
+  const userRole = roleService.hasValue() ? roleService.getValue() : null;
   // Извлекаем параметры фильтров из URL
 
   /* @ts-ignore */

@@ -300,11 +300,15 @@ export class AdService {
       // Проверка существования объявления.
       Utils.checkEntity(ad, 'Объявление не найдено');
 
-      // Проверка на наличие бронирований.
-      if (ad.bookings.length > 0) {
+      // Проверка на наличие активных бронирований (где дата еще не прошла).
+      const activeBookings = ad.bookings.filter(
+        (booking) => new Date(booking.dateEnd) >= new Date(),
+      );
+
+      if (activeBookings.length > 0) {
         return {
           message:
-            'Невозможно удалить объявление, так как оно забронировано. Вы можете скрыть объявление для брони',
+            'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
           code: HttpStatus.CONFLICT,
         };
       }

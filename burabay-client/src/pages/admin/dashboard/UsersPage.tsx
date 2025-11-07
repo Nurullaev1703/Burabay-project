@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -17,12 +17,12 @@ import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
 
-import document from "../../../../public/document.svg";
-import confirmed from "../../../../public/confirmed.svg";
-import Close from "../../../../public/Close.png";
-import Down from "../../../../public/down-arrow.svg";
-import Back from "../../../../public/Back.svg";
-import arrow from "../../../../public/arrow.svg";
+import document from "/document.svg?url";
+import confirmed from "/confirmed.svg?url";
+import Close from "/Close.png?url";
+import Down from "/down-arrow.svg?url";
+import Back from "/Back.svg?url";
+import arrow from "/arrow.svg?url";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,46 +34,16 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
-  // const [users, setUsers] = useState<Profile[]>([]);
-  // const [skip, setSkip] = useState(0);
-  // const take = 10;
 
-  useEffect(() => {}, [filters.name, filters.role, filters.status]);
+  // Получаем пользователей с учетом пагинации
+  const { data, isLoading } = useGetUsers({
+    ...filters,
+  });
 
-  // Получаем пользователей с учетом skip/take
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetUsers({
-      ...filters,
-    });
-
-  const users = data?.pages.flat() || [];
-
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  // Callback для последнего элемента списка
-  const lastElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
-
-  // useEffect(() => {
-  //   if (skip === 0) {
-  //     setUsers(fetchedUsers);
-  //   } else if (fetchedUsers.length > 0) {
-  //     setUsers((prev) => [...prev, ...fetchedUsers]);
-  //   }
-  // }, [fetchedUsers, skip]);
+  const users = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 0;
+  const currentPage = data?.page ?? 1;
+  const total = data?.total ?? 0;
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
@@ -102,13 +72,37 @@ export default function UsersList({ filters }: Props) {
 
   const queryClient = useQueryClient();
 
-  // Обновляем фильтры и сбрасываем skip
+  // Обновляем фильтры и сбрасываем на первую страницу
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
       to: "/admin/dashboard/users",
       search: {
         ...filters,
         ...newFilters,
+        page: 1, // Сбрасываем на первую страницу при изменении фильтров
+      },
+    });
+  };
+
+  // Метод для смены страницы
+  const changePage = (newPage: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        page: newPage,
+      },
+    });
+  };
+
+  // Метод для смены количества записей на странице
+  const changePageSize = (newTake: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        take: newTake,
+        page: 1, // Сбрасываем на первую страницу
       },
     });
   };
@@ -185,14 +179,46 @@ export default function UsersList({ filters }: Props) {
     } catch (error) {}
   };
 
+  // Простая пагинация - показываем только текущую страницу
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    // Если страниц мало (до 7), показываем все
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    // Всегда показываем первую страницу
+    pages.push(1);
+
+    // Логика для отображения средних страниц
+    if (currentPage <= 3) {
+      // Если в начале: 1 2 3 4 ... последняя
+      pages.push(2, 3, 4);
+      pages.push("...");
+    } else if (currentPage >= totalPages - 2) {
+      // Если в конце: 1 ... предпоследние 3 страницы
+      pages.push("...");
+      pages.push(totalPages - 3, totalPages - 2, totalPages - 1);
+    } else {
+      // Если в середине: 1 ... текущая-1 текущая текущая+1 ... последняя
+      pages.push("...");
+      pages.push(currentPage - 1, currentPage, currentPage + 1);
+      pages.push("...");
+    }
+
+    // Всегда показываем последнюю страницу
+    pages.push(totalPages);
+
+    return pages;
+  };
+
   function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
-
-  // Загрузка следующей порции пользователей
-  const loadMoreUsers = () => {
-    fetchNextPage();
-  };
 
   const closeUserDetailsModal = () => {
     setSelectedUser(null);
@@ -300,10 +326,10 @@ export default function UsersList({ filters }: Props) {
         <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
           <input
             type="text"
-            placeholder="Поиск"
+            placeholder="Поиск по email, телефону или названию"
             className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
-            value={filters.name ?? ""}
-            onChange={(e) => updateFilters({ name: e.target.value })}
+            value={filters.searchQuery ?? ""}
+            onChange={(e) => updateFilters({ searchQuery: e.target.value })}
           />
 
           <div className="relative" ref={roleFilterRef}>
@@ -359,10 +385,10 @@ export default function UsersList({ filters }: Props) {
               )}
           </div>
 
-          <div className="relative" ref={statusFilterRef}>
+          <div className="relative min-w-fit" ref={statusFilterRef}>
             <button
               type="button"
-              className="w-[264.5px] flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
+              className="w-[264.5px] min-w-fit flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
               {filters.status
@@ -412,143 +438,216 @@ export default function UsersList({ filters }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto admin-scrollbar p-4 pt-24">
-          {isLoading && users.length === 0 ? (
+          {isLoading ? (
             <Loader />
           ) : (
-            <div className="grid gap-4">
-              {users.map((user) => (
-                <div
-                  ref={lastElementRef}
-                  key={user.id}
-                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
-                >
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4">
+                {users.map((user) => (
                   <div
-                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px]"
-                    onClick={() => openUserDetailsModal(user)}
-                    style={{ cursor: "pointer" }}
+                    key={user.id}
+                    className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                   >
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={
-                          user.picture
-                            ? `${BASE_URL}${user.picture}`
-                            : `${BASE_URL}${user.organization?.imgUrl}`
-                        }
-                        alt={user.fullName}
-                        className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
-                        onError={(e) => (e.currentTarget.src = defaultImage)}
-                      />
+                    <div
+                      className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2"
+                      onClick={() => openUserDetailsModal(user)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="flex items-center space-x-4 flex-1">
+                        <img
+                          src={
+                            user.picture
+                              ? `${BASE_URL}${user.picture}`
+                              : `${BASE_URL}${user.organization?.imgUrl}`
+                          }
+                          alt={user.fullName}
+                          className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
+                          onError={(e) => (e.currentTarget.src = defaultImage)}
+                        />
 
-                      <div className="h-[58px] flex flex-col justify-center">
-                        {user.role === "бизнес" && user.organization?.name ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.organization.name.length > 8
-                              ? user.organization.name.substring(0, 8) + "..."
-                              : user.organization.name}
-                          </h2>
-                        ) : user.fullName ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.fullName.length > 6
-                              ? user.fullName.substring(0, 6) + "..."
-                              : user.fullName}
-                          </h2>
-                        ) : (
-                          <div>
-                            <p>Без названия</p>
+                        <div className="h-[58px] flex flex-col justify-center flex-1 min-w-0">
+                          {user.role === "бизнес" && user.organization?.name ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.organization.name}
+                            </h2>
+                          ) : user.fullName ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.fullName}
+                            </h2>
+                          ) : (
+                            <h2 className="text-[16px] font-roboto">
+                              Без названия
+                            </h2>
+                          )}
+
+                          {user.role === "бизнес" && (
+                            <p
+                              className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-[#FF5959]" : "text-[#39B56B]"}`}
+                            >
+                              {user.organization?.isConfirmCanceled
+                                ? "Отклонена"
+                                : user.organization?.isBanned
+                                  ? "Заблокирован"
+                                  : user.organization?.isConfirmed
+                                    ? "Подтвержден"
+                                    : ""}
+                            </p>
+                          )}
+
+                          {user.role === "турист" && (
+                            <p
+                              className={`text-sm ${
+                                user.isBanned
+                                  ? "text-red-500"
+                                  : "text-[#39B56B]"
+                              }`}
+                            >
+                              {user.isBanned ? "Заблокирован" : "Подтвержден"}
+                            </p>
+                          )}
+
+                          <span className="text-[12px] text-[#999999]">
+                            {user.role === "бизнес"
+                              ? "Организация"
+                              : user.role === "турист"
+                                ? "Турист"
+                                : user.role}
+                          </span>
+                        </div>
+                      </div>
+                      {user.role === ROLE_TYPE.BUSINESS &&
+                        !user.organization?.isBanned &&
+                        (user.organization?.isConfirmed ? (
+                          <div className="flex items-center mr-8">
+                            <span className="text-[#0A7D9E] mr-4">
+                              Подтвержден
+                            </span>
+                            <img src={confirmed} alt="confirmed" />
                           </div>
-                        )}
-
-                        {user.role === "бизнес" && (
-                          <p
-                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red" : "text-[#39B56B]"}`}
+                        ) : (
+                          <button
+                            className="text-[#39B56B] items-center py-3 px-4 gap-2 flex border-[1px] border-[#39B56B] h-[48px] min-w-fit rounded-[16px] mr-[32px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openConfirmModal(user.organization!);
+                            }}
                           >
-                            {user.organization?.isConfirmCanceled
-                              ? "Отклонена"
-                              : user.organization?.isBanned
-                                ? "Заблокирован"
-                                : ""}
-                          </p>
-                        )}
+                            Подтверждение
+                            <img src={arrow} alt="" className="w-2"></img>
+                          </button>
+                        ))}
+                    </div>
 
-                        {user.role === "турист" && (
-                          <p
-                            className={`text-sm ${
-                              user.isBanned
-                                ? "text-red"
-                                : "text-[14px] text-[#39B56B]"
-                            }`}
-                          >
-                            {user.isBanned
-                              ? UsersFilterStatus.BAN
-                              : "Подтвержден"}
-                          </p>
-                        )}
-
-                        <span className="text-[12px] text-[#999999]">
-                          {user.role === "бизнес"
-                            ? "Организация"
-                            : user.role === "турист"
-                              ? "Турист"
-                              : user.role}
-                        </span>
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center min-w-0">
+                      <div className="pl-[32px] flex-1 min-w-0">
+                        <p className="truncate">{user.phoneNumber || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Номер телефона для связи
+                        </p>
                       </div>
                     </div>
-                    {user.role === ROLE_TYPE.BUSINESS &&
-                      (user.organization?.isConfirmed ? (
-                        <div className="flex items-center mr-8">
-                          <span className="text-[#0A7D9E] mr-4">
-                            Подтвержден
-                          </span>
-                          <img src={confirmed} alt="confirmed" />
-                        </div>
-                      ) : (
-                        <button
-                          className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConfirmModal(user.organization!);
-                          }}
-                        >
-                          Подтверждение
-                          <img
-                            src={arrow}
-                            alt=""
-                            className="h-[14px] w-2"
-                          ></img>
-                        </button>
-                      ))}
-                  </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center">
-                    <div className="pl-[32px] flex-1">
-                      <p>{user.phoneNumber || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Номер телефона для связи
-                      </p>
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center min-w-0">
+                      <div className="min-w-0 pr-4">
+                        <p className="truncate">{user.email || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Email адрес для связи
+                        </p>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center">
-                    <div>
-                      <p>{user.email || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Email адрес для связи
-                      </p>
-                    </div>
+              {/* Пагинация */}
+              <div className="bg-white p-4 rounded-[16px]">
+                <div className="flex justify-between items-center">
+                  {/* Левая часть: информация и селектор */}
+                  <div className="flex items-center gap-3 text-[13px] text-[#666]">
+                    <span className="whitespace-nowrap">
+                      {users.length > 0
+                        ? (currentPage - 1) * (filters.take ?? 10) + 1
+                        : 0}
+                      –{Math.min(currentPage * (filters.take ?? 10), total)} из{" "}
+                      {total}
+                    </span>
+
+                    {/* Селектор количества записей */}
+                    <select
+                      value={filters.take ?? 10}
+                      onChange={(e) => changePageSize(Number(e.target.value))}
+                      className="text-[#0A7D9E] py-2 pr-6 pl-4 border-[1px] rounded-[8px] border-[#0A7D9E] bg-white cursor-pointer appearance-none bg-no-repeat bg-right outline-none"
+                      style={{
+                        backgroundImage: `url(${Down})`,
+                        backgroundPosition: "right 8px center",
+                        backgroundSize: "8px 8px",
+                      }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
                   </div>
+
+                  {/* Правая часть: компактная пагинация */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      {/* Кнопка "Назад" */}
+                      <button
+                        onClick={() => changePage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Назад"
+                      >
+                        <img src={Back} alt="←" className="w-3 h-3" />
+                      </button>
+
+                      {/* Номера страниц */}
+                      {getPageNumbers().map((pageNum, index) => {
+                        if (pageNum === "...") {
+                          return (
+                            <span
+                              key={`ellipsis-${index}`}
+                              className="w-7 h-7 flex items-center justify-center text-[12px] text-[#999]"
+                            >
+                              ···
+                            </span>
+                          );
+                        }
+
+                        const isActive = pageNum === currentPage;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => changePage(pageNum as number)}
+                            className={`
+                              w-7 h-7 flex items-center justify-center text-[12px] border rounded-[6px] transition-all
+                              ${
+                                isActive
+                                  ? "bg-[#0A7D9E] text-white border-[#0A7D9E] font-semibold"
+                                  : "bg-white text-[#333] border-[#E0E0E0] hover:bg-[#F5F5F5] hover:border-[#0A7D9E]"
+                              }
+                            `}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      {/* Кнопка "Вперед" */}
+                      <button
+                        onClick={() => changePage(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Вперед"
+                      >
+                        <img src={arrow} alt="→" className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-              {hasNextPage && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={loadMoreUsers}
-                    disabled={isFetchingNextPage}
-                    className="bg-[#0A7D9E] w-[400px] h-[54px] text-white text-[16px] rounded-[32px] px-4 py-2"
-                  >
-                    {isFetchingNextPage ? "Загрузка..." : "Загрузить еще"}
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>
@@ -558,7 +657,7 @@ export default function UsersList({ filters }: Props) {
           <div className="bg-white h-[636px] p-4 rounded-lg shadow-lg w-[470px]">
             <div className="space-y-[8px]">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1">
                   <img
                     src={`${BASE_URL}${selectedOrganization.imgUrl}`}
                     alt="Лого"
@@ -592,7 +691,7 @@ export default function UsersList({ filters }: Props) {
               <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
                 <p className="text-[#999999] text-[12px] flex">БИН</p>
                 <Typography className="font-medium">
-                  {selectedOrganization.bin ? "—" : "Не указан"}
+                  {selectedOrganization.bin || "Не указан"}
                 </Typography>
               </div>
 
@@ -600,7 +699,9 @@ export default function UsersList({ filters }: Props) {
                 <p className="text-[#999999] text-[12px] flex">
                   {"Номер телефона"}
                 </p>
-                <Typography>Не указан</Typography>
+                <Typography>
+                  {selectedOrganization.phoneNumber || "Не указан"}
+                </Typography>
               </div>
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-[32px]">
@@ -612,26 +713,29 @@ export default function UsersList({ filters }: Props) {
                         Талон о гос.регистрации ИП
                       </p>
                       {selectedOrganization.regCouponPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`regFile.${selectedOrganization.regCouponPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.regCouponPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.regCouponPath
+                            .split("/")
+                            .pop() || "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.regCouponPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.regCouponPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -640,26 +744,28 @@ export default function UsersList({ filters }: Props) {
                     <div>
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`ibanFile.${selectedOrganization.ibanDocPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.ibanDocPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.ibanDocPath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.ibanDocPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.ibanDocPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -670,26 +776,28 @@ export default function UsersList({ filters }: Props) {
                         Устав организации
                       </p>
                       {selectedOrganization.orgRulePath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline"
-                          download="ruleFile"
-                        >
-                          <span>
-                            {selectedOrganization.orgRulePath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.orgRulePath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.orgRulePath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.orgRulePath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -822,26 +930,29 @@ export default function UsersList({ filters }: Props) {
                   </Typography>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockTourist(selectedUser.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockTourist(selectedUser.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
+                  {selectedUser.isBanned ? (
+                    <div>
+                      <button
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleUnblockTourist(selectedUser.id);
+                        }}
+                      >
+                        Разблокировать
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleBlockTourist(selectedUser.id);
+                        }}
+                      >
+                        Заблокировать пользователя
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : selectedUser.role === "бизнес" ? (
@@ -906,26 +1017,29 @@ export default function UsersList({ filters }: Props) {
                 </div>
 
                 <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
+                  {selectedUser.organization?.isBanned ? (
+                    <div>
+                      <button
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleUnblockUser(selectedUser.organization.id);
+                        }}
+                      >
+                        Разблокировать
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        onClick={() => {
+                          handleBlockUser(selectedUser.organization.id);
+                        }}
+                      >
+                        Заблокировать пользователя
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

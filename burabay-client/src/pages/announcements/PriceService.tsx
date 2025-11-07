@@ -33,8 +33,21 @@ export const PriceService: FC<Props> = function PriceService({
   const [showModal, setShowModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const symbolRef = useRef<HTMLDivElement>(null);
-  const [inputValue, setInputValue] = useState<string>("0");
-  const [inputValueChild, setInputValueChild] = useState<string>("0");
+
+  // Функция для форматирования числа с пробелами
+  const formatNumberWithSpaces = (value: string | number): string => {
+    const sanitizedValue = String(value).replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    return sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, " "); // Добавляем пробелы
+  };
+
+  const [inputValue, setInputValue] = useState<string>(
+    announcement?.price ? formatNumberWithSpaces(announcement.price) : "0"
+  );
+  const [inputValueChild, setInputValueChild] = useState<string>(
+    announcement?.priceForChild
+      ? formatNumberWithSpaces(announcement.priceForChild)
+      : "0"
+  );
   const navigate = useNavigate();
   const [booking, setBooking] = useState(announcement?.isBookable || false);
   const [onSitePayment, setOnSitePayment] = useState(
@@ -61,10 +74,6 @@ export const PriceService: FC<Props> = function PriceService({
     return width;
   };
 
-  const formatNumberWithSpaces = (value: string): string => {
-    const sanitizedValue = value.replace(/\D/g, ""); // Удаляем всё, кроме цифр
-    return sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, " "); // Добавляем пробелы
-  };
   const updateTengePosition = (
     inputRef: React.RefObject<HTMLInputElement>,
     symbolRef: React.RefObject<HTMLDivElement>,
@@ -150,38 +159,58 @@ export const PriceService: FC<Props> = function PriceService({
               {t("priceService")}
             </Typography>
           </div>
-          <IconContainer
-            align="end"
-            action={() => setShowModal(true)}
-          >
+          <IconContainer align="end" action={() => setShowModal(true)}>
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
       {showModal && (
-        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center w-4/5 mx-auto">
-            {t("confirmDelete")}
-          </Typography>
-          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
-          <img src={XIcon} className="w-[15px]" alt="" />
-          </div>
-          <div className="flex flex-col w-full px-4 justify-center mt-4">
-            <Button className="mb-2" onClick={() => navigate({
-              to: "/announcements"
-            })}>{t("publish")}</Button>
-              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
-              await apiService.delete({
-                url: `/ad/${adId}`
-              })
-              navigate({
-                to: "/announcements"
-              })
-            }
-            }>{t("delete")}</Button>
-          </div>
+            <Typography
+              size={16}
+              weight={400}
+              className="text-center w-4/5 mx-auto"
+            >
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-[-2px] top-[-2px] p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button
+                className="mb-2"
+                onClick={() =>
+                  navigate({
+                    to: "/announcements",
+                  })
+                }
+              >
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  await apiService.delete({
+                    url: `/ad/${adId}`,
+                  });
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
@@ -262,7 +291,6 @@ export const PriceService: FC<Props> = function PriceService({
                 </label>
                 <input
                   {...field}
-                  defaultValue={0}
                   ref={inputRef}
                   id="amount"
                   type="text"

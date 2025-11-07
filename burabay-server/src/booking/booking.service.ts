@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CatchErrors, Utils } from 'src/utilities';
@@ -29,7 +29,7 @@ export class BookingService {
     @InjectRepository(BookingBanDate)
     private readonly bookingBanDateRepository: Repository<BookingBanDate>,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -115,88 +115,89 @@ export class BookingService {
   }
 
   @CatchErrors()
-async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
-  const whereOptions: Record<string, any> = {
-    user: { id: tokenData.id },
-  };
-
-  // Фильтр отмененных броней.
-  if (filter?.canceled) {
-    whereOptions.status = BookingStatus.CANCELED;
-  }
-
-  // Фильтр по типу оплаты.
-  if (filter?.onSidePayment !== filter?.onlinePayment) {
-    if (filter?.onSidePayment) whereOptions.paymentType = PaymentType.CASH;
-    if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
-  }
-
-  const bookings = await this.bookingRepository.find({
-    where: whereOptions,
-    relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
-  });
-
-  // Группировка по дате.
-  const groups: { header: string; ads: any[] }[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
-
-  for (const b of bookings) {
-    const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
-    let date: Date;
-    let header: string;
-
-    if (isRent) {
-      date = b.dateStart;
-      header = b.dateStart.toLocaleDateString('ru-RU');
-    } else {
-      const [day, month, year] = b.date.split('.').map(Number);
-      date = new Date(year, month - 1, day);
-      header = b.date;
-    }
-
-    // Проверяем "Сегодня" и "Завтра".
-    const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDays === 0) header = 'Сегодня';
-    if (diffDays === 1) header = 'Завтра';
-
-    let group = groups.find((g) => g.header === header);
-    if (!group) {
-      group = { header, ads: [] };
-      groups.push(group);
-    }
-
-    let adGroup = group.ads.find((ad) => ad.title === b.ad.title);
-    if (!adGroup) {
-      adGroup = {
-        title: b.ad.title,
-        ad_id: b.ad.id,
-        img: b.ad.images[0],
-        times: [],
-        createdAt: b.createdAt,
-      };
-      group.ads.push(adGroup);
-    }
-
-    let newTimeField;
-    if (isRent) {
-      newTimeField = `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`;
-    } else {
-      if (b.time) newTimeField = b.time;
-      else newTimeField = b.date;
-    }
-    const newTime = {
-      time: newTimeField,
-      status: b.status,
-      price: b.totalPrice,
-      isPaid: b.isPaid,
-      paymentType: b.paymentType,
+  async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
+    const whereOptions: Record<string, any> = {
+      user: { id: tokenData.id },
     };
-    adGroup.times.push(newTime);
-  }
 
-  return groups;
-}
+    // Фильтр отмененных броней.
+    if (filter?.canceled) {
+      whereOptions.status = BookingStatus.CANCELED;
+    }
+
+    // Фильтр по типу оплаты.
+    if (filter?.onSidePayment !== filter?.onlinePayment) {
+      if (filter?.onSidePayment) whereOptions.paymentType = PaymentType.CASH;
+      if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
+    }
+
+    const bookings = await this.bookingRepository.find({
+      where: whereOptions,
+      relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
+      order: { createdAt: 'DESC' },
+    });
+
+    // Группировка по дате.
+    const groups: { header: string; ads: any[] }[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
+
+    for (const b of bookings) {
+      const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
+      let date: Date;
+      let header: string;
+
+      if (isRent) {
+        date = b.dateStart;
+        header = b.dateStart.toLocaleDateString('ru-RU');
+      } else {
+        const [day, month, year] = b.date.split('.').map(Number);
+        date = new Date(year, month - 1, day);
+        header = b.date;
+      }
+
+      // Проверяем "Сегодня" и "Завтра".
+      const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays === 0) header = 'Сегодня';
+      if (diffDays === 1) header = 'Завтра';
+
+      let group = groups.find((g) => g.header === header);
+      if (!group) {
+        group = { header, ads: [] };
+        groups.push(group);
+      }
+
+      let adGroup = group.ads.find((ad) => ad.title === b.ad.title);
+      if (!adGroup) {
+        adGroup = {
+          title: b.ad.title,
+          ad_id: b.ad.id,
+          img: b.ad.images[0],
+          times: [],
+          createdAt: b.createdAt,
+        };
+        group.ads.push(adGroup);
+      }
+
+      let newTimeField;
+      if (isRent) {
+        newTimeField = `с ${b.dateStart.toLocaleDateString('ru-RU')} до ${b.dateEnd.toLocaleDateString('ru-RU')}`;
+      } else {
+        if (b.time) newTimeField = b.time;
+        else newTimeField = b.date;
+      }
+      const newTime = {
+        time: newTimeField,
+        status: b.status,
+        price: b.totalPrice,
+        isPaid: b.isPaid,
+        paymentType: b.paymentType,
+      };
+      adGroup.times.push(newTime);
+    }
+
+    return groups;
+  }
 
   /* Получить все бронирования Организации. */
   @CatchErrors()
@@ -231,6 +232,7 @@ async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
       relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
+      order: { createdAt: 'DESC' },
     });
 
     const groups = [];
@@ -520,6 +522,7 @@ async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
         relations: { user: true, ad: true },
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
+      if (booking.status == BookingStatus.CANCELED) throw new HttpException('Бронь отменена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
       const notificationDto = {

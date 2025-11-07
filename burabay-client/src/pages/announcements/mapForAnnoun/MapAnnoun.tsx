@@ -51,10 +51,13 @@ interface Props {
   announcements: Announcement[];
 }
 export const MapAnnoun: FC<Props> = ({ announcements }) => {
-    const [center , _setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
+  const [center, _setCenter] = useState({
+    lat: 53.08271195503471,
+    lng: 70.30456742278163,
+  });
   const mapRef = useRef<google.maps.Map | null>(null);
   const [zoom, setZoom] = useState<number>(10);
-  const role = roleService.getValue();
+  const role = roleService.hasValue() ? roleService.getValue() : null;
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY,
   });
@@ -111,8 +114,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       });
 
       setDirectionsResponse(results);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   const { t } = useTranslation();
   const [activeCategory, _setActiveCategory] = useState<string>("");
@@ -135,7 +137,6 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       { start: "friStart", end: "friEnd" },
       { start: "satStart", end: "satEnd" },
     ];
-    
 
     const currentDayIndex = new Date().getDay();
     const currentDay = days[currentDayIndex];
@@ -163,10 +164,10 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
         }),
         vectorLayer,
       ],
-          view: new View({
-            center: fromLonLat([53.08271195503471, 70.30456742278163 ]),
-            zoom: 14,
-        }),
+      view: new View({
+        center: fromLonLat([53.08271195503471, 70.30456742278163]),
+        zoom: 14,
+      }),
     });
 
     // Добавляем обработчик на выбор фич
@@ -312,9 +313,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
               lat: longitude,
               lng: latitude,
             });
-            mapRef.current.setZoom(15); 
-          } 
-        } 
+            mapRef.current.setZoom(15);
+          }
+        }
       }
     }
   };
@@ -375,11 +376,11 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
 
       {isLoaded ? (
         <GoogleMap
-        onZoomChanged={() =>{
-          if(mapRef.current) {
-            setZoom(mapRef.current.getZoom() ?? 10)
-          }
-        }}
+          onZoomChanged={() => {
+            if (mapRef.current) {
+              setZoom(mapRef.current.getZoom() ?? 10);
+            }
+          }}
           mapContainerStyle={containerStyle}
           center={center}
           zoom={15}
@@ -388,15 +389,18 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
             fullscreenControl: false,
             zoomControl: false,
             streetViewControl: false,
+            rotateControl: false,
+            tilt: 0,
+            gestureHandling: "greedy",
           }}
           onLoad={(map) => {
-            mapRef.current = map; 
+            mapRef.current = map;
           }}
         >
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
           )}
-          {announcements.map((announcement , index) => {
+          {announcements.map((announcement, index) => {
             const isSelected = selectedMarker === announcement.id;
             if (
               !announcement.address ||
@@ -409,7 +413,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
             const subcategoryImgPath = loadImage(
               announcement.subcategory?.category?.imgPath
             );
-            if (zoom < 10 && index%20  !== 0) return null;
+            if (zoom < 10 && index % 20 !== 0) return null;
             const categoryName = announcement.subcategory?.category?.name;
             const categoryColor = categoryColors[categoryName];
 
@@ -456,7 +460,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                     fillColor: "white",
                     strokeColor: "white",
                   }}
-                  zIndex={index +1}
+                  zIndex={index + 1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker

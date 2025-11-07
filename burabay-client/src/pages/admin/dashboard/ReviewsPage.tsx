@@ -10,8 +10,8 @@ import { useNavigate } from "@tanstack/react-router";
 import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 
-import Back from "../../../../public/Back.svg";
-import Close from "../../../../public/Close.png";
+import Back from "/Back.svg?url";
+import Close from "/Close.png?url";
 import { useGetReviews } from "./model/useGetReviews";
 
 const BASE_URL = baseUrl;
@@ -76,9 +76,9 @@ const ReviewsPage: FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
       year: "numeric",
-      month: "long",
-      day: "numeric",
     });
   };
 

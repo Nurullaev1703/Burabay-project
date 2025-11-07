@@ -11,12 +11,11 @@ import PlusIcon from "../../app/icons/announcements/bluePlus.svg";
 import editIcon from "../../app/icons/announcements/edit.svg";
 import { Modal, Switch } from "@mui/material";
 import { useMatch, useNavigate } from "@tanstack/react-router";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement, BookingBanDate } from "./model/announcements";
-import { format } from "date-fns";
+import dayjs, { Dayjs } from "dayjs";
+import { BookingBanCalendar } from "./ui/BookingBanCalendar";
 
 interface Props {
   adId: string;
@@ -26,6 +25,7 @@ interface Props {
 interface DateSettings {
   allDay: boolean;
   times: string[];
+  id?: string; // ID записи на сервере для обновления/удаления
 }
 interface TransformedData {
   [key: string]: DateSettings;
@@ -42,31 +42,62 @@ export const BookingBan: FC<Props> = function BookingBan({
   const searchParams = new URLSearchParams(match.search);
   const serviceTimeParam = searchParams.get("serviceTime");
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const [dates, setDates] = useState<string[]>(
-    announcement?.bookingBanDate
-      ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime())) // фильтруем нормальные даты
-      ?.map((item) => format(new Date(item.date), "dd.MM.yyyy")) || []
-  );
+  const [dates, setDates] = useState<string[]>(() => {
+    const result =
+      announcement?.bookingBanDate
+        ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime()))
+        ?.map((item) => dayjs(item.date).format("DD.MM.YYYY")) || [];
+    return result;
+  });
 
   const [dateSettings, setDateSettings] = useState<
     Record<string, DateSettings>
-  >(transformData(announcement?.bookingBanDate || []) || {});
+  >(() => {
+    const result = transformData(announcement?.bookingBanDate || []) || {};
+    return result;
+  });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showModals, setShowModals] = useState<Record<string, boolean>>({});
-  const [selectedDateTwo, setSelectedDateTwo] = useState<Date | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [currentSelectedDate, setCurrentSelectedDate] = useState<Dayjs | null>(
+    null
+  );
   const navigate = useNavigate();
+
+  // Получаем локаль для календаря
+  const locale =
+    i18n.language === "kk" ? "kk" : i18n.language === "en" ? "en" : "ru";
 
   const addDate = (newDate: string) => {
     if (!dates.includes(newDate)) {
       setDates([...dates, newDate]);
       setDateSettings({
         ...dateSettings,
-        [newDate]: { allDay: false, times: [...serviceTime] },
+        [newDate]: { allDay: false, times: [] }, // Изначально нет заблокированных времен, нет ID (новая дата)
       });
     }
+  };
+
+  // Обработчик выбора даты из календаря
+  const handleDateChange = (date: Dayjs | null) => {
+    if (date) {
+      const formattedDate = date.format("DD.MM.YYYY");
+      addDate(formattedDate);
+      setCurrentSelectedDate(date);
+      // Закрываем календарь и открываем модальное окно выбора времени
+      setShowCalendar(false);
+      openModalForDate(formattedDate);
+    }
+  };
+
+  // Проверка, заблокирована ли дата
+  const shouldDisableDate = (date: Dayjs) => {
+    const formattedDate = date.format("DD.MM.YYYY");
+    // Блокируем прошедшие даты и уже выбранные
+    return date.isBefore(dayjs(), "day") || dates.includes(formattedDate);
   };
   function transformData(data: BookingBanDate[]): TransformedData {
     return data.reduce<TransformedData>((acc, item) => {
@@ -74,15 +105,18 @@ export const BookingBan: FC<Props> = function BookingBan({
         return acc;
       }
 
-      const formattedDate = format(new Date(item.date), "dd.MM.yyyy");
+      const formattedDate = dayjs(item.date).format("DD.MM.YYYY");
 
       if (!acc[formattedDate]) {
         acc[formattedDate] = {
           allDay: item.allDay,
           times: [...item.times],
+          id: item.id, // Сохраняем ID для обновления/удаления
         };
       } else {
-        acc[formattedDate].times.push(...item.times);
+        // Объединяем времена и удаляем дубликаты
+        const combinedTimes = [...acc[formattedDate].times, ...item.times];
+        acc[formattedDate].times = Array.from(new Set(combinedTimes));
       }
       return acc;
     }, {});
@@ -102,27 +136,41 @@ export const BookingBan: FC<Props> = function BookingBan({
 
   const toggleAllDay = () => {
     if (selectedDate) {
+      const newAllDayState = !dateSettings[selectedDate]?.allDay;
       setDateSettings({
         ...dateSettings,
         [selectedDate]: {
-          allDay: !dateSettings[selectedDate]?.allDay,
-          times: !dateSettings[selectedDate]?.allDay ? [] : [...serviceTime],
+          allDay: newAllDayState,
+          times: newAllDayState ? [...serviceTime] : [], // Если включаем allDay - блокируем все время, иначе очищаем
         },
       });
+      // Обновляем selectedTimes для синхронизации UI
+      setSelectedTimes(newAllDayState ? [...serviceTime] : []);
     }
   };
 
   const saveDateSettings = () => {
     if (selectedDate) {
-      setDateSettings({
-        ...dateSettings,
-        [selectedDate]: {
-          ...dateSettings[selectedDate],
-          times: dateSettings[selectedDate].times.filter(
-            (time) => !selectedTimes.includes(time)
-          ),
-        },
-      });
+      // Проверяем, что выбрано хотя бы одно время или включен allDay
+      const isAllDay = dateSettings[selectedDate]?.allDay;
+      const hasSelectedTimes = selectedTimes.length > 0;
+
+      if (!isAllDay && !hasSelectedTimes) {
+        // Если не выбрано время и не включен allDay - удаляем дату
+        setDates(dates.filter((d) => d !== selectedDate));
+        const newSettings = { ...dateSettings };
+        delete newSettings[selectedDate];
+        setDateSettings(newSettings);
+      } else {
+        // Сохраняем настройки
+        setDateSettings({
+          ...dateSettings,
+          [selectedDate]: {
+            ...dateSettings[selectedDate],
+            times: selectedTimes, // Сохраняем выбранные (заблокированные) времена
+          },
+        });
+      }
     }
     setShowModals((prev) => ({ ...prev, [selectedDate!]: false }));
     setSelectedDate(null);
@@ -132,41 +180,103 @@ export const BookingBan: FC<Props> = function BookingBan({
   const openModalForDate = (date: string) => {
     setSelectedDate(date);
     setShowModals((prev) => ({ ...prev, [date]: true }));
-    setSelectedTimes([]);
+    // Устанавливаем уже заблокированные времена как выбранные
+    setSelectedTimes(dateSettings[date]?.times || []);
+  };
+
+  const closeCalendar = () => {
+    setShowCalendar(false);
+    setCurrentSelectedDate(null);
+  };
+
+  // Конвертируем дату из DD.MM.YYYY в ISO формат для сервера
+  const convertToISODate = (dateString: string): string => {
+    const [day, month, year] = dateString.split(".");
+    return `${year}-${month}-${day}`;
   };
 
   const handleSubmit = async () => {
-    // Массив, который содержит все данные для отправки
-    const datesToSend = dates.map((date) => ({
-      adId: adId,
-      date: date,
-      allDay: dateSettings[date].allDay,
-      times: dateSettings[date].allDay
-        ? []
-        : dateSettings[date].times.length > 0
-          ? dateSettings[date].times
-          : serviceTime,
-    }));
+    try {
+      // Разделяем даты на новые (без ID) и существующие (с ID)
+      const newDates: Array<{
+        adId: string;
+        date: string;
+        allDay: boolean;
+        times: string[];
+      }> = [];
+      const existingDates: Array<{
+        id: string;
+        date: string;
+        allDay: boolean;
+        times: string[];
+      }> = [];
 
-    // Отправляем один запрос с массивом всех дат
-    const response = await apiService.post<string>({
-      url: `/booking-ban-date`,
-      dto: datesToSend, // отправляем массив с датами
-    });
+      dates.forEach((date) => {
+        const settings = dateSettings[date];
+        const dateData = {
+          date: convertToISODate(date),
+          allDay: settings.allDay,
+          times: settings.times,
+        };
 
-    // После успешного ответа редиректим пользователя
-    if (response.data) {
+        if (settings.id) {
+          // Существующая дата - будем обновлять
+          existingDates.push({
+            id: settings.id,
+            ...dateData,
+          });
+        } else {
+          // Новая дата - будем создавать
+          newDates.push({
+            adId: adId,
+            ...dateData,
+          });
+        }
+      });
+      // Создаём новые даты и сохраняем их ID
+      if (newDates.length > 0) {
+        const response = await apiService.post<BookingBanDate[]>({
+          url: `/booking-ban-date`,
+          dto: newDates,
+        });
+
+        // Обновляем dateSettings с полученными ID
+        if (response.data) {
+          const updatedSettings = { ...dateSettings };
+          response.data.forEach((createdDate) => {
+            const formattedDate = dayjs(createdDate.date).format("DD.MM.YYYY");
+            if (updatedSettings[formattedDate]) {
+              updatedSettings[formattedDate].id = createdDate.id;
+            }
+          });
+          setDateSettings(updatedSettings);
+        }
+      }
+
+      // Обновляем существующие даты
+      for (const dateData of existingDates) {
+        const { id, ...updateDto } = dateData;
+        await apiService.patch<string>({
+          url: `/booking-ban-date/${id}`,
+          dto: updateDto,
+        });
+      }
+
+
+      // После успешного сохранения редиректим пользователя
       navigate({
         to: "/announcements/newService/$adId",
         params: {
           adId: adId,
         },
       });
+    } catch (error) {
+      console.error("Ошибка при сохранении дат:", error);
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#F1F2F6]">
+    <main className="min-h-screen bg-[#F1F2F6] pb-16">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -246,22 +356,11 @@ export const BookingBan: FC<Props> = function BookingBan({
         </Modal>
       )}
       <div className="p-4 cursor-none">
-        <label className="w-full relative flex items-center border bg-white rounded-lg p-4 h-20 mb-4 cursor-none">
+        <button
+          onClick={() => setShowCalendar(true)}
+          className="w-full relative flex items-center border bg-white rounded-lg p-4 h-20 mb-4 cursor-pointer hover:bg-gray-50 transition-colors"
+        >
           <img src={PlusIcon} alt="Добавить" />
-          <DatePicker
-            selected={selectedDateTwo}
-            onChange={(date: Date | null) => {
-              if (date) {
-                const formattedDate = date.toLocaleDateString();
-                addDate(formattedDate);
-                setSelectedDateTwo(date);
-              }
-            }}
-            wrapperClassName="w-full h-full"
-            className="w-0 bg-transparent outline-none cursor-none select-none h-full"
-            dateFormat="yyyy-MM-dd"
-            minDate={new Date()}
-          />
           <Typography
             size={16}
             weight={600}
@@ -270,7 +369,18 @@ export const BookingBan: FC<Props> = function BookingBan({
           >
             {t("addDateToBan")}
           </Typography>
-        </label>
+        </button>
+
+        {/* Модальное окно с календарём */}
+        <BookingBanCalendar
+          open={showCalendar}
+          onClose={closeCalendar}
+          value={currentSelectedDate}
+          onChange={handleDateChange}
+          shouldDisableDate={shouldDisableDate}
+          blockedDates={dates}
+          locale={locale}
+        />
 
         {dates.map((date) => (
           <div
@@ -295,10 +405,10 @@ export const BookingBan: FC<Props> = function BookingBan({
                 </Typography>
               ) : (
                 <div className="flex overflow-x-scroll gap-1 mt-1">
-                  {dateSettings[date]?.times.map((time) => (
+                  {dateSettings[date]?.times.map((time, index) => (
                     <Typography
                       color={COLORS_TEXT.gray100}
-                      key={time}
+                      key={`${date}-${time}-${index}`}
                       className="border-gray100 border px-10 py-2.5 rounded-2xl mr-2"
                     >
                       {time}
@@ -322,6 +432,15 @@ export const BookingBan: FC<Props> = function BookingBan({
                 {t("banTo")} {date}
               </Typography>
 
+              <Typography
+                size={14}
+                weight={400}
+                color={COLORS_TEXT.gray100}
+                className="mb-3"
+              >
+                {t("selectTimeOrAllDay")}
+              </Typography>
+
               <label className="flex items-center justify-between mb-4">
                 {t("unavailableAllDay")}
                 <Switch
@@ -332,14 +451,14 @@ export const BookingBan: FC<Props> = function BookingBan({
                 />
               </label>
 
-              {!dateSettings[date]?.allDay && (
+              {!dateSettings[date]?.allDay && serviceTime.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {dateSettings[date]?.times.map((time) => {
+                  {serviceTime.map((time, index) => {
                     const isTimeSelected = selectedTimes.includes(time);
 
                     return (
                       <button
-                        key={time}
+                        key={`${date}-service-${time}-${index}`}
                         onClick={() => toggleTimeSelection(time)}
                         className={`border rounded-2xl px-7 py-2 ${
                           isTimeSelected
@@ -355,21 +474,36 @@ export const BookingBan: FC<Props> = function BookingBan({
               )}
 
               <div className="flex justify-between mt-4 flex-col gap-2">
-                <Button onClick={saveDateSettings} className="text-white">
+                <Button
+                  onClick={saveDateSettings}
+                  className="text-white"
+                  disabled={
+                    !dateSettings[date]?.allDay && selectedTimes.length === 0
+                  }
+                >
                   {t("saveBtn")}
                 </Button>
                 <Button
                   onClick={async () => {
-                    const banDateId = announcement?.bookingBanDate[0]?.id;
-                    try {
-                      await apiService.delete({
-                        url: `/booking-ban-date/${banDateId}`,
-                        dto: { date },
-                      });
+                    const banDateId = dateSettings[date]?.id;
 
-                      setDates((prev) => prev.filter((item) => item !== date));
-                    } catch (error) {
+                    if (banDateId) {
+                      // Если есть ID - удаляем на сервере
+                      try {
+                        await apiService.delete({
+                          url: `/booking-ban-date/${banDateId}`,
+                        });
+                      } catch (error) {
+                        console.error("Ошибка при удалении даты:", error);
+                      }
                     }
+
+                    // Удаляем из локального состояния
+                    setDates((prev) => prev.filter((item) => item !== date));
+                    const newSettings = { ...dateSettings };
+                    delete newSettings[date];
+                    setDateSettings(newSettings);
+                    setShowModals((prev) => ({ ...prev, [date]: false }));
                   }}
                   mode="border"
                 >

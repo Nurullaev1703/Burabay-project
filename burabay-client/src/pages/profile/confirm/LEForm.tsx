@@ -60,7 +60,11 @@ export const LEForm: FC = function LEForm() {
       if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
       if (form.charterFile) formData.append("charterFile", form.charterFile);
 
-      const responseDocs = await imageService.post<string>({
+      const responseDocs = await imageService.post<{
+        registerFile: string | null;
+        IBANFile: string | null;
+        charterFile: string | null;
+      }>({
         url: `/full-docs`,
         dto: formData,
       });
@@ -70,9 +74,9 @@ export const LEForm: FC = function LEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
-          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
-          orgRulePath: `charterFile.${form.charterFile?.name.split('.').pop()}`,
+          regCouponPath: responseDocs.data.registerFile,
+          ibanDocPath: responseDocs.data.IBANFile,
+          orgRulePath: responseDocs.data.charterFile,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
@@ -89,8 +93,7 @@ export const LEForm: FC = function LEForm() {
       if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   return (
@@ -154,11 +157,11 @@ export const LEForm: FC = function LEForm() {
               label={t("IIN")}
               inputProps={{
                 inputMode: "numeric",
-                maxLength: 12
+                maxLength: 12,
               }}
               onInput={(e) => {
                 const target = e.target as HTMLInputElement;
-                const value = target.value.replace(/\D/g, ''); 
+                const value = target.value.replace(/\D/g, "");
                 target.value = value.slice(0, 12);
               }}
               fullWidth={true}

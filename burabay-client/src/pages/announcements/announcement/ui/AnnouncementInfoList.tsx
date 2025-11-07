@@ -48,8 +48,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         const startKey = `${key}Start`;
         const endKey = `${key}End`;
         return (
-          ad.schedule[startKey as keyof Schedule] !== "00:00" &&
-          ad.schedule[endKey as keyof Schedule] !== "00:00"
+          ad.schedule?.[startKey as keyof Schedule] !== "00:00" &&
+          ad.schedule?.[endKey as keyof Schedule] !== "00:00"
         );
       })
       .map(([, value]) => value);
@@ -85,22 +85,22 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      {ad.phoneNumber &&
-      
-      <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
-        <div className="flex flex-col">
-          <span>{formatPhoneNumber(ad.phoneNumber)}</span>
-          <span className={`${COLORS_TEXT.gray100} text-sm`}>
-            {t("contactPhone")}
-          </span>
-        </div>
-        {roleService.getValue() === ROLE_TYPE.TOURIST && (
-          <a href={`tel:${ad.phoneNumber}`}>
-            <img src={PhoneIcon} alt="Звонить" />
-          </a>
-        )}
-      </li>
-      }
+      {ad.phoneNumber && (
+        <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
+          <div className="flex flex-col">
+            <span>{formatPhoneNumber(ad.phoneNumber)}</span>
+            <span className={`${COLORS_TEXT.gray100} text-sm`}>
+              {t("contactPhone")}
+            </span>
+          </div>
+          {roleService.hasValue() &&
+            roleService.getValue() === ROLE_TYPE.TOURIST && (
+              <a href={`tel:${ad.phoneNumber}`}>
+                <img src={PhoneIcon} alt="Звонить" />
+              </a>
+            )}
+        </li>
+      )}
       <li className="border-b border-[#E4E9EA] py-3">
         <Link
           to={`/announcements/schedule/${ad.id}`}

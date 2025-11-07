@@ -10,16 +10,13 @@ import {
 } from "../../../shared/ui/colors";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../app/icons/announcements/blueBackicon.svg";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import "dayjs/locale/ru";
 import { baseUrl } from "../../../services/api/ServerData";
 import StarIcon from "../../../app/icons/announcements/star.svg";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import { BookingCalendar } from "./ui/BookingCalendar";
 
 interface Props {
   announcement: Announcement;
@@ -38,40 +35,58 @@ export const BookingTime: FC<Props> = function BookingTime({
   serviceSchedule,
   announcement,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
     []
   );
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const navigate = useNavigate();
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
+
+  // Получаем локаль для календаря
+  const locale =
+    i18n.language === "kk" ? "kk" : i18n.language === "en" ? "en" : "ru";
+
+  // Проверяем, заблокирована ли дата полностью (allDay: true)
   const isDateBlocked = (date: dayjs.Dayjs): boolean => {
     return (
       serviceSchedule?.some(
         ({ date: blockedDate, allDay }) =>
-          allDay && dayjs(blockedDate, "DD.MM.YYYY").isSame(date, "day")
+          allDay && dayjs(blockedDate).isSame(date, "day")
       ) ?? false
     );
   };
 
   // Установка времени с учетом заблокированных
-  const handleDateChange = (date: any) => {
+  const handleDateChange = (date: Dayjs | null) => {
+    if (!date) return;
+
     setSelectedTime("");
-    const selectedDate = date?.format("DD.MM.YYYY");
-    setSelectedDate(selectedDate);
-    const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === selectedDate
+    setSelectedDate(date);
+    const formattedDate = date.format("YYYY-MM-DD");
+
+    // Находим все записи для выбранной даты
+    const matchingDates = serviceSchedule.filter((currDate) =>
+      dayjs(currDate.date).isSame(date, "day")
     );
 
     const availableTimes = announcement.startTime || []; // Общие временные интервалы
-    if (matchingDate) {
-      const blockedTimes = matchingDate.times; // Временные интервалы, которые заблокированы
+
+    if (matchingDates.length > 0) {
+      // Собираем все заблокированные времена из всех записей для этой даты
+      const allBlockedTimes = matchingDates.reduce((acc, curr) => {
+        return [...acc, ...curr.times];
+      }, [] as string[]);
+
+      // Убираем дубликаты
+      const uniqueBlockedTimes = [...new Set(allBlockedTimes)];
+
       const combinedTimes = availableTimes.map((time) => ({
         time,
-        isBlocked: blockedTimes.includes(time),
+        isBlocked: uniqueBlockedTimes.includes(time),
       }));
       setTimes(combinedTimes);
     } else {
@@ -86,17 +101,23 @@ export const BookingTime: FC<Props> = function BookingTime({
 
   const saveTime = async (
     time: string | null,
-    date: string,
+    date: Dayjs | null,
     announcement: Announcement
   ) => {
+    if (!date) return;
+
     navigate({
       to: "/announcements/booking",
-      state: { time, date, announcement } as unknown as Record<string, unknown>,
+      state: {
+        time,
+        date: date.format("DD.MM.YYYY"),
+        announcement,
+      } as unknown as Record<string, unknown>,
     });
   };
   const blockedDaysOfWeek = announcement.isFullDay
-    ? [] 
-    : Object.entries(announcement.schedule)
+    ? []
+    : Object.entries(announcement.schedule ?? {})
         .filter(([key, value]) => key.endsWith("Start") && value === "00:00")
         .map(([key]) => {
           const dayMap: Record<string, number> = {
@@ -177,44 +198,16 @@ export const BookingTime: FC<Props> = function BookingTime({
         </div>
       </div>
 
-      <div className="mb-4 border-y border-[#E4E9EA] mx-4">
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-          <DateCalendar
-            showDaysOutsideCurrentMonth
-            onChange={handleDateChange}
-            shouldDisableDate={shouldDisableDate}
-            sx={{
-              "& .css-z4ns9w-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button ":
-                {
-                  padding: "0px !important",
-                },
-              "& .css-1e9nyoq-MuiPickersCalendarHeader-labelContainer": {
-                marginLeft: "20% !important",
-              },
-              "& .css-1chuxo2-MuiPickersCalendarHeader-label": {
-                color: "#999999",
-              },
-              "& .css-1nxbkmn-MuiPickersCalendarHeader-root": {
-                flexDirection: "row-reverse !important",
-                position: "relative",
-              },
-              "& .css-17nrfho-MuiButtonBase-root-MuiIconButton-root-MuiPickersArrowSwitcher-button":
-                {
-                  position: "absolute",
-                  right: "25px",
-                  padding: "0px",
-                },
-              "& .css-iupya1-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-              "& .css-1rf3jwr-MuiButtonBase-root-MuiIconButton-root-MuiPickersCalendarHeader-switchViewButton":
-                {
-                  display: "none",
-                },
-            }}
-          />
-        </LocalizationProvider>
+      <div className="mb-4 px-4">
+        <BookingCalendar
+          value={selectedDate}
+          onChange={handleDateChange}
+          shouldDisableDate={shouldDisableDate}
+          locale={locale}
+          isFullDay={false}
+          selectedDateStart={selectedDate?.format("DD.MM.YYYY") || null}
+          selectedDateEnd={null}
+        />
       </div>
 
       <div className="px-4">

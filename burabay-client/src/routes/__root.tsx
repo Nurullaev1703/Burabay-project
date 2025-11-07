@@ -9,10 +9,12 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 import {
   notificationService,
+  roleService,
   tokenService,
 } from "../services/storage/Factory";
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 import { NotFound } from "../pages/not-found/NotFound";
+import { ROLE_TYPE } from "../pages/auth/model/auth-model";
 
 export const AUTH_PATH = [
   "/auth",
@@ -32,11 +34,42 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     if (token && !isAuthenticated) {
       return <InitPage />;
     }
-      // запрещаем переходы на Десктоп кроме админа
+
+    // Проверяем роль пользователя
+    let userRole: string | null = null;
+    try {
+      if (roleService.hasValue()) {
+        userRole = roleService.getValue();
+      }
+    } catch (e) {
+      // Если значение в storage повреждено — удаляем токен/роль и редиректим на авторизацию
+      try {
+        tokenService.deleteValue();
+      } catch (err) {}
+      try {
+        roleService.deleteValue();
+      } catch (err) {}
+      // Обходим рендер и сразу отправляем на страницу авторизации
+      window.location.assign('/auth');
+      return null;
+    }
+
+    const isAdmin = userRole === ROLE_TYPE.ADMIN;
+
+    // Разрешаем доступ к announcements для админов на десктопе
+    const isAnnouncementPath = location.pathname.includes("/announcements");
+
+    // Блокируем доступ к административным путям со смартфонов и планшетов
+    const isAdminPath = location.pathname.includes("/admin");
+    if (isAdminPath && device.type !== "desktop") {
+      return <NotFound />;
+    }
+
+    // запрещаем переходы на Десктоп кроме админа и путей announcements для админа
     if (
       device.type == "desktop" &&
-      !location.pathname.includes("/admin")
-
+      !location.pathname.includes("/admin") &&
+      !(isAdmin && isAnnouncementPath)
     ) {
       return <NotFound />;
     }

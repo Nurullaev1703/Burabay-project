@@ -32,14 +32,27 @@ export class AdminPanelController {
   @ApiQuery({
     name: 'page',
     description: 'Номер страницы. Если не указана, то берется 1',
-    required: true,
+    required: false,
     type: Number,
     example: 1,
+  })
+  @ApiQuery({
+    name: 'take',
+    description: 'Количество записей на странице (10, 25, 50, 100). По умолчанию 10',
+    required: false,
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    description: 'Поиск по email, номеру телефона или названию организации',
+    required: false,
+    type: String,
   })
   @ApiOperation({
     summary: 'Получить всех пользователей',
     description:
-      'Возвращает пользователей по 15 штук. Принимает фильтр в Query. Значение page указывает номер страницы и используется чтобы расчитать сколько записей надо пропустить. Формула: skip = page * 15 - 15',
+      'Возвращает пользователей с пагинацией. Параметр take определяет количество записей на странице (10, 25, 50, 100). Параметр page указывает номер страницы. Формула: skip = (page - 1) * take. Поиск осуществляется по email, номеру телефона и названию организации.',
   })
   async getUsers(@Query() filter: UsersFilter) {
     return this.adminPanelService.getUsers(filter);

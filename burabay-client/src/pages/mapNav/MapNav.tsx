@@ -62,7 +62,10 @@ interface Props {
 }
 
 export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
-  const [center , _setCenter] = useState({lat: 53.08271195503471, lng: 70.30456742278163,})
+  const [center, _setCenter] = useState({
+    lat: 53.08271195503471,
+    lng: 70.30456742278163,
+  });
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const { isLoaded } = useJsApiLoader({
@@ -78,9 +81,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     if (window.google && window.google?.maps?.TravelMode) {
       setTravelMode(google.maps.TravelMode.DRIVING);
     }
-    if(location.href.includes("#")){
+    if (location.href.includes("#")) {
       const hash = window.location.hash;
-     handleMarkerClick(hash.substring(1));
+      handleMarkerClick(hash.substring(1));
     }
   }, []);
   const handleMapLoad = (map: google.maps.Map) => {
@@ -88,10 +91,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setMapReady(true);
   };
 
-
   const [zoom, setZoom] = useState<number>(10);
   const [isLocationDenied, setIsLocationDenied] = useState(false);
-  const role = roleService.getValue();
+  const role = roleService.hasValue() ? roleService.getValue() : null;
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -135,8 +137,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       });
 
       setDirectionsResponse(results);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const { t } = useTranslation();
@@ -209,8 +210,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     setActiveCategory(filters?.categoryNames || "");
   }, []);
 
-
-
   useEffect(() => {
     const vectorSource = new VectorSource();
     const vectorLayer = new VectorLayer({
@@ -226,7 +225,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         vectorLayer,
       ],
       view: new View({
-        center: fromLonLat([53.08271195503471, 70.30456742278163 ]),
+        center: fromLonLat([53.08271195503471, 70.30456742278163]),
         zoom: 14,
       }),
     });
@@ -415,21 +414,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   };
   useEffect(() => {
     if (!isLoaded || !mapReady || (!filters.adId && !filters.adName)) return;
-  
+
     const selectedAnnouncement = announcements.find(
       (announcement) => announcement.id === filters.adId
     );
-  
+
     const selectedByName = announcements.find(
       (announcement) =>
         filters.adName &&
-        announcement.title.toLowerCase().includes(filters.adName.toLowerCase()) 
+        announcement.title.toLowerCase().includes(filters.adName.toLowerCase())
     );
-  
+
     if (selectedAnnouncement && mapRef.current) {
       setAnnouncementInfo(selectedAnnouncement);
       setShowAnnouncementModal(true);
-      
+
       mapRef.current.panTo({
         lat: selectedAnnouncement.address.longitude,
         lng: selectedAnnouncement.address.latitude,
@@ -437,7 +436,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     } else if (selectedByName && mapRef.current) {
       setAnnouncementInfo(selectedByName);
       setShowAnnouncementModal(true);
-    
+
       mapRef.current.panTo({
         lat: selectedByName.address.longitude,
         lng: selectedByName.address.latitude,
@@ -449,8 +448,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       setSelectedMarker(announcements[0].id); // Выбираем первый маркер по умолчанию
     }
   }, [announcements, selectedMarker]);
-  
-  
+
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
@@ -474,11 +472,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
       {isLoaded ? (
         <GoogleMap
-        onZoomChanged={() =>{
-          if(mapRef.current) {
-            setZoom(mapRef.current.getZoom() ?? 10)
-          }
-        }}
+          onZoomChanged={() => {
+            if (mapRef.current) {
+              setZoom(mapRef.current.getZoom() ?? 10);
+            }
+          }}
           mapContainerStyle={containerStyle}
           center={center}
           zoom={15}
@@ -487,6 +485,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             fullscreenControl: false,
             zoomControl: false,
             streetViewControl: false,
+            rotateControl: false,
+            tilt: 0,
+            gestureHandling: "greedy",
           }}
           onLoad={handleMapLoad}
         >
@@ -506,7 +507,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             const subcategoryImgPath = loadImage(
               announcement.subcategory?.category?.imgPath
             );
-            if (zoom < 10 && index%20  !== 0) return null;
+            if (zoom < 10 && index % 20 !== 0) return null;
             const categoryName = announcement.subcategory?.category?.name;
             const categoryColor = categoryColors[categoryName];
 
@@ -559,7 +560,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     fillColor: "white",
                     strokeColor: "white",
                   }}
-                  zIndex={index +1}
+                  zIndex={index + 1}
                   onClick={() => handleMarkerClick(announcement.id)}
                 />
                 <Marker
@@ -731,7 +732,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                         >
                           <img
                             src={
-                              isFavourite ? FavouriteActiveIcon : FavouriteIcon 
+                              isFavourite ? FavouriteActiveIcon : FavouriteIcon
                             }
                             alt=""
                           />

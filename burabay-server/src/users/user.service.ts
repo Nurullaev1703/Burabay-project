@@ -39,14 +39,19 @@ export class UserService {
 
       // Если организация, то удалить ее объявления.
       if (user.role === ROLE_TYPE.BUSINESS) {
-        // Проверить на наличие броней.
-        const booking = await manager.findOne(Booking, {
-          where: { ad: { organization: { id: user.organization.id } } },
-        });
-        if (booking) {
+        // Проверить на наличие активных броней (где дата еще не прошла).
+        const activeBooking = await manager
+          .createQueryBuilder(Booking, 'booking')
+          .innerJoin('booking.ad', 'ad')
+          .innerJoin('ad.organization', 'organization')
+          .where('organization.id = :orgId', { orgId: user.organization.id })
+          .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
+          .getOne();
+
+        if (activeBooking) {
           return {
             status: HttpStatus.BAD_REQUEST,
-            message: 'Нельзя удалить аккаунт с бронированиями',
+            message: 'Нельзя удалить аккаунт с активными бронированиями',
           };
         }
         const ads = await manager.find(Ad, {
@@ -64,18 +69,21 @@ export class UserService {
       }
       // Если турист.
       else if (user.role === ROLE_TYPE.TOURIST) {
-        // Проверить на наличие броней.
-        const booking = await manager.findOne(Booking, {
-          where: { user: { id: user.id } },
-        });
-        // Если есть брони, то отменить удаление.
-        if (booking) {
+        // Проверить на наличие активных броней (где дата еще не прошла).
+        const activeBooking = await manager
+          .createQueryBuilder(Booking, 'booking')
+          .where('booking.user.id = :userId', { userId: user.id })
+          .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
+          .getOne();
+
+        // Если есть активные брони, то отменить удаление.
+        if (activeBooking) {
           return {
             status: HttpStatus.BAD_REQUEST,
-            message: 'Нельзя удалить аккаунт с бронированиями',
+            message: 'Нельзя удалить аккаунт с активными бронированиями',
           };
         }
-        // Если броней нет, то удалить аккаунт.
+        // Если активных броней нет, то удалить аккаунт.
         else {
           await manager.remove(user);
         }
