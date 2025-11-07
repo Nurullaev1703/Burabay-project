@@ -87,6 +87,8 @@
   "cannotDeleteAdWithBookings": "Cannot delete the announcement because there are active bookings.",
   "edit": "Edit",
   "wrongPassword": "Wrong password",
+  "adminNotFound": "Administrator with this email not found",
+  "adminWrongPassword": "Wrong password",
   "auth": "Authorization",
   "passwordFor": "Enter the password for the account",
   "inputOrgName": "Enter the name",
