@@ -194,14 +194,15 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   );
 
                                   return (
-                                    <div key={index} className="flex">
-                                      <span className={COLORS_TEXT.blue200}>
-                                        {updatedTime}
-                                        {index <
-                                          Math.min(5, ad.times.length) - 1 &&
-                                          ", "}
-                                      </span>
-                                    </div>
+                                    <span
+                                      key={index}
+                                      className={COLORS_TEXT.blue200}
+                                    >
+                                      {updatedTime}
+                                      {index <
+                                        Math.min(5, ad.times.length) - 1 &&
+                                        ", "}
+                                    </span>
                                   );
                                 })}
                                 {ad.times.length > 5 && " ..."}

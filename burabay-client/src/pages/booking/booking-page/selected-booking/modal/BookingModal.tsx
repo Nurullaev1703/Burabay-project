@@ -12,6 +12,7 @@ import PhoneIcon from "../../../../../app/icons/announcements/phone.svg";
 import { CancelBooking } from "./CancelBooking";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../../../services/api/ApiService";
+import { queryClient } from "../../../../../ini/InitializeApp";
 interface Props {
   booking: SelectedBookingList;
   open: boolean;
@@ -24,8 +25,10 @@ export const BookingModal: FC<Props> = function BookingModal({
   onClose,
 }) {
   const [isCancel, setIsCancel] = useState<boolean>(false);
-  const [isConfirmed, setIsConfirmed] = useState<boolean>(booking.status == "подтверждено");
-  const navigate = useNavigate()
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(
+    booking.status == "подтверждено"
+  );
+  const navigate = useNavigate();
   const [profileImg, setProfileImg] = useState<string>(
     baseUrl + booking.avatar
   );
@@ -106,22 +109,30 @@ export const BookingModal: FC<Props> = function BookingModal({
               </li>
             </ul>
           </div>
-          {!isConfirmed && (    
-                    <Button
-                    className={isConfirmed ? "hidden" : ""}
-                    onClick={async() => {
-                       await apiService.patch({
-                        url: `/booking/${booking.bookingId}/confirm`
-                        
-                      })
-                      setIsConfirmed(true);
-                      navigate({
-                        to: "/booking/business"
-                      })
-                    }}>
-                      {t("accept")}
-                    </Button>
-                    )}
+          {!isConfirmed && (
+            <Button
+              className={isConfirmed ? "hidden" : ""}
+              onClick={async () => {
+                await apiService.patch({
+                  url: `/booking/${booking.bookingId}/confirm`,
+                });
+                setIsConfirmed(true);
+                // Инвалидируем кэш после подтверждения
+                await queryClient.invalidateQueries({
+                  queryKey: [`/booking/org`],
+                });
+                await queryClient.invalidateQueries({
+                  queryKey: [`/booking/by-ad`],
+                  refetchType: "all",
+                });
+                navigate({
+                  to: "/booking/business",
+                });
+              }}
+            >
+              {t("accept")}
+            </Button>
+          )}
 
           <Button className="mb-4" onClick={() => setIsCancel(true)} mode="red">
             {t("cancel")}
