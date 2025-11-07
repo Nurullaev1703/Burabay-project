@@ -1,0 +1,85 @@
+.ios-device {
+  height: 100%;
+  overflow: hidden;
+}
+
+.ios-device body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-overflow-scrolling: auto;
+  overscroll-behavior: none;
+}
+
+.ios-scrollable-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ios-scrollable-content * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ios-device .fixed-header,
+.ios-device .fixed-footer,
+.ios-device .fixed-element {
+  position: fixed;
+  z-index: 1000;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+.ios-device .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.ios-device .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.ios-scrollable-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.ios-device body {
+  overscroll-behavior-y: none;
+  -webkit-overscroll-behavior-y: none;
+}
+
+.ios-device {
+  --real-vh: 1vh;
+}
+
+.ios-full-height {
+  height: 100vh;
+  height: calc(var(--real-vh, 1vh) * 100);
+}
+
+.ios-allow-scroll {
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: auto !important;
+}
