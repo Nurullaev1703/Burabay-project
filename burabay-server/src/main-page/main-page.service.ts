@@ -283,13 +283,15 @@ export class MainPageService {
     const totalCount = await this.bannerRepository.count();
 
     // Получить банеры из БД с пагинацией или все банеры, если параметры не переданы
-    const banners = await this.bannerRepository.find({
-      skip: skip ?? undefined,
-      take: take ?? undefined,
+    const findOptions: any = {
       order: {
         id: 'DESC',
       },
-    });
+    };
+    if (skip !== undefined) findOptions.skip = skip;
+    if (take !== undefined) findOptions.take = take;
+
+    const banners = await this.bannerRepository.find(findOptions);
 
     const result = {
       data: banners,
