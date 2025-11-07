@@ -5,7 +5,8 @@ import { BookingList, TSelectedBooking } from "./model/booking";
 export function useGetBookings(
   onlinePayment: boolean | null = false,
   onSidePayment: boolean | null = false,
-  canceled: boolean | null = false
+  canceled: boolean | null = false,
+  status?: string
 ) {
   // Формируем строку параметров запроса
   const queryParams = new URLSearchParams();
@@ -13,6 +14,7 @@ export function useGetBookings(
   if (onlinePayment) queryParams.set("onlinePayment", "true");
   if (onSidePayment) queryParams.set("onSidePayment", "true");
   if (canceled) queryParams.set("canceled", "true");
+  if (status) queryParams.set("status", status);
 
   // Строим URL с параметрами
   const url = `/booking/org?${queryParams.toString()}`;
@@ -33,7 +35,8 @@ export function useGetBookings(
 export function useGetTouristBookings(
   onlinePayment: boolean | null = false,
   onSidePayment: boolean | null = false,
-  canceled: boolean | null = false
+  canceled: boolean | null = false,
+  status?: string
 ) {
   // Формируем строку параметров запроса
   const queryParams = new URLSearchParams();
@@ -41,6 +44,7 @@ export function useGetTouristBookings(
   if (onlinePayment) queryParams.set("onlinePayment", "true");
   if (onSidePayment) queryParams.set("onSidePayment", "true");
   if (canceled) queryParams.set("canceled", "true");
+  if (status) queryParams.set("status", status);
 
   // Строим URL с параметрами
   const url = `/booking/?${queryParams.toString()}`;

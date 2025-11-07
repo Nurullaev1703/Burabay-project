@@ -409,6 +409,8 @@
   "describeImpressions": "Describe your impressions",
   "serviceReview": "Service review",
   "mapNav": "Map",
+  "active": "Active",
+  "archive": "Archive",
   "cancelBtn": "Cancel",
   "cancelled": "Cancelled",
   "waiting": "Waiting",

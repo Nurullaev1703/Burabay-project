@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
@@ -10,6 +10,8 @@ import { BookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+
 interface Props {
   ads: BookingList[];
 }
@@ -18,15 +20,50 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  // @ts-ignore
-  // const queryParams = new URLSearchParams(location.search);
-  // const onlinePayment = queryParams.get("onlinePayment") === "true";
+
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
   const isFilterActive = onlinePayment || onSidePayment || canceled;
+
+  // Индекс активного таба: 0 - Активные, 1 - Архив
+  const activeIndex = status === "ACTIVE" ? 0 : 1;
+
+  // Мемоизируем данные для вкладок
+  const TABS_DATA: TabMenuItem[] = useMemo(
+    () => [
+      {
+        index: 0,
+        title: t("active"),
+      },
+      {
+        index: 1,
+        title: t("archive"),
+      },
+    ],
+    [t]
+  );
+
+  // Обработчик смены вкладки
+  const handleTabChange = useCallback(
+    (index: number) => {
+      const newStatus = index === 0 ? "ACTIVE" : "DONE";
+      navigate({
+        to: "/booking/business",
+        search: {
+          status: newStatus,
+          ...(onlinePayment && { onlinePayment: true }),
+          ...(onSidePayment && { onSidePayment: true }),
+          ...(canceled && { canceled: true }),
+        },
+      });
+    },
+    [navigate, onlinePayment, onSidePayment, canceled]
+  );
+
   const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(() => {
     const initial = {};
     ads.forEach((ad) => {
@@ -54,6 +91,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       to: "/booking/business",
       search: {
         adName: searchValue,
+        status,
       },
     });
   };
@@ -73,7 +111,12 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           />
         </div>
         <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
+          to="/booking/filter"
+          search={{
+            onlinePayment,
+            onSidePayment,
+            canceled,
+          }}
         >
           <img
             src={isFilterActive ? ActiveFilterIcon : FilterIcon}
@@ -81,6 +124,14 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             alt="Фильтр"
           />
         </Link>
+      </div>
+
+      <div className="py-4 px-4 bg-white">
+        <TabMenu
+          data={TABS_DATA}
+          activeIndex={activeIndex}
+          onChangeIndex={handleTabChange}
+        />
       </div>
 
       <ul className="px-4 mt-4 mb-32">
@@ -109,7 +160,11 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       <li className="py-3 border-b border-[#E4E9EA]">
                         <Link
                           className="flex justify-between items-center"
-                          to={`/booking/${ad.ad_id}/${category.header}`}
+                          to={`/booking/$bookingId/$category`}
+                          params={{
+                            bookingId: ad.ad_id,
+                            category: category.header,
+                          }}
                         >
                           <div className="flex">
                             <img
