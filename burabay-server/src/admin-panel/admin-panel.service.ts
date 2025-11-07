@@ -468,6 +468,25 @@ export class AdminPanelService {
 
   @CatchErrors()
   async deleteBanner(id: string) {
+    // Сначала получаем баннер для доступа к пути изображения
+    const banner = await this.bannerRepository.findOne({ where: { id } });
+    Utils.checkEntity(banner, 'Баннер не найден');
+
+    // Удаляем файл изображения, если он существует
+    if (banner.imagePath) {
+      try {
+        const fs = require('fs').promises;
+        const path = require('path');
+        const filePath = path.join('public', banner.imagePath);
+        await fs.unlink(filePath);
+        this.logger.log(`Удален файл баннера: ${filePath}`);
+      } catch (error) {
+        // Логируем ошибку, но не останавливаем процесс удаления
+        this.logger.warn(`Не удалось удалить файл баннера ${banner.imagePath}:`, error.message);
+      }
+    }
+
+    // Удаляем запись из базы данных
     await this.bannerRepository.delete(id);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -489,6 +508,26 @@ export class AdminPanelService {
     this.logger.log(`Найдено баннеров для удаления: ${banners.length}`);
 
     if (banners.length > 0) {
+      // Удаляем файлы изображений перед удалением записей из БД
+      await Promise.all(
+        banners.map(async (banner) => {
+          if (banner.imagePath) {
+            try {
+              const fs = require('fs').promises;
+              const path = require('path');
+              const filePath = path.join('public', banner.imagePath);
+              await fs.unlink(filePath);
+              this.logger.log(`Удален файл истекшего баннера: ${filePath}`);
+            } catch (error) {
+              this.logger.warn(
+                `Не удалось удалить файл баннера ${banner.imagePath}:`,
+                error.message,
+              );
+            }
+          }
+        }),
+      );
+
       await this.bannerRepository.remove(banners);
       this.logger.log(`Удалено баннеров: ${banners.length}`);
     } else this.logger.log('Нет устаревших баннеров для удаления');
