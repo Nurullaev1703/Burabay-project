@@ -279,9 +279,6 @@ export class MainPageService {
   /** Получить банеры для главной страницы. */
   @CatchErrors()
   async getBanners(skip?: number, take?: number, search?: string, sortDir?: 'DESC' | 'ASC') {
-    // Получить общее количество баннеров
-    const totalCount = await this.bannerRepository.count();
-
     // Получить банеры из БД с пагинацией или все банеры, если параметры не переданы
     const findOptions: any = {
       order: {
@@ -302,6 +299,19 @@ export class MainPageService {
     if (take !== undefined) findOptions.take = take;
 
     const banners = await this.bannerRepository.find(findOptions);
+
+    // Получить общее количество баннеров с учетом фильтра поиска
+    const totalCount = await this.bannerRepository.count(
+      search
+        ? {
+            where: {
+              text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                search: `%${search}%`,
+              }),
+            },
+          }
+        : {},
+    );
 
     const result = {
       data: banners,
