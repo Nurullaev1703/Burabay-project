@@ -108,7 +108,7 @@ export const AddAnnouncements: FC<Props> = function AddAnnouncements({
                       color={COLORS_TEXT.gray100}
                       className="mb-4"
                     >
-                      {t(item.description)}
+                      {t(`categoryDescriptions.${item.name}`)}
                     </Typography>
                   </div>
                   <img src={RightArrow} className="w-7 h-4" alt="" />

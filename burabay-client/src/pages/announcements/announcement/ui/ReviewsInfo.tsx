@@ -59,7 +59,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
       <div className="flex justify-between mb-4">
         <div className="flex items-center">
           <h2 className="text-[22px] font-medium mr-1">
-            {t("С высокой оценкой")}
+            {t("reviews")}
           </h2>
           {!isAdmin && (
             <div className="w-6 h-6 flex justify-center items-center">

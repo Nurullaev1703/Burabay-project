@@ -37,7 +37,23 @@ export function AuthProvider({children}: {children:React.ReactNode}){
         if(!tokenService.hasValue()) return
 
         const localStorageToken = tokenService.getValue()
-        handleSaveToken(localStorageToken.token)
+        const rawToken = localStorageToken?.token || ""
+
+        // basic format validation for JWT: should have three parts separated by dots
+        // if token is corrupted or not a JWT, remove it and avoid sending it to the server
+        if (typeof rawToken !== "string" || rawToken.split(".").length !== 3) {
+            try {
+                // clear any stored values and ensure ApiService doesn't send a bad header
+                tokenService.deleteValue();
+                apiService.deleteBearerToken();
+            } catch (e) {
+                // ignore
+            }
+            console.warn("Stored auth token is malformed and was cleared.");
+            return;
+        }
+
+        handleSaveToken(rawToken)
     },[])
 
     return (

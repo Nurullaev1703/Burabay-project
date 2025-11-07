@@ -17,7 +17,7 @@ import { apiService } from "../../services/api/ApiService";
 
 interface Props {
   category: Category;
-  ad? :Announcement
+  ad?: Announcement;
 }
 
 export const AddAnnouncementsStepTwo: FC<Props> =
@@ -28,30 +28,33 @@ export const AddAnnouncementsStepTwo: FC<Props> =
     );
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
       string | null
-    >(category.subcategories.length > 0 ? ad?.subcategory.id || category.subcategories[0].id : null);
+    >(
+      category.subcategories.length > 0
+        ? ad?.subcategory.id || category.subcategories[0].id
+        : null
+    );
     const navigate = useNavigate();
 
     const handleRadioChange = (id: string) => {
       setSelectedSubcategoryId(id);
     };
 
-    const handleContinue = async() => {
+    const handleContinue = async () => {
       if (selectedSubcategoryId) {
         if (ad?.title) {
           await apiService.patch<string>({
             url: `/ad/${ad.id}`,
             dto: {
-              subcategoryId: selectedSubcategoryId
-            }
-          })
+              subcategoryId: selectedSubcategoryId,
+            },
+          });
           navigate({
             to: "/announcements/edit/choiseDetails/$adId",
             params: {
-              adId: ad.id
-            }
+              adId: ad.id,
+            },
           });
-        }
-        else {   
+        } else {
           navigate({
             to: `/announcements/choiseDetails/${category.id}/${selectedSubcategoryId}`,
           });
@@ -73,7 +76,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 color={COLORS_TEXT.blue200}
                 align="center"
               >
-                {ad?.title ? t("changeAd") :t("addNewAd")}
+                {ad?.title ? t("changeAd") : t("addNewAd")}
               </Typography>
               <Typography
                 size={14}
@@ -84,11 +87,16 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 {t("choiseSubcategory")}
               </Typography>
             </div>
-            <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+            <IconContainer
+              align="end"
+              action={async () =>
+                navigate({
+                  to: "/announcements",
+                })
+              }
+            >
+              <img src={XIcon} alt="" />
+            </IconContainer>
           </div>
           <ProgressSteps currentStep={2} totalSteps={9}></ProgressSteps>
         </Header>
@@ -129,13 +137,13 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                       }}
                     />
                   </RadioGroup>
-                    <Typography
-                      size={16}
-                      weight={400}
-                      className="ml-3 text-lg text-black"
-                    >
-                      {t(subcategory.name)}
-                    </Typography>
+                  <Typography
+                    size={16}
+                    weight={400}
+                    className="ml-3 text-lg text-black"
+                  >
+                    {t(`subcategories.${subcategory.name}`)}
+                  </Typography>
                 </label>
               </li>
             ))}

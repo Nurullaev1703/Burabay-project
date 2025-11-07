@@ -7,6 +7,7 @@ import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 
@@ -119,6 +120,7 @@ const ReviewsPage: FC = () => {
       }
     } catch (error) {}
   };
+  const { t } = useTranslation();
 
   const loadMoreReviews = () => {
     fetchNextPage();
@@ -361,7 +363,7 @@ const ReviewsPage: FC = () => {
                       className="w-[150px] h-[150px] mb-4"
                     />
                     <p className="text-center text-black text-lg">
-                      Отзывов пока нет
+                      {t("reviewsNav")}
                     </p>
                   </div>
                 </div>

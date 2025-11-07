@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useForm, Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import Header from "../../../components/admin/Header";
 import "../../../app/styles/index.css";
 import authBg from "../../../app/icons/bg_auth.png";
+import OpenEyeIcon from "../../../app/icons/open-eye.svg";
+import CloseEyeIcon from "../../../app/icons/close-eye.svg";
 import { TextField } from "@mui/material";
 import { useAuth } from "../../../features/auth";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -13,24 +17,23 @@ interface AuthFormData {
 }
 
 const AuthPage: React.FC = () => {
-  const [formData, setFormData] = useState<AuthFormData>({
-    email: "",
-    password: "",
-  });
-  const { setToken } = useAuth()
+  const { t } = useTranslation();
+  const { setToken } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [_message, setMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const { control, handleSubmit } = useForm<AuthFormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (formData: AuthFormData) => {
     setLoading(true);
-    setMessage(null);
+    setErrorMessage("");
 
     try {
       const response = await fetch(baseUrl + "/auth/admin/", {
@@ -46,15 +49,41 @@ const AuthPage: React.FC = () => {
       });
 
       if (response.ok) {
-        setMessage("Регистрация успешна!");
-        const token = await response.json() as string;
-        setToken(token)
-        navigate({ to: "/admin/dashboard/complaints" });
+        const data = await response.text();
+
+        // Проверяем, что пришло от сервера
+        try {
+          const parsedData = JSON.parse(data);
+
+          // Если это число (HTTP статус код)
+          if (typeof parsedData === "number") {
+            if (parsedData === 409) {
+              // CONFLICT - неверный пароль
+              setErrorMessage(t("adminWrongPassword"));
+              return;
+            }
+          } else if (typeof parsedData === "string") {
+            // Если это строка - токен
+            setToken(parsedData);
+            navigate({ to: "/admin/dashboard/complaints" });
+            return;
+          }
+        } catch {
+          // Если не удалось распарсить - возможно это уже токен
+          setToken(data);
+          navigate({ to: "/admin/dashboard/complaints" });
+          return;
+        }
+      } else if (response.status === 404) {
+        setErrorMessage(t("adminNotFound"));
+      } else if (response.status === 409) {
+        setErrorMessage(t("adminWrongPassword"));
       } else {
-        setMessage("Ошибка регистрации");
+        setErrorMessage(t("defaultError"));
       }
     } catch (error) {
-      setMessage("Ошибка сервера");
+      console.error("Auth error:", error);
+      setErrorMessage(t("defaultError"));
     } finally {
       setLoading(false);
     }
@@ -70,45 +99,69 @@ const AuthPage: React.FC = () => {
       ></div>
 
       <div className="relative flex flex-col justify-center items-center gap-[32px] w-[620px] h-[445px] bg-[#0A7D9E] rounded-lg shadow-md p-8">
-        <h2 className="text-[32px] font-bold text-white">Авторизация</h2>
+        <h2 className="text-[32px] font-bold text-white">{t("auth")}</h2>
+
+        {errorMessage && (
+          <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {errorMessage}
+          </div>
+        )}
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="w-full flex flex-col items-center"
         >
           <div className="space-y-2 w-full">
             <div className="relative w-full">
-              <TextField
-                type="text"
-                id="email"
+              <Controller
                 name="email"
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-                variant="outlined"
-                placeholder="Введите адрес электронной почты"
-                required
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type="email"
+                    fullWidth
+                    variant="outlined"
+                    placeholder={t("inputMail")}
+                  />
+                )}
               />
               <span className="absolute text-[#999999] top-3 left-3 pointer-events-none">
-                <span className="block font-roboto text-xs">Почта</span>
+                <span className="block font-roboto text-xs">{t("email")}</span>
               </span>
             </div>
 
             <div className="relative w-full">
-              <TextField
-                type="password"
-                id="password"
+              <Controller
                 name="password"
-                value={formData.password}
-                onChange={handleChange}
-                fullWidth
-                variant="outlined"
-                placeholder="Введите пароль"
-                required
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    fullWidth
+                    variant="outlined"
+                    placeholder={t("inputPassword") || "Введите пароль"}
+                    className="h-fit"
+                  />
+                )}
               />
               <span className="absolute text-[#999999] top-3 left-3 pointer-events-none">
-                <span className="block font-roboto text-xs">Пароль</span>
+                <span className="block font-roboto text-xs">
+                  {t("password") || "Пароль"}
+                </span>
               </span>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-5 top-8 cursor-pointer"
+              >
+                <img
+                  src={showPassword ? OpenEyeIcon : CloseEyeIcon}
+                  alt="toggle password visibility"
+                  className="w-6 h-6"
+                />
+              </button>
             </div>
           </div>
 
@@ -119,7 +172,7 @@ const AuthPage: React.FC = () => {
             }`}
             disabled={loading}
           >
-            {loading ? "Загрузка..." : "Войти"}
+            {loading ? t("loading") || "Загрузка..." : t("signIn") || "Войти"}
           </button>
         </form>
       </div>
