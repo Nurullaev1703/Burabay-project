@@ -95,11 +95,12 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           <div className="flex space-x-2">
             <input
               type="number"
+              inputMode="numeric"
               placeholder={t("От")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
               value={selectedFilters.minPrice ?? ""}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
+                const value = e.target.value;
                 setSelectedFilters((prev) => ({
                   ...prev,
                   minPrice: value ? Number(value) : undefined,
@@ -108,11 +109,12 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             />
             <input
               type="number"
+              inputMode="numeric"
               placeholder={t("До")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
               value={selectedFilters.maxPrice ?? ""}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
+                const value = e.target.value;
                 setSelectedFilters((prev) => {
                   const maxPrice = Number(value);
                   return {
