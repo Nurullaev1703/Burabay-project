@@ -33,7 +33,10 @@ export const NewService: FC<Props> = function NewService({
   const [childrenCount, setChildrenCount] = useState(
     announcement?.kidsNumber || 0
   );
-  const [ageLimit, setAgeLimit] = useState(announcement?.kidsMinAge || 0);
+  // limit age to max 17 so users can't enter a higher value
+  const [ageLimit, setAgeLimit] = useState(
+    Math.min(announcement?.kidsMinAge || 0, 17)
+  );
   const [petsAllowed, setPetsAllowed] = useState(
     announcement?.petsAllowed || false
   );
@@ -275,7 +278,7 @@ export const NewService: FC<Props> = function NewService({
               <div className="flex items-center gap-2">
                 <div
                   className="w-11 h-11 items-center flex justify-center"
-                  onClick={() => setAgeLimit((prev) => Math.max(1, prev - 1))}
+                  onClick={() => setAgeLimit((prev) => Math.max(0, prev - 1))}
                 >
                   <button className="text-2xl">—</button>
                 </div>
@@ -287,13 +290,18 @@ export const NewService: FC<Props> = function NewService({
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, "");
                     const num = digits === "" ? 0 : parseInt(digits, 10);
-                    if (!Number.isNaN(num)) setAgeLimit(num);
+                    if (!Number.isNaN(num)) {
+                      // enforce maximum allowed age = 17
+                      const capped = Math.min(num, 17);
+                      setAgeLimit(capped);
+                    }
                   }}
                   className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                  maxLength={2}
                 />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
-                  onClick={() => setAgeLimit((prev) => prev + 1)}
+                  onClick={() => setAgeLimit((prev) => Math.min(17, prev + 1))}
                 >
                   <button className="text-2xl">+</button>
                 </div>
