@@ -321,6 +321,7 @@ export class AdService {
       if (ad.schedule) await manager.remove(ad.schedule);
       if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
       if (ad.breaks?.length) await manager.remove(ad.breaks);
+      if (ad.bookings) await manager.remove(ad.bookings);
 
       if (ad.reviews?.length) {
         await Promise.all(
