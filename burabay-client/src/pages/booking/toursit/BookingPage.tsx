@@ -184,44 +184,51 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
     });
 
   return (
-    <section>
-      <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
-        <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
-          <img src={SearchIcon} alt="Поиск" />
-          <input
-            type="search"
-            placeholder={t("search")}
-            className="flex-grow bg-transparent outline-none text-gray-700"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
+    <section className="bg-almostWhite min-h-screen">
+      {/* Фиксированный хедер с поиском и фильтром */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
+          <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+            <img src={SearchIcon} alt="Поиск" />
+            <input
+              type="search"
+              placeholder={t("search")}
+              className="flex-grow bg-transparent outline-none text-gray-700"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          <Link
+            to="/booking/filter"
+            search={{
+              onlinePayment: onlinePayment,
+              onSidePayment: onSidePayment,
+              canceled: canceled,
+            }}
+          >
+            <img
+              src={isFilterActive ? ActiveFilterIcon : FilterIcon}
+              className="mt-4"
+              alt="Фильтр"
+            />
+          </Link>
+        </div>
+
+        {/* Табы */}
+        <div className="py-4 px-4 bg-white">
+          <TabMenu
+            data={TABS_DATA}
+            activeIndex={activeIndex}
+            onChangeIndex={handleTabChange}
           />
         </div>
-        <Link
-          to="/booking/filter"
-          search={{
-            onlinePayment: onlinePayment,
-            onSidePayment: onSidePayment,
-            canceled: canceled,
-          }}
-        >
-          <img
-            src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-            className="mt-4"
-            alt="Фильтр"
-          />
-        </Link>
       </div>
 
-      <div className="py-4 px-4 bg-white">
-        <TabMenu
-          data={TABS_DATA}
-          activeIndex={activeIndex}
-          onChangeIndex={handleTabChange}
-        />
-      </div>
+      {/* Отступ для фиксированного хедера */}
+      <div className="h-[140px]"></div>
 
-      <ul className="px-4 mt-4 mb-32">
+      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
         {allAdsFlat.map((ad) => {
           const groupedTimes = ad.times.reduce(
             (acc, time) => {

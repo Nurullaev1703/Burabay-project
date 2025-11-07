@@ -120,7 +120,11 @@ export const NotificationsClient: FC<Props> = function Notifications({
                         size={18}
                         weight={500}
                         color={COLORS_TEXT.totalBlack}
-                        className="mb-2 break-all"
+                        className="mb-2 break-words hyphens-auto"
+                        style={{
+                          wordBreak: "normal",
+                          overflowWrap: "break-word",
+                        }}
                       >
                         {notification.title}
                       </Typography>
@@ -129,7 +133,11 @@ export const NotificationsClient: FC<Props> = function Notifications({
                         size={14}
                         weight={400}
                         color={COLORS_TEXT.totalBlack}
-                        className="leading-5 break-all whitespace-normal"
+                        className="leading-5 break-words hyphens-auto whitespace-normal"
+                        style={{
+                          wordBreak: "normal",
+                          overflowWrap: "break-word",
+                        }}
                       >
                         {notification.message}
                       </Typography>
@@ -151,10 +159,13 @@ export const NotificationsClient: FC<Props> = function Notifications({
                         color={COLORS_TEXT.gray100}
                         className="text-right"
                       >
-                        {new Date(notification.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(notification.createdAt).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </Typography>
                     </div>
                   </div>
