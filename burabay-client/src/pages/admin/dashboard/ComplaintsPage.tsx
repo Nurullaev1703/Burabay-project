@@ -561,7 +561,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           <img
                             src={`${BASE_URL}${review.adImage}`}
                             alt="Фото курорта"
-                            className="w-[52px] h-[52px] rounded-md object-cover"
+                            className="w-[52px] h-[52px] rounded-2xl object-cover"
                             onError={(e) =>
                               (e.currentTarget.src = defaultImage)
                             }
@@ -589,7 +589,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                               key={idx}
                               src={`${BASE_URL}${img}`}
                               alt="Фото отзыва"
-                              className="w-[80px] h-[80px] rounded-md object-cover"
+                              className="w-[80px] h-[80px] rounded-2xl object-cover"
                               onError={(e) =>
                                 (e.currentTarget.src = defaultImage)
                               }

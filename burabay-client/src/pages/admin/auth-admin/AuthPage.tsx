@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import Header from "../../../components/admin/Header";
 import "../../../app/styles/index.css";
 import authBg from "../../../app/icons/bg_auth.png";
-import { TextField, IconButton, InputAdornment } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import OpenEyeIcon from "../../../app/icons/open-eye.svg";
+import CloseEyeIcon from "../../../app/icons/close-eye.svg";
+import { TextField } from "@mui/material";
 import { useAuth } from "../../../features/auth";
 import { baseUrl } from "../../../services/api/ServerData";
 
@@ -23,16 +24,11 @@ const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AuthFormData>({
+  const { control, handleSubmit } = useForm<AuthFormData>({
     defaultValues: {
       email: "",
       password: "",
     },
-    mode: "onBlur",
   });
 
   const onSubmit = async (formData: AuthFormData) => {
@@ -120,13 +116,6 @@ const AuthPage: React.FC = () => {
               <Controller
                 name="email"
                 control={control}
-                rules={{
-                  required: t("requiredField"),
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: t("invalidEmail"),
-                  },
-                }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -134,8 +123,6 @@ const AuthPage: React.FC = () => {
                     fullWidth
                     variant="outlined"
                     placeholder={t("inputMail")}
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
                   />
                 )}
               />
@@ -148,13 +135,6 @@ const AuthPage: React.FC = () => {
               <Controller
                 name="password"
                 control={control}
-                rules={{
-                  required: t("requiredField"),
-                  minLength: {
-                    value: 6,
-                    message: t("passwordMinLength") || "Минимум 6 символов",
-                  },
-                }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -162,22 +142,7 @@ const AuthPage: React.FC = () => {
                     fullWidth
                     variant="outlined"
                     placeholder={t("inputPassword") || "Введите пароль"}
-                    error={!!errors.password}
-                    helperText={errors.password?.message}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={() => setShowPassword(!showPassword)}
-                            onMouseDown={(e) => e.preventDefault()}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
+                    className="h-fit"
                   />
                 )}
               />
@@ -186,6 +151,17 @@ const AuthPage: React.FC = () => {
                   {t("password") || "Пароль"}
                 </span>
               </span>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-5 top-8 cursor-pointer"
+              >
+                <img
+                  src={showPassword ? OpenEyeIcon : CloseEyeIcon}
+                  alt="toggle password visibility"
+                  className="w-6 h-6"
+                />
+              </button>
             </div>
           </div>
 
