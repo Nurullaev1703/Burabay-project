@@ -8,10 +8,15 @@ import crossIcon from "../../../app/icons/cross.svg";
 import { apiService } from "../../../services/api/ApiService";
 import { imageService } from "../../../services/api/ImageService";
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "./datepicker-custom.css";
 import { baseUrl } from "../../../services/api/ServerData";
 
 interface Banner {
   id?: string;
+  title: string;
   text: string;
   image: File | null;
   imagePath?: string;
@@ -20,17 +25,29 @@ interface Banner {
 
 const BannersPage: React.FC = () => {
   const [banner, setBanner] = useState<Banner>({
+    title: "",
     text: "",
     image: null,
     deleteDate: "",
   });
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bannersList, setBannersList] = useState<any[]>([]);
+  const [totalBanners, setTotalBanners] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalBanner, setModalBanner] = useState<any | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bannerToDelete, setBannerToDelete] = useState<string | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  
   const formatDate = (d?: string) => {
     if (!d) return "-";
     try {
@@ -40,18 +57,55 @@ const BannersPage: React.FC = () => {
     }
   };
 
-  // Fetch existing banners for admin view
+  // Debounce для поиска
   useEffect(() => {
-    const fetchBannersList = async () => {
-      try {
-        const response = await apiService.get<any[]>({ url: "/main-pages/banners" });
-        setBannersList(response.data || []);
-      } catch (e) {
-        // ignore for now
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      // Сбрасываем на первую страницу при новом поиске
+      if (searchQuery !== debouncedSearchQuery) {
+        setCurrentPage(1);
       }
-    };
+    }, 500); // 500ms задержка
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch existing banners for admin view with pagination
+  const fetchBannersList = async () => {
+    try {
+      const skip = (currentPage - 1) * itemsPerPage;
+      const take = itemsPerPage;
+      
+      let url = `/main-pages/banners?skip=${skip}&take=${take}`;
+      
+      // Добавляем сортировку если выбрана
+      if (sortDir) {
+        url += `&sortDir=${sortDir}`;
+      }
+      
+      // Добавляем поиск если есть
+      if (debouncedSearchQuery.trim()) {
+        url += `&search=${encodeURIComponent(debouncedSearchQuery.trim())}`;
+      }
+      
+      const response = await apiService.get<{ data: any[], total: number, hasMore: boolean }>({ 
+        url 
+      });
+      
+      // Бэк возвращает объект с полями data, total, hasMore, skip, take
+      const banners = response.data?.data || [];
+      const total = response.data?.total || 0;
+      
+      setBannersList(banners);
+      setTotalBanners(total);
+    } catch (e) {
+      console.error('Error fetching banners:', e);
+    }
+  };
+
+  useEffect(() => {
     fetchBannersList();
-  }, []);
+  }, [currentPage, itemsPerPage, sortDir, debouncedSearchQuery]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,6 +129,11 @@ const BannersPage: React.FC = () => {
       setError("Добавьте изображение");
       return;
     }
+    
+    if (!selectedDate) {
+      setError("Выберите дату удаления");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -85,20 +144,20 @@ const BannersPage: React.FC = () => {
       const response = await apiService.post({
         url: "/admin/banner",
         dto: {
+          title: banner.title,
           text: banner.text,
           imagePath: imagePath,
-          deleteDate: format(new Date(banner.deleteDate), "dd.MM.yyyy"),
+          deleteDate: format(selectedDate, "dd.MM.yyyy"),
         },
       });
 
       if (response.data) {
-        setBanner({ text: "", image: null, deleteDate: "" });
+        setBanner({ title: "", text: "", image: null, deleteDate: "" });
+        setSelectedDate(null);
         setImagePreview(null);
-          // refresh list after adding
-          try {
-            const listResp = await apiService.get<any[]>({ url: "/main-pages/banners" });
-            setBannersList(listResp.data || []);
-          } catch (e) {}
+        setAddModalOpen(false);
+        // refresh list after adding
+        await fetchBannersList();
       }
     } catch (error) {
       setError("Ошибка сети");
@@ -124,29 +183,43 @@ const BannersPage: React.FC = () => {
 
   const handleDelete = async (bannerId?: string) => {
     if (!bannerId) return;
-    if (!confirm("Удалить баннер?")) return;
     try {
       await apiService.delete({ url: `/admin/banner/${bannerId}` });
       // refresh list from server after deletion
-      try {
-        const resp = await apiService.get<any[]>({ url: "/main-pages/banners" });
-        setBannersList(resp.data || []);
-      } catch (e) {
-        // fallback: remove locally
-        setBannersList((prev) => prev.filter((b) => b.id !== bannerId));
-      }
+      await fetchBannersList();
+      setDeleteModalOpen(false);
+      setBannerToDelete(null);
     } catch (e) {
       alert("Не удалось удалить баннер");
     }
   };
 
-  const handleDateBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    const inputDate = event.target.value;
-    const today = new Date().toISOString().split("T")[0];
+  const openDeleteModal = (bannerId: string) => {
+    setBannerToDelete(bannerId);
+    setDeleteModalOpen(true);
+  };
 
-    if (inputDate && inputDate < today) {
-      event.target.value = today;
+  // Pagination logic
+  const totalPages = Math.ceil(totalBanners / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  const toggleSort = () => {
+    if (sortDir === null) {
+      setSortDir('asc');
+    } else if (sortDir === 'asc') {
+      setSortDir('desc');
+    } else {
+      setSortDir(null);
     }
+    setCurrentPage(1);
   };
 
   return (
@@ -163,99 +236,34 @@ const BannersPage: React.FC = () => {
       </div>
 
       {/* Центрирование формы */}
-      <div className="flex flex-1 flex-col items-center p-5 relative z-10 ml-[94px] overflow-y-auto pb-10">
-        <div className="bg-white p-10 rounded-[16px] shadow-lg max-w-2xl w-full">
-          <h2 className="text-2xl text-[#0A7D9E] font-semibold text-center mb-6">
-            Добавить баннер
-          </h2>
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="text"
-                className="block text-sm text-gray-700 font-medium mb-2"
-              >
-                Текст:
-              </label>
-              <input
-                type="text"
-                id="text"
-                name="text"
-                value={banner.text}
-                onChange={handleChange}
-                className="mt-1 p-3 border border-gray-300 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
-                placeholder="Введите текст баннера"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="deleteDate"
-                className="block text-sm text-gray-700 font-medium mb-2"
-              >
-                Дата удаления:
-              </label>
-              <input
-                type="date"
-                id="deleteDate"
-                name="deleteDate"
-                value={banner.deleteDate}
-                onChange={handleChange}
-                onBlur={handleDateBlur}
-                className="mt-1 p-3 border border-gray-300 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
-                required
-                min={new Date().toISOString().split("T")[0]}
-              />
-            </div>
-
-            {/* Выбор изображения */}
-            <div className="flex flex-col items-center gap-4">
-              <label className="block text-sm text-gray-700 font-medium">
-                Изображение:
-              </label>
-              <div className="relative w-32 h-32 border-2 border-gray-300 rounded-2xl overflow-hidden hover:border-[#0A7D9E] transition-colors">
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Предпросмотр"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={imageIcon}
-                    alt="Выберите изображение"
-                    className="w-full h-full object-contain opacity-50 p-4"
-                  />
-                )}
-                <input
-                  type="file"
-                  id="image"
-                  name="image"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-              <p className="text-xs text-gray-500 text-center">
-                Нажмите, чтобы выбрать изображение
-              </p>
-            </div>
-
+      <div className="flex flex-1 flex-col p-5 relative z-10 ml-[94px] overflow-y-auto pb-10">
+        {/* Header с кнопкой добавления */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex gap-3 flex-1">
+            {/* Поиск */}
+            <input
+              type="text"
+              placeholder="Поиск по заголовкам..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] text-gray-700"
+            />
             <button
-              type="submit"
-              className="bg-[#0A7D9E] hover:bg-[#096b85] transition-colors font-medium rounded-[32px] text-white px-4 py-3 w-full mt-6"
-              disabled={loading}
+              onClick={() => setAddModalOpen(true)}
+              className="bg-[#0A7D9E] text-white hover:bg-[#096b85] transition-colors font-medium rounded-lg px-6 py-3 shadow-lg whitespace-nowrap"
             >
-              {loading ? "Загрузка..." : "Добавить баннер"}
+              <span className="mr-2">+</span> Добавить баннер
             </button>
-          </form>
+          </div>
         </div>
-        {/* Список существующих баннеров (под формой) */}
-        <div className="w-full mt-6">
-          <h3 className="text-2xl text-[#0A7D9E] font-semibold mb-4">Существующие баннеры</h3>
+
+        {/* Список существующих баннеров */}
+        <div className="w-full">
           {bannersList.length === 0 ? (
-            <p className="text-gray-500">Баннеров нет</p>
+            <p className="text-white text-2xl font-semibold">Баннеров нет</p>
           ) : (
             <div className="overflow-x-auto rounded-lg bg-white">
               <table className="min-w-full divide-y divide-gray-200">
@@ -264,7 +272,18 @@ const BannersPage: React.FC = () => {
                     <th className="px-4 py-3 text-left text-base font-semibold text-black">Картинка</th>
                     <th className="px-4 py-3 text-left text-base font-semibold text-black">Заголовок</th>
                     <th className="px-4 py-3 text-left text-base font-semibold text-black">Текст</th>
-                    <th className="px-4 py-3 text-left text-base font-semibold text-black">Дата удаления</th>
+                    <th 
+                      className="px-4 py-3 text-left text-base font-semibold text-black cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                      onClick={toggleSort}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span>Дата удаления</span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className={`text-xs leading-none ${sortDir === 'asc' ? 'text-[#0A7D9E]' : 'text-gray-400'}`}>▲</span>
+                          <span className={`text-xs leading-none ${sortDir === 'desc' ? 'text-[#0A7D9E]' : 'text-gray-400'}`}>▼</span>
+                        </div>
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-right text-base font-semibold text-black">Действия</th>
                   </tr>
                 </thead>
@@ -296,7 +315,7 @@ const BannersPage: React.FC = () => {
                           setModalOpen(true); 
                         }}
                       >
-                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">{b.text}</div>
+                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">{b.title}</div>
                       </td>
                       <td 
                         className="px-4 py-4 max-w-[400px] cursor-pointer"
@@ -328,7 +347,7 @@ const BannersPage: React.FC = () => {
                             </svg>
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(b.id); }}
+                            onClick={(e) => { e.stopPropagation(); openDeleteModal(b.id); }}
                             className="p-2 rounded hover:bg-gray-100"
                             aria-label="Удалить"
                           >
@@ -340,6 +359,61 @@ const BannersPage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          
+          {/* Pagination - скрываем при поиске */}
+          {totalBanners > 0 && !debouncedSearchQuery.trim() && (
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Показывать:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                  className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A7D9E]"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray-700">
+                  из {totalBanners}
+                </span>
+              </div>
+
+              {/* Page numbers */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ←
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 rounded-md text-sm font-medium ${
+                      currentPage === page
+                        ? 'bg-[#0A7D9E] text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  →
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -361,9 +435,148 @@ const BannersPage: React.FC = () => {
                 className="w-full max-h-[70vh] object-contain mb-4 rounded-lg cursor-pointer"
                 onClick={() => window.open(`${baseUrl}${modalBanner.imagePath}`, '_blank')}
               />
-              <h3 className="text-xl text-black font-semibold mb-2">{modalBanner.text}</h3>
+              <h3 className="text-xl text-black font-semibold mb-2">{modalBanner.title}</h3>
               <p className="text-black whitespace-pre-wrap">{modalBanner.text}</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка подтверждения удаления */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl w-[90%] sm:w-[500px] p-8 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4" style={{ color: '#000000' }}>Удалить баннер?</h3>
+            <p className="font-medium mb-2" style={{ color: '#000000' }}>Вы уверены, что хотите удалить этот баннер?</p>
+            <p className="font-semibold text-base mb-8" style={{ color: '#DC2626' }}>⚠️ Это действие нельзя отменить!</p>
+            
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { setDeleteModalOpen(false); setBannerToDelete(null); }}
+                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-[#096b85] transition-colors"
+                style={{ backgroundColor: '#0A7D9E' }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={() => handleDelete(bannerToDelete || undefined)}
+                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-red-700 transition-colors"
+                style={{ backgroundColor: '#DC2626' }}
+              >
+                Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Модалка добавления баннера */}
+      {addModalOpen && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl w-[90%] sm:w-[600px] max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl text-[#0A7D9E] font-semibold">Добавить баннер</h2>
+              <button
+                onClick={() => { 
+                  setAddModalOpen(false); 
+                  setBanner({ title: "", text: "", image: null, deleteDate: "" });
+                  setSelectedDate(null);
+                  setImagePreview(null);
+                  setError(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-3xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm text-gray-700 font-medium mb-2">
+                  Заголовок:
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={banner.title}
+                  onChange={handleChange}
+                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                  placeholder="Введите заголовок баннера"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="text" className="block text-sm text-gray-700 font-medium mb-2">
+                  Текст:
+                </label>
+                <input
+                  type="text"
+                  id="text"
+                  name="text"
+                  value={banner.text}
+                  onChange={handleChange}
+                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent"
+                  placeholder="Введите текст баннера"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="deleteDate" className="block text-sm text-gray-700 font-medium mb-2">
+                  Дата удаления:
+                </label>
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  dateFormat="dd.MM.yyyy"
+                  locale={ru}
+                  minDate={new Date()}
+                  placeholderText="Выберите дату удаления"
+                  className="mt-1 p-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] focus:border-transparent cursor-pointer"
+                  wrapperClassName="w-full"
+                  calendarClassName="shadow-xl border-2 border-[#0A7D9E]"
+                  required
+                  showPopperArrow={false}
+                  openToDate={new Date()}
+                />
+              </div>
+
+              <div className="flex flex-col items-center gap-4">
+                <label className="block text-sm text-gray-700 font-medium">
+                  Изображение:
+                </label>
+                <div className="relative w-32 h-32 border-2 border-gray-300 rounded-md overflow-hidden hover:border-[#0A7D9E] transition-colors">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Предпросмотр" className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={imageIcon} alt="Выберите изображение" className="w-full h-full object-contain opacity-50 p-4" />
+                  )}
+                  <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 text-center">
+                  Нажмите, чтобы выбрать изображение
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="bg-[#0A7D9E] hover:bg-[#096b85] transition-colors font-medium rounded-lg text-white px-4 py-3 w-full mt-6"
+                disabled={loading}
+              >
+                {loading ? "Загрузка..." : "Добавить баннер"}
+              </button>
+            </form>
           </div>
         </div>
       )}

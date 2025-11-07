@@ -37,6 +37,7 @@ interface Props {
 interface Banner {
   id: string;
   imagePath: string;
+  title: string;
   text: string;
   deleteDate: string;
 }
@@ -202,10 +203,12 @@ export const Main: FC<Props> = function Main({
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const response = await apiService.get<Banner[]>({
+        const response = await apiService.get<{ data: Banner[], total: number, hasMore: boolean }>({
           url: "/main-pages/banners",
         });
-        setBanners(response.data);
+        // Бэкенд теперь возвращает объект с полем data
+        const bannersData = response.data?.data || [];
+        setBanners(bannersData);
       } catch (error) {}
     };
 
@@ -224,6 +227,7 @@ export const Main: FC<Props> = function Main({
 
   // Мемоизируем отсортированные баннеры
   const sortedBanners = useMemo(() => {
+    if (!Array.isArray(banners)) return [];
     return banners.slice().sort((a, b) => b.id.localeCompare(a.id));
   }, [banners]);
 
@@ -338,6 +342,9 @@ export const Main: FC<Props> = function Main({
                 alt={selectedBanner.text}
                 className="w-full max-w-full max-h-[60vh] object-contain mb-4 rounded-lg"
               />
+              <h3 className="text-[20px] font-semibold text-black mb-2 break-words box-border w-full max-w-full">
+                {selectedBanner.title}
+              </h3>
               <p className="text-[18px] break-words box-border w-full max-w-full">
                 {selectedBanner.text}
               </p>
