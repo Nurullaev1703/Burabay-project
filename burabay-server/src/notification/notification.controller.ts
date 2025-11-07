@@ -3,7 +3,10 @@ import { NotificationService } from './notification.service';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
+import {
+  CreateAllNotificationDto,
+  CreateCategoryNotificationDto,
+} from './dto/create-all-notifications.dto';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 
 @ApiBearerAuth()
@@ -37,12 +40,9 @@ export class NotificationController {
     return this.notificationService.createForOrganizations(dto);
   }
 
-  @Post('/category/:categoryId')
-  createForCategory(
-    @Body() dto: CreateAllNotificationDto,
-    @Param('categoryId') categoryId: string,
-  ) {
-    return this.notificationService.createForCategory(dto, categoryId);
+  @Post('/category')
+  createForCategory(@Body() dto: CreateCategoryNotificationDto) {
+    return this.notificationService.createForCategory(dto);
   }
 
   @Get('/all')

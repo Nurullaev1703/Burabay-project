@@ -6,7 +6,10 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
+import {
+  CreateAllNotificationDto,
+  CreateCategoryNotificationDto,
+} from './dto/create-all-notifications.dto';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 import { ROLE_TYPE } from 'src/users/types/user-types';
@@ -266,17 +269,17 @@ export class NotificationService {
     return JSON.stringify(HttpStatus.CREATED);
   }
 
-  /** Создать уведомления для всех туристов с указанной категорией в избранном. */
+  /** Создать уведомления для всех туристов с указанными категориями в избранном. */
   @CatchErrors()
-  async createForCategory(dto: CreateAllNotificationDto, categoryId: string) {
-    const { ...of } = dto;
+  async createForCategory(dto: CreateCategoryNotificationDto) {
+    const { categoryIds, ...of } = dto;
     const createdAt = new Date();
 
-    // Get all users who have this category in favorites using QueryBuilder
+    // Get all users who have any of these categories in favorites using QueryBuilder
     const users = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoin('user.categoriesFavorited', 'category', 'category.id = :categoryId', {
-        categoryId,
+      .innerJoin('user.categoriesFavorited', 'category', 'category.id IN (:...categoryIds)', {
+        categoryIds,
       })
       .where('user.role = :role', { role: ROLE_TYPE.TOURIST })
       .getMany();
@@ -284,7 +287,7 @@ export class NotificationService {
     // Используем Set для отслеживания уже обработанных пользователей
     const processedUserIds = new Set<string>();
 
-    // Send notifications to users with this category in favorites
+    // Send notifications to users with these categories in favorites
     for (const user of users) {
       // Пропускаем, если пользователь уже получил уведомление
       if (processedUserIds.has(user.id)) continue;
