@@ -44,12 +44,8 @@ export class BookingService {
 
       // Преобразовать строковые даты из DTO в тип js даты.
       let dateStart: Date, dateEnd: Date;
-      if (dateStartDto) {
-        dateStart = Utils.stringDateToDate(dateStartDto);
-      }
-      if (dateEndDto) {
-        dateEnd = Utils.stringDateToDate(dateEndDto);
-      }
+      if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);
+      if (dateEndDto) dateEnd = Utils.stringDateToDate(dateEndDto);
 
       // Создание брони.
       const newBooking = this.bookingRepository.create({
@@ -510,6 +506,14 @@ export class BookingService {
         where: { id: tokenData.id },
         select: { id: true, role: true },
       });
+      const bbd = await manager.findOne(BookingBanDate, {
+        where: {
+          ad: { id: booking.ad.id },
+          date: booking.date,
+          isByBooking: true,
+        },
+      });
+      if (bbd) await manager.remove(bbd);
       if (user.role === ROLE_TYPE.BUSINESS) {
         const notificationDto = {
           email: booking.ad.organization.user.email,
