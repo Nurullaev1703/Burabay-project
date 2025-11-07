@@ -12,6 +12,7 @@ import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import CloseIcon from "../../../../app/icons/announcements/reviews/close.svg";
 import ConfirmedIcon from "../../../../app/icons/profile/confirmed.svg";
 import { useNavigate } from "@tanstack/react-router";
+import { NavMenuClient } from "../../../../shared/ui/NavMenuClient";
 import { OrgInfo } from "../../model/announcements";
 
 interface Props {
@@ -73,8 +74,14 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
                 <div className="flex flex-col items-start select-text">
                   <a
                     href={org.siteUrl}
-                    target="_blank"
                     className=" text-[16px] leading-[20px] tracking-[0.4px] text-black select-text"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Открываем сайт в текущем окне (не в новой вкладке)
+                      // если нужно поведение для мобильного приложения (открыть внешним браузером),
+                      // потребуется нативная реализация; здесь открываем в том же окне/вкладке.
+                      if (org.siteUrl) window.open(org.siteUrl, "_self");
+                    }}
                   >
                     {org.siteUrl || t("notSpecified")}
                   </a>
@@ -113,6 +120,8 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
             </p>
           )}
         </div>
+        {/* Навигационное меню внизу, как на главной странице */}
+        <NavMenuClient />
       </div>
     </div>
   );
