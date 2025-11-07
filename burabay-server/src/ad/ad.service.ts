@@ -434,6 +434,7 @@ export class AdService {
         ads: {
           id: true,
           title: true,
+          description: true,
           images: true,
           price: true,
           address: { specialName: true, address: true },
