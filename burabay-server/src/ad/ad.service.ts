@@ -86,11 +86,95 @@ export class AdService {
           subcategory: { category: true },
           usersFavorited: true,
         },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          images: true,
+          video: true,
+          phoneNumber: true,
+          youtubeLink: true,
+          isRoundTheClock: true,
+          isFullDay: true,
+          startTime: true,
+          isDuration: true,
+          duration: true,
+          unlimitedClients: true,
+          adultsNumber: true,
+          kidsNumber: true,
+          kidsMinAge: true,
+          petsAllowed: true,
+          isBookable: true,
+          price: true,
+          priceForChild: true,
+          onSitePayment: true,
+          onlinePayment: true,
+          isBlocked: true,
+          isComplete: true,
+          createdAt: true,
+          views: true,
+          reviewCount: true,
+          avgRating: true,
+          bookingBanDate: {
+            id: true,
+            date: true,
+            isByBooking: true,
+          },
+          organization: {
+            id: true,
+            name: true,
+            description: true,
+            siteUrl: true,
+            imgUrl: true,
+            isConfirmed: true,
+            isBanned: true,
+          },
+          schedule: {
+            id: true,
+            monStart: true,
+            monEnd: true,
+            tueStart: true,
+            tueEnd: true,
+            wenStart: true,
+            wenEnd: true,
+            thuStart: true,
+            thuEnd: true,
+            friStart: true,
+            friEnd: true,
+            satStart: true,
+            satEnd: true,
+            sunStart: true,
+            sunEnd: true,
+          },
+          breaks: {
+            id: true,
+            start: true,
+            end: true,
+          },
+          address: {
+            id: true,
+            specialName: true,
+            address: true,
+            longitude: true,
+            latitude: true,
+          },
+          subcategory: {
+            id: true,
+            name: true,
+            category: {
+              id: true,
+              name: true,
+              imgPath: true,
+            },
+          },
+          usersFavorited: {
+            id: true,
+          },
+        },
         order: {
           createdAt: 'DESC',
         },
       });
-      // Без Подкатегории.
     } else {
       ads = await this.adRepository.find({
         where: {
@@ -105,14 +189,97 @@ export class AdService {
           subcategory: { category: true },
           usersFavorited: true,
         },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          images: true,
+          video: true,
+          phoneNumber: true,
+          youtubeLink: true,
+          isRoundTheClock: true,
+          isFullDay: true,
+          startTime: true,
+          isDuration: true,
+          duration: true,
+          unlimitedClients: true,
+          adultsNumber: true,
+          kidsNumber: true,
+          kidsMinAge: true,
+          petsAllowed: true,
+          isBookable: true,
+          price: true,
+          priceForChild: true,
+          onSitePayment: true,
+          onlinePayment: true,
+          isBlocked: true,
+          isComplete: true,
+          createdAt: true,
+          views: true,
+          reviewCount: true,
+          avgRating: true,
+          bookingBanDate: {
+            id: true,
+            date: true,
+            isByBooking: true,
+          },
+          organization: {
+            id: true,
+            name: true,
+            description: true,
+            siteUrl: true,
+            imgUrl: true,
+            isConfirmed: true,
+            isBanned: true,
+          },
+          schedule: {
+            id: true,
+            monStart: true,
+            monEnd: true,
+            tueStart: true,
+            tueEnd: true,
+            wenStart: true,
+            wenEnd: true,
+            thuStart: true,
+            thuEnd: true,
+            friStart: true,
+            friEnd: true,
+            satStart: true,
+            satEnd: true,
+            sunStart: true,
+            sunEnd: true,
+          },
+          breaks: {
+            id: true,
+            start: true,
+            end: true,
+          },
+          address: {
+            id: true,
+            specialName: true,
+            address: true,
+            longitude: true,
+            latitude: true,
+          },
+          subcategory: {
+            id: true,
+            name: true,
+            category: {
+              id: true,
+              name: true,
+              imgPath: true,
+            },
+          },
+          usersFavorited: {
+            id: true,
+          },
+        },
         order: {
           createdAt: 'DESC',
         },
       });
     }
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
+    if (filter.adName) ads = this._searchAd(filter.adName, ads);
     const result = ads.map((ad) => {
       const isFavourite =
         ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
@@ -321,6 +488,7 @@ export class AdService {
       if (ad.schedule) await manager.remove(ad.schedule);
       if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
       if (ad.breaks?.length) await manager.remove(ad.breaks);
+      if (ad.bookings) await manager.remove(ad.bookings);
 
       if (ad.reviews?.length) {
         await Promise.all(
