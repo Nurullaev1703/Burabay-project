@@ -15,11 +15,13 @@ function RouteComponent() {
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
 
   const { data = [], isLoading } = useGetBookings(
     onlinePayment,
     onSidePayment,
-    canceled
+    canceled,
+    status
   );
 
   if (isLoading) {

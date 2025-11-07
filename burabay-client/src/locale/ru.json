@@ -410,6 +410,8 @@
   "writeComplaint": "Напишите причину жалобы",
   "mainPage": "Главная",
   "mapNav": "Карта",
+  "active": "Активные",
+  "archive": "Архив",
   "cancelBtn": "Отменить",
   "cancelStatus": "Отменено",
   "cancelled": "Отмененные",

@@ -19,7 +19,7 @@ export class EmailService {
   private _generateCode() {
     let code = '';
     for (let i = 0; i < 4; i++) {
-      code += String(Math.floor(Math.random() * 9));
+      code += String(Math.floor(Math.random() * 10));
     }
     return code;
   }
@@ -35,6 +35,7 @@ export class EmailService {
     };
     try {
       await this.transporter.sendMail(data);
+      console.log('Email sent successfully');
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       console.error(error);

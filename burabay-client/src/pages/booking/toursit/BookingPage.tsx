@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
@@ -12,6 +12,7 @@ import { NavMenuClient } from "../../../shared/ui/NavMenuClient";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
 import React from "react";
+import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
 
 interface Props {
   ads: TouristBookingList[];
@@ -78,6 +79,8 @@ const getStatusText = (
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(() => {
     const initial = {};
     ads.forEach((ad) => {
@@ -95,6 +98,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const confirmed = queryParams.get("confirm") === "true";
   const completed = queryParams.get("done") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
+
   const isFilterActive =
     onlinePayment ||
     onSidePayment ||
@@ -102,9 +107,56 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
     inProgress ||
     confirmed ||
     completed;
+
+  // Индекс активного таба: 0 - Активные, 1 - Архив
+  const activeIndex = status === "ACTIVE" ? 0 : 1;
+
+  // Мемоизируем данные для вкладок
+  const TABS_DATA: TabMenuItem[] = useMemo(
+    () => [
+      {
+        index: 0,
+        title: t("active"),
+      },
+      {
+        index: 1,
+        title: t("archive"),
+      },
+    ],
+    [t]
+  );
+
+  // Обработчик смены вкладки
+  const handleTabChange = useCallback(
+    (index: number) => {
+      const newStatus = index === 0 ? "ACTIVE" : "DONE";
+      navigate({
+        to: "/booking/tourist",
+        search: {
+          status: newStatus,
+          ...(onlinePayment && { onlinePayment: true }),
+          ...(onSidePayment && { onSidePayment: true }),
+          ...(inProgress && { inProgress: true }),
+          ...(confirmed && { confirm: true }),
+          ...(completed && { done: true }),
+          ...(canceled && { canceled: true }),
+        },
+      });
+    },
+    [
+      navigate,
+      onlinePayment,
+      onSidePayment,
+      inProgress,
+      confirmed,
+      completed,
+      canceled,
+    ]
+  );
+
   const [adsList, _] = useState<TouristBookingList[]>(ads || []);
   const [searchValue, setSearchValue] = useState<string>("");
-  const navigate = useNavigate();
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -112,6 +164,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
         to: "/booking/tourist",
         search: {
           adName: searchValue,
+          status,
         },
       });
     }
@@ -131,31 +184,51 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
     });
 
   return (
-    <section>
-      <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
-        <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
-          <img src={SearchIcon} alt="Поиск" />
-          <input
-            type="search"
-            placeholder={t("search")}
-            className="flex-grow bg-transparent outline-none text-gray-700"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
+    <section className="bg-almostWhite min-h-screen">
+      {/* Фиксированный хедер с поиском и фильтром */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
+          <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+            <img src={SearchIcon} alt="Поиск" />
+            <input
+              type="search"
+              placeholder={t("search")}
+              className="flex-grow bg-transparent outline-none text-gray-700"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          <Link
+            to="/booking/filter"
+            search={{
+              onlinePayment: onlinePayment,
+              onSidePayment: onSidePayment,
+              canceled: canceled,
+            }}
+          >
+            <img
+              src={isFilterActive ? ActiveFilterIcon : FilterIcon}
+              className="mt-4"
+              alt="Фильтр"
+            />
+          </Link>
+        </div>
+
+        {/* Табы */}
+        <div className="py-4 px-4 bg-white">
+          <TabMenu
+            data={TABS_DATA}
+            activeIndex={activeIndex}
+            onChangeIndex={handleTabChange}
           />
         </div>
-        <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
-        >
-          <img
-            src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-            className="mt-4"
-            alt="Фильтр"
-          />
-        </Link>
       </div>
 
-      <ul className="px-4 mt-4 mb-32">
+      {/* Отступ для фиксированного хедера */}
+      <div className="h-[140px]"></div>
+
+      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
         {allAdsFlat.map((ad) => {
           const groupedTimes = ad.times.reduce(
             (acc, time) => {
@@ -176,7 +249,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                   key={`${ad.ad_id}-${timeKey}`}
                   className="py-3 border-b border-[#E4E9EA]"
                 >
-                  <Link to={`/booking/${ad.ad_id}/${ad.header}`}>
+                  <Link
+                    to={`/booking/$bookingId/$category`}
+                    params={{ bookingId: ad.ad_id, category: ad.header }}
+                  >
                     <div className="mb-2">
                       <div className="flex justify-between">
                         <span
@@ -239,7 +315,9 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   </div>
 
                                   <div className="flex items-center">
-                                    <span className={`${COLORS_TEXT.blue200} whitespace-nowrap`}>
+                                    <span
+                                      className={`${COLORS_TEXT.blue200} whitespace-nowrap`}
+                                    >
                                       {formatPrice(time.price)}
                                     </span>
                                   </div>

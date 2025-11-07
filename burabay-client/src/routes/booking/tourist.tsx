@@ -10,18 +10,20 @@ export const Route = createFileRoute("/booking/tourist")({
 
 function RouteComponent() {
   const location = useLocation();
-  
+
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
 
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
 
   const { data = [], isLoading } = useGetTouristBookings(
     onlinePayment,
     onSidePayment,
-    canceled
+    canceled,
+    status
   );
 
   if (isLoading) {

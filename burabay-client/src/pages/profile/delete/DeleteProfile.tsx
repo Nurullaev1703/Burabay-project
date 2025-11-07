@@ -58,7 +58,7 @@ export const DeleteProfile: FC = function DeleteProfile() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header className="p-4">
+      <Header>
         <div className="flex items-center gap-4">
           <IconContainer
             align="center"
@@ -66,8 +66,7 @@ export const DeleteProfile: FC = function DeleteProfile() {
           >
             <img src={BackIcon} alt="back" />
           </IconContainer>
-          <Typography size={24} weight={600}>
-            {t("deleteAccount")}
+          <Typography>
           </Typography>
           <IconContainer
             align="center"

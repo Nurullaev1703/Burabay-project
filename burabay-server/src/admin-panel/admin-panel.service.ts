@@ -185,8 +185,18 @@ export class AdminPanelService {
       where: { id: reviewId },
       relations: { report: true },
     });
+
+    // Проверяем наличие отзыва
+    Utils.checkEntity(review, 'Отзыв не найден');
+
+    // Помечаем отзыв как проверенный
     review.isCheked = true;
-    await this.reviewReportRepository.delete({ review: { id: reviewId } });
+
+    // Удаляем жалобу на отзыв, если она существует
+    if (review.report) {
+      await this.reviewReportRepository.delete(review.report.id);
+    }
+
     await this.reviewRepository.save(review);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -467,8 +477,13 @@ export class AdminPanelService {
     const now = new Date();
     now.setHours(0, 0, 0, 0); // Сравниваем только дату
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
+
+    this.logger.log(`Сегодняшняя дата: ${today.toISOString()}`);
+
     const banners = await this.bannerRepository.find({
-      where: { deleteDate: LessThanOrEqual(now) },
+      where: { deleteDate: LessThanOrEqual(today) },
     });
 
     this.logger.log(`Найдено баннеров для удаления: ${banners.length}`);
