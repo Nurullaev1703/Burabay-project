@@ -31,9 +31,14 @@ export class MainPageController {
 
   @Get('/banners')
   @ApiBearerAuth()
-  getBanners(@Query('skip') skip?: string, @Query('take') take?: string) {
+  getBanners(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
+    @Query('sortDir') sortDir?: 'ASC' | 'DESC',
+  ) {
     const skipNum = skip ? Number(skip) : undefined;
     const takeNum = take ? Number(take) : undefined;
-    return this.mainPageService.getBanners(skipNum, takeNum);
+    return this.mainPageService.getBanners(skipNum, takeNum, search, sortDir);
   }
 }

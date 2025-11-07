@@ -278,16 +278,26 @@ export class MainPageService {
 
   /** Получить банеры для главной страницы. */
   @CatchErrors()
-  async getBanners(skip?: number, take?: number) {
+  async getBanners(skip?: number, take?: number, search?: string, sortDir?: 'DESC' | 'ASC') {
     // Получить общее количество баннеров
     const totalCount = await this.bannerRepository.count();
 
     // Получить банеры из БД с пагинацией или все банеры, если параметры не переданы
     const findOptions: any = {
       order: {
-        id: 'DESC',
+        deleteDate: sortDir || 'ASC',
       },
     };
+
+    // Поиск по заголовку
+    if (search) {
+      findOptions.where = {
+        text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+          search: `%${search}%`,
+        }),
+      };
+    }
+
     if (skip !== undefined) findOptions.skip = skip;
     if (take !== undefined) findOptions.take = take;
 
