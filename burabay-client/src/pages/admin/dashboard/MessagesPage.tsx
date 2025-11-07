@@ -4,7 +4,8 @@ import { apiService } from "../../../services/api/ApiService";
 import authBg from "../../../app/icons/bg_auth.png";
 import message from "../../../app/icons/Message.png";
 import { Loader } from "../../../components/Loader";
-import { categoryBgColors, COLORS_TEXT } from "../../../shared/ui/colors";
+import { categoryBgColors, COLORS_TEXT, COLORS } from "../../../shared/ui/colors";
+import { RotatingLines } from "react-loader-spinner";
 import { baseUrl } from "../../../services/api/ServerData";
 import { Typography } from "../../../shared/ui/Typography";
 import cancel from "../../../app/icons/announcements/xCancel.svg";
@@ -33,6 +34,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [categoryNames, setCategoryNames] = useState<Category[]>([]);
   const [isSelect, setIsSelect] = useState<boolean>(false);
@@ -79,17 +81,19 @@ const MessagesPage: FC<Props> = ({ categories }) => {
   const handleSendNotification = async () => {
     if (!newMessage.trim()) return;
 
+    setIsSending(true);
     try {
       if (categoryNames.length > 0 && selectedRole.toLowerCase() !== "бизнес") {
-        // Отправка уведомлений по всем выбранным категориям параллельно
-        await Promise.all(
-          categoryNames.map((category) =>
-            apiService.post({
-              url: "/notification/category/" + category.id,
-              dto: { type: "позитивное", message: newMessage },
-            })
-          )
-        );
+        // Отправка уведомления одним запросом с массивом id выбранных категорий
+        // Предположение: бэк ожидает поле `categories` как массив id
+        await apiService.post({
+          url: "/notification/category",
+          dto: {
+            type: "позитивное",
+            message: newMessage,
+            categories: categoryNames.map((c) => c.id),
+          },
+        });
       } else if (selectedRole.toLowerCase() === "бизнес") {
         await apiService.post({
           url: "/notification/organizations",
@@ -139,6 +143,8 @@ const MessagesPage: FC<Props> = ({ categories }) => {
     } catch (error) {
       console.error("Ошибка при отправке уведомления:", error);
       alert("Не удалось отправить уведомление. Попробуйте снова.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -332,21 +338,29 @@ const MessagesPage: FC<Props> = ({ categories }) => {
               <div className="flex flex-1 items-center gap-3 ">
                 <input
                   type="text"
-                  className="flex-1 min-w-0 px-4 py-3 border border-[#EDECEA] rounded-lg bg-[#FAF9F7] focus:border-blue200 focus:outline-none"
+                  className={`flex-1 min-w-0 px-4 py-3 border border-[#EDECEA] rounded-lg bg-[#FAF9F7] focus:border-blue200 focus:outline-none ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
                   placeholder="Введите уведомление..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={isSending}
                 />
                 <button
-                  className="w-[52px] h-[52px] flex-shrink-0 rounded-full bg-[#0A7D9E] transition bg-cover bg-center"
+                  className={`w-[52px] h-[52px] flex-shrink-0 rounded-full flex items-center justify-center transition ${isSending ? "bg-[#0A7D9E] opacity-90 cursor-wait" : "bg-[#0A7D9E]"}`}
                   onClick={handleSendNotification}
-                  style={{
+                  disabled={isSending}
+                  aria-busy={isSending}
+                  aria-label={isSending ? "Отправка" : "Отправить сообщение"}
+                  style={isSending ? {} : {
                     backgroundImage: `url(${message})`,
                     backgroundSize: "22px 22px",
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: "center",
                   }}
-                />
+                >
+                  {isSending ? (
+                    <RotatingLines strokeColor={COLORS.white} width="20" />
+                  ) : null}
+                </button>
               </div>
             </div>
           </div>
