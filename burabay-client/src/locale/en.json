@@ -12,6 +12,8 @@
   "aboutService": "About the service",
   "invalidTimeFormat": "Invalid time format. Use the HH:MM format.",
   "invalidTimeRange": "Time must be in the range from 00:00 to 23:59.",
+  "duplicateStartTime": "This start time is already added.",
+  "maxStartTimes": "You cannot add more than 24 start times.",
   "cancelBooking": "Cancel booking",
   "help": "Help",
   "estimateService": "Rate the service",

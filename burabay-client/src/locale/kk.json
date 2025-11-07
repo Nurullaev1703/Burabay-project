@@ -15,6 +15,8 @@
   "safety": "Қауіпсіздік",
   "invalidTimeFormat": "Қате уақыт форматы. HH:MM форматын қолданыңыз.",
   "invalidTimeRange": "Уақыт 00:00-ден 23:59-ға дейінгі диапазонда болуы керек.",
+  "duplicateStartTime": "Бұл уақыт бұрыннан қосылған.",
+  "maxStartTimes": "Қызмет басталуының 24-тен артық уақытын қосуға болмайды.",
   "cancelBooking": "Брондауды болдырмау",
   "accountConfirmation": "Аккаунтты растау",
   "logoutFromAccount": "Аккаунттан шығу",

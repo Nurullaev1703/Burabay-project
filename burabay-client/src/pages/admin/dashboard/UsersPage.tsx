@@ -265,7 +265,7 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsModalOpen(false);
+        closeUserDetailsModal();
       } else {
       }
     } catch (error) {}
@@ -279,7 +279,7 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsModalOpen(false);
+        closeUserDetailsModal();
       } else {
       }
     } catch (error) {}
@@ -293,7 +293,7 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsTouristModalOpen(false);
+        closeUserDetailsModal();
       } else {
       }
     } catch (error) {}
@@ -306,7 +306,7 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsTouristModalOpen(false);
+        closeUserDetailsModal();
       } else {
       }
     } catch (error) {}
