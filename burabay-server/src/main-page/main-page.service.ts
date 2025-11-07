@@ -275,18 +275,30 @@ export class MainPageService {
     await this.cacheManager.set('all_categories', categories, 3600);
     return categories;
   }
+
   /** Получить банеры для главной страницы. */
-  async getBanners() {
-    // Получить данные из Redis.
-    const cachedBanners = await this.cacheManager.get('all_banners');
-    if (cachedBanners) {
-      return cachedBanners;
-    }
-    // Получить банеры из БД.
-    const banners = await this.bannerRepository.find();
-    // Банеры в кэше хранятся год.
-    await this.cacheManager.set('all_banners', banners, 3600);
-    return banners;
+  @CatchErrors()
+  async getBanners(skip?: number, take?: number) {
+    // Получить общее количество баннеров
+    const totalCount = await this.bannerRepository.count();
+
+    // Получить банеры из БД с пагинацией или все банеры, если параметры не переданы
+    const banners = await this.bannerRepository.find({
+      skip: skip ?? undefined,
+      take: take ?? undefined,
+      order: {
+        id: 'DESC',
+      },
+    });
+
+    const result = {
+      data: banners,
+      total: totalCount,
+      skip: skip ?? 0,
+      take: take ?? totalCount,
+      hasMore: skip !== undefined && take !== undefined ? skip + take < totalCount : false,
+    };
+    return result;
   }
 
   /** Поиск объявлений по имени. */

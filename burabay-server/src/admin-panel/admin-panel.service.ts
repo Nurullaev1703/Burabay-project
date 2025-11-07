@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
@@ -15,7 +15,6 @@ import { BookingStatus } from 'src/booking/types/booking.types';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { BannerCreateDto } from './dto/banner-create.dto';
 import { Banner } from './entities/baner.entity';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AdminPanelService {

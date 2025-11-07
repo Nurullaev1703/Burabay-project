@@ -31,7 +31,7 @@ export class MainPageController {
 
   @Get('/banners')
   @ApiBearerAuth()
-  getBanners() {
-    return this.mainPageService.getBanners();
+  getBanners(@Query() take?: number, @Query() skip?: number) {
+    return this.mainPageService.getBanners(skip, take);
   }
 }
