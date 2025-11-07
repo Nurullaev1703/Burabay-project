@@ -198,13 +198,18 @@ export const NewService: FC<Props> = function NewService({
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {adultsCount}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={adultsCount}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) setAdultsCount(num);
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
                   onClick={() => setAdultsCount((prev) => prev + 1)}
@@ -243,13 +248,18 @@ export const NewService: FC<Props> = function NewService({
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {childrenCount}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={childrenCount}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) setChildrenCount(num);
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
                   onClick={() => setChildrenCount((prev) => prev + 1)}
@@ -269,13 +279,18 @@ export const NewService: FC<Props> = function NewService({
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {ageLimit}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={ageLimit}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) setAgeLimit(num);
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
                   onClick={() => setAgeLimit((prev) => prev + 1)}
