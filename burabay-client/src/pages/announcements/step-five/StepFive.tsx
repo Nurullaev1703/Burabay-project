@@ -401,6 +401,8 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
                               variant="standard"
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginRight: "16px" }}
                             />
                           );
@@ -430,6 +432,8 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
                               variant="standard"
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginLeft: "16px" }}
                             />
                           );
@@ -474,19 +478,21 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         M: /[0-9]/,
                       },
                     });
-                    return (
-                      <TextField
-                        {...field}
-                        inputRef={timeMask}
-                        error={Boolean(error?.message)}
-                        placeholder="00:00"
-                        onChange={(e) =>
-                          handleBreakChange(index, "start", e.target.value)
-                        }
-                        variant="standard"
-                        style={{ width: "80px", marginRight: "16px" }}
-                      />
-                    );
+                          return (
+                            <TextField
+                              {...field}
+                              inputRef={timeMask}
+                              error={Boolean(error?.message)}
+                              placeholder="00:00"
+                              onChange={(e) =>
+                                handleBreakChange(index, "start", e.target.value)
+                              }
+                              variant="standard"
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
+                              style={{ width: "80px", marginRight: "16px" }}
+                            />
+                          );
                   }}
                 />
                 <span className="mr-4">{"до"}</span>
@@ -507,19 +513,21 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         M: /[0-9]/,
                       },
                     });
-                    return (
-                      <TextField
-                        {...field}
-                        inputRef={timeMask}
-                        error={Boolean(error?.message)}
-                        variant="standard"
-                        placeholder="00:00"
-                        onChange={(e) =>
-                          handleBreakChange(index, "end", e.target.value)
-                        }
-                        style={{ width: "80px", marginLeft: "16px" }}
-                      />
-                    );
+                          return (
+                            <TextField
+                              {...field}
+                              inputRef={timeMask}
+                              error={Boolean(error?.message)}
+                              variant="standard"
+                              placeholder="00:00"
+                              onChange={(e) =>
+                                handleBreakChange(index, "end", e.target.value)
+                              }
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
+                              style={{ width: "80px", marginLeft: "16px" }}
+                            />
+                          );
                   }}
                 />
               </div>

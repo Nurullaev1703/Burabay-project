@@ -103,7 +103,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
   // Добавление времени
   const addServiceTime = () => {
-    if (servicesTime.length < 8) {
+    if (servicesTime.length < 24) {
       setIsCreating(true);
       setTempTime("");
     }
@@ -125,17 +125,61 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
   // При отвода фокуса от поля
   const handleBlur = () => {
     if (isCreating && tempTime) {
+      // validate tempTime before adding
+      const valid = validateTime(tempTime);
+      if (valid !== true) {
+        handleError(String(valid));
+        return;
+      }
+
+      // prevent duplicates
+      if (servicesTime.includes(tempTime)) {
+        handleError(t("duplicateStartTime") || "Time already added");
+        return;
+      }
+
+      // max 24 times
+      if (servicesTime.length >= 24) {
+        handleError(t("maxStartTimes") || "Cannot add more than 24 start times");
+        return;
+      }
+
       const updatedServices = [...servicesTime, tempTime];
       setServicesTime(updatedServices);
       setValue("startTime", updatedServices);
       setIsCreating(false);
       setTempTime("");
+      setError(false);
+      setErrorText("");
     }
 
     if (editingIndex !== null) {
       const updatedServices = [...servicesTime];
+      // validate edited value
+      const editedValue = updatedServices[editingIndex];
+      const valid = validateTime(editedValue);
+      if (valid !== true) {
+        handleError(String(valid));
+        return;
+      }
+
+      // check duplicates except current index
+      const duplicate = updatedServices.some((v, i) => i !== editingIndex && v === editedValue);
+      if (duplicate) {
+        handleError(t("duplicateStartTime") || "Time already added");
+        return;
+      }
+
+      // ensure max 24
+      if (updatedServices.length > 24) {
+        handleError(t("maxStartTimes") || "Cannot add more than 24 start times");
+        return;
+      }
+
       setValue("startTime", updatedServices);
       setEditingIndex(null);
+      setError(false);
+      setErrorText("");
     }
   };
 
@@ -292,7 +336,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
             {/* Рендер списка времени */}
             <ul className="flex flex-wrap gap-2 mb-4">
               {/* Кнопка "Добавить" */}
-              {!isCreating && servicesTime.length < 8 && (
+              {!isCreating && servicesTime.length < 24 && (
                 <li
                   className={`${COLORS_BACKGROUND.blue200} py-3 px-12 cursor-pointer w-28 h-10 rounded-3xl`}
                   onClick={addServiceTime}
