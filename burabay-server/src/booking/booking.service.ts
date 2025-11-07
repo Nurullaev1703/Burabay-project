@@ -116,7 +116,7 @@ export class BookingService {
 
   @CatchErrors()
   async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
-    const whereOptions: Record<string, any> = {
+    let whereOptions: Record<string, any> = {
       user: { id: tokenData.id },
     };
 
@@ -129,6 +129,19 @@ export class BookingService {
     if (filter?.onSidePayment !== filter?.onlinePayment) {
       if (filter?.onSidePayment) whereOptions.paymentType = PaymentType.CASH;
       if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
+    }
+
+    if (filter.status === 'ACTIVE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    }
+    if (filter.status === 'DONE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.DONE, BookingStatus.CANCELED]),
+      };
     }
 
     const bookings = await this.bookingRepository.find({
@@ -229,13 +242,13 @@ export class BookingService {
       }
     }
 
-    if (!filter.canceled && filter.status === 'ACTIVE') {
+    if (filter.status === 'ACTIVE') {
       whereOptions = {
         ...whereOptions,
         status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
       };
     }
-    if (!filter.canceled && filter.status === 'DONE') {
+    if (filter.status === 'DONE') {
       whereOptions = {
         ...whereOptions,
         status: In([BookingStatus.DONE, BookingStatus.CANCELED]),

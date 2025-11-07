@@ -462,6 +462,8 @@ export class AdService {
     };
   }
 
+  
+
   /* Поиск среди Объявлений. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
     const searchedAds = [];
