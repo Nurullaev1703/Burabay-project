@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { BookingState } from "../booking-time/BookingTime";
+import { BookingState } from "../booking-time/BookingSelection";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -36,7 +36,7 @@ export const Booking: FC = function Booking() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { time, date, announcement, dateStart, dateEnd } =
-    location.state as BookingState;
+    location.state as unknown as BookingState;
   const { t } = useTranslation();
   const { user } = useAuth();
   const formatPrice = (value: number) => {
