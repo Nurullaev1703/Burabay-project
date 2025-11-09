@@ -1,9 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import BannerViewPage from '../../pages/banner/BannerViewPage'
 
 export const Route = createFileRoute('/banner/$bannerId')({
-  component: RouteComponent,
+  component: BannerViewPage,
 })
-
-function RouteComponent() {
-  return <div>Hello "/banner/$bannerId"!</div>
-}
