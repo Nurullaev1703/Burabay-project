@@ -1,21 +1,54 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Main } from '../../pages/main/Main'
-import { Loader } from '../../components/Loader';
-import { useGetMainPageCategories } from '../../pages/main/main-utils';
-import { MainPageFilter } from '../../pages/main/model/mainpage-types';
+import { createFileRoute } from "@tanstack/react-router";
+import { Main } from "../../pages/main/Main";
+import { Loader } from "../../components/Loader";
+import {
+  useGetMainPageCategories,
+  useGetMainPageBanners,
+  useGetMainPageAnnouncements,
+  useGetRecommendedAds,
+} from "../../pages/main/main-utils";
+import { MainPageFilter } from "../../pages/main/model/mainpage-types";
 
-export const Route = createFileRoute("/main/")({ 
+export const Route = createFileRoute("/main/")({
   component: MainRoute,
-  validateSearch: () => ({}) as MainPageFilter
+  validateSearch: () => ({}) as MainPageFilter,
 });
 
-function MainRoute(){
-  const filters = Route.useSearch()
-  const { data, isLoading } = useGetMainPageCategories();
-  if(data){
-    return <Main categories={data.categories} favouriteCategories={data.favouriteCategories} filters={filters}/>
+function MainRoute() {
+  const filters = Route.useSearch();
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useGetMainPageCategories();
+  const { data: bannersData, isLoading: isBannersLoading } =
+    useGetMainPageBanners();
+  const { data: announcementsData, isLoading: isAnnouncementsLoading } =
+    useGetMainPageAnnouncements(filters);
+  const { data: recommendedData, isLoading: isRecommendedLoading } =
+    useGetRecommendedAds(filters);
+
+  // Показываем лоадер пока загружаются все критичные данные
+  const isLoading =
+    isCategoriesLoading ||
+    isBannersLoading ||
+    isAnnouncementsLoading ||
+    isRecommendedLoading;
+
+  if (isLoading) {
+    return <Loader />;
   }
-  if(isLoading){
-    return <Loader />
+
+  if (
+    categoriesData &&
+    bannersData !== undefined &&
+    announcementsData &&
+    recommendedData
+  ) {
+    return (
+      <Main
+        categories={categoriesData.categories}
+        favouriteCategories={categoriesData.favouriteCategories}
+        banners={bannersData}
+        filters={filters}
+      />
+    );
   }
 }

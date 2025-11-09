@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import {
   useGetMainPageAnnouncements,
   useGetRecommendedAds,
+  Banner,
 } from "./main-utils";
 import { RotatingLines } from "react-loader-spinner";
 import { MainPageFilter } from "./model/mainpage-types";
@@ -31,28 +32,21 @@ import { useQueryClient } from "@tanstack/react-query";
 interface Props {
   categories: Category[];
   favouriteCategories: Category[];
+  banners: Banner[];
   filters: MainPageFilter;
-}
-
-interface Banner {
-  id: string;
-  imagePath: string;
-  title: string;
-  text: string;
-  deleteDate: string;
 }
 
 export const Main: FC<Props> = function Main({
   categories,
   filters,
   favouriteCategories,
+  banners,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
 
-  const [banners, setBanners] = useState<Banner[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isEditFavourite, setIsEditFavourite] = useState<boolean>(false);
   const [originalFavourites, setOriginalFavourites] =
@@ -198,20 +192,6 @@ export const Main: FC<Props> = function Main({
       setIsLoading(false);
     }
   };
-  useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const response = await apiService.get<{ data: Banner[], total: number, hasMore: boolean }>({
-          url: "/main-pages/banners",
-        });
-        // Бэкенд теперь возвращает объект с полем data
-        const bannersData = response.data?.data || [];
-        setBanners(bannersData);
-      } catch (error) {}
-    };
-
-    fetchBanners();
-  }, []);
 
   const openModal = (banner: Banner) => {
     // Навигация на страницу просмотра баннера
