@@ -737,10 +737,10 @@
     "Сувенирные магазины": "Souvenir shops",
     "Экстримальный отдых": "Extreme recreation",
     "Прокат и аренда снаряжения и оборудования": "Equipment and gear rental",
-    "Инфраструктура и безопасность": "Infrastructure and safety",
-    "today": "Today",
-    "tomorrow": "Tomorrow"
+    "Инфраструктура и безопасность": "Infrastructure and safety"
   },
+  "today": "Today",
+  "tomorrow": "Tomorrow",
   "supportedFormats": "Supported formats: PDF, DOC, DOCX",
   "certificateStateReg": "Certificate of state registration"
 }
