@@ -6,14 +6,23 @@ import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom
 import { Link } from "@tanstack/react-router";
 import { NavMenuOrg } from "../../../../shared/ui/NavMenuOrg";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
+import { Typography } from "../../../../shared/ui/Typography";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   reviews: ReviewsOrg[];
 }
 
 export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
+  const { t } = useTranslation();
+  
   return (
     <section>
+      <div className="pt-4 px-4 pb-2 flex justify-center">
+        <Typography size={20} weight={500} className="text-[#0a7d9e]">
+          {t("reviews")}
+        </Typography>
+      </div>
       <ul className="p-4">
         {reviews.map((review, index) => {
           const [imageSrc, setImageSrc] = useState<string>(
