@@ -13,6 +13,7 @@ import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
 import React from "react";
 import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import { Typography } from "../../../shared/ui/Typography";
 
 interface Props {
   ads: TouristBookingList[];
@@ -257,116 +258,131 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
-        {allAdsFlat.map((ad) => {
-          const groupedTimes = ad.times.reduce(
-            (acc, time) => {
-              if (!time.time) return acc;
-              if (acc[time.time]) {
-                acc[time.time].push(time);
-              } else {
-                acc[time.time] = [time];
-              }
-              return acc;
-            },
-            {} as Record<string, typeof ad.times>
-          );
-          return (
-            <div key={`${ad.ad_id}-${ad.header}`}>
-              {Object.entries(groupedTimes).map(([timeKey, times]) => (
-                <li
-                  key={`${ad.ad_id}-${timeKey}`}
-                  className="py-3 border-b border-[#E4E9EA]"
-                >
-                  <Link
-                    to={`/booking/$bookingId/$category`}
-                    params={{ bookingId: ad.ad_id, category: ad.header }}
+      {allAdsFlat.length > 0 ? (
+        <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
+          {allAdsFlat.map((ad) => {
+            const groupedTimes = ad.times.reduce(
+              (acc, time) => {
+                if (!time.time) return acc;
+                if (acc[time.time]) {
+                  acc[time.time].push(time);
+                } else {
+                  acc[time.time] = [time];
+                }
+                return acc;
+              },
+              {} as Record<string, typeof ad.times>
+            );
+            return (
+              <div key={`${ad.ad_id}-${ad.header}`}>
+                {Object.entries(groupedTimes).map(([timeKey, times]) => (
+                  <li
+                    key={`${ad.ad_id}-${timeKey}`}
+                    className="py-3 border-b border-[#E4E9EA]"
                   >
-                    <div className="mb-2">
-                      <div className="flex justify-between">
-                        <span
-                          className={`font-bold ${
-                            timeKey.includes("_")
-                              ? COLORS_TEXT.red
-                              : getDateColorByStatus(
-                                  times[0].status as BookingStatus
-                                )
-                          }`}
-                        >
-                          {formatDateHeader(timeKey)}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      {times.slice().map((time, index) => {
-                        const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                        // const [imageSrc, setImageSrc] =
-                        //   useState<string>(baseUrl + ad.img);
-                        return (
-                          <div
-                            key={index}
-                            className="flex justify-between mt-6"
+                    <Link
+                      to={`/booking/$bookingId/$category`}
+                      params={{ bookingId: ad.ad_id, category: ad.header }}
+                    >
+                      <div className="mb-2">
+                        <div className="flex justify-between">
+                          <span
+                            className={`font-bold ${
+                              timeKey.includes("_")
+                                ? COLORS_TEXT.red
+                                : getDateColorByStatus(
+                                    times[0].status as BookingStatus
+                                  )
+                            }`}
                           >
-                            <div className="flex w-full">
-                              <img
-                                src={imageSrc}
-                                onError={() =>
-                                  setImagesSrc((prev) => ({
-                                    ...prev,
-                                    [ad.ad_id]: DefaultIcon,
-                                  }))
-                                }
-                                className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                              />
-                              <div className="flex flex-col w-full">
-                                <span className="">{ad.title}</span>
-                                <div className="flex justify-between w-full gap-2 items-center">
-                                  <div className="flex gap-2 items-center">
-                                    <span className="text-sm">
-                                      {time.paymentType === "online"
-                                        ? t("onlinePayment")
-                                        : t("onSidePayment")}
-                                    </span>
-                                    <span
-                                      className={`text-sm ${getStatusColorByStatus(
-                                        times[0].status as BookingStatus,
-                                        time.isPaid
-                                      )}`}
-                                    >
-                                      {getStatusText(
-                                        times[0].status as BookingStatus,
-                                        time.isPaid,
-                                        t
-                                      )}
-                                    </span>
-                                  </div>
+                            {formatDateHeader(timeKey)}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        {times.slice().map((time, index) => {
+                          const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+                          // const [imageSrc, setImageSrc] =
+                          //   useState<string>(baseUrl + ad.img);
+                          return (
+                            <div
+                              key={index}
+                              className="flex justify-between mt-6"
+                            >
+                              <div className="flex w-full">
+                                <img
+                                  src={imageSrc}
+                                  onError={() =>
+                                    setImagesSrc((prev) => ({
+                                      ...prev,
+                                      [ad.ad_id]: DefaultIcon,
+                                    }))
+                                  }
+                                  className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                                />
+                                <div className="flex flex-col w-full">
+                                  <span className="">{ad.title}</span>
+                                  <div className="flex justify-between w-full gap-2 items-center">
+                                    <div className="flex gap-2 items-center">
+                                      <span className="text-sm">
+                                        {time.paymentType === "online"
+                                          ? t("onlinePayment")
+                                          : t("onSidePayment")}
+                                      </span>
+                                      <span
+                                        className={`text-sm ${getStatusColorByStatus(
+                                          times[0].status as BookingStatus,
+                                          time.isPaid
+                                        )}`}
+                                      >
+                                        {getStatusText(
+                                          times[0].status as BookingStatus,
+                                          time.isPaid,
+                                          t
+                                        )}
+                                      </span>
+                                    </div>
 
-                                  <div className="flex items-center">
-                                    <span
-                                      className={`${COLORS_TEXT.blue200} whitespace-nowrap`}
-                                    >
-                                      {formatPrice(time.price)}
-                                    </span>
+                                    <div className="flex items-center">
+                                      <span
+                                        className={`${COLORS_TEXT.blue200} whitespace-nowrap`}
+                                      >
+                                        {formatPrice(time.price)}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
+                              <img
+                                className="min-w-2 ml-2"
+                                src={ArrowRightIcon}
+                                alt="Подробнее"
+                              />
                             </div>
-                            <img
-                              className="min-w-2 ml-2"
-                              src={ArrowRightIcon}
-                              alt="Подробнее"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </div>
-          );
-        })}
-      </ul>
+                          );
+                        })}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </div>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-8 pb-8">
+          <Typography size={16} weight={500} align="center" className="mb-2">
+            {activeIndex === 0
+              ? t("noActiveBookings")
+              : t("noArchivedBookings")}
+          </Typography>
+          {activeIndex === 1 && (
+            <Typography weight={400} align="center" color={COLORS_TEXT.gray100}>
+              {t("archivedBookingsInfo")}
+            </Typography>
+          )}
+        </div>
+      )}
       <NavMenuClient />
     </section>
   );
