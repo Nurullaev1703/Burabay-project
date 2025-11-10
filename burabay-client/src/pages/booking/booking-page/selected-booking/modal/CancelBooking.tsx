@@ -43,14 +43,21 @@ export const CancelBooking: FC<Props> = function CancelBooking({
         onClose={onClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
-        keepMounted={false}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'none',
+            }
+          }
+        }}
         sx={{
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "center",
           overflow: "auto",
           maxHeight: "100%",
-          zIndex: 1500,
+          zIndex: 1400,
         }}
       >
         <Box

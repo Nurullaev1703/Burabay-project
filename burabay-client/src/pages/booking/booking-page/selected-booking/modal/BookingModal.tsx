@@ -34,14 +34,32 @@ export const BookingModal: FC<Props> = function BookingModal({
   );
   const { t } = useTranslation();
   
+  // Если открыта модалка отмены, показываем только её
+  if (isCancel) {
+    return (
+      <CancelBooking
+        open={true}
+        onClose={() => setIsCancel(false)}
+        bookingId={booking.bookingId}
+      />
+    );
+  }
+  
   return (
     <section>
       <Modal
-        open={open && !isCancel}
+        open={open}
         onClose={onClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
-        keepMounted={false}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'none',
+            }
+          }
+        }}
         sx={{
           display: "flex",
           alignItems: "flex-end",
@@ -142,12 +160,6 @@ export const BookingModal: FC<Props> = function BookingModal({
           </Button>
         </Box>
       </Modal>
-      
-      <CancelBooking
-        open={isCancel}
-        onClose={() => setIsCancel(false)}
-        bookingId={booking.bookingId}
-      />
     </section>
   );
 };
