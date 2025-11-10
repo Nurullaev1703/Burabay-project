@@ -2,6 +2,24 @@
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
 
+/* Отключение выделения текста во всем приложении */
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* Standard */
+  -webkit-touch-callout: none; /* iOS Safari */
+}
+
+/* Разрешаем выделение только в input и textarea */
+input,
+textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 *:not(body)::-webkit-scrollbar {
   display: none;
 }
