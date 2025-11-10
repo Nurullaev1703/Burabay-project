@@ -481,6 +481,17 @@ export class BookingService {
   }
 
   @CatchErrors()
+  async hasActiveBookings(adId: string): Promise<{ hasActive: boolean }> {
+    const count = await this.bookingRepository.count({
+      where: {
+        ad: { id: adId },
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      },
+    });
+    return { hasActive: count > 0 };
+  }
+
+  @CatchErrors()
   async update(id: string, updateBookingDto: UpdateBookingDto) {
     const booking = await this.bookingRepository.findOne({ where: { id: id } });
     Utils.checkEntity(booking, 'Бронирование не найдено');

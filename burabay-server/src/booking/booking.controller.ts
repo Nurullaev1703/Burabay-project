@@ -35,6 +35,11 @@ export class BookingController {
     return this.bookingService.getAllByAdId(adId, date, req.user, filter);
   }
 
+  @Get('has-active/:adId')
+  hasActiveBookings(@Param('adId') adId: string) {
+    return this.bookingService.hasActiveBookings(adId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(id);

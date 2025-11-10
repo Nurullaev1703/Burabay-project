@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
@@ -48,6 +48,9 @@ export const BookingBan: FC<Props> = function BookingBan({
   // Проверяем, является ли услуга круглосуточной через поле isFullDay из announcement
   const isFullDayService = announcement?.isFullDay || false;
 
+  // Состояние для забронированных дат
+  const [bookedDates, setBookedDates] = useState<Array<{ startDate: string; endDate?: string }>>([]);
+
   const [dates, setDates] = useState<string[]>(() => {
     const result =
       announcement?.bookingBanDate
@@ -70,6 +73,24 @@ export const BookingBan: FC<Props> = function BookingBan({
     null
   );
   const navigate = useNavigate();
+
+  // Загружаем забронированные даты при монтировании компонента
+  useEffect(() => {
+    const fetchBookedDates = async () => {
+      try {
+        const response = await apiService.get<Array<{ startDate: string; endDate?: string }>>({
+          url: `/ad/check-dates/${adId}`,
+        });
+        if (response.data) {
+          setBookedDates(response.data);
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки забронированных дат:", error);
+      }
+    };
+    
+    fetchBookedDates();
+  }, [adId]);
 
   // Получаем локаль для календаря
   const locale =
@@ -109,8 +130,33 @@ export const BookingBan: FC<Props> = function BookingBan({
   // Проверка, заблокирована ли дата
   const shouldDisableDate = (date: Dayjs) => {
     const formattedDate = date.format("DD.MM.YYYY");
+    
     // Блокируем прошедшие даты и уже выбранные
-    return date.isBefore(dayjs(), "day") || dates.includes(formattedDate);
+    if (date.isBefore(dayjs(), "day") || dates.includes(formattedDate)) {
+      return true;
+    }
+    
+    // Блокируем даты, которые уже забронированы
+    for (const booking of bookedDates) {
+      if (booking.endDate) {
+        // Для диапазона дат (аренда жилья)
+        const startDate = dayjs(booking.startDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
+        const endDate = dayjs(booking.endDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
+        
+        // Проверяем, попадает ли дата в диапазон [startDate, endDate)
+        if ((date.isAfter(startDate, "day") || date.isSame(startDate, "day")) && date.isBefore(endDate, "day")) {
+          return true;
+        }
+      } else {
+        // Для одной даты (почасовое бронирование)
+        const bookedDate = dayjs(booking.startDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
+        if (date.isSame(bookedDate, "day")) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
   };
   function transformData(data: BookingBanDate[]): TransformedData {
     return data.reduce<TransformedData>((acc, item) => {

@@ -161,9 +161,17 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         },
       });
       if (response.data) {
-        //TODO Сделать навигацию на следующий шаг редактирования
+        // Проверяем наличие активных бронирований
+        const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
+          url: `/booking/has-active/${adId}`,
+        });
+        
+        // Если есть активные бронирования, идем на шаг 7 (запрет дней)
+        // Иначе на шаг 5 (детали)
+        const targetStep = hasActiveResponse.data?.hasActive ? "step-seven" : "step-five";
+        
         navigate({
-          to: "/announcements/addAnnouncements/step-five/$id",
+          to: `/announcements/addAnnouncements/${targetStep}/$id`,
           params: {
             id: adId,
           },
@@ -183,8 +191,17 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       });
       // XXX поменял проверку со статусв на response.data
       if (response.data) {
+        // Проверяем наличие активных бронирований
+        const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
+          url: `/booking/has-active/${adId}`,
+        });
+        
+        // Если есть активные бронирования, идем на шаг 7 (запрет дней)
+        // Иначе на шаг 5 (детали)
+        const targetStep = hasActiveResponse.data?.hasActive ? "step-seven" : "step-five";
+        
         navigate({
-          to: "/announcements/addAnnouncements/step-five/$id",
+          to: `/announcements/addAnnouncements/${targetStep}/$id`,
           params: {
             id: adId,
           },
