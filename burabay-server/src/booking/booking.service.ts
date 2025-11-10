@@ -73,10 +73,12 @@ export class BookingService {
       // Создание запрета дат бронирования
       if (isRent) {
         // Для аренды жилья создаем запреты на весь диапазон дат
+        // Блокируем даты от dateStart (включительно) до dateEnd (НЕ включительно)
+        // Так как день выезда (dateEnd) свободен для нового заезда
         const banDates: CreateBookingBanDateDto[] = [];
         const currentDate = new Date(dateStart);
 
-        while (currentDate <= dateEnd) {
+        while (currentDate < dateEnd) {
           const dateString = currentDate.toLocaleDateString('ru-RU', {
             day: '2-digit',
             month: '2-digit',
