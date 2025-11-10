@@ -11,6 +11,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import { Typography } from "../../../shared/ui/Typography";
 
 interface Props {
   ads: BookingList[];
@@ -169,97 +170,112 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
-        {filteredAds.map((category, index) => (
-          <li key={index} className="flex flex-col mb-8">
-            <span
-              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
-            >
-              {formatDateHeader(category.header)}
-            </span>
-            <ul>
-              {category.ads
-                .slice()
-                .sort((a, b) => {
-                  const aDate = new Date(a.createdAt || 0).getTime();
-                  const bDate = new Date(b.createdAt || 0).getTime();
-                  return bDate - aDate;
-                })
-                .map((ad) => {
-                  const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                  return (
-                    <div key={`${ad.ad_id}`}>
-                      <li className="py-3 border-b border-[#E4E9EA]">
-                        <Link
-                          className="flex justify-between items-center"
-                          to={`/booking/$bookingId/$category`}
-                          params={{
-                            bookingId: ad.ad_id,
-                            category: category.header,
-                          }}
-                        >
-                          <div className="flex">
-                            <img
-                              src={imageSrc}
-                              onError={() =>
-                                setImagesSrc((prev) => ({
-                                  ...prev,
-                                  [ad.ad_id]: DefaultIcon,
-                                }))
-                              }
-                              alt={ad.title}
-                              className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                            />
-                            <div>
-                              <span>{ad.title}</span>
-                              <div className="max-w-[300px] truncate">
-                                {ad.times.slice(0, 5).map((time, index) => {
-                                  if (!time) return null;
-                                  const [timeStr] = time.split("_");
-                                  const updatedTime = timeStr.replace(
-                                    /(\d{2}\.\d{2})\.\d{4}/g,
-                                    "$1"
-                                  );
+      {filteredAds.length > 0 ? (
+        <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
+          {filteredAds.map((category, index) => (
+            <li key={index} className="flex flex-col mb-8">
+              <span
+                className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
+              >
+                {formatDateHeader(category.header)}
+              </span>
+              <ul>
+                {category.ads
+                  .slice()
+                  .sort((a, b) => {
+                    const aDate = new Date(a.createdAt || 0).getTime();
+                    const bDate = new Date(b.createdAt || 0).getTime();
+                    return bDate - aDate;
+                  })
+                  .map((ad) => {
+                    const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+                    return (
+                      <div key={`${ad.ad_id}`}>
+                        <li className="py-3 border-b border-[#E4E9EA]">
+                          <Link
+                            className="flex justify-between items-center"
+                            to={`/booking/$bookingId/$category`}
+                            params={{
+                              bookingId: ad.ad_id,
+                              category: category.header,
+                            }}
+                          >
+                            <div className="flex">
+                              <img
+                                src={imageSrc}
+                                onError={() =>
+                                  setImagesSrc((prev) => ({
+                                    ...prev,
+                                    [ad.ad_id]: DefaultIcon,
+                                  }))
+                                }
+                                alt={ad.title}
+                                className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                              />
+                              <div>
+                                <span>{ad.title}</span>
+                                <div className="max-w-[300px] truncate">
+                                  {ad.times.slice(0, 5).map((time, index) => {
+                                    if (!time) return null;
+                                    const [timeStr] = time.split("_");
+                                    const updatedTime = timeStr.replace(
+                                      /(\d{2}\.\d{2})\.\d{4}/g,
+                                      "$1"
+                                    );
 
-                                  return (
-                                    <span
-                                      key={index}
-                                      className={COLORS_TEXT.blue200}
-                                    >
-                                      {updatedTime}
-                                      {index <
-                                        Math.min(5, ad.times.length) - 1 &&
-                                        ", "}
-                                    </span>
-                                  );
-                                })}
-                                {ad.times.length > 5 && " ..."}
+                                    return (
+                                      <span
+                                        key={index}
+                                        className={COLORS_TEXT.blue200}
+                                      >
+                                        {updatedTime}
+                                        {index <
+                                          Math.min(5, ad.times.length) - 1 &&
+                                          ", "}
+                                      </span>
+                                    );
+                                  })}
+                                  {ad.times.length > 5 && " ..."}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span
-                              className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}
-                            >
-                              {ad.status === "в процессе"
-                                ? t("waiting")
-                                : ad.status === "отменено"
-                                  ? t("cancelStatus")
-                                  : ad.status === "подтверждено"
-                                    ? t("confirmStatus")
-                                    : ""}
-                            </span>
-                            <img src={ArrowRightIcon} alt="Подробнее" />
-                          </div>
-                        </Link>
-                      </li>
-                    </div>
-                  );
-                })}
-            </ul>
-          </li>
-        ))}
-      </ul>
+                            <div className="flex items-center gap-4">
+                              <span
+                                className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}
+                              >
+                                {ad.status === "в процессе"
+                                  ? t("waiting")
+                                  : ad.status === "отменено"
+                                    ? t("cancelStatus")
+                                    : ad.status === "подтверждено"
+                                      ? t("confirmStatus")
+                                      : ""}
+                              </span>
+                              <img src={ArrowRightIcon} alt="Подробнее" />
+                            </div>
+                          </Link>
+                        </li>
+                      </div>
+                    );
+                  })}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-8 pb-8">
+          <Typography size={16} weight={500} align="center" className="mb-2">
+            {activeIndex === 0
+              ? t("noActiveBookings")
+              : t("noArchivedBookings")}
+          </Typography>
+          {activeIndex === 1 && (
+            <Typography weight={400} align="center" color={COLORS_TEXT.gray100}>
+              {t("archivedBookingsInfo")}
+            </Typography>
+          )}
+        </div>
+      )}
 
       <NavMenuOrg />
     </section>
