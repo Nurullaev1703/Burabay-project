@@ -58,8 +58,8 @@ import { JobScheduleModule } from './schedule/schedule.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
       {
-        ttl: 1000,
-        limit: 20,
+        ttl: 60000, // 60 секунд (1 минута)
+        limit: 100, // 100 запросов в минуту
       },
     ]),
     CacheModule.register({
