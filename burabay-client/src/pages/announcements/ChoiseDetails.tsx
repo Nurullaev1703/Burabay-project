@@ -23,13 +23,13 @@ import ImageCard from "./ui/ImageCard";
 import { imageService } from "../../services/api/ImageService";
 import { baseUrl } from "../../services/api/ServerData";
 import { ImageViewModal } from "./reviews/ui/ImageViewModal";
-import VideoUploadImg from "../../app/icons/profile/confirm/file.svg"
+import VideoUploadImg from "../../app/icons/profile/confirm/file.svg";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
   preview: string; // Превью для отображения
   serverPreview: string;
-   // ссылка с сервера на изображение
+  // ссылка с сервера на изображение
 }
 
 interface VideoData {
@@ -59,6 +59,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 }) {
   const [isPhoneValid, setIsPhoneValid] = useState<boolean>(true);
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     (announcement?.details as Record<string, boolean>) || {}
   );
@@ -202,8 +203,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleImageUpload = async (index: number, files: FileList) => {
@@ -286,8 +286,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/images/ads",
         dto: { images: uploadedImages },
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -309,7 +308,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         file: null,
         duration: 0,
         size: 0,
-        serverPath: baseUrl + announcement.video // Используем baseUrl как в images
+        serverPath: baseUrl + announcement.video, // Используем baseUrl как в images
       };
     }
     return null;
@@ -317,7 +316,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [videoError, setVideoError] = useState<string>("");
   const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB в байтах
   const MAX_VIDEO_DURATION = 90; // 1.5 минуты в секундах
-  
+
   const {
     control,
     handleSubmit,
@@ -343,81 +342,93 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   useEffect(() => {
     setDescription(watchedDescription);
   }, [watchedDescription]);
-  
+
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setVideoError("");
-    
+
     if (!file) return;
-    
+
     if (file.size > MAX_VIDEO_SIZE) {
-      setVideoError(t("videoSizeExceeded", { size: "200МБ" }) || "Размер видео превышает 200МБ");
+      setVideoError(
+        t("videoSizeExceeded", { size: "200МБ" }) ||
+          "Размер видео превышает 200МБ"
+      );
       return;
     }
-    
-    const videoElement = document.createElement('video');
-    videoElement.preload = 'metadata';
-    
+
+    const videoElement = document.createElement("video");
+    videoElement.preload = "metadata";
+
     videoElement.onloadedmetadata = () => {
       URL.revokeObjectURL(videoElement.src);
-      
+
       if (videoElement.duration > MAX_VIDEO_DURATION) {
-        setVideoError(t("videoDurationExceeded", { duration: "1.5" }) || "Длительность видео превышает 1.5 минуты");
+        setVideoError(
+          t("videoDurationExceeded", { duration: "1.5" }) ||
+            "Длительность видео превышает 1.5 минуты"
+        );
         return;
       }
-      
-      setVideo(prev => ({
+
+      setVideo((prev) => ({
         file,
         preview: URL.createObjectURL(file),
         duration: videoElement.duration,
         size: file.size,
-        serverPath: prev?.serverPath || '' // Сохраняем существующий путь
+        serverPath: prev?.serverPath || "", // Сохраняем существующий путь
       }));
     };
-    
+
     videoElement.onerror = () => {
       setVideoError(t("invalidVideoFormat") || "Неверный формат видео");
     };
-    
+
     videoElement.src = URL.createObjectURL(file);
   };
-  
+
   const uploadVideo = async (): Promise<string | null> => {
     if (!video?.file) {
       // Если файл не изменился, возвращаем существующий путь без baseUrl
-      return video?.serverPath ? video.serverPath.replace(baseUrl, '') : null;
+      return video?.serverPath ? video.serverPath.replace(baseUrl, "") : null;
     }
-    
+
     const formData = new FormData();
-    formData.append('file', video.file);
-    
+    formData.append("file", video.file);
+
     try {
       const response = await imageService.post<string>({
         url: "/video",
         dto: formData,
       });
-      
+
       // Обновляем состояние с новым серверным путем, добавляя baseUrl
-      setVideo(prev => prev ? {
-        ...prev,
-        serverPath: baseUrl + response.data
-      } : null);
-      
+      setVideo((prev) =>
+        prev
+          ? {
+              ...prev,
+              serverPath: baseUrl + response.data,
+            }
+          : null
+      );
+
       return response.data; // Возвращаем путь без baseUrl для API
     } catch (error) {
       return null;
     }
   };
-  
+
   const handleConfirmPublish = async () => {
     setIsLoading(true);
     const newImages = await handleUpload();
     const video = await uploadVideo();
 
     try {
-      const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
-        phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
-      } : null
+      const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "")
+        ? {
+            phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+          }
+        : null;
       if (announcement) {
         // If editing an existing announcement, send a PATCH and merge existing images with newly uploaded ones
         await apiService.patch<string>({
@@ -525,13 +536,24 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("placeAd")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -554,13 +576,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               <Button
                 mode="red"
                 className="border-2 border-red"
-                onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${announcement?.id}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                onClick={() => {
+                  // При создании нового объявления просто возвращаемся назад
+                  navigate({ to: "/announcements" });
                 }}
               >
                 {t("delete")}
@@ -575,11 +593,13 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             setIsLoading(true);
             const newImages = await handleUpload();
             const videoPath = await uploadVideo();
-            
+
             if (announcement) {
-              const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
+              const phoneNumberDto = mask.current?.value
+                .replace(/\D/g, "")
+                .replace("7", "")
                 ? {
-                  phoneNumber: "+"+mask.current?.value.replace(/\D/g, "")
+                    phoneNumber: "+" + mask.current?.value.replace(/\D/g, ""),
                   }
                 : null;
               await apiService.patch<string>({
@@ -780,7 +800,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   firstItem={imageIndex}
                   onDelete={async () => {
                     if (images[imageIndex].serverPreview) {
-                      await deleteImageFromServer(images[imageIndex].serverPreview);
+                      await deleteImageFromServer(
+                        images[imageIndex].serverPreview
+                      );
                     }
                     setImages((prevImages) =>
                       update(prevImages, {
@@ -809,7 +831,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               >
                 {t("uploadVideo")}
               </Typography>
-              
+
               <div className="flex flex-col gap-2">
                 <input
                   type="file"
@@ -818,39 +840,48 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   className="hidden"
                   id="video-upload"
                 />
-                <label 
-                  htmlFor="video-upload" 
+                <label
+                  htmlFor="video-upload"
                   className="flex items-center  rounded-lg cursor-pointer"
                 >
                   <div className="flex gap-4 items-center">
                     <img src={VideoUploadImg} alt="" />
-                    <Typography size={14} weight={400} color={COLORS_TEXT.gray100}>
-                      {video ? (t("changeVideo")) : (t("selectVideo"))}
+                    <Typography
+                      size={14}
+                      weight={400}
+                      color={COLORS_TEXT.gray100}
+                    >
+                      {video ? t("changeVideo") : t("selectVideo")}
                     </Typography>
                   </div>
                 </label>
-                
+
                 {videoError && (
                   <Typography size={14} weight={400} color={COLORS_TEXT.red}>
                     {videoError}
                   </Typography>
                 )}
-                
+
                 {video && (
                   <div className="relative">
-                    <video 
-                      src={video.preview || announcement?.video} 
-                      controls 
+                    <video
+                      src={video.preview || announcement?.video}
+                      controls
                       className="w-full rounded-lg"
-                      style={{ maxHeight: '200px' }}
+                      style={{ maxHeight: "200px" }}
                     />
                     <button
                       type="button"
                       onClick={async () => {
-                        if (video.preview && video.preview.startsWith(baseUrl)) {
+                        if (
+                          video.preview &&
+                          video.preview.startsWith(baseUrl)
+                        ) {
                           await apiService.delete({
                             url: "/video",
-                            dto: { filepath: video.preview.replace(baseUrl, "") },
+                            dto: {
+                              filepath: video.preview.replace(baseUrl, ""),
+                            },
                           });
                         }
                         setVideo(null);
@@ -860,11 +891,28 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                       <img src={XIcon} className="w-[15px]" alt="" />
                     </button>
                     <div className="flex justify-between mt-1">
-                      <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>
-                        {(t("duration") || "Длительность") + ": " + Math.floor(video.duration / 60) + ":" + Math.floor(video.duration % 60).toString().padStart(2, '0')}
+                      <Typography
+                        size={12}
+                        weight={400}
+                        color={COLORS_TEXT.gray100}
+                      >
+                        {(t("duration") || "Длительность") +
+                          ": " +
+                          Math.floor(video.duration / 60) +
+                          ":" +
+                          Math.floor(video.duration % 60)
+                            .toString()
+                            .padStart(2, "0")}
                       </Typography>
-                      <Typography size={12} weight={400} color={COLORS_TEXT.gray100}>
-                        {(t("size")) + ": " + (video.size / (1024 * 1024)).toFixed(2) + " МБ"}
+                      <Typography
+                        size={12}
+                        weight={400}
+                        color={COLORS_TEXT.gray100}
+                      >
+                        {t("size") +
+                          ": " +
+                          (video.size / (1024 * 1024)).toFixed(2) +
+                          " МБ"}
                       </Typography>
                     </div>
                   </div>
@@ -934,7 +982,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               loading={isLoading || isSubmitting}
               mode="default"
             >
-              {t("continue")}
+              {announcement ? t("saveBtn") : t("continue")}
             </Button>
           </div>
         </DefaultForm>
@@ -942,6 +990,3 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     </section>
   );
 };
-
-
-

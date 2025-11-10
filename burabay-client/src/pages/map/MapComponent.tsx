@@ -312,7 +312,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           mode="default"
           disabled={coords.length === 0 || !Boolean(address)}
         >
-          {t("continueBtn")}
+          {announcement ? t("saveBtn") : t("continueBtn")}
         </Button>
       </div>
     </main>

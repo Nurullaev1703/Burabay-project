@@ -37,6 +37,7 @@ interface FormType {
 
 export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -140,7 +141,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
       // max 24 times
       if (servicesTime.length >= 24) {
-        handleError(t("maxStartTimes") || "Cannot add more than 24 start times");
+        handleError(
+          t("maxStartTimes") || "Cannot add more than 24 start times"
+        );
         return;
       }
 
@@ -164,7 +167,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       }
 
       // check duplicates except current index
-      const duplicate = updatedServices.some((v, i) => i !== editingIndex && v === editedValue);
+      const duplicate = updatedServices.some(
+        (v, i) => i !== editingIndex && v === editedValue
+      );
       if (duplicate) {
         handleError(t("duplicateStartTime") || "Time already added");
         return;
@@ -172,7 +177,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
 
       // ensure max 24
       if (updatedServices.length > 24) {
-        handleError(t("maxStartTimes") || "Cannot add more than 24 start times");
+        handleError(
+          t("maxStartTimes") || "Cannot add more than 24 start times"
+        );
         return;
       }
 
@@ -256,13 +263,24 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
               {t("serviceSchedule")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={6} totalSteps={9}></ProgressSteps>
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -297,15 +315,22 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                 mode="red"
                 className="border-2 border-red"
                 onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${id}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                  setIsDeleting(true);
+                  try {
+                    await apiService.delete({
+                      url: `/ad/${id}`,
+                    });
+                    navigate({
+                      to: "/announcements",
+                    });
+                  } catch (error) {
+                    console.error("Ошибка при удалении объявления:", error);
+                    setIsDeleting(false);
+                  }
                 }}
+                disabled={isDeleting}
               >
-                {t("delete")}
+                {isDeleting ? t("deleting") : t("delete")}
               </Button>
             </div>
           </div>
@@ -588,7 +613,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
           loading={isLoading}
           disabled={!isButtonValid()}
         >
-          {t("continue")}
+          {announcement ? t("saveBtn") : t("continue")}
         </Button>
       ) : (
         <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">

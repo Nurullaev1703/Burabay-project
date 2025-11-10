@@ -31,6 +31,7 @@ export const PriceService: FC<Props> = function PriceService({
   announcement,
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const symbolRef = useRef<HTMLDivElement>(null);
 
@@ -159,13 +160,24 @@ export const PriceService: FC<Props> = function PriceService({
               {t("priceService")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -200,15 +212,22 @@ export const PriceService: FC<Props> = function PriceService({
                 mode="red"
                 className="border-2 border-red"
                 onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${adId}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                  setIsDeleting(true);
+                  try {
+                    await apiService.delete({
+                      url: `/ad/${adId}`,
+                    });
+                    navigate({
+                      to: "/announcements",
+                    });
+                  } catch (error) {
+                    console.error("Ошибка при удалении объявления:", error);
+                    setIsDeleting(false);
+                  }
                 }}
+                disabled={isDeleting}
               >
-                {t("delete")}
+                {isDeleting ? t("deleting") : t("delete")}
               </Button>
             </div>
           </div>
@@ -357,7 +376,7 @@ export const PriceService: FC<Props> = function PriceService({
           />
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
             <Button className="" type="submit" mode="default">
-              {t("continueBtn")}
+              {announcement ? t("saveBtn") : t("continueBtn")}
             </Button>
           </div>
         </DefaultForm>
