@@ -283,6 +283,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                     <Link
                       to={`/booking/$bookingId/$category`}
                       params={{ bookingId: ad.ad_id, category: ad.header }}
+                      search={{ status }}
                     >
                       <div className="mb-2">
                         <div className="flex justify-between">
