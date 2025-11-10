@@ -18,6 +18,7 @@ import dayjs, { Dayjs } from "dayjs";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import isBetween from "dayjs/plugin/isBetween";
 import { BookingCalendar } from "./ui/BookingCalendar";
+import { normalizeDate, isDateInRange, isSameDay } from "./date-utils";
 
 dayjs.extend(isBetween);
 
@@ -86,17 +87,10 @@ export const BookingSelection: FC<Props> = ({
   const isDateBannedByBookings = (date: Dayjs): boolean => {
     return (
       bannedDates?.some(({ startDate, endDate }) => {
-        const start = dayjs(startDate, "DD.MM.YYYY").startOf("day");
-        // Если endDate отсутствует, считаем что забронирован только один день
-        const end = endDate
-          ? dayjs(endDate, "DD.MM.YYYY").endOf("day")
-          : start.endOf("day");
-        return date.isBetween(start, end, null, "[]");
+        return isDateInRange(date, startDate, endDate);
       }) ?? false
     );
-  };
-
-  // Проверка заблокированных дат владельцем (announcement.bookingBanDate)
+  }; // Проверка заблокированных дат владельцем (announcement.bookingBanDate)
   const isDateBannedByOwner = (date: Dayjs): boolean => {
     return (
       announcement.bookingBanDate?.some((banDate) => {
@@ -104,11 +98,7 @@ export const BookingSelection: FC<Props> = ({
           // Если не весь день заблокирован, пропускаем (проверка времени будет отдельно)
           return false;
         }
-        // Даты могут приходить в формате "YYYY-MM-DD" или "DD.MM.YYYY"
-        const bannedDate = banDate.date.includes("-")
-          ? dayjs(banDate.date, "YYYY-MM-DD").startOf("day")
-          : dayjs(banDate.date, "DD.MM.YYYY").startOf("day");
-        return date.isSame(bannedDate, "day");
+        return isSameDay(date, banDate.date);
       }) ?? false
     );
   };
@@ -210,12 +200,12 @@ export const BookingSelection: FC<Props> = ({
       // Проверяем, есть ли заблокированные даты между startDate и date
       const hasBlockedDatesInRange =
         bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
-          const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
-            "day"
-          );
+          const bannedStartDate = normalizeDate(bannedStart);
           const bannedEndDate = bannedEnd
-            ? dayjs(bannedEnd, "DD.MM.YYYY").endOf("day")
-            : bannedStartDate.endOf("day");
+            ? normalizeDate(bannedEnd)
+            : bannedStartDate;
+
+          if (!bannedStartDate || !bannedEndDate) return false;
 
           return (
             bannedStartDate.isBetween(startDate, date, null, "[]") ||
@@ -228,12 +218,12 @@ export const BookingSelection: FC<Props> = ({
         // Находим ближайшую заблокированную дату в диапазоне
         const blockedRange = bannedDates?.find(
           ({ startDate: bannedStart, endDate: bannedEnd }) => {
-            const bannedStartDate = dayjs(bannedStart, "DD.MM.YYYY").startOf(
-              "day"
-            );
+            const bannedStartDate = normalizeDate(bannedStart);
             const bannedEndDate = bannedEnd
-              ? dayjs(bannedEnd, "DD.MM.YYYY").endOf("day")
-              : bannedStartDate.endOf("day");
+              ? normalizeDate(bannedEnd)
+              : bannedStartDate;
+
+            if (!bannedStartDate || !bannedEndDate) return false;
 
             return (
               bannedStartDate.isBetween(startDate, date, null, "[]") ||
@@ -246,10 +236,12 @@ export const BookingSelection: FC<Props> = ({
 
         if (blockedRange) {
           // Ищем первую доступную дату после окончания заблокированного диапазона
-          const blockedEndDate = blockedRange.endDate
-            ? dayjs(blockedRange.endDate, "DD.MM.YYYY")
-            : dayjs(blockedRange.startDate, "DD.MM.YYYY");
-          let newStartDate = blockedEndDate.add(1, "day");
+          const blockedEndNormalized = normalizeDate(
+            blockedRange.endDate || blockedRange.startDate
+          );
+          if (!blockedEndNormalized) return;
+
+          let newStartDate = blockedEndNormalized.add(1, "day");
 
           // Проверяем, что новая дата доступна (не заблокирована и соответствует графику)
           while (
