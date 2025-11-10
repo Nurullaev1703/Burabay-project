@@ -199,6 +199,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               bookingId: ad.ad_id,
                               category: category.header,
                             }}
+                            search={{ status }}
                           >
                             <div className="flex">
                               <img
