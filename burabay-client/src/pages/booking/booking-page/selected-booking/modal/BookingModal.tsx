@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { SelectedBookingList } from "../../../model/booking";
-import { Box, Modal } from "@mui/material";
+import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../../../shared/ui/Button";
 import { baseUrl } from "../../../../../services/api/ServerData";
@@ -34,36 +34,58 @@ export const BookingModal: FC<Props> = function BookingModal({
   );
   const { t } = useTranslation();
   
+  // Если открыта модалка отмены, показываем только её
+  if (isCancel) {
+    return (
+      <CancelBooking
+        open={true}
+        onClose={() => setIsCancel(false)}
+        bookingId={booking.bookingId}
+      />
+    );
+  }
+  
   return (
     <section>
-      <Modal
-        open={open && !isCancel}
-        onClose={onClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-        keepMounted={false}
-        sx={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "center",
-          overflow: "auto",
-          maxHeight: "100%",
-          zIndex: 1400,
-        }}
-      >
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: "24px",
-            width: "100%",
-            maxWidth: 600,
-            borderTopLeftRadius: 14,
-            borderTopRightRadius: 14,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+      {open && (
+        <>
+          {/* Кастомный backdrop */}
+          <div
+            onClick={onClose}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 1400,
+            }}
+          />
+          {/* Контент модалки */}
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1401,
+              maxWidth: '600px',
+              margin: '0 auto',
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: "24px",
+                width: "100%",
+                borderTopLeftRadius: 14,
+                borderTopRightRadius: 14,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
           <div className="mb-4">
             <div className="flex items-center py-3">
               <img
@@ -141,13 +163,9 @@ export const BookingModal: FC<Props> = function BookingModal({
             {t("cancel")}
           </Button>
         </Box>
-      </Modal>
-      
-      <CancelBooking
-        open={isCancel}
-        onClose={() => setIsCancel(false)}
-        bookingId={booking.bookingId}
-      />
+          </div>
+        </>
+      )}
     </section>
   );
 };
