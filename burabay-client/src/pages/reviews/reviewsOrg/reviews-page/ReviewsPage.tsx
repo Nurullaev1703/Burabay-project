@@ -8,6 +8,7 @@ import { NavMenuOrg } from "../../../../shared/ui/NavMenuOrg";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
 import { Typography } from "../../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
+import { COLORS_TEXT } from "../../../../shared/ui/colors";
 
 interface Props {
   reviews: ReviewsOrg[];
@@ -19,7 +20,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
   return (
     <section>
       <div className="pt-4 px-4 pb-2 flex justify-center">
-        <Typography size={20} weight={500} className="text-[#0a7d9e]">
+        <Typography size={20} weight={500} color={COLORS_TEXT.blue200}>
           {t("reviews")}
         </Typography>
       </div>
