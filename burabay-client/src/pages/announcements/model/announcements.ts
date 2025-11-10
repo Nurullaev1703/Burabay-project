@@ -152,6 +152,7 @@ export interface Booking {
   date: string;
   allDay: boolean;
   times: string[];
+  isByBooking: boolean;
 }
 
 export interface ReviewAnnouncement {

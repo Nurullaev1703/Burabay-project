@@ -82,44 +82,62 @@ export const BookingSelection: FC<Props> = ({
   // ===========================================
   // ЛОГИКА ПРОВЕРКИ БЛОКИРОВОК
   // ===========================================
+  //
+  // ИСТОЧНИКИ ДАННЫХ:
+  // 1. bannedDates (из ad/check-dates) - занятые даты по аренде (диапазоны дат)
+  //    - Используется ТОЛЬКО для isFullDay: true
+  //
+  // 2. serviceSchedule (из booking-ban-date) - блокировки организации
+  //    - Фильтруем только isByBooking: false (заблокированные самой организацией)
+  //    - allDay: true - блокирует дату целиком
+  //    - times[] - блокирует конкретные часы (только для isFullDay: false)
+  //
+  // 3. announcement.bookingBanDate - НЕ ИСПОЛЬЗУЕТСЯ в логике блокировки
+  // ===========================================
 
-  // Проверка заблокированных дат из bannedDates (уже забронированные клиентами)
+  // Проверка заблокированных дат из bannedDates (занятые даты по аренде из ad/check-dates)
+  // Используется ТОЛЬКО для объявлений с isFullDay: true
   const isDateBannedByBookings = (date: Dayjs): boolean => {
+    if (!isFullDayBooking) return false; // Для почасовых не проверяем
+
     return (
       bannedDates?.some(({ startDate, endDate }) => {
         return isDateInRange(date, startDate, endDate);
       }) ?? false
     );
-  }; // Проверка заблокированных дат владельцем (announcement.bookingBanDate)
-  const isDateBannedByOwner = (date: Dayjs): boolean => {
-    return (
-      announcement.bookingBanDate?.some((banDate) => {
-        if (!banDate.allDay) {
-          // Если не весь день заблокирован, пропускаем (проверка времени будет отдельно)
-          return false;
-        }
-        return isSameDay(date, banDate.date);
-      }) ?? false
-    );
   };
 
-  // Проверка заблокированных дат из serviceSchedule (allDay: true)
-  const isDateBlockedByServiceSchedule = (date: Dayjs): boolean => {
+  // Проверка заблокированных дат организацией из booking-ban-date
+  // Блокируем только даты с isByBooking: false (заблокированные самой организацией)
+  const isDateBannedByOrganization = (date: Dayjs): boolean => {
     return (
-      serviceSchedule?.some(
-        ({ date: blockedDate, allDay }) =>
-          allDay && dayjs(blockedDate).isSame(date, "day")
-      ) ?? false
+      serviceSchedule?.some((banDate) => {
+        // Пропускаем даты заблокированные системой бронирования
+        if (banDate.isByBooking) return false;
+
+        // Блокируем дату целиком если allDay: true
+        if (banDate.allDay) {
+          return dayjs(banDate.date).isSame(date, "day");
+        }
+
+        // Для isFullDay: false учитываем times
+        // Если у объявления почасовое бронирование и все времена заблокированы
+        if (!isFullDayBooking) {
+          const isSameDate = dayjs(banDate.date).isSame(date, "day");
+          if (isSameDate && banDate.times && banDate.times.length > 0) {
+            // Проверим позже при выборе времени
+            return false;
+          }
+        }
+
+        return false;
+      }) ?? false
     );
   };
 
   // Общая проверка: заблокирована ли дата
   const isDateBanned = (date: Dayjs): boolean => {
-    return (
-      isDateBannedByBookings(date) ||
-      isDateBannedByOwner(date) ||
-      isDateBlockedByServiceSchedule(date)
-    );
+    return isDateBannedByBookings(date) || isDateBannedByOrganization(date);
   };
 
   // Проверка дней недели по расписанию (schedule с "00:00")
@@ -188,24 +206,30 @@ export const BookingSelection: FC<Props> = ({
         }
 
         // Проверяем, есть ли заблокированные даты МЕЖДУ новой датой заезда и уже выбранной датой отъезда
+        // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
         const hasBlockedDatesInRange =
-          bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
-            const bannedStartDate = normalizeDate(bannedStart);
-            const bannedEndDate = bannedEnd
-              ? normalizeDate(bannedEnd)
-              : bannedStartDate;
+          bannedDates?.some(
+            ({ startDate: bannedStart, endDate: bannedEnd }) => {
+              const bannedStartDate = normalizeDate(bannedStart);
+              const bannedEndDate = bannedEnd
+                ? normalizeDate(bannedEnd)
+                : bannedStartDate;
 
-            if (!bannedStartDate || !bannedEndDate) return false;
+              if (!bannedStartDate || !bannedEndDate) return false;
 
-            // Проверяем, пересекается ли блокировка с диапазоном (date, endDate)
-            return (
-              bannedStartDate.isBetween(date, endDate, null, "()") ||
-              bannedEndDate.isBetween(date, endDate, null, "()") ||
-              (bannedStartDate.isBefore(date) && bannedEndDate.isAfter(endDate)) ||
-              ((bannedStartDate.isBefore(date) || bannedStartDate.isSame(date)) && 
-               (bannedEndDate.isAfter(endDate) || bannedEndDate.isSame(endDate)))
-            );
-          }) ?? false;
+              // Проверяем, пересекается ли блокировка с диапазоном (date, endDate)
+              return (
+                bannedStartDate.isBetween(date, endDate, null, "()") ||
+                bannedEndDate.isBetween(date, endDate, null, "()") ||
+                (bannedStartDate.isBefore(date) &&
+                  bannedEndDate.isAfter(endDate)) ||
+                ((bannedStartDate.isBefore(date) ||
+                  bannedStartDate.isSame(date)) &&
+                  (bannedEndDate.isAfter(endDate) ||
+                    bannedEndDate.isSame(endDate)))
+              );
+            }
+          ) ?? false;
 
         if (hasBlockedDatesInRange) {
           // Не разрешаем выбор, если есть блокировки между датами
@@ -228,6 +252,7 @@ export const BookingSelection: FC<Props> = ({
       }
 
       // Проверяем, есть ли заблокированные даты МЕЖДУ startDate и date (не включая сами границы)
+      // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
       const hasBlockedDatesInRange =
         bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
           const bannedStartDate = normalizeDate(bannedStart);
@@ -242,9 +267,11 @@ export const BookingSelection: FC<Props> = ({
           return (
             bannedStartDate.isBetween(startDate, date, null, "()") ||
             bannedEndDate.isBetween(startDate, date, null, "()") ||
-            (bannedStartDate.isBefore(startDate) && bannedEndDate.isAfter(date)) ||
-            ((bannedStartDate.isBefore(startDate) || bannedStartDate.isSame(startDate)) && 
-             (bannedEndDate.isAfter(date) || bannedEndDate.isSame(date)))
+            (bannedStartDate.isBefore(startDate) &&
+              bannedEndDate.isAfter(date)) ||
+            ((bannedStartDate.isBefore(startDate) ||
+              bannedStartDate.isSame(startDate)) &&
+              (bannedEndDate.isAfter(date) || bannedEndDate.isSame(date)))
           );
         }) ?? false;
 
@@ -270,17 +297,19 @@ export const BookingSelection: FC<Props> = ({
     setCurrentSelectedDate(date);
 
     // Находим все записи для выбранной даты в serviceSchedule
+    // Учитываем ТОЛЬКО записи где isByBooking: false (заблокированные организацией)
     const matchingDates =
-      serviceSchedule?.filter((currDate) =>
-        dayjs(currDate.date).isSame(date, "day")
+      serviceSchedule?.filter(
+        (currDate) =>
+          dayjs(currDate.date).isSame(date, "day") && !currDate.isByBooking
       ) ?? [];
 
     const availableTimes = announcement.startTime || []; // Общие временные интервалы
 
     if (matchingDates.length > 0) {
-      // Собираем все заблокированные времена из всех записей для этой даты
+      // Собираем все заблокированные времена из записей организации
       const allBlockedTimes = matchingDates.reduce((acc, curr) => {
-        return [...acc, ...curr.times];
+        return [...acc, ...(curr.times || [])];
       }, [] as string[]);
 
       // Убираем дубликаты
