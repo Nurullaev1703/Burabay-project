@@ -15,6 +15,7 @@ import {
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 import { NotFound } from "../pages/not-found/NotFound";
 import { ROLE_TYPE } from "../pages/auth/model/auth-model";
+import { useEffect } from "react";
 
 export const AUTH_PATH = [
   "/auth",
@@ -29,6 +30,50 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
   // notFoundComponent: () => <NotFound />,
   component: () => {
     const { token, isAuthenticated } = useAuth();
+
+    // Блокируем выделение текста через JavaScript
+    useEffect(() => {
+      const preventSelection = (e: Event) => {
+        const target = e.target as HTMLElement;
+        const tagName = target.tagName.toLowerCase();
+        
+        // Разрешаем выделение только в input, textarea и contenteditable
+        if (
+          tagName !== 'input' && 
+          tagName !== 'textarea' && 
+          target.contentEditable !== 'true'
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      // Добавляем обработчики событий
+      document.addEventListener('selectstart', preventSelection);
+      document.addEventListener('contextmenu', preventSelection);
+      
+      // Дополнительная защита для iOS
+      document.addEventListener('touchstart', (e) => {
+        const target = e.target as HTMLElement;
+        const tagName = target.tagName.toLowerCase();
+        if (
+          tagName !== 'input' && 
+          tagName !== 'textarea' && 
+          target.contentEditable !== 'true'
+        ) {
+          // Предотвращаем долгое нажатие на iOS
+          const touches = e.touches;
+          if (touches.length > 0) {
+            e.preventDefault();
+          }
+        }
+      }, { passive: false });
+
+      return () => {
+        document.removeEventListener('selectstart', preventSelection);
+        document.removeEventListener('contextmenu', preventSelection);
+      };
+    }, []);
 
     // при отсутствии авторизации идет попытка получения профиля
     if (token && !isAuthenticated) {

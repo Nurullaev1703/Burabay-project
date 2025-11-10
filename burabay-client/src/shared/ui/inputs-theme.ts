@@ -11,6 +11,23 @@ export const theme = createTheme({
     fontFamily: "Roboto",
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        '*': {
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+        },
+        'input, textarea, [contenteditable="true"]': {
+          userSelect: 'text',
+          WebkitUserSelect: 'text',
+          MozUserSelect: 'text',
+          msUserSelect: 'text',
+        },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {

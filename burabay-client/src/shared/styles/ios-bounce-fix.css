@@ -26,7 +26,9 @@
   user-select: none;
 }
 
-.ios-scrollable-content * {
+.ios-scrollable-content input,
+.ios-scrollable-content textarea,
+.ios-scrollable-content [contenteditable="true"] {
   -webkit-user-select: text;
   user-select: text;
 }

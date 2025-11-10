@@ -3,21 +3,41 @@
 @import "slick-carousel/slick/slick-theme.css";
 
 /* Отключение выделения текста во всем приложении */
-* {
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE 10+ */
-  user-select: none; /* Standard */
-  -webkit-touch-callout: none; /* iOS Safari */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none !important; /* Safari */
+  -moz-user-select: none !important; /* Firefox */
+  -ms-user-select: none !important; /* IE 10+ */
+  user-select: none !important; /* Standard */
+  -webkit-touch-callout: none !important; /* iOS Safari */
+  -webkit-tap-highlight-color: transparent !important; /* iOS tap highlight */
+}
+
+html,
+body,
+div,
+span,
+p,
+a,
+button,
+h1, h2, h3, h4, h5, h6 {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
 }
 
 /* Разрешаем выделение только в input и textarea */
 input,
-textarea {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
 }
 
 *:not(body)::-webkit-scrollbar {
