@@ -179,25 +179,55 @@ export const BookingSelection: FC<Props> = ({
     const formattedDate = date.format("DD.MM.YYYY");
 
     if (activeField === "start") {
-      setSelectedDateStart(formattedDate);
-      setCurrentSelectedDate(date);
-
+      // Если уже выбрана конечная дата, проверяем что начальная дата не позже конечной
       if (selectedDateEnd) {
         const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
-        if (date.isAfter(endDate)) {
-          setSelectedDateEnd(null);
+        if (date.isAfter(endDate) || date.isSame(endDate)) {
+          // Не разрешаем выбор начальной даты после/равной конечной
+          return;
+        }
+
+        // Проверяем, есть ли заблокированные даты МЕЖДУ новой датой заезда и уже выбранной датой отъезда
+        const hasBlockedDatesInRange =
+          bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
+            const bannedStartDate = normalizeDate(bannedStart);
+            const bannedEndDate = bannedEnd
+              ? normalizeDate(bannedEnd)
+              : bannedStartDate;
+
+            if (!bannedStartDate || !bannedEndDate) return false;
+
+            // Проверяем, пересекается ли блокировка с диапазоном (date, endDate)
+            return (
+              bannedStartDate.isBetween(date, endDate, null, "()") ||
+              bannedEndDate.isBetween(date, endDate, null, "()") ||
+              (bannedStartDate.isBefore(date) && bannedEndDate.isAfter(endDate)) ||
+              ((bannedStartDate.isBefore(date) || bannedStartDate.isSame(date)) && 
+               (bannedEndDate.isAfter(endDate) || bannedEndDate.isSame(endDate)))
+            );
+          }) ?? false;
+
+        if (hasBlockedDatesInRange) {
+          // Не разрешаем выбор, если есть блокировки между датами
+          return;
         }
       }
 
-      setActiveField("end");
+      setSelectedDateStart(formattedDate);
+      setCurrentSelectedDate(date);
+
+      // НЕ переключаемся автоматически на end, пользователь сам переключит
+      // setActiveField("end");
     } else {
+      // Выбор конечной даты
       const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
 
-      if (date.isBefore(startDate)) {
+      // Конечная дата должна быть после начальной
+      if (date.isBefore(startDate) || date.isSame(startDate)) {
         return;
       }
 
-      // Проверяем, есть ли заблокированные даты между startDate и date
+      // Проверяем, есть ли заблокированные даты МЕЖДУ startDate и date (не включая сами границы)
       const hasBlockedDatesInRange =
         bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
           const bannedStartDate = normalizeDate(bannedStart);
@@ -207,74 +237,20 @@ export const BookingSelection: FC<Props> = ({
 
           if (!bannedStartDate || !bannedEndDate) return false;
 
+          // Проверяем, пересекается ли блокировка с диапазоном (startDate, date)
+          // Используем "()" для исключения границ
           return (
-            bannedStartDate.isBetween(startDate, date, null, "[]") ||
-            bannedEndDate.isBetween(startDate, date, null, "[]") ||
-            (startDate.isBefore(bannedStartDate) && date.isAfter(bannedEndDate))
+            bannedStartDate.isBetween(startDate, date, null, "()") ||
+            bannedEndDate.isBetween(startDate, date, null, "()") ||
+            (bannedStartDate.isBefore(startDate) && bannedEndDate.isAfter(date)) ||
+            ((bannedStartDate.isBefore(startDate) || bannedStartDate.isSame(startDate)) && 
+             (bannedEndDate.isAfter(date) || bannedEndDate.isSame(date)))
           );
         }) ?? false;
 
       if (hasBlockedDatesInRange) {
-        // Находим ближайшую заблокированную дату в диапазоне
-        const blockedRange = bannedDates?.find(
-          ({ startDate: bannedStart, endDate: bannedEnd }) => {
-            const bannedStartDate = normalizeDate(bannedStart);
-            const bannedEndDate = bannedEnd
-              ? normalizeDate(bannedEnd)
-              : bannedStartDate;
-
-            if (!bannedStartDate || !bannedEndDate) return false;
-
-            return (
-              bannedStartDate.isBetween(startDate, date, null, "[]") ||
-              bannedEndDate.isBetween(startDate, date, null, "[]") ||
-              (startDate.isBefore(bannedStartDate) &&
-                date.isAfter(bannedEndDate))
-            );
-          }
-        );
-
-        if (blockedRange) {
-          // Ищем первую доступную дату после окончания заблокированного диапазона
-          const blockedEndNormalized = normalizeDate(
-            blockedRange.endDate || blockedRange.startDate
-          );
-          if (!blockedEndNormalized) return;
-
-          let newStartDate = blockedEndNormalized.add(1, "day");
-
-          // Проверяем, что новая дата доступна (не заблокирована и соответствует графику)
-          while (
-            newStartDate.isBefore(date) ||
-            newStartDate.isSame(date, "day")
-          ) {
-            if (
-              !isDateBanned(newStartDate) &&
-              !isDayBlockedBySchedule(newStartDate)
-            ) {
-              // Нашли доступную дату
-              break;
-            }
-            newStartDate = newStartDate.add(1, "day");
-          }
-
-          // Проверяем, что новая дата заезда не позже даты отъезда
-          if (newStartDate.isBefore(date) || newStartDate.isSame(date, "day")) {
-            if (
-              !isDateBanned(newStartDate) &&
-              !isDayBlockedBySchedule(newStartDate)
-            ) {
-              setSelectedDateStart(newStartDate.format("DD.MM.YYYY"));
-              setCurrentSelectedDate(newStartDate);
-            } else {
-              // Если не можем найти доступную дату, не разрешаем выбор
-              return;
-            }
-          } else {
-            // Если не можем скорректировать, просто не разрешаем выбор
-            return;
-          }
-        }
+        // Не разрешаем выбор, если есть блокировки между датами
+        return;
       }
 
       setSelectedDateEnd(formattedDate);
