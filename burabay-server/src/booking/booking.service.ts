@@ -615,7 +615,7 @@ export class BookingService {
   async cancelExpiredUnacceptedBookings() {
     const now = new Date();
     const expiredBookings = await this.bookingRepository.find({
-      relations: { user: true },
+      relations: { user: true, ad: true },
       where: {
         status: BookingStatus.IN_PROCESS,
         dateEnd: LessThanOrEqual(now),
