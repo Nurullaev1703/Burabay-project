@@ -424,6 +424,18 @@ export class BookingService {
         };
       }
     }
+    if (filter.status === 'ACTIVE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    }
+    if (filter.status === 'DONE') {
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.DONE, BookingStatus.CANCELED]),
+      };
+    }
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
       relations: { ad: true, user: true },
