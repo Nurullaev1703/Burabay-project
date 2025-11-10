@@ -62,8 +62,7 @@ export class BookingService {
       // Вычисление общей стоимости аренды
       if (isRent) {
         const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
-        newBooking.totalPrice =
-          days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
+        newBooking.totalPrice = days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
       } else {
         newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
       }
@@ -71,11 +70,35 @@ export class BookingService {
       // Сохранение
       await this.bookingRepository.save(newBooking);
 
-      // Проверить наличие запрета даты бронирвоания.
-      // Если на весь день, то ничего не делать.
-      // Если не на весь день, до добавить время к запрету.
-      // Если запрета нет, то создать его на нужное время.
-      if (!isRent) {
+      // Создание запрета дат бронирования
+      if (isRent) {
+        // Для аренды жилья создаем запреты на весь диапазон дат
+        const banDates: CreateBookingBanDateDto[] = [];
+        const currentDate = new Date(dateStart);
+
+        while (currentDate <= dateEnd) {
+          const dateString = currentDate.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          });
+
+          banDates.push({
+            adId: adId,
+            date: dateString,
+            times: null,
+            allDay: true,
+            isByBooking: true,
+          });
+
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        if (banDates.length > 0) {
+          await this.bookingBanDateService.create(banDates);
+        }
+      } else {
+        // Для услуг - старая логика
         const findBookingBanDate = await this.bookingBanDateRepository.findOne({
           where: {
             ad: { id: adId },
@@ -320,7 +343,11 @@ export class BookingService {
 
       if (isRent) {
         group.ads[b.ad.id].times.push(
-          `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
+          `с ${b.dateStart.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+          })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
         );
       } else {
         if (b.time) group.ads[b.ad.id].times.push(b.time);
@@ -545,10 +572,7 @@ export class BookingService {
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
       if (booking.status == BookingStatus.CANCELED)
-        throw new HttpException(
-          'Бронь отменена и не может быть подтверждена',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new HttpException('Бронь отменена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
       const notificationDto = {
