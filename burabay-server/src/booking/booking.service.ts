@@ -57,7 +57,7 @@ export class BookingService {
       });
 
       // Является ли объявление арендой.
-      const isRent = ad.subcategory.category.name === 'Жилье';
+      const isRent = ad.isFullDay;
 
       // Вычисление общей стоимости аренды
       if (isRent) {
@@ -177,7 +177,7 @@ export class BookingService {
     today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
-      const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
+      const isRent = b.ad.isFullDay;
       let date: Date;
       let header: string;
 
@@ -185,6 +185,8 @@ export class BookingService {
         date = b.dateStart;
         header = b.dateStart.toLocaleDateString('ru-RU');
       } else {
+        // Проверка на null/undefined для поля date
+        if (!b.date) continue; // Пропускаем бронирование без даты
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
         header = b.date;
@@ -284,7 +286,7 @@ export class BookingService {
     const groups = [];
 
     for (const b of bookings) {
-      const isRent = b.ad.subcategory.category.name === 'Жилье';
+      const isRent = b.ad.isFullDay;
 
       const today = new Date();
       let date: Date;
@@ -303,6 +305,8 @@ export class BookingService {
           year: '2-digit',
         });
       } else {
+        // Проверка на null/undefined для поля date
+        if (!b.date) continue; // Пропускаем бронирование без даты
         const [day, month, year] = b.date.split('.');
         date = new Date(`${year}-${month}-${day}`);
         header = b.date;
@@ -380,7 +384,7 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Объявление это аренда?
-    const isRent = ad.subcategory.category.name === 'Жилье';
+    const isRent = ad.isFullDay;
 
     // Получение даты для поиска
     let findDate: string;
@@ -612,7 +616,7 @@ export class BookingService {
 
     // Фильтруем бронирования на уровне приложения
     const expiredBookings = allBookings.filter((booking) => {
-      const isRent = booking.ad.subcategory.category.name === 'Жилье';
+      const isRent = booking.ad.isFullDay;
 
       if (isRent) {
         // Для аренды проверяем dateEnd
@@ -658,7 +662,7 @@ export class BookingService {
 
     // Фильтруем бронирования на уровне приложения
     const expiredBookings = allBookings.filter((booking) => {
-      const isRent = booking.ad.subcategory.category.name === 'Жилье';
+      const isRent = booking.ad.isFullDay;
 
       if (isRent) {
         // Для аренды проверяем dateEnd

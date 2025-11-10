@@ -44,6 +44,9 @@ export const BookingBan: FC<Props> = function BookingBan({
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
   const { t, i18n } = useTranslation();
 
+  // Проверяем, является ли услуга круглосуточной через поле isFullDay из announcement
+  const isFullDayService = announcement?.isFullDay || false;
+
   const [dates, setDates] = useState<string[]>(() => {
     const result =
       announcement?.bookingBanDate
@@ -76,7 +79,10 @@ export const BookingBan: FC<Props> = function BookingBan({
       setDates([...dates, newDate]);
       setDateSettings({
         ...dateSettings,
-        [newDate]: { allDay: false, times: [] }, // Изначально нет заблокированных времен, нет ID (новая дата)
+        [newDate]: {
+          allDay: isFullDayService, // Если услуга круглосуточная, сразу блокируем весь день
+          times: isFullDayService ? [...serviceTime] : [],
+        },
       });
     }
   };
@@ -87,9 +93,15 @@ export const BookingBan: FC<Props> = function BookingBan({
       const formattedDate = date.format("DD.MM.YYYY");
       addDate(formattedDate);
       setCurrentSelectedDate(date);
-      // Закрываем календарь и открываем модальное окно выбора времени
-      setShowCalendar(false);
-      openModalForDate(formattedDate);
+
+      if (isFullDayService) {
+        // Для круглосуточных услуг просто добавляем дату, календарь остается открытым
+        // Не закрываем календарь и не открываем модалку
+      } else {
+        // Для услуг с временными интервалами - закрываем календарь и открываем модалку
+        setShowCalendar(false);
+        openModalForDate(formattedDate);
+      }
     }
   };
 
@@ -262,7 +274,6 @@ export const BookingBan: FC<Props> = function BookingBan({
         });
       }
 
-
       // После успешного сохранения редиректим пользователя
       navigate({
         to: "/announcements/newService/$adId",
@@ -367,7 +378,7 @@ export const BookingBan: FC<Props> = function BookingBan({
             color={COLORS_TEXT.blue200}
             className="w-[calc(100% - 84px)] absolute top-1/2 -translate-y-1/2 left-[52px]"
           >
-            {t("addDateToBan")}
+            {isFullDayService ? t("addDateToBan") : t("addDateToBan")}
           </Typography>
         </button>
 
@@ -393,10 +404,36 @@ export const BookingBan: FC<Props> = function BookingBan({
                   {date}
                 </Typography>
                 <IconContainer
-                  action={() => openModalForDate(date)}
+                  action={() => {
+                    if (isFullDayService) {
+                      // Для круглосуточных услуг сразу удаляем дату
+                      const deleteDateHandler = async () => {
+                        const banDateId = dateSettings[date]?.id;
+                        if (banDateId) {
+                          try {
+                            await apiService.delete({
+                              url: `/booking-ban-date/${banDateId}`,
+                            });
+                          } catch (error) {
+                            console.error("Ошибка при удалении даты:", error);
+                          }
+                        }
+                        setDates((prev) =>
+                          prev.filter((item) => item !== date)
+                        );
+                        const newSettings = { ...dateSettings };
+                        delete newSettings[date];
+                        setDateSettings(newSettings);
+                      };
+                      deleteDateHandler();
+                    } else {
+                      // Для услуг с временными интервалами открываем модалку
+                      openModalForDate(date);
+                    }
+                  }}
                   align="center"
                 >
-                  <img src={editIcon} alt="" />
+                  <img src={isFullDayService ? XIcon : editIcon} alt="" />
                 </IconContainer>
               </div>
               {dateSettings[date]?.allDay ? (
@@ -421,99 +458,101 @@ export const BookingBan: FC<Props> = function BookingBan({
         ))}
       </div>
 
-      {dates.map((date) =>
-        showModals[date] && dateSettings[date] ? (
-          <div
-            key={date}
-            className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20"
-          >
-            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">
-              <Typography size={18} weight={500} className="mb-3">
-                {t("banTo")} {date}
-              </Typography>
+      {/* Модальные окна только для услуг с временными интервалами */}
+      {!isFullDayService &&
+        dates.map((date) =>
+          showModals[date] && dateSettings[date] ? (
+            <div
+              key={date}
+              className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20"
+            >
+              <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">
+                <Typography size={18} weight={500} className="mb-3">
+                  {t("banTo")} {date}
+                </Typography>
 
-              <Typography
-                size={14}
-                weight={400}
-                color={COLORS_TEXT.gray100}
-                className="mb-3"
-              >
-                {t("selectTimeOrAllDay")}
-              </Typography>
-
-              <label className="flex items-center justify-between mb-4">
-                {t("unavailableAllDay")}
-                <Switch
-                  type="checkbox"
-                  checked={dateSettings[date]?.allDay || false}
-                  onChange={toggleAllDay}
-                  className="w-6 h-6"
-                />
-              </label>
-
-              {!dateSettings[date]?.allDay && serviceTime.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {serviceTime.map((time, index) => {
-                    const isTimeSelected = selectedTimes.includes(time);
-
-                    return (
-                      <button
-                        key={`${date}-service-${time}-${index}`}
-                        onClick={() => toggleTimeSelection(time)}
-                        className={`border rounded-2xl px-7 py-2 ${
-                          isTimeSelected
-                            ? "border-red text-red-500"
-                            : "border-blue200"
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="flex justify-between mt-4 flex-col gap-2">
-                <Button
-                  onClick={saveDateSettings}
-                  className="text-white"
-                  disabled={
-                    !dateSettings[date]?.allDay && selectedTimes.length === 0
-                  }
+                <Typography
+                  size={14}
+                  weight={400}
+                  color={COLORS_TEXT.gray100}
+                  className="mb-3"
                 >
-                  {t("saveBtn")}
-                </Button>
-                <Button
-                  onClick={async () => {
-                    const banDateId = dateSettings[date]?.id;
+                  {t("selectTimeOrAllDay")}
+                </Typography>
 
-                    if (banDateId) {
-                      // Если есть ID - удаляем на сервере
-                      try {
-                        await apiService.delete({
-                          url: `/booking-ban-date/${banDateId}`,
-                        });
-                      } catch (error) {
-                        console.error("Ошибка при удалении даты:", error);
-                      }
+                <label className="flex items-center justify-between mb-4">
+                  {t("unavailableAllDay")}
+                  <Switch
+                    type="checkbox"
+                    checked={dateSettings[date]?.allDay || false}
+                    onChange={toggleAllDay}
+                    className="w-6 h-6"
+                  />
+                </label>
+
+                {!dateSettings[date]?.allDay && serviceTime.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {serviceTime.map((time, index) => {
+                      const isTimeSelected = selectedTimes.includes(time);
+
+                      return (
+                        <button
+                          key={`${date}-service-${time}-${index}`}
+                          onClick={() => toggleTimeSelection(time)}
+                          className={`border rounded-2xl px-7 py-2 ${
+                            isTimeSelected
+                              ? "border-red text-red-500"
+                              : "border-blue200"
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex justify-between mt-4 flex-col gap-2">
+                  <Button
+                    onClick={saveDateSettings}
+                    className="text-white"
+                    disabled={
+                      !dateSettings[date]?.allDay && selectedTimes.length === 0
                     }
+                  >
+                    {t("saveBtn")}
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const banDateId = dateSettings[date]?.id;
 
-                    // Удаляем из локального состояния
-                    setDates((prev) => prev.filter((item) => item !== date));
-                    const newSettings = { ...dateSettings };
-                    delete newSettings[date];
-                    setDateSettings(newSettings);
-                    setShowModals((prev) => ({ ...prev, [date]: false }));
-                  }}
-                  mode="border"
-                >
-                  {t("deleteBtn")}
-                </Button>
+                      if (banDateId) {
+                        // Если есть ID - удаляем на сервере
+                        try {
+                          await apiService.delete({
+                            url: `/booking-ban-date/${banDateId}`,
+                          });
+                        } catch (error) {
+                          console.error("Ошибка при удалении даты:", error);
+                        }
+                      }
+
+                      // Удаляем из локального состояния
+                      setDates((prev) => prev.filter((item) => item !== date));
+                      const newSettings = { ...dateSettings };
+                      delete newSettings[date];
+                      setDateSettings(newSettings);
+                      setShowModals((prev) => ({ ...prev, [date]: false }));
+                    }}
+                    mode="border"
+                  >
+                    {t("deleteBtn")}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : null
-      )}
+          ) : null
+        )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
         <Button onClick={handleSubmit} mode="default">
