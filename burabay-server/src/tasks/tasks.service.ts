@@ -14,6 +14,7 @@ export class TasksService {
   /* Этот метод выполняет вложенный код каждые 24 часа. */
   @Cron('0 0 * * *')
   async handleCron() {
+    console.log('ЗАПУСК ЕЖЕДНЕВНЫХ ЗАДАЧ');
     // Удаление пользователей с пустыми паролями
     this.userService.deleteEmptyPasswordUsers();
     // Удаление организаций и пользователей с пустыми именами
