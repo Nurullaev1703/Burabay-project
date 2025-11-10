@@ -45,6 +45,11 @@ export class AdController {
     return this.adService.checkDates(adId);
   }
 
+  @Get('has-active-bookings/:adId')
+  hasActiveBookings(@Param('adId') adId: string) {
+    return this.adService.hasActiveBookings(adId);
+  }
+
   @Get('favorite/list')
   findAllFavorite(@Request() req: AuthRequest) {
     return this.adService.findAllFavorite(req.user);

@@ -407,6 +407,24 @@ export class AdService {
   }
 
   @CatchErrors()
+  async hasActiveBookings(adId: string) {
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: { bookings: true },
+    });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    
+    const activeBookings = ad.bookings.filter(
+      (booking) =>
+        booking.status === BookingStatus.CONFIRM ||
+        booking.status === BookingStatus.PAYED ||
+        booking.status === BookingStatus.IN_PROCESS,
+    );
+    
+    return { hasActiveBookings: activeBookings.length > 0, count: activeBookings.length };
+  }
+
+  @CatchErrors()
   async getAdsFromOrg(orgId: string, tokenData: TokenData) {
     const user = await this.userRepository.findOne({
       where: { id: tokenData.id },
