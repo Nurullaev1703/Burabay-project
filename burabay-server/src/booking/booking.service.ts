@@ -343,11 +343,7 @@ export class BookingService {
 
       if (isRent) {
         group.ads[b.ad.id].times.push(
-          `с ${b.dateStart.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit',
-          })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
+          `с ${b.dateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} до ${b.dateEnd.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
         );
       } else {
         if (b.time) group.ads[b.ad.id].times.push(b.time);
@@ -614,14 +610,33 @@ export class BookingService {
   @CatchErrors()
   async cancelExpiredUnacceptedBookings() {
     const now = new Date();
+    now.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения только по дате
+
     const expiredBookings = await this.bookingRepository.find({
-      relations: { user: true, ad: true },
       where: {
         status: BookingStatus.IN_PROCESS,
         dateEnd: LessThanOrEqual(now),
       },
+      relations: { ad: { subcategory: { category: true } }, user: true },
     });
-    for (const booking of expiredBookings) {
+
+    // Дополнительная фильтрация для услуг (не аренда)
+    const filteredBookings = expiredBookings.filter((booking) => {
+      const isRent = booking.ad.subcategory.category.name === 'Жилье';
+
+      if (isRent) {
+        // Для аренды используем dateEnd
+        return true; // Уже отфильтровано в запросе
+      } else {
+        // Для услуг используем поле date (строка)
+        if (!booking.date) return false;
+        const bookingDate = Utils.stringDateToDate(booking.date);
+        bookingDate.setHours(0, 0, 0, 0);
+        return bookingDate <= now;
+      }
+    });
+
+    for (const booking of filteredBookings) {
       booking.status = BookingStatus.CANCELED;
       await this.bookingRepository.save(booking);
       const notificationDto = {
@@ -638,13 +653,35 @@ export class BookingService {
   @CatchErrors()
   async doneExpiredAcceptedBookings() {
     const now = new Date();
+    now.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения только по дате
+
     const expiredBookings = await this.bookingRepository.find({
-      where: {
-        status: BookingStatus.PAYED,
-        dateEnd: LessThanOrEqual(now),
-      },
+      where: [
+        {
+          status: In([BookingStatus.PAYED, BookingStatus.CONFIRM]),
+          dateEnd: LessThanOrEqual(now),
+        },
+      ],
+      relations: { ad: { subcategory: { category: true } } },
     });
-    for (const booking of expiredBookings) {
+
+    // Дополнительная фильтрация для услуг (не аренда)
+    const filteredBookings = expiredBookings.filter((booking) => {
+      const isRent = booking.ad.subcategory.category.name === 'Жилье';
+
+      if (isRent) {
+        // Для аренды используем dateEnd
+        return true; // Уже отфильтровано в запросе
+      } else {
+        // Для услуг используем поле date (строка)
+        if (!booking.date) return false;
+        const bookingDate = Utils.stringDateToDate(booking.date);
+        bookingDate.setHours(0, 0, 0, 0);
+        return bookingDate <= now;
+      }
+    });
+
+    for (const booking of filteredBookings) {
       booking.status = BookingStatus.DONE;
       await this.bookingRepository.save(booking);
     }

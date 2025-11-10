@@ -20,7 +20,7 @@ export class TasksService {
     // Удаление организаций и пользователей с пустыми именами
     this.userService.deleteOrganizationsAndUsers();
     // Удаление устаревших баннеров
-    // this.adminService.deleteExpiredBanners();
+    this.adminService.deleteExpiredBanners();
     // Отмена просроченных не принятых заказов
     this.bookingService.cancelExpiredUnacceptedBookings();
     // Завершение просроченных принятых заказов

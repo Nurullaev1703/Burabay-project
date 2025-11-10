@@ -334,11 +334,7 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
-          filter.searchQuery,
-          allUsers,
-          allOrgs,
-        );
+        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(filter.searchQuery, allUsers, allOrgs);
         users = searchedUsers;
         orgsUsers = searchedOrgs;
       } else {
@@ -414,11 +410,7 @@ export class AdminPanelService {
   }
 
   /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */
-  private _searchUsersOrOrgs(
-    searchQuery: string,
-    users?: User[],
-    orgsUsers?: User[],
-  ): { searchedUsers: User[]; searchedOrgs: User[] } {
+  private _searchUsersOrOrgs(searchQuery: string, users?: User[], orgsUsers?: User[]): { searchedUsers: User[]; searchedOrgs: User[] } {
     const searchedUsers: User[] = [],
       searchedOrgs: User[] = [];
 
@@ -474,8 +466,6 @@ export class AdminPanelService {
 
   async deleteExpiredBanners() {
     this.logger.log('Запуск задачи по удалению устаревших баннеров...');
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Сравниваем только дату
 
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
