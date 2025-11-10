@@ -95,13 +95,17 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(() => {
     const initial = {};
-    ads.forEach((ad) => {
-      (initial as Record<string, string>)[ad.ads[0].ad_id] =
-        baseUrl + ad.ads[0].img;
-    });
+    if (Array.isArray(ads)) {
+      ads.forEach((ad) => {
+        if (ad.ads && ad.ads[0]) {
+          (initial as Record<string, string>)[ad.ads[0].ad_id] =
+            baseUrl + ad.ads[0].img;
+        }
+      });
+    }
     return initial;
   });
-  const [adsList, _] = useState<BookingList[]>(ads || []);
+  const [adsList, _] = useState<BookingList[]>(Array.isArray(ads) ? ads : []);
   const [searchValue, setSearchValue] = useState<string>("");
   const filteredAds = adsList
     .map((category) => ({
