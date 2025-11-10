@@ -5,10 +5,16 @@ import { Announcement } from "../../pages/announcements/announcement/Announcemen
 
 export const Route = createFileRoute("/announcements/$announcementId")({
   component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>): { fromMap?: boolean } => {
+    return {
+      fromMap: search.fromMap === true || search.fromMap === 'true',
+    };
+  },
 });
 
 function RouteComponent() {
   const { announcementId } = Route.useParams();
+  const { fromMap } = Route.useSearch();
   const { data: reviewData, isLoading: reviewIsLoading } = UseGetReviews(announcementId);
   const { data, isLoading } = UseGetAnnouncement(announcementId);
 
@@ -17,6 +23,6 @@ function RouteComponent() {
   }
 
   if (data && reviewData) {
-    return <Announcement announcement={data} review={reviewData}/>;
+    return <Announcement announcement={data} review={reviewData} fromMap={fromMap} />;
   }
 }

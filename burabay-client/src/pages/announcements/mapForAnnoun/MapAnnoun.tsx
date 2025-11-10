@@ -615,6 +615,9 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                     params: {
                       announcementId: announcementInfo.id,
                     },
+                    search: {
+                      fromMap: true,
+                    },
                   });
                 }}
                 mode="default"

@@ -13,6 +13,7 @@ import ConfirmedIcon from "../../../../app/icons/profile/confirmed.svg";
 interface Props {
   ad: Announcement;
   isAdmin?: boolean;
+  fromMap?: boolean;
 }
 export const formatPhoneNumber = (number: number | string) => {
   const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
@@ -21,6 +22,7 @@ export const formatPhoneNumber = (number: number | string) => {
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
   isAdmin,
+  fromMap = false,
 }) {
   const { t } = useTranslation();
   const [imageSrc, setImageSrc] = useState<string>(
@@ -119,7 +121,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           <img src={ArrowRight} alt="Стрелка" />
         </Link>
       </li>
-      {!isAdmin && ad.address && (
+      {!isAdmin && ad.address && !fromMap && (
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
             className="flex justify-between"

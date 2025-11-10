@@ -38,6 +38,7 @@ import { FavouriteHint } from "../../../components/favourite-hint/FavouriteHint"
 interface Props {
   announcement: AnnouncementType;
   review?: ReviewAnnouncement;
+  fromMap?: boolean;
 }
 
 export const formatPrice = (value: number) => {
@@ -46,6 +47,7 @@ export const formatPrice = (value: number) => {
 export const Announcement: FC<Props> = function Announcement({
   announcement,
   review,
+  fromMap = false,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -242,7 +244,7 @@ export const Announcement: FC<Props> = function Announcement({
 
           <p className="mb-4 leading-5">{announcement.description}</p>
 
-          <AnnouncementInfoList ad={announcement} />
+          <AnnouncementInfoList ad={announcement} fromMap={fromMap} />
         </div>
         <CostInfoList ad={announcement} />
         <ReviewsInfo ad={announcement} review={review} />

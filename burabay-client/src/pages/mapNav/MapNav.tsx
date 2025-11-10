@@ -795,6 +795,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     params: {
                       announcementId: announcementInfo.id,
                     },
+                    search: {
+                      fromMap: true,
+                    },
                   });
                 }}
                 mode="default"
