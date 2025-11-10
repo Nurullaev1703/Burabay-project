@@ -61,15 +61,15 @@ export class BookingService {
       // Является ли объявление арендой - для подсчета стоимости.
       const isRent = ad.isFullDay;
 
-      // Вычисление общей стоимости аренды (с учетом детского тарифа)
+      // Вычисление общей стоимости аренды (с учетом детского тарифа).
       if (isRent) {
         const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
         newBooking.totalPrice = days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
       }
-      // Вычиление общей стоимости услуги (с учетом детского тарифа)
+      // Вычиление общей стоимости услуги (с учетом детского тарифа).
       else newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
 
-      // Сохранение
+      // Сохранение.
       await this.bookingRepository.save(newBooking);
 
       const notificationDto = {
