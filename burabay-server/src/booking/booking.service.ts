@@ -90,9 +90,7 @@ export class BookingService {
     };
 
     // Фильтр отмененных броней.
-    if (filter?.canceled) {
-      whereOptions.status = BookingStatus.CANCELED;
-    }
+    if (filter?.canceled) whereOptions.status = BookingStatus.CANCELED;
 
     // Фильтр по типу оплаты.
     if (filter?.onSidePayment !== filter?.onlinePayment) {
@@ -100,18 +98,9 @@ export class BookingService {
       if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
     }
 
-    if (filter.status === 'ACTIVE') {
-      whereOptions = {
-        ...whereOptions,
-        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
-      };
-    }
-    if (filter.status === 'DONE') {
-      whereOptions = {
-        ...whereOptions,
-        status: In([BookingStatus.DONE, BookingStatus.CANCELED]),
-      };
-    }
+    if (filter.status === 'ACTIVE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]) };
+    if (filter.status === 'DONE') whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
 
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
