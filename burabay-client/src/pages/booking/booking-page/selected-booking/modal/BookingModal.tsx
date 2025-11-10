@@ -34,21 +34,10 @@ export const BookingModal: FC<Props> = function BookingModal({
   );
   const { t } = useTranslation();
   
-  // Когда открывается CancelBooking, показываем только его
-  if (isCancel) {
-    return (
-      <CancelBooking
-        open={isCancel}
-        onClose={() => setIsCancel(false)} // Возвращаемся к BookingModal
-        bookingId={booking.bookingId}
-      />
-    );
-  }
-  
   return (
     <section>
       <Modal
-        open={open}
+        open={open && !isCancel}
         onClose={onClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
@@ -152,6 +141,12 @@ export const BookingModal: FC<Props> = function BookingModal({
           </Button>
         </Box>
       </Modal>
+      
+      <CancelBooking
+        open={isCancel}
+        onClose={() => setIsCancel(false)}
+        bookingId={booking.bookingId}
+      />
     </section>
   );
 };
