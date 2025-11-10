@@ -31,12 +31,7 @@ export class BookingController {
   }
 
   @Get('by-ad/:adId/:date')
-  findAllByAdId(
-    @Param('adId') adId: string,
-    @Param('date') date: string,
-    @Query() filter: BookingFilter,
-    @Request() req: AuthRequest,
-  ) {
+  findAllByAdId(@Param('adId') adId: string, @Param('date') date: string, @Query() filter: BookingFilter, @Request() req: AuthRequest) {
     return this.bookingService.getAllByAdId(adId, date, req.user, filter);
   }
 
