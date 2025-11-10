@@ -391,9 +391,7 @@ export class BookingService {
 
     let whereOptions: any;
     // Если Турист, то получить только свои брони.
-    if (user.role === ROLE_TYPE.TOURIST) {
-      whereOptions = { user: { id: tokenData.id } };
-    }
+    if (user.role === ROLE_TYPE.TOURIST) whereOptions = { user: { id: tokenData.id } };
     if (isRent) {
       whereOptions = {
         ...whereOptions,
@@ -411,38 +409,16 @@ export class BookingService {
       };
     }
     if (filter.onSidePayment !== filter.onlinePayment) {
-      if (filter.onSidePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.CASH,
-        };
-      }
-      if (filter.onlinePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.ONLINE,
-        };
-      }
+      if (filter.onSidePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.CASH };
+      if (filter.onlinePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.ONLINE };
     }
-    if (filter.status === 'ACTIVE') {
-      whereOptions = {
-        ...whereOptions,
-        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
-      };
-    }
-    if (filter.status === 'DONE') {
-      whereOptions = {
-        ...whereOptions,
-        status: In([BookingStatus.DONE, BookingStatus.CANCELED]),
-      };
-    }
-    const bookings = await this.bookingRepository.find({
-      where: whereOptions,
-      relations: { ad: true, user: true },
-    });
-    if (bookings.length === 0) {
-      return [];
-    }
+    if (filter.status === 'ACTIVE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]) };
+    if (filter.status === 'DONE') whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+
+    const bookings = await this.bookingRepository.find({ where: whereOptions, relations: { ad: true, user: true } });
+    if (bookings.length === 0) return [];
+
     const ad_bookins = [];
     if (isRent) {
       for (const b of bookings) {
