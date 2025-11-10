@@ -28,7 +28,8 @@ export const normalizeDate = (dateStr: string | undefined): Dayjs | null => {
 };
 
 /**
- * Проверяет, находится ли дата в диапазоне [start, end]
+ * Проверяет, находится ли дата в диапазоне [start, end)
+ * Начало включено, конец исключён
  */
 export const isDateInRange = (
   date: Dayjs,
@@ -41,7 +42,7 @@ export const isDateInRange = (
   const end = endStr ? normalizeDate(endStr) : start;
   if (!end) return false;
 
-  return date.isBetween(start, end, null, "[]");
+  return date.isBetween(start, end, null, "[)");
 };
 
 /**
