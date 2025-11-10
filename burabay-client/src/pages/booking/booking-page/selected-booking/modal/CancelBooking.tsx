@@ -43,13 +43,14 @@ export const CancelBooking: FC<Props> = function CancelBooking({
         onClose={onClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
+        keepMounted={false}
         sx={{
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "center",
           overflow: "auto",
           maxHeight: "100%",
-          zIndex: 1400,
+          zIndex: 1500,
         }}
       >
         <Box

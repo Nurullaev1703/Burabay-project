@@ -41,6 +41,7 @@ export const BookingModal: FC<Props> = function BookingModal({
         onClose={onClose}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
+        keepMounted={false}
         sx={{
           display: "flex",
           alignItems: "flex-end",
