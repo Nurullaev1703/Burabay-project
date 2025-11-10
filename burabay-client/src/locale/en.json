@@ -456,6 +456,8 @@
   "unavailableAllDay": "Unavailable all day",
   "bookingban": "Booking ban",
   "optional": "Optional",
+  "activeBookingsWarning": "You cannot edit some steps because you have active bookings!",
+  "activeBookingsConfirmTitle": "You will not be able to edit the following steps because you have active bookings. If you want to save the current changes, click \"Save\", if you want to cancel, click \"Cancel\".",
   "addDateToBan": "Add a date when booking is unavailable",
   "banTo": "Booking ban for",
   "selectTimeOrAllDay": "Select time to block or enable 'All day'",

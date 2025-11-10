@@ -37,6 +37,8 @@ export const BookingBan: FC<Props> = function BookingBan({
 }) {
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [hasActiveBookings, setHasActiveBookings] = useState(false);
   const match = useMatch({
     from: "/announcements/bookingBan/$adId",
   });
@@ -91,6 +93,26 @@ export const BookingBan: FC<Props> = function BookingBan({
     
     fetchBookedDates();
   }, [adId]);
+
+  // Проверяем наличие активных бронирований при редактировании
+  useEffect(() => {
+    const checkActiveBookings = async () => {
+      if (announcement) {
+        try {
+          const response = await apiService.get<{ hasActive: boolean }>({
+            url: `/booking/has-active/${adId}`,
+          });
+          if (response.data) {
+            setHasActiveBookings(response.data.hasActive);
+          }
+        } catch (error) {
+          console.error("Ошибка проверки активных бронирований:", error);
+        }
+      }
+    };
+    
+    checkActiveBookings();
+  }, [adId, announcement]);
 
   // Получаем локаль для календаря
   const locale =
@@ -255,6 +277,17 @@ export const BookingBan: FC<Props> = function BookingBan({
   };
 
   const handleSubmit = async () => {
+    // Если есть активные бронирования и это редактирование - показываем модалку
+    if (hasActiveBookings && announcement) {
+      setShowConfirmModal(true);
+      return;
+    }
+
+    // Иначе сохраняем как обычно
+    await saveChanges();
+  };
+
+  const saveChanges = async () => {
     try {
       // Разделяем даты на новые (без ID) и существующие (с ID)
       const newDates: Array<{
@@ -322,12 +355,20 @@ export const BookingBan: FC<Props> = function BookingBan({
       }
 
       // После успешного сохранения редиректим пользователя
-      navigate({
-        to: "/announcements/newService/$adId",
-        params: {
-          adId: adId,
-        },
-      });
+      if (hasActiveBookings && announcement) {
+        // Если есть активные бронирования - переходим на страницу объявлений
+        navigate({
+          to: "/announcements",
+        });
+      } else {
+        // Иначе переходим на следующий шаг
+        navigate({
+          to: "/announcements/newService/$adId",
+          params: {
+            adId: adId,
+          },
+        });
+      }
     } catch (error) {
       console.error("Ошибка при сохранении дат:", error);
     }
@@ -446,6 +487,21 @@ export const BookingBan: FC<Props> = function BookingBan({
             {isFullDayService ? t("addDateToBan") : t("addDateToBan")}
           </Typography>
         </button>
+
+        {/* Предупреждение о наличии активных бронирований */}
+        {hasActiveBookings && announcement && (
+          <div className="mb-4 p-3 bg-red-50 rounded-lg">
+            <Typography
+              size={14}
+              weight={500}
+              
+              color={COLORS_TEXT.red}
+              className="text-center"
+            >
+              {t("activeBookingsWarning")}
+            </Typography>
+          </div>
+        )}
 
         {/* Модальное окно с календарём */}
         <BookingBanCalendar
@@ -618,6 +674,45 @@ export const BookingBan: FC<Props> = function BookingBan({
             </div>
           ) : null
         )}
+
+      {/* Модальное окно подтверждения при наличии активных бронирований */}
+      {showConfirmModal && hasActiveBookings && announcement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1400]">
+          <div className="bg-white rounded-lg p-6 w-11/12 max-w-md">
+            <Typography
+              size={16}
+              weight={500}
+              color={COLORS_TEXT.red}
+              className="text-center mb-6"
+            >
+              {t("activeBookingsConfirmTitle")}
+            </Typography>
+
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={async () => {
+                  setShowConfirmModal(false);
+                  await saveChanges();
+                }}
+                mode="default"
+              >
+                {t("saveBtn")}
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  navigate({
+                    to: "/announcements",
+                  });
+                }}
+                mode="border"
+              >
+                {t("cancelBtn")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
         <Button onClick={handleSubmit} mode="default">
