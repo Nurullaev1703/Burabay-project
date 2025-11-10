@@ -1,5 +1,4 @@
 import { FC, useState } from "react";
-import { Box, Modal } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "../../../../shared/ui/Button";
@@ -125,58 +124,64 @@ export const ModalDelete: FC<Props> = function ModalDelete({
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-      sx={{
-        display: "flex",
-        alignItems: isAdmin ? "center" : "flex-end",
-        justifyContent: "center",
-        overflow: "auto",
-        maxHeight: "max-h-100%",
-      }}
-    >
-      <Box
-        sx={{
-          height: "fit",
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: "24px",
-          width: "100%",
-          maxWidth: 600,
-          borderRadius: isAdmin ? "14px" : "14px 14px 0 0",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          ":focus": {
-            border: "none",
-            outline: "none",
-          },
+    <section>
+      {/* Кастомный backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 1400,
+          display: 'flex',
+          alignItems: isAdmin ? 'center' : 'flex-end',
+          justifyContent: 'center',
+          overflow: 'auto',
+          maxHeight: '100%',
         }}
       >
-        <span className="text-center font-medium">{t("deleteAd")}</span>
-        <span className="text-center font-medium">{t("noReverse")}</span>
-        {isError && (
-          <div className="mt-4 w-full">
-            <Hint
-              title={errorMessage || t("defaultError")}
-              mode="error"
-              className="flex items-center justify-center"
-            />
-          </div>
-        )}
-        <Button
-          mode="red"
-          className="mb-2 border-red border-[3px] mt-4"
-          onClick={handleDeleteAd}
+        {/* Модальное окно */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: 'white',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '600px',
+            borderRadius: isAdmin ? '14px' : '14px 14px 0 0',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            zIndex: 1401,
+          }}
         >
-          {t("acceptDeleteAd")}
-        </Button>
-        <Button onClick={onClose}>{t("cancel")}</Button>
-      </Box>
-    </Modal>
+          <span className="text-center font-medium">{t("deleteAd")}</span>
+          <span className="text-center font-medium">{t("noReverse")}</span>
+          {isError && (
+            <div className="mt-4 w-full">
+              <Hint
+                title={errorMessage || t("defaultError")}
+                mode="error"
+                className="flex items-center justify-center"
+              />
+            </div>
+          )}
+          <Button
+            mode="red"
+            className="mb-2 border-red border-[3px] mt-4"
+            onClick={handleDeleteAd}
+          >
+            {t("acceptDeleteAd")}
+          </Button>
+          <Button onClick={onClose}>{t("cancel")}</Button>
+        </div>
+      </div>
+    </section>
   );
 };

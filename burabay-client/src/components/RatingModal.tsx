@@ -1,4 +1,4 @@
-import { Box, IconButton, TextField, Modal as MuiModal } from "@mui/material";
+import { Box, IconButton, TextField } from "@mui/material";
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import StarIcon from "@mui/icons-material/Star";
@@ -68,35 +68,45 @@ export const RatingModal: FC<Props> = function RatingModal({ open, onClose }) {
     setValue("stars", index);
   };
 
+  if (!open) return null;
+
   return (
-    <MuiModal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-      sx={{
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        overflow: "auto",
-        maxHeight: "100%",
-      }}
-    >
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: "24px",
-          width: "100%",
-          maxWidth: 600,
-          borderTopLeftRadius: 14,
-          borderTopRightRadius: 14,
+    <section>
+      {/* Кастомный backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 1400,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          overflow: 'auto',
+          maxHeight: '100%',
         }}
       >
-        <h2 className="text-xl font-semibold text-center mb-4">
-          {appreciated ? t("thanks") : t("questionConvenient")}
-        </h2>
-        {!appreciated && (
+        {/* Модальное окно */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: 'white',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '600px',
+            borderTopLeftRadius: '14px',
+            borderTopRightRadius: '14px',
+            zIndex: 1401,
+          }}
+        >
+          <h2 className="text-xl font-semibold text-center mb-4">
+            {appreciated ? t("thanks") : t("questionConvenient")}
+          </h2>
+          {!appreciated && (
           <>
             <Box display="flex" justifyContent="center">
               {[...Array(5)].map((_star, index) => {
@@ -156,7 +166,8 @@ export const RatingModal: FC<Props> = function RatingModal({ open, onClose }) {
           </>
         )}
         {isLoading && <Loader />}
-      </Box>
-    </MuiModal>
+        </div>
+      </div>
+    </section>
   );
 };
