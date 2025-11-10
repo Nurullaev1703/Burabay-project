@@ -5,12 +5,16 @@ import { Loader } from "../../components/Loader";
 import { UseGetAnnouncement } from "../../pages/announcements/announcement/announcement-util";
 
 export const Route = createFileRoute("/booking/$bookingId/$category")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    status: (search.status as string) || "ACTIVE",
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { bookingId, category } = Route.useParams();
-  const { data, isLoading } = useGetBooking(bookingId, category);
+  const { status } = Route.useSearch();
+  const { data, isLoading } = useGetBooking(bookingId, category, status);
   const { data: announcementData, isLoading: announcementIsLoading } =
     UseGetAnnouncement(bookingId);
   if (isLoading && announcementIsLoading) return <Loader />;

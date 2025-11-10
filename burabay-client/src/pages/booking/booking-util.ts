@@ -62,12 +62,20 @@ export function useGetTouristBookings(
   });
 }
 
-export function useGetBooking(bookingId: string, category: string) {
+export function useGetBooking(
+  bookingId: string,
+  category: string,
+  status?: string
+) {
   return useQuery({
-    queryKey: [`/booking/by-ad/${bookingId}/${category}`],
+    queryKey: [`/booking/by-ad/${bookingId}/${category}`, status],
     queryFn: async () => {
+      let url = `/booking/by-ad/${bookingId}/${category}`;
+      if (status) {
+        url += `?status=${status}`;
+      }
       const response = await apiService.get<TSelectedBooking>({
-        url: `/booking/by-ad/${bookingId}/${category}`,
+        url,
       });
       return response.data;
     },
