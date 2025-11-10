@@ -55,7 +55,9 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   const { t } = useTranslation();
 
   // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
-  const formatDateHeader = (dateStr: string): string => {
+  const formatDateHeader = (dateStr: string | undefined): string => {
+    if (!dateStr) return ""; // Если даты нет, возвращаем пустую строку
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
