@@ -24,13 +24,13 @@ export const Hint: FC<Props> = function Hint({ accountStatus }) {
         <div
           className={`relative w-full bg-gradient-to-r from-[#FFB863] to-[#FF7A2F] rounded-2xl`}
         >
-          <div className="max-w-72 py-3 pl-4">
+          <div className="max-w-72 py-3 pl-4 flex flex-col">
             <span className={`tracking-tighter font-semibold text-white`}>
               {t("accountConfirm")}
             </span>
             <button
               onClick={() => navigate({ to: "/profile/confirm" })}
-              className={`mt-2.5 font-semibold text-white border-solid border-2 rounded-lg py-1 px-3.5 border-white`}
+              className={`mt-2.5 font-semibold text-white border-solid border-2 rounded-lg py-1 px-3.5 border-white w-fit`}
             >
               {t("details")}
             </button>
@@ -46,7 +46,7 @@ export const Hint: FC<Props> = function Hint({ accountStatus }) {
         <div
           className={`relative w-full bg-gradient-to-r from-[#2A9DBE] to-[#035F7C] rounded-2xl`}
         >
-          <div className="max-w-72 py-3 pl-4">
+          <div className="max-w-72 py-3 pl-4 flex flex-col">
             <span className={`tracking-tighter font-semibold text-white`}>
               {t("accountWaiting")}
             </span>

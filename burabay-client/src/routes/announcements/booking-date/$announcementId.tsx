@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BookingDate } from "../../../pages/announcements/booking-time/BookingDate";
+import { BookingSelection } from "../../../pages/announcements/booking-time/BookingSelection";
 import { Loader } from "../../../components/Loader";
-import { UseGetAnnouncement, UseGetBannedDates } from "../../../pages/announcements/announcement/announcement-util";
+import {
+  UseGetAnnouncement,
+  UseGetBannedDates,
+} from "../../../pages/announcements/announcement/announcement-util";
+import { UseGetServiceSchedule } from "../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util";
 
 export const Route = createFileRoute(
   "/announcements/booking-date/$announcementId"
@@ -13,14 +17,26 @@ function RouteComponent() {
   const { announcementId } = Route.useParams();
   const { data: announcementData, isLoading: announcementIsLoading } =
     UseGetAnnouncement(announcementId);
-  const { data: datesData, isLoading: datesIsLoading } =
+  const { data: bannedDatesData, isLoading: bannedDatesIsLoading } =
     UseGetBannedDates(announcementId);
-  if (announcementIsLoading && datesIsLoading) {
+  const { data: serviceScheduleData, isLoading: serviceScheduleIsLoading } =
+    UseGetServiceSchedule(announcementId);
+
+  if (
+    announcementIsLoading ||
+    bannedDatesIsLoading ||
+    serviceScheduleIsLoading
+  ) {
     return <Loader />;
   }
-  if (announcementData && datesData) {
+
+  if (announcementData) {
     return (
-      <BookingDate announcement={announcementData} bannedDates={datesData}/>
+      <BookingSelection
+        announcement={announcementData}
+        bannedDates={bannedDatesData}
+        serviceSchedule={serviceScheduleData}
+      />
     );
   }
 }

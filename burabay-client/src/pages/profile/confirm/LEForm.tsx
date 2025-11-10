@@ -209,6 +209,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="register-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -236,10 +237,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -256,6 +264,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="iban-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -283,10 +292,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -302,6 +318,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="charter-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -329,10 +346,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />

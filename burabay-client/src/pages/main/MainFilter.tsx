@@ -26,6 +26,20 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
     ...filters,
     subcategories: filters.subcategories ? [...filters.subcategories] : [],
   });
+
+  // Форматирование числа с пробелами
+  const formatNumber = (value: number | undefined): string => {
+    if (!value) return "";
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
+  // Удаление пробелов из строки
+  const parseNumber = (value: string): number | undefined => {
+    const cleaned = value.replace(/\s/g, "");
+    const num = Number(cleaned);
+    return cleaned && !isNaN(num) ? num : undefined;
+  };
+
   const applyFilters = () => {
     navigate({
       to: "/category/$categoryId",
@@ -94,32 +108,33 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           </Typography>
           <div className="flex space-x-2">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder={t("От")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              value={selectedFilters.minPrice ?? ""}
+              value={formatNumber(selectedFilters.minPrice)}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
+                const value = e.target.value.replace(/[^\d\s]/g, "");
+                const numValue = parseNumber(value);
                 setSelectedFilters((prev) => ({
                   ...prev,
-                  minPrice: value ? Number(value) : undefined,
+                  minPrice: numValue,
                 }));
               }}
             />
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder={t("До")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              value={selectedFilters.maxPrice ?? ""}
+              value={formatNumber(selectedFilters.maxPrice)}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
-                setSelectedFilters((prev) => {
-                  const maxPrice = Number(value);
-                  return {
-                    ...prev,
-                    maxPrice: maxPrice,
-                  };
-                });
+                const value = e.target.value.replace(/[^\d\s]/g, "");
+                const numValue = parseNumber(value);
+                setSelectedFilters((prev) => ({
+                  ...prev,
+                  maxPrice: numValue,
+                }));
               }}
             />
           </div>

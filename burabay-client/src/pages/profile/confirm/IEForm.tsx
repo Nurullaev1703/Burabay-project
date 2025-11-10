@@ -205,6 +205,7 @@ export const IEForm: FC = function IEForm() {
                 type="file"
                 id="register-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -224,7 +225,7 @@ export const IEForm: FC = function IEForm() {
                         value ? COLORS_TEXT.totalBlack : COLORS_TEXT.gray100
                       }
                     >
-                      {value ? value.name : t("certificateIE")}
+                      {value ? value.name : t("certificateStateReg")}
                     </span>
                   </div>
                 </div>
@@ -232,10 +233,17 @@ export const IEForm: FC = function IEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -252,6 +260,7 @@ export const IEForm: FC = function IEForm() {
                 type="file"
                 id="iban-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -279,10 +288,17 @@ export const IEForm: FC = function IEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />

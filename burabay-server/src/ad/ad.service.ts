@@ -393,18 +393,16 @@ export class AdService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
     const bookedDates = [];
-    ad.bookings.forEach((booking) => {
-      if (!booking.date) {
+    for (const booking of ad.bookings) {
+      if (booking.status === BookingStatus.CANCELED || booking.status === BookingStatus.DONE)
+        continue;
+      if (!booking.date)
         bookedDates.push({
           startDate: Utils.dateToString(booking.dateStart),
           endDate: Utils.dateToString(booking.dateEnd),
         });
-      } else {
-        bookedDates.push({
-          startDate: booking.date,
-        });
-      }
-    });
+      else bookedDates.push({ startDate: booking.date });
+    }
     return bookedDates;
   }
 
