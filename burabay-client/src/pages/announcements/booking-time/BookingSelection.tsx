@@ -75,6 +75,11 @@ export const BookingSelection: FC<Props> = ({
     null
   );
 
+  // Состояния для обработки двойного тапа на мобильных
+  const [lastTapStart, setLastTapStart] = useState<number>(0);
+  const [lastTapEnd, setLastTapEnd] = useState<number>(0);
+  const DOUBLE_TAP_DELAY = 300; // мс между тапами для определения двойного тапа
+
   // Получаем локаль для календаря
   const locale =
     i18n.language === "kk" ? "kk" : i18n.language === "en" ? "en" : "ru";
@@ -191,6 +196,33 @@ export const BookingSelection: FC<Props> = ({
   // ОБРАБОТЧИКИ ДЛЯ СУТОЧНОГО БРОНИРОВАНИЯ
   // ===========================================
 
+  // Обработчики двойного тапа для сброса дат
+  const handleDoubleTapStart = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapStart;
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+      // Двойной тап обнаружен - сбрасываем дату заезда
+      setSelectedDateStart(null);
+      setCurrentSelectedDate(null);
+    }
+
+    setLastTapStart(now);
+  };
+
+  const handleDoubleTapEnd = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapEnd;
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+      // Двойной тап обнаружен - сбрасываем дату отъезда
+      setSelectedDateEnd(null);
+      setCurrentSelectedDate(null);
+    }
+
+    setLastTapEnd(now);
+  };
+
   const handleFullDayDateChange = (date: Dayjs | null) => {
     if (!date) return;
 
@@ -206,7 +238,7 @@ export const BookingSelection: FC<Props> = ({
         }
 
         // Проверяем, есть ли заблокированные даты МЕЖДУ новой датой заезда и уже выбранной датой отъезда
-        // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
+        // Для isFullDay: true проверяем bannedDates (занятые даты из ad/check-dates)
         const hasBlockedDatesInRange =
           bannedDates?.some(
             ({ startDate: bannedStart, endDate: bannedEnd }) => {
@@ -231,7 +263,20 @@ export const BookingSelection: FC<Props> = ({
             }
           ) ?? false;
 
-        if (hasBlockedDatesInRange) {
+        // Также проверяем даты, заблокированные организацией через booking-ban-date
+        const hasOrgBlockedDatesInRange =
+          serviceSchedule?.some((banDate) => {
+            // Учитываем только даты заблокированные самой организацией
+            if (banDate.isByBooking) return false;
+            
+            const banDateDay = dayjs(banDate.date);
+            
+            // Проверяем, попадает ли заблокированная дата в диапазон (date, endDate)
+            // Используем "()" для исключения границ
+            return banDateDay.isBetween(date, endDate, null, "()");
+          }) ?? false;
+
+        if (hasBlockedDatesInRange || hasOrgBlockedDatesInRange) {
           // Не разрешаем выбор, если есть блокировки между датами
           return;
         }
@@ -252,7 +297,7 @@ export const BookingSelection: FC<Props> = ({
       }
 
       // Проверяем, есть ли заблокированные даты МЕЖДУ startDate и date (не включая сами границы)
-      // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
+      // Для isFullDay: true проверяем bannedDates (занятые даты из ad/check-dates)
       const hasBlockedDatesInRange =
         bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
           const bannedStartDate = normalizeDate(bannedStart);
@@ -275,7 +320,20 @@ export const BookingSelection: FC<Props> = ({
           );
         }) ?? false;
 
-      if (hasBlockedDatesInRange) {
+      // Также проверяем даты, заблокированные организацией через booking-ban-date
+      const hasOrgBlockedDatesInRange =
+        serviceSchedule?.some((banDate) => {
+          // Учитываем только даты заблокированные самой организацией
+          if (banDate.isByBooking) return false;
+          
+          const banDateDay = dayjs(banDate.date);
+          
+          // Проверяем, попадает ли заблокированная дата в диапазон (startDate, date)
+          // Используем "()" для исключения границ
+          return banDateDay.isBetween(startDate, date, null, "()");
+        }) ?? false;
+
+      if (hasBlockedDatesInRange || hasOrgBlockedDatesInRange) {
         // Не разрешаем выбор, если есть блокировки между датами
         return;
       }
@@ -476,6 +534,7 @@ export const BookingSelection: FC<Props> = ({
                   : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
               }`}
               onClick={() => {
+                handleDoubleTapStart();
                 setActiveField("start");
               }}
             >
@@ -501,6 +560,7 @@ export const BookingSelection: FC<Props> = ({
                   : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
               }`}
               onClick={() => {
+                handleDoubleTapEnd();
                 setActiveField("end");
               }}
             >
