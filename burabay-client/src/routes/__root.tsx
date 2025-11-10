@@ -31,7 +31,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
   component: () => {
     const { token, isAuthenticated } = useAuth();
 
-    // Блокируем выделение текста через JavaScript
+    // Блокируем только выделение текста, не трогая остальные события
     useEffect(() => {
       const preventSelection = (e: Event) => {
         const target = e.target as HTMLElement;
@@ -48,30 +48,11 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
         }
       };
 
-      // Добавляем обработчики событий
+      // Добавляем только обработчик selectstart для блокировки выделения
       document.addEventListener('selectstart', preventSelection);
-      document.addEventListener('contextmenu', preventSelection);
-      
-      // Дополнительная защита для iOS
-      document.addEventListener('touchstart', (e) => {
-        const target = e.target as HTMLElement;
-        const tagName = target.tagName.toLowerCase();
-        if (
-          tagName !== 'input' && 
-          tagName !== 'textarea' && 
-          target.contentEditable !== 'true'
-        ) {
-          // Предотвращаем долгое нажатие на iOS
-          const touches = e.touches;
-          if (touches.length > 0) {
-            e.preventDefault();
-          }
-        }
-      }, { passive: false });
 
       return () => {
         document.removeEventListener('selectstart', preventSelection);
-        document.removeEventListener('contextmenu', preventSelection);
       };
     }, []);
 
