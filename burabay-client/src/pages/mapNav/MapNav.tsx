@@ -394,11 +394,8 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   return (
     <main className="min-h-screen">
       <Header pb="0" className="">
-        <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} />
-          </IconContainer>
-          <div className="w-full flex items-center  gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
+        <div className="flex justify-between items-center text-center w-full pb-2">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
             <img src={SearchIcon} />
             <input
               onKeyDown={handleKeyDown}
@@ -550,7 +547,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         </div>
       )}
 
-      <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-scroll gap-2 ">
+      <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-auto gap-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
         {!isSearchResultFound &&
           categories.map((item) => {
             return (
