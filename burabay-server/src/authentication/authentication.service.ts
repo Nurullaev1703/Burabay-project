@@ -86,9 +86,22 @@ export class AuthenticationService {
         },
       });
 
-      // если почта уже зарегистрирована на туриста
-      if (signInDto.role) {
-        if (userExist && userExist.role !== signInDto?.role) {
+      // Проверка конфликта ролей
+      if (signInDto.role && userExist) {
+        // Если роли не совпадают
+        if (userExist.role !== signInDto.role) {
+          // Если пользователь турист с паролем - конфликт (409)
+          if (userExist.role === ROLE_TYPE.TOURIST && userExist.password?.length > 0) {
+            return JSON.stringify(HttpStatus.CONFLICT);
+          }
+          
+          // Если пользователь турист без пароля - предупреждение (410 GONE)
+          // Фронт должен показать сообщение о том, что аккаунт будет удален через 24 часа
+          if (userExist.role === ROLE_TYPE.TOURIST && (!userExist.password || userExist.password.length === 0)) {
+            return JSON.stringify(HttpStatus.GONE); // 410 - аккаунт скоро будет удален
+          }
+          
+          // Для других случаев - обычный конфликт
           return JSON.stringify(HttpStatus.CONFLICT);
         }
       }

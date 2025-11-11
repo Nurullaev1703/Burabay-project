@@ -92,16 +92,23 @@ export class UserService {
     });
   }
 
-  /* Метод для удаления Пользователей у которых не задан пароль. Метод испольузется в TasksService. */
+  /* Метод для удаления Пользователей у которых не задан пароль и которые созданы более 24 часов назад. 
+     Метод используется в TasksService. */
   async deleteEmptyPasswordUsers() {
     try {
+      // Вычисляем дату 24 часа назад от текущего момента
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
       const deleteUsers = await this.userRepository
         .createQueryBuilder()
         .delete()
-        .where('password IS NULL OR password = :password', { password: '' })
+        .where('(password IS NULL OR password = :password)', { password: '' })
+        .andWhere('createdAt < :date', { date: twentyFourHoursAgo })
         .execute();
+      
+      console.log(`Удалено ${deleteUsers.affected} пользователей без пароля старше 24 часов`);
       return deleteUsers;
-      // return await this.userRep.remove(deleteUser);
     } catch (error) {
       Utils.errorHandler(error);
     }
