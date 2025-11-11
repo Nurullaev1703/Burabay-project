@@ -32,11 +32,16 @@ export function useGetMainPageAnnouncements(filters?: MainPageFilter) {
 }
 
 export function useGetRecommendedAds(filters?: MainPageFilter) {
+  const adNameFilter = filters?.adName || "";
+  const minPrice = filters?.minPrice || "";
+  const maxPrice = filters?.maxPrice || "";
+  const rating = filters?.isHighRating || "";
+
   return useInfiniteQuery({
     queryKey: ["recommended-ads", filters],
     queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Announcement[]>({
-        url: `/category/favorite/ads?offset=${pageParam}`,
+        url: `/category/favorite/ads?name=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&isHighRating=${rating ? "true" : ""}&offset=${pageParam}&limit=10`,
       });
       return response.data;
     },

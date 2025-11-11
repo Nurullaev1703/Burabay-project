@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Patch, Query, Request } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { MainPageFilter } from 'src/main-page/types/main-page-filters.type';
 
 @ApiTags('Категории')
 @ApiBearerAuth()
@@ -14,10 +15,7 @@ export class CategoryController {
   }
 
   @Patch('/favorite/:categoryId')
-  async updateFavoriteCategory(
-    @Param('categoryId') categoryId: string,
-    @Request() auth: AuthRequest,
-  ) {
+  async updateFavoriteCategory(@Param('categoryId') categoryId: string, @Request() auth: AuthRequest) {
     return await this.categoryService.addOrDeleteFavoritedCategory(auth.user.id, categoryId);
   }
 
@@ -28,13 +26,43 @@ export class CategoryController {
 
   @Get('/favorite/ads')
   @ApiQuery({
-    name: 'page',
+    name: 'offset',
     required: false,
     type: Number,
-    description: 'Номер страницы с объявлениями. На 1 странице по 10 объявлений',
+    description: 'Смещение для пагинации',
   })
-  async getAdsFromFavoriteCateogries(@Request() auth: AuthRequest, @Query('page') page: number) {
-    return await this.categoryService.getAdsFromFavoritedCategories(auth.user.id, page);
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Количество объявлений на странице',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Поиск по названию объявления',
+  })
+  @ApiQuery({
+    name: 'minPrice',
+    required: false,
+    type: Number,
+    description: 'Минимальная цена',
+  })
+  @ApiQuery({
+    name: 'maxPrice',
+    required: false,
+    type: Number,
+    description: 'Максимальная цена',
+  })
+  @ApiQuery({
+    name: 'isHighRating',
+    required: false,
+    type: Boolean,
+    description: 'Фильтр по высокому рейтингу (> 4.5)',
+  })
+  async getAdsFromFavoriteCateogries(@Request() auth: AuthRequest, @Query() filter?: MainPageFilter) {
+    return await this.categoryService.getAdsFromFavoritedCategories(auth.user.id, filter);
   }
 
   @Get(':id')
