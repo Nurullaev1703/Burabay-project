@@ -332,7 +332,12 @@ export const AddReview: FC = function AddReview() {
           if (response.data) {
             await queryClient.refetchQueries({ queryKey: [`/review/ad/`] });
             // После успешного добавления отзыва переводим на страницу списка отзывов данного объявления
-            navigate({ to: `/announcements/reviews/${announcement.id}` });
+            if (announcement && announcement.id) {
+              navigate({ to: `/announcements/reviews/${announcement.id}`, replace: true });
+            } else {
+              // Фоллбек — жёсткий редирект если navigate не сработает
+              window.location.assign(`/announcements/reviews/${announcement?.id || ''}`);
+            }
           }
           setIsLoading(false);
         })}
