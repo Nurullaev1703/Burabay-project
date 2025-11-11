@@ -18,7 +18,7 @@ export const Header: FC<HeaderProps> = function Header({
   ...props
 }) {
   return (
-    <header className={`w-full ${pt} ${pb} ${pl} ${pr} ${COLORS_BACKGROUND.white}`}>
+    <header className={`w-full ${pt} ${pb} ${pl} ${pr} ${COLORS_BACKGROUND.white} sticky top-0 z-50 shadow-sm`}>
       <div className={`mx-auto ${className}`} {...props}>
         {children}
       </div>

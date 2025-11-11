@@ -166,16 +166,21 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           url: `/booking/has-active/${adId}`,
         });
         
-        // Если есть активные бронирования, идем на шаг 7 (запрет дней)
-        // Иначе на шаг 5 (детали)
-        const targetStep = hasActiveResponse.data?.hasActive ? "step-seven" : "step-five";
-        
-        navigate({
-          to: `/announcements/addAnnouncements/${targetStep}/$id`,
-          params: {
-            id: adId,
-          },
-        });
+        if (hasActiveResponse.data?.hasActive) {
+          // Если есть активные бронирования, идем на страницу запрета дней
+          const serviceTime = announcement?.startTime?.join(',') || '';
+          navigate({
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ''}`,
+          });
+        } else {
+          // Иначе на шаг 5 (детали)
+          navigate({
+            to: "/announcements/addAnnouncements/step-five/$id",
+            params: {
+              id: adId,
+            },
+          });
+        }
       }
     } else {
       const response = await apiService.post({
@@ -196,16 +201,21 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           url: `/booking/has-active/${adId}`,
         });
         
-        // Если есть активные бронирования, идем на шаг 7 (запрет дней)
-        // Иначе на шаг 5 (детали)
-        const targetStep = hasActiveResponse.data?.hasActive ? "step-seven" : "step-five";
-        
-        navigate({
-          to: `/announcements/addAnnouncements/${targetStep}/$id`,
-          params: {
-            id: adId,
-          },
-        });
+        if (hasActiveResponse.data?.hasActive) {
+          // Если есть активные бронирования, идем на страницу запрета дней
+          const serviceTime = announcement?.startTime?.join(',') || '';
+          navigate({
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ''}`,
+          });
+        } else {
+          // Иначе на шаг 5 (детали)
+          navigate({
+            to: "/announcements/addAnnouncements/step-five/$id",
+            params: {
+              id: adId,
+            },
+          });
+        }
       }
     }
   };

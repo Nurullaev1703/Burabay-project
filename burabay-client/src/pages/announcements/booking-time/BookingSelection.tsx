@@ -61,7 +61,6 @@ export const BookingSelection: FC<Props> = ({
     null
   );
   const [selectedDateEnd, setSelectedDateEnd] = useState<string | null>(null);
-  const [activeField, setActiveField] = useState<"start" | "end">("start");
 
   // Состояния для почасового бронирования
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
@@ -191,104 +190,98 @@ export const BookingSelection: FC<Props> = ({
   // ОБРАБОТЧИКИ ДЛЯ СУТОЧНОГО БРОНИРОВАНИЯ
   // ===========================================
 
+  // Обработчики двойного тапа для сброса дат
+  // ===========================================
+  // ОБРАБОТЧИКИ ДЛЯ СУТОЧНОГО БРОНИРОВАНИЯ
+  // ===========================================
+
+  // Проверка наличия заблокированных дат в диапазоне
+  const hasBlockedDatesInRange = (
+    startDate: Dayjs,
+    endDate: Dayjs
+  ): boolean => {
+    // Проверяем bannedDates (занятые даты из ad/check-dates)
+    const hasBookingBlocks =
+      bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
+        const bannedStartDate = normalizeDate(bannedStart);
+        const bannedEndDate = bannedEnd
+          ? normalizeDate(bannedEnd)
+          : bannedStartDate;
+
+        if (!bannedStartDate || !bannedEndDate) return false;
+
+        // Проверяем, пересекается ли блокировка с диапазоном
+        return (
+          bannedStartDate.isBetween(startDate, endDate, null, "()") ||
+          bannedEndDate.isBetween(startDate, endDate, null, "()") ||
+          (bannedStartDate.isBefore(startDate) &&
+            bannedEndDate.isAfter(endDate)) ||
+          ((bannedStartDate.isBefore(startDate) ||
+            bannedStartDate.isSame(startDate)) &&
+            (bannedEndDate.isAfter(endDate) || bannedEndDate.isSame(endDate)))
+        );
+      }) ?? false;
+
+    // Проверяем даты, заблокированные организацией через booking-ban-date
+    const hasOrgBlocks =
+      serviceSchedule?.some((banDate) => {
+        // Учитываем только даты заблокированные самой организацией
+        if (banDate.isByBooking) return false;
+
+        const banDateDay = dayjs(banDate.date);
+
+        // Проверяем, попадает ли заблокированная дата в диапазон
+        return banDateDay.isBetween(startDate, endDate, null, "()");
+      }) ?? false;
+
+    return hasBookingBlocks || hasOrgBlocks;
+  };
+
   const handleFullDayDateChange = (date: Dayjs | null) => {
     if (!date) return;
 
     const formattedDate = date.format("DD.MM.YYYY");
 
-    if (activeField === "start") {
-      // Если уже выбрана конечная дата, проверяем что начальная дата не позже конечной
-      if (selectedDateEnd) {
-        const endDate = dayjs(selectedDateEnd, "DD.MM.YYYY");
-        if (date.isAfter(endDate) || date.isSame(endDate)) {
-          // Не разрешаем выбор начальной даты после/равной конечной
-          return;
-        }
-
-        // Проверяем, есть ли заблокированные даты МЕЖДУ новой датой заезда и уже выбранной датой отъезда
-        // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
-        const hasBlockedDatesInRange =
-          bannedDates?.some(
-            ({ startDate: bannedStart, endDate: bannedEnd }) => {
-              const bannedStartDate = normalizeDate(bannedStart);
-              const bannedEndDate = bannedEnd
-                ? normalizeDate(bannedEnd)
-                : bannedStartDate;
-
-              if (!bannedStartDate || !bannedEndDate) return false;
-
-              // Проверяем, пересекается ли блокировка с диапазоном (date, endDate)
-              return (
-                bannedStartDate.isBetween(date, endDate, null, "()") ||
-                bannedEndDate.isBetween(date, endDate, null, "()") ||
-                (bannedStartDate.isBefore(date) &&
-                  bannedEndDate.isAfter(endDate)) ||
-                ((bannedStartDate.isBefore(date) ||
-                  bannedStartDate.isSame(date)) &&
-                  (bannedEndDate.isAfter(endDate) ||
-                    bannedEndDate.isSame(endDate)))
-              );
-            }
-          ) ?? false;
-
-        if (hasBlockedDatesInRange) {
-          // Не разрешаем выбор, если есть блокировки между датами
-          return;
-        }
-      }
-
+    // Если еще не выбрана дата заезда - выбираем ее
+    if (!selectedDateStart) {
       setSelectedDateStart(formattedDate);
       setCurrentSelectedDate(date);
-
-      // НЕ переключаемся автоматически на end, пользователь сам переключит
-      // setActiveField("end");
-    } else {
-      // Выбор конечной даты
-      const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
-
-      // Конечная дата должна быть после начальной
-      if (date.isBefore(startDate) || date.isSame(startDate)) {
-        return;
-      }
-
-      // Проверяем, есть ли заблокированные даты МЕЖДУ startDate и date (не включая сами границы)
-      // Для isFullDay: true используем только bannedDates (занятые даты из ad/check-dates)
-      const hasBlockedDatesInRange =
-        bannedDates?.some(({ startDate: bannedStart, endDate: bannedEnd }) => {
-          const bannedStartDate = normalizeDate(bannedStart);
-          const bannedEndDate = bannedEnd
-            ? normalizeDate(bannedEnd)
-            : bannedStartDate;
-
-          if (!bannedStartDate || !bannedEndDate) return false;
-
-          // Проверяем, пересекается ли блокировка с диапазоном (startDate, date)
-          // Используем "()" для исключения границ
-          return (
-            bannedStartDate.isBetween(startDate, date, null, "()") ||
-            bannedEndDate.isBetween(startDate, date, null, "()") ||
-            (bannedStartDate.isBefore(startDate) &&
-              bannedEndDate.isAfter(date)) ||
-            ((bannedStartDate.isBefore(startDate) ||
-              bannedStartDate.isSame(startDate)) &&
-              (bannedEndDate.isAfter(date) || bannedEndDate.isSame(date)))
-          );
-        }) ?? false;
-
-      if (hasBlockedDatesInRange) {
-        // Не разрешаем выбор, если есть блокировки между датами
-        return;
-      }
-
-      setSelectedDateEnd(formattedDate);
-      setCurrentSelectedDate(date);
+      return;
     }
+
+    // Если уже выбрана дата заезда
+    const startDate = dayjs(selectedDateStart, "DD.MM.YYYY");
+
+    // Если кликнули на ту же дату - сбрасываем выбор
+    if (date.isSame(startDate, "day")) {
+      setSelectedDateStart(null);
+      setSelectedDateEnd(null);
+      setCurrentSelectedDate(null);
+      return;
+    }
+
+    // Если кликнули на дату раньше даты заезда - делаем ее новой датой заезда
+    if (date.isBefore(startDate)) {
+      setSelectedDateStart(formattedDate);
+      setSelectedDateEnd(null);
+      setCurrentSelectedDate(date);
+      return;
+    }
+
+    // Если кликнули на дату после даты заезда - проверяем блокировки
+    // Проверяем, есть ли заблокированные даты между датами
+    if (hasBlockedDatesInRange(startDate, date)) {
+      // Если есть блокировки - не разрешаем выбор, делаем эту дату новой датой заезда
+      setSelectedDateStart(formattedDate);
+      setSelectedDateEnd(null);
+      setCurrentSelectedDate(date);
+      return;
+    }
+
+    // Если блокировок нет - устанавливаем дату выезда
+    setSelectedDateEnd(formattedDate);
+    setCurrentSelectedDate(date);
   };
-
-  // ===========================================
-  // ОБРАБОТЧИКИ ДЛЯ ПОЧАСОВОГО БРОНИРОВАНИЯ
-  // ===========================================
-
   const handleHourlyDateChange = (date: Dayjs | null) => {
     if (!date) return;
 
@@ -468,55 +461,49 @@ export const BookingSelection: FC<Props> = ({
         <div className="px-4 mb-32">
           <h2 className="mb-4">{t("bookingDate")}</h2>
           <div className="flex justify-between mb-4">
-            {/* Кнопка выбора даты заезда */}
-            <button
+            {/* Отображение даты заезда */}
+            <div
               className={`relative w-full h-16 px-10 py-5 rounded-[40px] mr-2 text-sm border ${
-                activeField === "start"
+                selectedDateStart
                   ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
                   : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
               }`}
-              onClick={() => {
-                setActiveField("start");
-              }}
             >
               <span
-                className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${
+                className={`absolute bottom-[50%] left-0 w-full text-sm transition-all text-center ${
                   selectedDateStart ? "translate-y-[-5px]" : "translate-y-[50%]"
                 }`}
               >
                 {t("CheckInDate")}
               </span>
               <span
-                className={`absolute bottom-[20%] left-[25%] transition-all text-lg text-black font-medium`}
+                className={`absolute bottom-[20%] left-0 w-full transition-all text-lg text-black font-medium text-center`}
               >
                 {selectedDateStart}
               </span>
-            </button>
+            </div>
 
-            {/* Кнопка выбора даты отъезда */}
-            <button
+            {/* Отображение даты отъезда */}
+            <div
               className={`relative w-full h-16 px-10 py-5 rounded-[40px] mr-2 text-sm border ${
-                activeField === "end"
+                selectedDateEnd
                   ? `${COLORS_BORDER.blue200} ${COLORS_TEXT.blue200}`
                   : `${COLORS_BORDER.gray100} ${COLORS_TEXT.gray100}`
               }`}
-              onClick={() => {
-                setActiveField("end");
-              }}
             >
               <span
-                className={`absolute bottom-[50%] left-0 w-full text-sm transition-all ${
+                className={`absolute bottom-[50%] left-0 w-full text-sm transition-all text-center ${
                   selectedDateEnd ? "translate-y-[-5px]" : "translate-y-[50%]"
                 }`}
               >
                 {t("DepatureDate")}
               </span>
               <span
-                className={`absolute bottom-[20%] left-[25%] transition-all text-lg text-black font-medium`}
+                className={`absolute bottom-[20%] left-0 w-full transition-all text-lg text-black font-medium text-center`}
               >
                 {selectedDateEnd}
               </span>
-            </button>
+            </div>
           </div>
         </div>
       )}
