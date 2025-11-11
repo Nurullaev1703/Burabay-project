@@ -53,7 +53,7 @@ export const AddReview: FC = function AddReview() {
 
   const [reviewImages, _] = useState([]);
   const [imageSrc, setImageSrc] = useState<string>(
-    announcement?.images?.[0] ? baseUrl + announcement.images[0] : ""
+    announcement?.images?.[0] ? baseUrl + announcement.images[0] : DefaultImage
   );
   // состояния для регулировки модалки с изображениями
   const [imageModal, setImageModal] = useState<boolean>(false);

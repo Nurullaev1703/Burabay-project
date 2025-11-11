@@ -111,7 +111,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number>(0);
   const scrollLeftRef = useRef<number>(0);
-  
+
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
@@ -177,11 +177,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!touchStartXRef.current) return;
-      
+
       const touchX = e.touches[0].clientX;
       const diff = touchStartXRef.current - touchX;
       container.scrollLeft = scrollLeftRef.current + diff;
-      
+
       // Предотвращаем вертикальный скролл страницы при горизонтальном скролле
       if (Math.abs(diff) > 5) {
         e.preventDefault();
@@ -192,14 +192,18 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       touchStartXRef.current = 0;
     };
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    container.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
 
@@ -591,21 +595,24 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         </div>
       )}
 
-      <div 
+      <div
         className="absolute bottom-20 left-0 right-0 z-[999]"
-        style={{ pointerEvents: 'none' }}
+        style={{ pointerEvents: "none" }}
       >
-        <div 
+        <div
           ref={categoriesScrollRef}
           className="overflow-x-auto overflow-y-hidden px-4 py-2 hide-scrollbar ios-scrollable-area"
-          style={{ 
-            WebkitOverflowScrolling: 'touch',
-            pointerEvents: 'auto',
-            overscrollBehavior: 'contain',
-            touchAction: 'pan-x',
+          style={{
+            WebkitOverflowScrolling: "touch",
+            pointerEvents: "auto",
+            overscrollBehavior: "contain",
+            touchAction: "pan-x",
           }}
         >
-          <div className="flex gap-2" style={{ width: 'max-content', minWidth: 'min-content' }}>
+          <div
+            className="flex gap-2"
+            style={{ width: "max-content", minWidth: "min-content" }}
+          >
             {!isSearchResultFound &&
               categories.map((item) => {
                 return (
@@ -632,35 +639,35 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     key={item.id}
                     className={`flex-shrink-0 whitespace-nowrap rounded-full flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
                   >
-                <div
-                  className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
-                >
-                  <img
-                    src={baseUrl + item.imgPath}
-                    className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-[25] z-[0]"
-                  />
-                </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  color={
-                    filters.categoryNames?.split(",").includes(item.name)
-                      ? COLORS_TEXT.white
-                      : ""
-                  }
-                  className={`text-center line-clamp-1`}
-                >
-                  {t(item.name)}
-                </Typography>
+                    <div
+                      className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
+                    >
+                      <img
+                        src={baseUrl + item.imgPath}
+                        className="absolute top-1/2 left-1/2 w-4 h-4 mr-2 -translate-x-1/2 -translate-y-1/2 brightness-[25] z-[0]"
+                      />
+                    </div>
+                    <Typography
+                      size={16}
+                      weight={400}
+                      color={
+                        filters.categoryNames?.split(",").includes(item.name)
+                          ? COLORS_TEXT.white
+                          : ""
+                      }
+                      className={`text-center line-clamp-1`}
+                    >
+                      {t(item.name)}
+                    </Typography>
 
-                {filters.categoryNames?.split(",").includes(item.name) && (
-                  <div className="w-3">
-                    <img src={cancel} alt="Close" className="" />
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                    {filters.categoryNames?.split(",").includes(item.name) && (
+                      <div className="w-3">
+                        <img src={cancel} alt="Close" className="" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
           </div>
         </div>
       </div>
@@ -688,24 +695,32 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       {showAnnouncementModal && announcementInfo && (
         <div
           key={announcementInfo.id}
-          className="fixed bottom-0 left-0 flex w-full z-[9999]"
+          className="fixed bottom-0 left-0 right-0 top-0 flex w-full h-full z-[9999] bg-black bg-opacity-50"
+          onClick={handleCloseModal}
         >
-          <div className="bg-white p-4 w-full justify-center rounded-lg shadow-lg">
-            <div className="">
-              <div className="grid justify-center flex-col gap-4">
-                <div className="flex flex-col">
-                  <Typography size={18} weight={500}>
+          <div
+            className="fixed bottom-0 left-0 right-0 flex w-full bg-white p-4 max-w-full rounded-lg shadow-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full">
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col w-full min-w-0">
+                  <Typography
+                    size={18}
+                    weight={500}
+                    className="truncate w-full"
+                  >
                     {announcementInfo.title}
                   </Typography>
                   {announcementInfo.duration ? (
-                    <Typography className="mb-4">
+                    <Typography className="mb-4 truncate w-full">
                       {`${t("DurationOfService")} - ${announcementInfo.duration}`}
                     </Typography>
                   ) : (
                     <Typography className="mb-2">{t("allDay")}</Typography>
                   )}
                 </div>
-                <div className="flex flex-row gap-4">
+                <div className="flex flex-row gap-4 w-full min-w-0">
                   <CoveredImage
                     borderRadius="rounded-lg"
                     errorImage={defaultAnnoun}
@@ -724,7 +739,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                       </div>
                     </div>
                   </CoveredImage>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex flex-row justify-between">
                       <Typography
                         size={28}
@@ -816,14 +831,6 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 {`${t("MoreDetails")}`}
               </Button>
             </div>
-            <button
-              onClick={handleCloseModal}
-              className=" absolute top-5 right-5 w-4 h-4 p-0 rounded-full bg-transparent flex items-center justify-center  group"
-            >
-              <IconContainer align="center">
-                <img src={cancelBlack} className="z-10" alt="" />
-              </IconContainer>
-            </button>
           </div>
         </div>
       )}
