@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../../components/Header";
@@ -40,6 +41,7 @@ interface FormType {
 }
 
 export const AddReview: FC = function AddReview() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { t } = useTranslation();
@@ -329,7 +331,8 @@ export const AddReview: FC = function AddReview() {
           });
           if (response.data) {
             await queryClient.refetchQueries({ queryKey: [`/review/ad/`] });
-            history.back();
+            // После успешного добавления отзыва переводим на страницу списка отзывов данного объявления
+            navigate({ to: `/announcements/reviews/${announcement.id}` });
           }
           setIsLoading(false);
         })}

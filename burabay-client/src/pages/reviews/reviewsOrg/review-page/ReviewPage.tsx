@@ -149,13 +149,12 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
           </div>
         </div>
       </div>
-
-      <ul className="p-4 bg-white">
+  <ul className="p-4 bg-white pb-24">
         {reviewData.reviews.map((review, index) => (
           <li key={index} className="border-b border-[#E4E9EA] pb-4">
             <div className="flex justify-between items-center mb-2.5">
-              <div className="flex flex-col">
-                <span>
+              <div className="flex-1 flex flex-col min-w-0 pr-2">
+                <span className="break-all break-words whitespace-normal overflow-wrap-anywhere font-medium">
                   {review.user.fullName ? review.user.fullName : "Безымянный"}
                 </span>
                 <span className={`text-xs ${COLORS_TEXT.gray100}`}>
@@ -168,7 +167,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                     : "Нет даты"}
                 </span>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-shrink-0">
                 {[...Array(5)].map((_, starIndex) => (
                   <img
                     key={starIndex}

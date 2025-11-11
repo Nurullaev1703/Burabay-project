@@ -41,9 +41,27 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ }) => {
                     .catch((error) => {
                     });
             }
-    
+
             // Показать модальное окно для запроса разрешения на уведомления
-            setShowNotificationModal(true);
+            // Только если Notification API доступен и permission === 'default'
+            try {
+                if (typeof Notification !== 'undefined') {
+                    if (Notification.permission === 'default') {
+                        setShowNotificationModal(true);
+                    } else {
+                        // Если уже разрешено или отклонено — помечаем флаг, чтобы модал больше не показывался
+                        notificationService.setValue(true);
+                    }
+                } else {
+                    // Если Notification API не поддерживается — помечаем флаг
+                    notificationService.setValue(true);
+                }
+            } catch (e) {
+                // В случае ошибок — помечаем флаг, чтобы не показывать модал бесконечно
+                try {
+                    notificationService.setValue(true);
+                } catch (err) {}
+            }
         }, []);
 
         
