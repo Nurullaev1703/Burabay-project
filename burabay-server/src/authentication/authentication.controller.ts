@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/constants';
 import { VerificationDto } from './dto/verification.dto';
 import { PhoneService } from './phone.service';
-import { Throttle } from '@nestjs/throttler';
+// import { Throttle } from '@nestjs/throttler';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { EmailService } from './email.service';
 import { GoogleAuthType } from './model/GoogleAuth';
@@ -80,7 +80,7 @@ export class AuthenticationController {
 
   // ограниченное количество запросов на 30 минут
   @Public()
-  @Throttle({ default: { limit: 8, ttl: 1800000 } })
+  // @Throttle({ default: { limit: 8, ttl: 1800000 } })
   @Post('verification')
   verification(@Body() verificationDto: VerificationDto) {
     return this.emailService.sendAcceptMessage(verificationDto.email);
@@ -88,7 +88,7 @@ export class AuthenticationController {
 
   // ограниченное количество запросов на 30 минут
   @Public()
-  @Throttle({ default: { limit: 8, ttl: 1800000 } })
+  // @Throttle({ default: { limit: 8, ttl: 1800000 } })
   @Post('reset-password')
   resetPasswordMessage(@Body() verificationDto: VerificationDto) {
     return this.emailService.resetPasswordMessage(verificationDto.email);
