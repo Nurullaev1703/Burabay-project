@@ -10,6 +10,7 @@ import { baseUrl } from "../../services/api/ServerData";
 import defaultImage from "../../app/icons/main/health.svg";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ProgressSteps } from "./ui/ProgressSteps";
 import { Radio, RadioGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -22,6 +23,7 @@ interface Props {
 
 export const AddAnnouncementsStepTwo: FC<Props> =
   function AddAnnouncementsStepTwo({ category, ad }) {
+    const queryClient = useQueryClient();
     const { t } = useTranslation();
     const [imgSource, setImgSource] = useState<string>(
       baseUrl + category.imgPath
@@ -48,6 +50,12 @@ export const AddAnnouncementsStepTwo: FC<Props> =
               subcategoryId: selectedSubcategoryId,
             },
           });
+
+          // Инвалидируем кэш для конкретного объявления
+          await queryClient.invalidateQueries({
+            queryKey: [`/ad/${ad.id}`],
+          });
+
           navigate({
             to: "/announcements/edit/choiseDetails/$adId",
             params: {
