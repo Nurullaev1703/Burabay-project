@@ -26,7 +26,11 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   fromMap = false,
 }) {
   const { user } = useAuth();
-  const isOwner = !!(user && user.organization && user.organization.id === ad.organization.id);
+  const isOwner = !!(
+    user &&
+    user.organization &&
+    user.organization.id === ad.organization.id
+  );
   const { t } = useTranslation();
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + ad.organization.imgUrl
@@ -69,9 +73,9 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
       <li className="py-3">
         {isOwner ? (
           <div className="flex justify-between items-center">
-            <div className="flex items-center relative">
+            <div className="flex items-center relative flex-1 min-w-0">
               <img
-                className="rounded-full w-10 h-10 mr-2 object-cover"
+                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
                 src={imageSrc}
                 alt={ad.organization.name}
                 onError={() => setImageSrc(DefaultImage)}
@@ -83,18 +87,20 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
                   alt="Подтверждено"
                 />
               )}
-              <span>{ad.organization.name}</span>
+              <span className="break-words overflow-wrap-anywhere">
+                {ad.organization.name}
+              </span>
             </div>
           </div>
         ) : (
           <Link
             to="/announcements/org-page/$organizationId"
             params={{ organizationId: ad.organization.id }}
-            className="flex justify-between"
+            className="flex justify-between items-center"
           >
-            <div className="flex items-center relative">
+            <div className="flex items-center relative flex-1 min-w-0 mr-2">
               <img
-                className="rounded-full w-10 h-10 mr-2 object-cover"
+                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
                 src={imageSrc}
                 alt={ad.organization.name}
                 onError={() => setImageSrc(DefaultImage)}
@@ -106,9 +112,11 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
                   alt="Подтверждено"
                 />
               )}
-              <span>{ad.organization.name}</span>
+              <span className="break-words overflow-wrap-anywhere">
+                {ad.organization.name}
+              </span>
             </div>
-            <img src={ArrowRight} alt="Стрелка" />
+            <img src={ArrowRight} alt="Стрелка" className="flex-shrink-0" />
           </Link>
         )}
       </li>

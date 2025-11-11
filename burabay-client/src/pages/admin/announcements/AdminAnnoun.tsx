@@ -37,16 +37,12 @@ import { Button } from "../../../shared/ui/Button";
 
 interface Props {
   announcement: AnnouncementType;
-  review?: ReviewAnnouncement;
 }
 
 export const formatPrice = (value: number) => {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
 };
-export const AdminAnnoun: FC<Props> = function Announcement({
-  announcement,
-  review,
-}) {
+export const AdminAnnoun: FC<Props> = function Announcement({ announcement }) {
   const { t } = useTranslation();
   const [isFavouriteModal, setIsFavouriteModal] = useState<boolean>(false);
   const [carouselImages, _] = useState<CarouselItem[]>(
@@ -144,7 +140,9 @@ export const AdminAnnoun: FC<Props> = function Announcement({
                   </div>
                 )}
             </div>
-            <h1 className="font-medium text-[22px]">{announcement.title}</h1>
+            <h1 className="font-medium text-[22px] break-words">
+              {announcement.title}
+            </h1>
 
             <div className="flex justify-between mb-4 items-center">
               <span className="text-sm">
@@ -195,12 +193,14 @@ export const AdminAnnoun: FC<Props> = function Announcement({
                 )}
             </div>
 
-            <p className="mb-4 leading-5">{announcement.description}</p>
+            <p className="mb-4 leading-5 break-words whitespace-pre-wrap">
+              {announcement.description}
+            </p>
 
             <AnnouncementInfoList ad={announcement} isAdmin={true} />
           </div>
           <CostInfoList isAdmin ad={announcement} />
-          <ReviewsInfo isAdmin ad={announcement} review={review} />
+          <ReviewsInfo isAdmin ad={announcement} />
         </div>
         {showModal && (
           <ModalDelete

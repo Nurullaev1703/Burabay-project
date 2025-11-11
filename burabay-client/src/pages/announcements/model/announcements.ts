@@ -110,6 +110,7 @@ export interface Announcement {
   avgRating: number;
   reviewCount: number;
   bookingBanDate: BookingBanDate[];
+  reviews: Review[];
 }
 
 export interface location {

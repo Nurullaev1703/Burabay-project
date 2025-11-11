@@ -37,7 +37,6 @@ import { FavouriteHint } from "../../../components/favourite-hint/FavouriteHint"
 
 interface Props {
   announcement: AnnouncementType;
-  review?: ReviewAnnouncement;
   fromMap?: boolean;
 }
 
@@ -46,7 +45,6 @@ export const formatPrice = (value: number) => {
 };
 export const Announcement: FC<Props> = function Announcement({
   announcement,
-  review,
   fromMap = false,
 }) {
   const { t } = useTranslation();
@@ -104,7 +102,13 @@ export const Announcement: FC<Props> = function Announcement({
         <div className="flex justify-between items-center text-center relative max-w-3xl mx-auto">
           <IconContainer
             align="start"
-            action={() => (role === "бизнес" ? history.back() : history.back())}
+            action={() => {
+              if (fromMap) {
+                navigate({ to: "/mapNav", replace: true });
+              } else {
+                navigate({ to: "/", replace: true });
+              }
+            }}
           >
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -193,7 +197,9 @@ export const Announcement: FC<Props> = function Announcement({
               </div>
             )}
           </div>
-          <h1 className="font-medium text-[22px]">{announcement.title}</h1>
+          <h1 className="font-medium text-[22px] break-words">
+            {announcement.title}
+          </h1>
 
           <div className="flex justify-between mb-4 items-center">
             <span className="text-sm">
@@ -242,12 +248,14 @@ export const Announcement: FC<Props> = function Announcement({
             )}
           </div>
 
-          <p className="mb-4 leading-5">{announcement.description}</p>
+          <p className="mb-4 leading-5 break-words whitespace-pre-wrap">
+            {announcement.description}
+          </p>
 
           <AnnouncementInfoList ad={announcement} fromMap={fromMap} />
         </div>
         <CostInfoList ad={announcement} />
-        <ReviewsInfo ad={announcement} review={review} />
+        <ReviewsInfo ad={announcement} />
       </div>
       {showModal && (
         <ModalDelete
