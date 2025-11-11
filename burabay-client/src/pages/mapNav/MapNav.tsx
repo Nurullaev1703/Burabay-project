@@ -547,8 +547,20 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         </div>
       )}
 
-      <div className="relative px-4 -top-navbar left-0 w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}>
-        <div className="flex gap-2 w-max">
+      <div 
+        className="relative -top-navbar left-0 w-full overflow-x-scroll overflow-y-hidden px-4"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        <style>{`
+          .scroll-container::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="flex gap-2 pb-2" style={{ display: 'inline-flex', minWidth: 'min-content' }}>
           {!isSearchResultFound &&
             categories.map((item) => {
               return (
@@ -573,7 +585,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     })
                   }
                   key={item.id}
-                  className={`flex-shrink-0 w-fit rounded-full justify-between flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
+                  className={`flex-shrink-0 whitespace-nowrap rounded-full justify-between flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
                 >
                 <div
                   className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
