@@ -213,6 +213,15 @@ export class AdService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    // Получаем первые 4 отзыва отдельным запросом
+    const reviews = await this.dataSource
+      .getRepository('Review')
+      .createQueryBuilder('review')
+      .where('review.ad = :adId', { adId: id })
+      .orderBy('review.date', 'DESC')
+      .limit(4)
+      .getMany();
+
     const favCount = ad.usersFavorited.length;
     // Проверка, является ли объявление Избранным.
     const isFavourite = ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
@@ -231,7 +240,7 @@ export class AdService {
       }
     }
     ad.bookingBanDate = ad.bookingBanDate.filter((bd) => bd.isByBooking === false);
-    return { ...ad, favCount, isFavourite };
+    return { ...ad, reviews, favCount, isFavourite };
   }
 
   /* Добавление Объявление в список избранного Пользователя по его токену. */

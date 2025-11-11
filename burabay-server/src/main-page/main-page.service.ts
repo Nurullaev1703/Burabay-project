@@ -39,16 +39,32 @@ export class MainPageService {
         },
       };
     }
-    const announcements = await this.adRepository.find({
-      where: whereOptions,
-      relations: { organization: true, subcategory: { category: true }, address: true },
-      order: {
-        createdAt: 'DESC',
-      },
-      skip: filter.offset || 0,
-      take: filter.limit || 10,
-    });
-    return filter.adName ? this._searchAd(filter.adName, announcements) : announcements;
+    let announcements = [];
+    // Если поиск, то все и фильтруем по названию
+    if (filter.adName) {
+      announcements = await this.adRepository.find({
+        where: whereOptions,
+        relations: { organization: true, subcategory: { category: true }, address: true },
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+      announcements = this._searchAd(filter.adName, announcements);
+      // Ограничение до 10 результатов.
+      announcements = announcements.slice(0, 10);
+    } else {
+      announcements = await this.adRepository.find({
+        where: whereOptions,
+        relations: { organization: true, subcategory: { category: true }, address: true },
+        order: {
+          createdAt: 'DESC',
+        },
+        skip: filter.offset || 0,
+        take: filter.limit || 10,
+      });
+    }
+
+    return announcements;
   }
 
   /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */

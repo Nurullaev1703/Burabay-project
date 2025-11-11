@@ -261,10 +261,10 @@ const ReviewsPage: FC = () => {
                             key={review.id}
                             className="h-full p-5 flex flex-col"
                           >
-                            <div className="flex justify-between items-start">
-                              <div>
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-shrink min-w-0">
                                 <p
-                                  className={`text-sm font-semibold text-gray-700 ${
+                                  className={`text-sm font-semibold text-gray-700 truncate max-w-[150px] ${
                                     !isLoading
                                       ? "cursor-pointer text-blue-500"
                                       : "text-gray-500 cursor-default"
@@ -280,10 +280,9 @@ const ReviewsPage: FC = () => {
                                     } else {
                                     }
                                   }}
+                                  title={review.user.fullName || "Не указано"}
                                 >
-                                  <span className="break-words whitespace-normal">
-                                    {review.user.fullName || "Не указано"}
-                                  </span>
+                                  {review.user.fullName || "Не указано"}
                                 </p>
                                 <p className="text-gray-500 text-sm ">
                                   {formatDate(review.date)}
@@ -292,7 +291,7 @@ const ReviewsPage: FC = () => {
                               </div>
                               <div
                                 key={review.ad.id}
-                                className="flex items-center gap-4"
+                                className="flex items-center gap-2 flex-shrink-0 cursor-pointer"
                                 onClick={() =>
                                   navigate({
                                     to: `/admin/announcements/${review.ad.id}`,
@@ -302,16 +301,19 @@ const ReviewsPage: FC = () => {
                                 <img
                                   src={`${BASE_URL}${review.ad.images[0]}`}
                                   alt="Фото курорта"
-                                  className="w-[52px] h-[52px] rounded-md object-cover"
+                                  className="w-[52px] h-[52px] rounded-md object-cover flex-shrink-0"
                                   onError={(e) =>
                                     (e.currentTarget.src = defaultImage)
                                   }
                                 />
-                                <div className="text-right">
-                                  <p className="text-sm font-semibold text-gray-700">
+                                <div className="text-right min-w-0">
+                                  <p
+                                    className="text-sm font-semibold text-gray-700 truncate max-w-[100px]"
+                                    title={review.ad.title || "Без названия"}
+                                  >
                                     {review.ad.title || "Без названия"}
                                   </p>
-                                  <div className="text-[16px] text-black flex items-center">
+                                  <div className="text-[16px] text-black flex items-center justify-end">
                                     ⭐ {review.stars}
                                   </div>
                                 </div>

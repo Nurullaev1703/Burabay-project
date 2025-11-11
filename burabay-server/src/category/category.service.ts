@@ -16,8 +16,8 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Subcategory)
-    private readonly subcategoryRepository: Repository<Subcategory>,
+    @InjectRepository(Ad)
+    private readonly adRepository: Repository<Ad>,
   ) {}
 
   /** Получить все Категории. */
@@ -101,52 +101,38 @@ export class CategoryService {
       return [];
     }
 
-    // Построение условий фильтрации
-    let whereOptions: any = {
-      subcategory: { category: { id: In(categoriesId) } },
-      organization: { isBanned: false },
-    };
+    // Получение объявлений напрямую через Ad entity
+    const queryBuilder = this.adRepository
+      .createQueryBuilder('ad')
+      .leftJoinAndSelect('ad.subcategory', 'subcategory')
+      .leftJoinAndSelect('subcategory.category', 'category')
+      .leftJoinAndSelect('ad.address', 'address')
+      .leftJoinAndSelect('ad.organization', 'organization')
+      .where('category.id IN (:...categoriesId)', { categoriesId })
+      .andWhere('organization.isBanned = :isBanned', { isBanned: false });
 
     // Фильтр по цене
     if (filter?.minPrice && filter?.maxPrice) {
-      whereOptions.price = Between(filter.minPrice, filter.maxPrice);
+      queryBuilder.andWhere('ad.price BETWEEN :minPrice AND :maxPrice', {
+        minPrice: filter.minPrice,
+        maxPrice: filter.maxPrice,
+      });
     } else if (filter?.maxPrice) {
-      whereOptions.price = LessThanOrEqual(filter.maxPrice);
+      queryBuilder.andWhere('ad.price <= :maxPrice', {
+        maxPrice: filter.maxPrice,
+      });
     } else if (filter?.minPrice) {
-      whereOptions.price = MoreThanOrEqual(filter.minPrice);
+      queryBuilder.andWhere('ad.price >= :minPrice', {
+        minPrice: filter.minPrice,
+      });
     }
 
     // Фильтр только с высоким рейтингом
     if (filter?.isHighRating === true || String(filter?.isHighRating) === 'true') {
-      whereOptions.avgRating = MoreThan(4.5);
+      queryBuilder.andWhere('ad.avgRating > :rating', { rating: 4.5 });
     }
 
-    // Получение объявлений
-    const ads = await this.subcategoryRepository
-      .createQueryBuilder('subcategory')
-      .innerJoinAndSelect('subcategory.ads', 'ad')
-      .innerJoinAndSelect('ad.subcategory', 'adSubcategory')
-      .innerJoinAndSelect('adSubcategory.category', 'category')
-      .leftJoinAndSelect('ad.address', 'address')
-      .leftJoinAndSelect('ad.organization', 'organization')
-      .where('category.id IN (:...categoriesId)', { categoriesId })
-      .andWhere('organization.isBanned = :isBanned', { isBanned: false })
-      .andWhere(
-        filter?.minPrice && filter?.maxPrice
-          ? 'ad.price BETWEEN :minPrice AND :maxPrice'
-          : filter?.maxPrice
-            ? 'ad.price <= :maxPrice'
-            : filter?.minPrice
-              ? 'ad.price >= :minPrice'
-              : '1=1',
-        {
-          minPrice: filter?.minPrice,
-          maxPrice: filter?.maxPrice,
-        },
-      )
-      .andWhere(filter?.isHighRating === true || String(filter?.isHighRating) === 'true' ? 'ad.avgRating > :rating' : '1=1', {
-        rating: 4.5,
-      })
+    const ads = await queryBuilder
       .select([
         'ad.id',
         'ad.title',
@@ -158,7 +144,7 @@ export class CategoryService {
         'ad.createdAt',
         'address.address',
         'address.specialName',
-        'adSubcategory.name',
+        'subcategory.name',
         'category.name',
         'category.imgPath',
       ])
@@ -167,16 +153,11 @@ export class CategoryService {
       .take(filter?.limit || 10)
       .getMany();
 
-    // Извлекаем объявления из подкатегорий
-    const allAds: any[] = [];
-    for (const subcategory of ads) {
-      for (const ad of subcategory.ads) {
-        allAds.push({
-          ...ad,
-          isFavourite: user.favorites.some((favAd) => favAd.id === ad.id),
-        });
-      }
-    }
+    // Добавляем информацию об избранном
+    const allAds = ads.map((ad) => ({
+      ...ad,
+      isFavourite: user.favorites.some((favAd) => favAd.id === ad.id),
+    }));
 
     // Применяем поиск по названию если указан
     if (filter?.name) {
