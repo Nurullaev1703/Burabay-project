@@ -7,7 +7,7 @@ interface Props extends HTMLAttributes<HTMLElement>{
 export const AlternativeHeader: FC<Props> = function AlternativeHeader(props) {
   return (
     <header
-      className={`max-w-fullWidth relative`} //FIXME: высоту хедера пофикстить
+      className={`max-w-fullWidth sticky top-0 z-50`} //FIXME: высоту хедера пофикстить
     >
       <div className={`relative top-0 left-0 w-full ${props.isMini ? "pt-[70px]" : "pt-[120px]"} `}>
         <img src={headerBg} className="absolute top-0 left-0 rounded-bl-3xl object-cover w-full h-full bg-blue200"/>
