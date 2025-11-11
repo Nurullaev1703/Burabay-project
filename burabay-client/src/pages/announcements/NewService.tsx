@@ -9,6 +9,7 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Modal, Switch } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
 import { useTranslation } from "react-i18next";
 import { Announcement } from "./model/announcements";
@@ -22,6 +23,7 @@ export const NewService: FC<Props> = function NewService({
   adId,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [unlimitedClients, setUnlimitedClients] = useState(
@@ -55,6 +57,11 @@ export const NewService: FC<Props> = function NewService({
       },
     });
     if (response.data) {
+      // Инвалидируем кэш для конкретного объявления
+      await queryClient.invalidateQueries({
+        queryKey: [`/ad/${adId}`],
+      });
+
       navigate({
         to: "/announcements/priceService/$adId",
         params: {

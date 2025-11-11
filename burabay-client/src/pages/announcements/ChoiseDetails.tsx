@@ -24,6 +24,7 @@ import { imageService } from "../../services/api/ImageService";
 import { baseUrl } from "../../services/api/ServerData";
 import { ImageViewModal } from "./reviews/ui/ImageViewModal";
 import VideoUploadImg from "../../app/icons/profile/confirm/file.svg";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
@@ -57,6 +58,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   subcategory,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [isPhoneValid, setIsPhoneValid] = useState<boolean>(true);
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -429,6 +431,12 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
           }
         : null;
+
+      // Фильтруем toggles - оставляем только включенные (true)
+      const filteredDetails = Object.fromEntries(
+        Object.entries(toggles).filter(([_, value]) => value === true)
+      );
+
       if (announcement) {
         // If editing an existing announcement, send a PATCH and merge existing images with newly uploaded ones
         await apiService.patch<string>({
@@ -450,9 +458,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 .filter((item) => item != null),
               ...(newImages as string[]),
             ],
-            details: toggles,
+            details: filteredDetails,
             ...phoneNumberDto,
           },
+        });
+
+        // Инвалидируем кэш для конкретного объявления
+        await queryClient.invalidateQueries({
+          queryKey: [`/ad/${announcement.id}`],
         });
 
         navigate({ to: "/announcements" });
@@ -467,7 +480,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             organizationId: user?.organization?.id,
             subcategoryId: subcategory.id,
             images: newImages,
-            details: toggles,
+            details: filteredDetails,
             ...phoneNumberDto,
           },
         });
@@ -594,6 +607,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
             const newImages = await handleUpload();
             const videoPath = await uploadVideo();
 
+            // Фильтруем toggles - оставляем только включенные (true)
+            const filteredDetails = Object.fromEntries(
+              Object.entries(toggles).filter(([_, value]) => value === true)
+            );
+
             if (announcement) {
               const phoneNumberDto = mask.current?.value
                 .replace(/\D/g, "")
@@ -621,10 +639,16 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                       .filter((item) => item != null),
                     ...(newImages as string[]),
                   ],
-                  details: toggles,
+                  details: filteredDetails,
                   ...phoneNumberDto,
                 },
               });
+
+              // Инвалидируем кэш для конкретного объявления
+              await queryClient.invalidateQueries({
+                queryKey: [`/ad/${announcement.id}`],
+              });
+
               navigate({
                 to: `/map/$adId`,
                 params: {
@@ -647,7 +671,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
-                  details: toggles,
+                  details: filteredDetails,
                   ...phoneNumberDto,
                 },
               });

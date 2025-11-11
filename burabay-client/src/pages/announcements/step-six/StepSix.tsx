@@ -17,6 +17,7 @@ import PlusIcon from "../../../app/icons/plus.svg";
 import { useMask } from "@react-input/mask";
 import { Button } from "../../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { Announcement } from "../model/announcements";
@@ -36,6 +37,7 @@ interface FormType {
 }
 
 export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { t } = useTranslation();
@@ -212,7 +214,8 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
       });
 
       if (response.data) {
-        await queryClient.refetchQueries({ queryKey: [`/ad/${id}`] });
+        // Инвалидируем кэш для конкретного объявления
+        await queryClient.invalidateQueries({ queryKey: [`/ad/${id}`] });
         navigate({
           to: `/announcements/bookingBan/${id}?serviceTime=${form.startTime.join(",")}`,
           params: {
