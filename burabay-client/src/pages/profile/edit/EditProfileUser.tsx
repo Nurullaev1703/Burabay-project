@@ -18,7 +18,6 @@ import { formatToDisplayPhoneNumber } from "../../../shared/ui/format-phone";
 
 interface FormType {
   fullName: string;
-  email: string;
   phoneNumber: string;
 }
 
@@ -37,7 +36,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
   } = useForm<FormType>({
     defaultValues: {
       fullName: user?.fullName || "",
-      email: user?.email || "",
       phoneNumber: formatToDisplayPhoneNumber(user?.phoneNumber || "+7"),
     },
     mode: "onChange",
@@ -79,17 +77,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
         return;
       }
 
-      // 3) Валидация email на фронтенде
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(form.email)) {
-        setIsLoading(false);
-        setError("email", {
-          type: "manual",
-          message: t("invalidEmail"),
-        });
-        return;
-      }
-
       const updatedForm = {
         ...form,
         phoneNumber: formatPhoneNumber(form.phoneNumber),
@@ -127,19 +114,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
             setIsLoading(false);
             return;
           }
-          // Проверка на ошибку email
-          if (
-            serverMessage.some((m: string) =>
-              String(m).toLowerCase().includes("email")
-            )
-          ) {
-            setError("email", {
-              type: "server",
-              message: t("invalidEmail"),
-            });
-            setIsLoading(false);
-            return;
-          }
         } else {
           const msgStr = String(serverMessage).toLowerCase();
           // Проверка на ошибку телефона
@@ -147,15 +121,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
             setError("phoneNumber", {
               type: "server",
               message: t("invalidNumber"),
-            });
-            setIsLoading(false);
-            return;
-          }
-          // Проверка на ошибку email
-          if (msgStr.includes("email")) {
-            setError("email", {
-              type: "server",
-              message: t("invalidEmail"),
             });
             setIsLoading(false);
             return;
@@ -224,29 +189,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   {field.value?.length || 0}/40
                 </span>
               </div>
-            )}
-          />
-
-          <Controller
-            name="email"
-            control={control}
-            rules={{
-              required: t("requiredField"),
-              pattern: {
-                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                message: t("invalidEmail"),
-              },
-            }}
-            render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
-                  label={t("email")}
-                  multiline
-                  fullWidth={true}
-                  variant="outlined"
-                />
             )}
           />
 

@@ -16,7 +16,6 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 
 interface FormType {
   organization: Organization;
-  email: string;
 }
 
 export const EditProfile: FC = function EditProfile() {
@@ -32,14 +31,12 @@ export const EditProfile: FC = function EditProfile() {
         description: user?.organization?.description || "",
         siteUrl: user?.organization?.siteUrl || "",
       },
-      email: user?.email || "",
     },
     mode: "onChange",
   });
 
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
-  const { setError: setFormError } = useForm<FormType>();
 
   const handleError = (errorText: string) => {
     setErrorText(errorText);
@@ -51,17 +48,6 @@ export const EditProfile: FC = function EditProfile() {
       setIsLoading(true);
       setError(false);
       setErrorText("");
-
-      // Валидация email на фронтенде
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(form.email)) {
-        setIsLoading(false);
-        setFormError("email", {
-          type: "manual",
-          message: t("invalidEmail"),
-        });
-        return;
-      }
 
       const response = await apiService.patch<Profile>({
         url: "/profile",
@@ -77,35 +63,6 @@ export const EditProfile: FC = function EditProfile() {
 
       setIsLoading(false);
     } catch (err: any) {
-      // Проверяем тело ответа на ошибки валидации email
-      const serverMessage =
-        err?.response?.data?.message || err?.data?.message || err?.message;
-
-      if (Array.isArray(serverMessage)) {
-        if (
-          serverMessage.some((m: string) =>
-            String(m).toLowerCase().includes("email")
-          )
-        ) {
-          setFormError("email", {
-            type: "server",
-            message: t("invalidEmail"),
-          });
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        const msgStr = String(serverMessage).toLowerCase();
-        if (msgStr.includes("email")) {
-          setFormError("email", {
-            type: "server",
-            message: t("invalidEmail"),
-          });
-          setIsLoading(false);
-          return;
-        }
-      }
-
       handleError(t("defaultError"));
       setIsLoading(false);
     }
@@ -194,29 +151,6 @@ export const EditProfile: FC = function EditProfile() {
                   {field.value?.length || 0}/300
                 </span>
               </div>
-            )}
-          />
-
-          <Controller
-            name="email"
-            control={control}
-            rules={{
-              required: t("requiredField"),
-              pattern: {
-                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                message: t("invalidEmail"),
-              },
-            }}
-            render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                label={t("email")}
-                multiline
-                fullWidth={true}
-                variant="outlined"
-              />
             )}
           />
 
