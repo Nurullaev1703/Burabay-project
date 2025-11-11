@@ -108,6 +108,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   });
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
+  const categoriesScrollRef = useRef<HTMLDivElement>(null);
+  const touchStartXRef = useRef<number>(0);
+  const scrollLeftRef = useRef<number>(0);
+  
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
   });
@@ -159,6 +163,44 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     } else {
       setUserLocation({ lat: 52.2833, lng: 76.9667 }); // Фолбэк, если браузер не поддерживает гео
     }
+  }, []);
+
+  // Обработчики для горизонтального скролла категорий на iOS
+  useEffect(() => {
+    const container = categoriesScrollRef.current;
+    if (!container) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartXRef.current = e.touches[0].clientX;
+      scrollLeftRef.current = container.scrollLeft;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStartXRef.current) return;
+      
+      const touchX = e.touches[0].clientX;
+      const diff = touchStartXRef.current - touchX;
+      container.scrollLeft = scrollLeftRef.current + diff;
+      
+      // Предотвращаем вертикальный скролл страницы при горизонтальном скролле
+      if (Math.abs(diff) > 5) {
+        e.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartXRef.current = 0;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
   }, []);
 
   const calculateRoute = async (latitude: number, longitude: number) => {
@@ -552,13 +594,16 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         style={{ pointerEvents: 'none' }}
       >
         <div 
-          className="overflow-x-auto overflow-y-hidden px-4 py-2 hide-scrollbar"
+          ref={categoriesScrollRef}
+          className="overflow-x-auto overflow-y-hidden px-4 py-2 hide-scrollbar ios-scrollable-area"
           style={{ 
             WebkitOverflowScrolling: 'touch',
             pointerEvents: 'auto',
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-x',
           }}
         >
-          <div className="flex gap-2" style={{ width: 'max-content' }}>
+          <div className="flex gap-2" style={{ width: 'max-content', minWidth: 'min-content' }}>
             {!isSearchResultFound &&
               categories.map((item) => {
                 return (

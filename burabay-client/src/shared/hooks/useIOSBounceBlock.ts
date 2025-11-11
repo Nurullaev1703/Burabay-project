@@ -15,12 +15,28 @@ export const useIOSBounceBlock = () => {
       let element: HTMLElement | null = target;
 
       while (element && element !== document.body) {
+        // Игнорируем элементы Google Maps и другие интерактивные карты
+        if (
+          element.classList.contains('map-container') ||
+          element.getAttribute('data-allow-touch') === 'true' ||
+          element.closest('[data-allow-touch="true"]') ||
+          element.closest('.gm-style') // Google Maps контейнер
+        ) {
+          return; // Не блокируем touch события для карт
+        }
+
         const hasScroll = element.scrollHeight > element.clientHeight;
         const isScrollable =
           window.getComputedStyle(element).overflowY === "scroll" ||
           window.getComputedStyle(element).overflowY === "auto";
+        
+        // Также проверяем горизонтальный скролл (для категорий и т.д.)
+        const hasHorizontalScroll = element.scrollWidth > element.clientWidth;
+        const isHorizontallyScrollable =
+          window.getComputedStyle(element).overflowX === "scroll" ||
+          window.getComputedStyle(element).overflowX === "auto";
 
-        if (hasScroll && isScrollable) {
+        if ((hasScroll && isScrollable) || (hasHorizontalScroll && isHorizontallyScrollable)) {
           const scrollTop = element.scrollTop;
           const scrollHeight = element.scrollHeight;
           const clientHeight = element.clientHeight;
@@ -30,6 +46,11 @@ export const useIOSBounceBlock = () => {
           const touches = e.touches[0];
           const startY = (element as any)._startY || touches.clientY;
           const deltaY = touches.clientY - startY;
+
+          // Для горизонтально скроллируемых элементов не блокируем горизонтальные жесты
+          if (hasHorizontalScroll && isHorizontallyScrollable) {
+            return; // Позволяем горизонтальный скролл
+          }
 
           if ((isAtTop && deltaY > 0) || (isAtBottom && deltaY < 0)) {
             e.preventDefault();
@@ -47,12 +68,27 @@ export const useIOSBounceBlock = () => {
       let element: HTMLElement | null = target;
 
       while (element && element !== document.body) {
+        // Игнорируем элементы карт
+        if (
+          element.classList.contains('map-container') ||
+          element.getAttribute('data-allow-touch') === 'true' ||
+          element.closest('[data-allow-touch="true"]') ||
+          element.closest('.gm-style')
+        ) {
+          return;
+        }
+
         const hasScroll = element.scrollHeight > element.clientHeight;
         const isScrollable =
           window.getComputedStyle(element).overflowY === "scroll" ||
           window.getComputedStyle(element).overflowY === "auto";
+        
+        const hasHorizontalScroll = element.scrollWidth > element.clientWidth;
+        const isHorizontallyScrollable =
+          window.getComputedStyle(element).overflowX === "scroll" ||
+          window.getComputedStyle(element).overflowX === "auto";
 
-        if (hasScroll && isScrollable) {
+        if ((hasScroll && isScrollable) || (hasHorizontalScroll && isHorizontallyScrollable)) {
           (element as any)._startY = e.touches[0].clientY;
           return;
         }

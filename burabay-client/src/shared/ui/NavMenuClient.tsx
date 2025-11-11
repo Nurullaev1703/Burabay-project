@@ -29,10 +29,13 @@ export const NavMenuClient: FC = function NavMenuClient() {
       clearTimeout(clickTimeout.current);
       clickTimeout.current = null;
       if (location.pathname === "/main") {
+        // Двойной клик - скроллим наверх и очищаем сохраненную позицию
+        sessionStorage.removeItem("mainPageScroll");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else {
       clickTimeout.current = setTimeout(() => {
+        // Одиночный клик - переходим на главную с сохранением скролла
         navigate({ to: "/main" });
         clickTimeout.current = null;
       }, 250);
