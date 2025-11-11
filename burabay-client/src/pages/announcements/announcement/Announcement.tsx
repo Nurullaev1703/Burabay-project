@@ -106,7 +106,7 @@ export const Announcement: FC<Props> = function Announcement({
               if (fromMap) {
                 navigate({ to: "/mapNav", replace: true });
               } else {
-                navigate({ to: "/", replace: true });
+                history.back();
               }
             }}
           >
@@ -255,7 +255,7 @@ export const Announcement: FC<Props> = function Announcement({
           <AnnouncementInfoList ad={announcement} fromMap={fromMap} />
         </div>
         <CostInfoList ad={announcement} />
-        <ReviewsInfo ad={announcement} />
+        <ReviewsInfo ad={announcement} fromMap={fromMap} />
       </div>
       {showModal && (
         <ModalDelete

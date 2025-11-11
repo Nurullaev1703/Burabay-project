@@ -45,19 +45,15 @@ export const AddReview: FC = function AddReview() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { t } = useTranslation();
-  const { announcement } = (location.state || {}) as {
+  const { announcement, fromMap, fromReviews } = (location.state || {}) as {
     announcement?: Announcement;
+    fromMap?: boolean;
+    fromReviews?: boolean;
   };
-
-  if (!announcement) {
-    // Если нет данных, можно вернуть назад или показать ошибку
-    history.back();
-    return null;
-  }
 
   const [reviewImages, _] = useState([]);
   const [imageSrc, setImageSrc] = useState<string>(
-    baseUrl + announcement.images[0]
+    announcement?.images?.[0] ? baseUrl + announcement.images[0] : ""
   );
   // состояния для регулировки модалки с изображениями
   const [imageModal, setImageModal] = useState<boolean>(false);
@@ -68,7 +64,7 @@ export const AddReview: FC = function AddReview() {
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      adId: announcement.id,
+      adId: announcement?.id || "",
       images: [],
       text: "",
       stars: 0,
@@ -268,18 +264,38 @@ export const AddReview: FC = function AddReview() {
     };
   }, []);
 
+  // Проверка на отсутствие данных - редирект назад
+  useEffect(() => {
+    if (!announcement) {
+      history.back();
+    }
+  }, [announcement]);
+
+  // Если нет данных, ничего не рендерим
+  if (!announcement) {
+    return null;
+  }
+
   return (
     <section className="min-h-screen bg-background">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer
             align="start"
-            action={() =>
-              navigate({
-                to: `/announcements/${announcement.id}`,
-                replace: true,
-              })
-            }
+            action={() => {
+              if (fromReviews) {
+                navigate({
+                  to: `/announcements/reviews/${announcement.id}`,
+                  replace: true,
+                });
+              } else {
+                navigate({
+                  to: `/announcements/${announcement.id}`,
+                  search: fromMap ? { fromMap: true } : undefined,
+                  replace: true,
+                });
+              }
+            }}
           >
             <img src={BackIcon} alt="" />
           </IconContainer>
@@ -295,12 +311,20 @@ export const AddReview: FC = function AddReview() {
           </div>
           <IconContainer
             align="end"
-            action={() =>
-              navigate({
-                to: `/announcements/${announcement.id}`,
-                replace: true,
-              })
-            }
+            action={() => {
+              if (fromReviews) {
+                navigate({
+                  to: `/announcements/reviews/${announcement.id}`,
+                  replace: true,
+                });
+              } else {
+                navigate({
+                  to: `/announcements/${announcement.id}`,
+                  search: fromMap ? { fromMap: true } : undefined,
+                  replace: true,
+                });
+              }
+            }}
           >
             <img src={CloseIcon} alt="" />
           </IconContainer>

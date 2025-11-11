@@ -21,9 +21,14 @@ import { ImageViewModal } from "../../reviews/ui/ImageViewModal";
 interface Props {
   ad: Announcement;
   isAdmin?: boolean;
+  fromMap?: boolean;
 }
 
-export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, isAdmin }) {
+export const ReviewsInfo: FC<Props> = function ReviewsInfo({
+  ad,
+  isAdmin,
+  fromMap = false,
+}) {
   // состояния для регулировки модалки с изображениями
   const [imageModal, setImageModal] = useState<boolean>(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -99,7 +104,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({ ad, isAdmin }) {
                   onClick={() =>
                     navigate({
                       to: "/announcements/reviews/add-review",
-                      state: { announcement: ad } as unknown as Record<
+                      state: { announcement: ad, fromMap } as unknown as Record<
                         string,
                         unknown
                       >,
