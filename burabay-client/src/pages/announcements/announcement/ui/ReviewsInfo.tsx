@@ -44,6 +44,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
   >({});
   const navigate = useNavigate();
   const role = roleService.hasValue() ? roleService.getValue() : null;
+  const hasMoreReviews = (reviews.length > 3) || ((ad.reviewCount || 0) > 3);
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -93,10 +94,14 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
         </div>
       </div>
       {showReviews && (
-        <ul className="flex flex-col gap-8">
-          {/* Вывод отзывов */}
-          {reviews.map((review, index) => (
-            <li key={index} className="border-b border-[#E4E9EA] pb-4">
+        <>
+          {reviews.length === 0 ? (
+            <div className="text-gray-500 py-4">{(t("noReviews") === "noReviews" ? "Нет отзывов" : t("noReviews"))}</div>
+          ) : (
+            <ul className="flex flex-col gap-8">
+              {/* Вывод не более 3 отзывов */}
+              {reviews.slice(0, 3).map((review, index) => (
+                <li key={index} className="border-b border-[#E4E9EA] pb-4">
               <div className="flex justify-between items-center mb-2.5">
                 <div className="flex-1 flex flex-col min-w-0 pr-2">
                   <span className="break-words whitespace-normal overflow-wrap-anywhere font-medium">
@@ -221,10 +226,12 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
                 )}
               </ul>
             </li>
-          ))}
-        </ul>
+              ))}
+            </ul>
+          )}
+        </>
       )}
-      {!isAdmin && (
+      {!isAdmin && hasMoreReviews && (
         <Button
           mode="transparent"
           className="mb-4"
