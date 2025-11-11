@@ -376,6 +376,11 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
 
                     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg width="52" height="52" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+            </filter>
+          </defs>
           <g transform="translate(6.5, 1.5)">
             <path d="M34.125 16.005C34.125 26.361 21.609 35.73 19.6915 37.0916C19.5345 37.2064 19.3291 37.2064 19.1721 37.0916C17.2545 35.73 4.73828 26.361 4.73828 16.005C4.73828 8.06895 10.9599 1.625 19.4318 1.625C27.9037 1.625 34.125 8.06895 34.125 16.005Z" fill="${color}" filter="url(#shadow)"/>
             <circle cx="19.5" cy="16" r="11" fill="white"/>

@@ -16,6 +16,7 @@ import { Announcement, Breaks, Schedule } from "../model/announcements";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   id: string;
@@ -29,6 +30,7 @@ interface FormType {
 }
 
 export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
+  const queryClient = useQueryClient();
   const validateTime = (value: string) => {
     const isValidFormat = /^\d{2}:\d{2}$/.test(value);
     if (!isValidFormat) return t("invalidTimeFormat");
@@ -226,6 +228,11 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
         (responseBreaks.data === parseInt(HTTP_STATUS.CREATED) ||
           responseBreaks.data === parseInt(HTTP_STATUS.OK))
       ) {
+        // Инвалидируем кэш для конкретного объявления
+        await queryClient.invalidateQueries({
+          queryKey: [`/ad/${id}`],
+        });
+
         navigate({
           to: `/announcements/addAnnouncements/step-six/${id}`,
           params: {

@@ -40,11 +40,9 @@ export class AdminPanelService {
   @CatchErrors()
   async getStats() {
     // Получение кол-ва пользователей.
-    // const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
-    // const orgs = await this.organizationRepository.count();
     const [tourists, orgs] = await Promise.all([
       this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } }),
-      this.organizationRepository.count(),
+      this.userRepository.count({ where: { role: ROLE_TYPE.BUSINESS } }),
     ]);
     const totalUsers = tourists + orgs;
     const ga4DataPromise = this.analyticsService.getStatistic();
@@ -242,7 +240,7 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      // Сначала получаем всех пользователей для фильтрации
+      // Получаем пользователей с учетом поиска
       const allUsers = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
@@ -250,8 +248,7 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        const { searchedUsers } = this._searchUsersOrOrgs(filter.searchQuery, allUsers);
-        users = searchedUsers;
+        users = this._filterUsersBySearch(allUsers, filter.searchQuery);
       } else {
         users = allUsers;
       }
@@ -262,7 +259,7 @@ export class AdminPanelService {
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
-      // Сначала получаем все организации для фильтрации
+      // Получаем все организации
       const allOrgs = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
@@ -289,8 +286,7 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.searchQuery, undefined, allOrgs);
-        orgsUsers = searchedOrgs;
+        orgsUsers = this._filterOrgsBySearch(allOrgs, filter.searchQuery);
       } else {
         orgsUsers = allOrgs;
       }
@@ -301,7 +297,7 @@ export class AdminPanelService {
     }
     // Поиск всех пользователей.
     else {
-      // Получаем всех пользователей и организации для фильтрации
+      // Получаем всех пользователей и организации
       const [allOrgs, allUsers] = await Promise.all([
         this.userRepository.find({
           where: { organization: orgWhereOptions },
@@ -334,9 +330,8 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(filter.searchQuery, allUsers, allOrgs);
-        users = searchedUsers;
-        orgsUsers = searchedOrgs;
+        users = this._filterUsersBySearch(allUsers, filter.searchQuery);
+        orgsUsers = this._filterOrgsBySearch(allOrgs, filter.searchQuery);
       } else {
         users = allUsers;
         orgsUsers = allOrgs;
@@ -407,6 +402,33 @@ export class AdminPanelService {
     org.isBanned = value;
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
+  }
+
+  /** Поиск туристов по имени/email/телефону */
+  private _filterUsersBySearch(users: User[], searchQuery: string): User[] {
+    const normalizedQuery = `%${searchQuery.toLowerCase()}%`;
+
+    return users.filter((user) => {
+      const fullName = user.fullName?.toLowerCase() || '';
+      const email = user.email?.toLowerCase() || '';
+      const phone = user.phoneNumber?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+
+      return fullName.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }
+
+  /** Поиск организаций по названию/email/телефону */
+  private _filterOrgsBySearch(orgsUsers: User[], searchQuery: string): User[] {
+    const query = searchQuery.toLowerCase();
+
+    return orgsUsers.filter((org) => {
+      const orgName = org.organization?.name?.toLowerCase() || '';
+      const email = org.email?.toLowerCase() || '';
+      const phone = org.phoneNumber?.toLowerCase() || '';
+
+      return orgName.includes(query) || email.includes(query) || phone.includes(query);
+    });
   }
 
   /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */

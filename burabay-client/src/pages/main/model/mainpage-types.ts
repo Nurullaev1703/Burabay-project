@@ -10,4 +10,5 @@ export interface MainPageFilter {
   category?: string;
   limit?: number;
   offset?: number;
+  activeTab?: number;
 }

@@ -15,6 +15,7 @@ import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement } from "./model/announcements";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   adId: string;
@@ -30,6 +31,7 @@ export const PriceService: FC<Props> = function PriceService({
   adId,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -283,6 +285,11 @@ export const PriceService: FC<Props> = function PriceService({
               },
             });
             if (response.data) {
+              // Инвалидируем кэш для конкретного объявления
+              await queryClient.invalidateQueries({
+                queryKey: [`/ad/${adId}`],
+              });
+
               navigate({
                 to: "/announcements",
               });

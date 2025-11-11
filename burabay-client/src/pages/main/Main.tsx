@@ -47,7 +47,9 @@ export const Main: FC<Props> = function Main({
   const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
 
-  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [activeIndex, setActiveIndex] = useState<number>(
+    filters.activeTab || 0
+  );
   const [isEditFavourite, setIsEditFavourite] = useState<boolean>(false);
   const [originalFavourites, setOriginalFavourites] =
     useState<Category[]>(favouriteCategories);
@@ -55,6 +57,13 @@ export const Main: FC<Props> = function Main({
   const [selectedFavourite, setSelectedFavourite] =
     useState<Category[]>(favouriteCategories);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Синхронизируем activeIndex с фильтрами при изменении
+  useEffect(() => {
+    if (filters.activeTab !== undefined && filters.activeTab !== activeIndex) {
+      setActiveIndex(filters.activeTab);
+    }
+  }, [filters.activeTab]);
 
   // Мемоизируем данные для вкладок
   const TABS_DATA: TabMenuItem[] = useMemo(
@@ -72,9 +81,20 @@ export const Main: FC<Props> = function Main({
   );
 
   // Оптимизированный обработчик смены вкладки
-  const handleTabChange = useCallback((index: number) => {
-    setActiveIndex(index);
-  }, []);
+  const handleTabChange = useCallback(
+    (index: number) => {
+      setActiveIndex(index);
+      navigate({
+        to: "/main",
+        search: {
+          ...filters,
+          activeTab: index,
+        },
+        replace: true,
+      });
+    },
+    [filters, navigate]
+  );
   useEffect(() => {
     const savedScroll = sessionStorage.getItem("mainPageScroll");
     if (savedScroll) {
@@ -99,6 +119,7 @@ export const Main: FC<Props> = function Main({
         search: {
           ...filters,
           adName: searchValue,
+          activeTab: activeIndex,
         },
       });
     }
@@ -226,6 +247,7 @@ export const Main: FC<Props> = function Main({
                 search: {
                   ...filters,
                   adName: searchValue,
+                  activeTab: activeIndex,
                 },
               });
             }}

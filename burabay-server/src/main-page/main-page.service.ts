@@ -5,16 +5,7 @@ import { AdFilter } from 'src/ad/types/ad-filter.type';
 import { Category } from 'src/category/entities/category.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import stringSimilarity from 'string-similarity-js';
-import {
-  Between,
-  In,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Not,
-  Raw,
-  Repository,
-} from 'typeorm';
+import { Between, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw, Repository } from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
@@ -123,8 +114,7 @@ export class MainPageService {
     let whereOptions: any = {};
 
     // Фильтр по цене
-    if (mainPageFilter.minPrice && mainPageFilter.maxPrice)
-      whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
+    if (mainPageFilter.minPrice && mainPageFilter.maxPrice) whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
     else if (mainPageFilter.maxPrice) whereOptions.price = LessThanOrEqual(mainPageFilter.maxPrice);
     else if (mainPageFilter.minPrice) whereOptions.price = MoreThanOrEqual(mainPageFilter.minPrice);
 
@@ -218,6 +208,7 @@ export class MainPageService {
         subcategory: { category: true },
         usersFavorited: true,
         address: true,
+        organization: true,
       },
       select: {
         id: true,
@@ -239,6 +230,9 @@ export class MainPageService {
             name: true,
             imgPath: true,
           },
+        },
+        organization: {
+          name: true,
         },
       },
       order: {
@@ -289,11 +283,18 @@ export class MainPageService {
 
     // Поиск по заголовку
     if (search) {
-      findOptions.where = {
-        title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-          search: `%${search}%`,
-        }),
-      };
+      findOptions.where = [
+        {
+          title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          }),
+        },
+        {
+          text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          }),
+        },
+      ];
     }
 
     if (skip !== undefined) findOptions.skip = skip;
@@ -305,11 +306,18 @@ export class MainPageService {
     const totalCount = await this.bannerRepository.count(
       search
         ? {
-            where: {
-              text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-                search: `%${search}%`,
-              }),
-            },
+            where: [
+              {
+                title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                  search: `%${search}%`,
+                }),
+              },
+              {
+                text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                  search: `%${search}%`,
+                }),
+              },
+            ],
           }
         : {},
     );
@@ -333,16 +341,13 @@ export class MainPageService {
 
   /** Поиск объявлений по имени. */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
-    const searchedAds = [];
-    ads.forEach((ad) => {
-      const simValue = stringSimilarity(ad.title, name);
-      if (simValue > 0.2)
-        searchedAds.push({
-          prod: ad,
-          simValue: simValue,
-        });
+    const query = name.toLowerCase();
+
+    return ads.filter((ad) => {
+      const title = ad.title?.toLowerCase() || '';
+      const orgName = ad.organization?.name?.toLowerCase() || '';
+
+      return title.includes(query) || orgName.includes(query);
     });
-    searchedAds.sort((a, b) => b.simValue - a.simValue);
-    return searchedAds.map((ad) => ad.prod);
   }
 }
