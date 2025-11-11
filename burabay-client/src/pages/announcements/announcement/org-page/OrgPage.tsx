@@ -23,6 +23,27 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  // Функция для правильной обработки URL
+  const formatSiteUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+    
+    // Убираем все пробелы
+    let cleanUrl = url.replace(/\s+/g, '');
+    
+    // Если URL уже начинается с http:// или https://, возвращаем как есть
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return cleanUrl;
+    }
+    
+    // Если URL начинается с //, добавляем https:
+    if (cleanUrl.startsWith('//')) {
+      return `https:${cleanUrl}`;
+    }
+    
+    // В остальных случаях добавляем https://
+    return `https://${cleanUrl}`;
+  };
+
   return (
     <div className="bg-background min-h-screen md:bg-gray-50">
       <div className="md:max-w-[1200px] md:mx-auto">
@@ -73,15 +94,10 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
               <div className="w-full md:w-auto h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start select-text">
                   <a
-                    href={org.siteUrl}
-                    className=" text-[16px] leading-[20px] tracking-[0.4px] text-black select-text"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Открываем сайт в текущем окне (не в новой вкладке)
-                      // если нужно поведение для мобильного приложения (открыть внешним браузером),
-                      // потребуется нативная реализация; здесь открываем в том же окне/вкладке.
-                      if (org.siteUrl) window.open(org.siteUrl, "_self");
-                    }}
+                    href={formatSiteUrl(org.siteUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[16px] leading-[20px] tracking-[0.4px] text-black select-text"
                   >
                     {org.siteUrl || t("notSpecified")}
                   </a>

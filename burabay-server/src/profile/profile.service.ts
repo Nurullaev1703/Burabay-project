@@ -47,13 +47,18 @@ export class ProfileService {
       phoneNumber: updateProfileDto.phoneNumber || user.phoneNumber,
     });
     if (updateProfileDto.organization) {
+      // Очищаем siteUrl от пробелов если он был передан
+      const cleanSiteUrl = updateProfileDto.organization.siteUrl 
+        ? updateProfileDto.organization.siteUrl.replace(/\s+/g, '')
+        : user.organization.siteUrl;
+        
       await this.organizationRepository.update(user.organization.id, {
         ...user.organization,
         imgUrl: updateProfileDto.organization.imgUrl || user.organization.imgUrl,
         name: updateProfileDto.organization.name || user.organization.name,
         description: updateProfileDto.organization.description || user.organization.description,
         isConfirmed: updateProfileDto.organization.isConfirmed || user.organization.isConfirmed,
-        siteUrl: updateProfileDto.organization.siteUrl || user.organization.siteUrl,
+        siteUrl: cleanSiteUrl,
       });
     }
     return this.getProfile({id: user.id});

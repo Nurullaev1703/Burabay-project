@@ -274,6 +274,8 @@ export class AdService {
     } else {
       Object.assign(ad, oF);
     }
+    await this.cacheManager.del('ads');
+
     return this.adRepository.save(ad);
   }
 
@@ -343,6 +345,7 @@ export class AdService {
 
       // Удаление самого объявления.
       await manager.remove(ad);
+      await this.cacheManager.del('ads');
       return JSON.stringify(HttpStatus.OK);
     });
   }
