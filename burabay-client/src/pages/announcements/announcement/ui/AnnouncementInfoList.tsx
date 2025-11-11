@@ -87,9 +87,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
                   alt="Подтверждено"
                 />
               )}
-              <span className="break-words overflow-wrap-anywhere">
-                {ad.organization.name}
-              </span>
+              <span className="truncate w-full">{ad.organization.name}</span>
             </div>
           </div>
         ) : (
@@ -112,9 +110,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
                   alt="Подтверждено"
                 />
               )}
-              <span className="break-words overflow-wrap-anywhere">
-                {ad.organization.name}
-              </span>
+              <span className="truncate w-full">{ad.organization.name}</span>
             </div>
             <img src={ArrowRight} alt="Стрелка" className="flex-shrink-0" />
           </Link>
