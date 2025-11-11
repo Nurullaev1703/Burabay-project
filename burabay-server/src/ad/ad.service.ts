@@ -217,7 +217,7 @@ export class AdService {
     const reviews = await this.dataSource
       .getRepository('Review')
       .createQueryBuilder('review')
-      .where('review.adId = :adId', { adId: id })
+      .where('review.ad = :adId', { adId: id })
       .orderBy('review.date', 'DESC')
       .limit(4)
       .getMany();
