@@ -548,43 +548,43 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       )}
 
       <div 
-        className="relative -top-navbar left-0 w-screen"
-        style={{ 
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
+        className="fixed bottom-16 left-0 right-0 z-50 bg-transparent pointer-events-none"
       >
-        <div className="px-4 py-2 inline-block whitespace-nowrap">
-          {!isSearchResultFound &&
-            categories.map((item, index) => {
-              return (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate({
-                      to: "/mapNav",
-                      search: {
-                        categoryNames: filters.categoryNames
-                          ?.split(",")
-                          .includes(item.name)
-                          ? (filters?.categoryNames
-                              ?.split(",")
-                              .filter((cat) => cat != item.name)
-                              .join(",") ?? "")
-                          : filters.categoryNames
-                            ? filters.categoryNames + "," + item.name
-                            : item.name,
-                        adName: filters.adName,
-                      },
-                    });
-                  }}
-                  key={item.id}
-                  className={`inline-flex whitespace-nowrap rounded-full justify-between items-center p-1 pr-4 gap-2 ${index > 0 ? 'ml-2' : ''} ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
-                >
+        <div 
+          className="overflow-x-auto overflow-y-hidden px-4 py-2 pointer-events-auto"
+          style={{ 
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          <div className="flex gap-2 w-max">
+            {!isSearchResultFound &&
+              categories.map((item) => {
+                return (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate({
+                        to: "/mapNav",
+                        search: {
+                          categoryNames: filters.categoryNames
+                            ?.split(",")
+                            .includes(item.name)
+                            ? (filters?.categoryNames
+                                ?.split(",")
+                                .filter((cat) => cat != item.name)
+                                .join(",") ?? "")
+                            : filters.categoryNames
+                              ? filters.categoryNames + "," + item.name
+                              : item.name,
+                          adName: filters.adName,
+                        },
+                      })
+                    }
+                    key={item.id}
+                    className={`flex-shrink-0 whitespace-nowrap rounded-full flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
+                  >
                 <div
                   className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
                 >
@@ -614,6 +614,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
               </button>
             );
           })}
+          </div>
         </div>
       </div>
 
