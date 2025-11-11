@@ -412,6 +412,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     if (selectedAnnouncement && mapRef.current) {
       setAnnouncementInfo(selectedAnnouncement);
       setShowAnnouncementModal(true);
+      setSelectedMarker(selectedAnnouncement.id);
 
       mapRef.current.panTo({
         lat: selectedAnnouncement.address.longitude,
@@ -420,6 +421,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     } else if (selectedByName && mapRef.current) {
       setAnnouncementInfo(selectedByName);
       setShowAnnouncementModal(true);
+      setSelectedMarker(selectedByName.id);
 
       mapRef.current.panTo({
         lat: selectedByName.address.longitude,
