@@ -149,7 +149,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
             className="flex justify-between"
-            to={isOwner ? "/announcements/mapForAnnoun/" : "/mapNav"}
+            to={isOwner ? "/announcements/mapForAnnoun" : "/mapNav"}
             search={{ adId: ad.id }}
           >
             <span>{t("locationOnMap")}</span>
