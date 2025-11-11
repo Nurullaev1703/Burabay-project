@@ -56,12 +56,12 @@ import { JobScheduleModule } from './schedule/schedule.module';
     }),
     MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 60 секунд (1 минута)
-        limit: 100, // 100 запросов в минуту
-      },
-    ]),
+    // ThrottlerModule.forRoot([
+    //   {
+    //     ttl: 60000, // 60 секунд (1 минута)
+    //     limit: 100, // 100 запросов в минуту
+    //   },
+    // ]),
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
