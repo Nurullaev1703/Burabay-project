@@ -4,7 +4,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AdFilter } from './types/ad-filter.type';
-import { Throttle } from '@nestjs/throttler';
+// import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
@@ -40,7 +40,7 @@ export class AdController {
   }
 
   @Get('check-dates/:adId')
-  @Throttle({ default: { limit: 24, ttl: 1800000 } })
+  // @Throttle({ default: { limit: 24, ttl: 1800000 } })
   checkDates(@Param('adId') adId: string) {
     return this.adService.checkDates(adId);
   }
