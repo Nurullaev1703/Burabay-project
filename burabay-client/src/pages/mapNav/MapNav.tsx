@@ -548,17 +548,17 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       )}
 
       <div 
-        className="fixed bottom-16 left-0 right-0 z-50 bg-transparent pointer-events-none"
+        className="absolute bottom-20 left-0 right-0 z-[999]"
+        style={{ pointerEvents: 'none' }}
       >
         <div 
-          className="overflow-x-auto overflow-y-hidden px-4 py-2 pointer-events-auto"
+          className="overflow-x-auto overflow-y-hidden px-4 py-2 hide-scrollbar"
           style={{ 
             WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
+            pointerEvents: 'auto',
           }}
         >
-          <div className="flex gap-2 w-max">
+          <div className="flex gap-2" style={{ width: 'max-content' }}>
             {!isSearchResultFound &&
               categories.map((item) => {
                 return (
