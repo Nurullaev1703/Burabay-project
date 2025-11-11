@@ -654,7 +654,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                       announcementId: announcementInfo.id,
                     },
                     search: {
-                      fromMap: true,
+                      fromBusinessMap: true,
                     },
                   });
                 }}

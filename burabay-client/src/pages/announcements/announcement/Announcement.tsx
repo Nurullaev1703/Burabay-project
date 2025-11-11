@@ -38,6 +38,7 @@ import { FavouriteHint } from "../../../components/favourite-hint/FavouriteHint"
 interface Props {
   announcement: AnnouncementType;
   fromMap?: boolean;
+  fromBusinessMap?: boolean;
 }
 
 export const formatPrice = (value: number) => {
@@ -46,6 +47,7 @@ export const formatPrice = (value: number) => {
 export const Announcement: FC<Props> = function Announcement({
   announcement,
   fromMap = false,
+  fromBusinessMap = false,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -103,7 +105,9 @@ export const Announcement: FC<Props> = function Announcement({
           <IconContainer
             align="start"
             action={() => {
-              if (fromMap) {
+              if (fromBusinessMap) {
+                navigate({ to: "/announcements/mapForAnnoun", replace: true });
+              } else if (fromMap) {
                 navigate({ to: "/mapNav", replace: true });
               } else {
                 history.back();
