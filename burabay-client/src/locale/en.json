@@ -547,6 +547,8 @@
   "tourist": "Tourist",
   "business": "Business",
   "noAds": "No advertisements found",
+  "noSavedYet": "No saved items yet",
+  "clickBookmarkToSave": "Click on the bookmark in an ad to add it to saved",
   "changeAd": "Changing an ad",
   "noReverse": "The action is irreversible",
   "acceptDeleteAd": "Delete announcement",
