@@ -111,8 +111,7 @@ export class AdService {
     }
     if (filter.adName) ads = this._searchAd(filter.adName, ads);
     const result = ads.map((ad) => {
-      const isFavourite =
-        ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
+      const isFavourite = ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
       delete ad.usersFavorited;
       return { ...ad, isFavourite };
     });
@@ -168,6 +167,7 @@ export class AdService {
         favorites: {
           id: true,
           title: true,
+          description: true,
           price: true,
           images: true,
           avgRating: true,
@@ -215,8 +215,7 @@ export class AdService {
 
     const favCount = ad.usersFavorited.length;
     // Проверка, является ли объявление Избранным.
-    const isFavourite =
-      ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
+    const isFavourite = ad.usersFavorited.find((u) => u.id === tokenData.id) === undefined ? false : true;
     delete ad.usersFavorited;
 
     // Если пользователь Турист, то увеличивает кол-во просмотров Объявления.
@@ -300,15 +299,12 @@ export class AdService {
       // Проверка на наличие активных бронирований (где дата еще не прошла).
       const activeBookings = ad.bookings.filter(
         (booking) =>
-          booking.status === BookingStatus.CONFIRM ||
-          booking.status === BookingStatus.PAYED ||
-          booking.status === BookingStatus.IN_PROCESS,
+          booking.status === BookingStatus.CONFIRM || booking.status === BookingStatus.PAYED || booking.status === BookingStatus.IN_PROCESS,
       );
 
       if (activeBookings.length > 0) {
         return {
-          message:
-            'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
+          message: 'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
           code: HttpStatus.CONFLICT,
         };
       }
@@ -397,8 +393,7 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
     const bookedDates = [];
     for (const booking of ad.bookings) {
-      if (booking.status === BookingStatus.CANCELED || booking.status === BookingStatus.DONE)
-        continue;
+      if (booking.status === BookingStatus.CANCELED || booking.status === BookingStatus.DONE) continue;
       if (!booking.date)
         bookedDates.push({
           startDate: Utils.dateToString(booking.dateStart),
@@ -416,14 +411,12 @@ export class AdService {
       relations: { bookings: true },
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
-    
+
     const activeBookings = ad.bookings.filter(
       (booking) =>
-        booking.status === BookingStatus.CONFIRM ||
-        booking.status === BookingStatus.PAYED ||
-        booking.status === BookingStatus.IN_PROCESS,
+        booking.status === BookingStatus.CONFIRM || booking.status === BookingStatus.PAYED || booking.status === BookingStatus.IN_PROCESS,
     );
-    
+
     return { hasActiveBookings: activeBookings.length > 0, count: activeBookings.length };
   }
 
