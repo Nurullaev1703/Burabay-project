@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { useAuth } from "../../../../features/auth";
 import { useTranslation } from "react-i18next";
 import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
@@ -24,6 +25,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   isAdmin,
   fromMap = false,
 }) {
+  const { user } = useAuth();
+  const isOwner = !!(user && user.organization && user.organization.id === ad.organization.id);
   const { t } = useTranslation();
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + ad.organization.imgUrl
@@ -64,29 +67,50 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   return (
     <ul>
       <li className="py-3">
-        <Link
-          to="/announcements/org-page/$organizationId"
-          params={{ organizationId: ad.organization.id }}
-          className="flex justify-between"
-        >
-          <div className="flex items-center relative">
-            <img
-              className="rounded-full w-10 h-10 mr-2 object-cover"
-              src={imageSrc}
-              alt={ad.organization.name}
-              onError={() => setImageSrc(DefaultImage)}
-            />
-            {ad.organization.isConfirmed && (
+        {isOwner ? (
+          <div className="flex justify-between items-center">
+            <div className="flex items-center relative">
               <img
-                src={ConfirmedIcon}
-                className="absolute top-[-5px] left-6"
-                alt="Подтверждено"
+                className="rounded-full w-10 h-10 mr-2 object-cover"
+                src={imageSrc}
+                alt={ad.organization.name}
+                onError={() => setImageSrc(DefaultImage)}
               />
-            )}
-            <span>{ad.organization.name}</span>
+              {ad.organization.isConfirmed && (
+                <img
+                  src={ConfirmedIcon}
+                  className="absolute top-[-5px] left-6"
+                  alt="Подтверждено"
+                />
+              )}
+              <span>{ad.organization.name}</span>
+            </div>
           </div>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
+        ) : (
+          <Link
+            to="/announcements/org-page/$organizationId"
+            params={{ organizationId: ad.organization.id }}
+            className="flex justify-between"
+          >
+            <div className="flex items-center relative">
+              <img
+                className="rounded-full w-10 h-10 mr-2 object-cover"
+                src={imageSrc}
+                alt={ad.organization.name}
+                onError={() => setImageSrc(DefaultImage)}
+              />
+              {ad.organization.isConfirmed && (
+                <img
+                  src={ConfirmedIcon}
+                  className="absolute top-[-5px] left-6"
+                  alt="Подтверждено"
+                />
+              )}
+              <span>{ad.organization.name}</span>
+            </div>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        )}
       </li>
       {ad.phoneNumber && (
         <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
@@ -125,7 +149,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
             className="flex justify-between"
-            to="/mapNav"
+            to={isOwner ? "/announcements/mapForAnnoun/" : "/mapNav"}
             search={{ adId: ad.id }}
           >
             <span>{t("locationOnMap")}</span>

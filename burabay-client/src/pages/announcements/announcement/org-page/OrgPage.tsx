@@ -66,8 +66,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
                 <img src={ConfirmedIcon} alt="Подтверждено" />
               )}
             </div>
-            <IconContainer align="end" action={() => history.back()}>
-              {" "}
+            <IconContainer align="end" action={() => navigate({ to: "/main" })}>
               <img src={CloseIcon} alt="" />
             </IconContainer>
           </div>

@@ -20,7 +20,7 @@ import FavouriteActiveIcon from "../../../app/icons/favourite-active.svg";
 import { Button } from "../../../shared/ui/Button";
 import cancelBlack from "../../../app/icons/announcements/xCancel-Black.svg";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   GoogleMap,
@@ -161,6 +161,7 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [_showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [_categoryInfo, _setCategoryInfo] = useState<string>("");
   const navigate = useNavigate();
+  const location = useLocation();
   const [showAnnouncementModal, setShowAnnouncementModal] =
     useState<boolean>(false); // Для отображения модального окна с объявлением
   const getCurrentDaySchedule = (announcementInfo: Announcement | null) => {
@@ -189,6 +190,40 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
   const [announcementInfo, setAnnouncementInfo] = useState<Announcement | null>(
     null
   ); // Храним информацию о выбранном объявлении
+
+  // Если пришёл запрос на открытие конкретного объявления (adId) — центрируем карту на нём
+  useEffect(() => {
+    try {
+      let adId: string | null = null;
+      // location.search can be a string like '?adId=...' or an object depending on router
+      if (typeof (location.search as any) === "string") {
+        const params = new URLSearchParams(location.search as unknown as string);
+        adId = params.get("adId");
+      } else if (location.search && (location.search as any).adId) {
+        adId = (location.search as any).adId as string;
+      }
+
+      if (adId && announcements && announcements.length > 0) {
+        const selected = announcements.find((a) => a.id === adId);
+        if (selected) {
+          // always set selected marker and open modal even if map not ready yet
+          setSelectedMarker(adId as string);
+          setAnnouncementInfo(selected);
+          setShowAnnouncementModal(true);
+
+          // if map is ready, pan to it immediately
+          if (mapRef.current && selected.address) {
+            const { latitude, longitude } = selected.address;
+            if (latitude && longitude && !isNaN(Number(latitude)) && !isNaN(Number(longitude))) {
+              mapRef.current.panTo({ lat: Number(longitude), lng: Number(latitude) });
+              mapRef.current.setZoom(15);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, announcements, isLoaded]);
 
   const handleCloseModal = () => {
     setShowCategoryModal(false);
@@ -235,6 +270,28 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
       }
     }
   };
+
+  // Панируем карту к выбранной метке при её изменении (если карта уже загружена)
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (!selectedMarker) return;
+    try {
+      const selected = announcements.find((a) => a.id === selectedMarker);
+      if (selected && selected.address) {
+        const { latitude, longitude } = selected.address;
+        if (
+          latitude &&
+          longitude &&
+          !isNaN(Number(latitude)) &&
+          !isNaN(Number(longitude))
+        ) {
+          mapRef.current.panTo({ lat: Number(longitude), lng: Number(latitude) });
+          mapRef.current.setZoom(15);
+        }
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMarker, announcements, isLoaded]);
   // Создаем объект Date для времени закрытия, где устанавливаем только часы и минуты
   let closingTime = new Date();
   closingTime.setHours(hours, minutes, 0, 0); // Устанавливаем время в объекте Date
@@ -311,8 +368,28 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
           }}
           onLoad={(map) => {
             mapRef.current = map;
+            // Если метка была выбрана до загрузки карты — центрируем её теперь
+            try {
+              if (selectedMarker && announcements && announcements.length > 0) {
+                const selected = announcements.find((a) => a.id === selectedMarker);
+                if (selected && selected.address) {
+                  const { latitude, longitude } = selected.address;
+                  if (
+                    latitude &&
+                    longitude &&
+                    !isNaN(Number(latitude)) &&
+                    !isNaN(Number(longitude))
+                  ) {
+                    mapRef.current?.panTo({ lat: Number(longitude), lng: Number(latitude) });
+                    mapRef.current?.setZoom(15);
+                  }
+                }
+              }
+            } catch (e) {}
           }}
         >
+          {/* Панирование к выбранной метке выполняется в useEffect и onLoad —
+              не выполняем побочные эффекты во время рендера. */}
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
           )}
