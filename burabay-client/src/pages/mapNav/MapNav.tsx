@@ -314,15 +314,40 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       alert("Откройте настройки вручную и разрешите доступ к геолокации.");
     }
   };
-  const [isFavourite, setIsFavourite] = useState<boolean>(
-    announcementInfo?.isFavourite || false
-  );
+  const [isFavourite, setIsFavourite] = useState<boolean>(false);
+  
+  // Синхронизируем isFavourite с announcementInfo
+  useEffect(() => {
+    if (announcementInfo) {
+      console.log('Обновление isFavourite из announcementInfo:', {
+        announcementId: announcementInfo.id,
+        isFavourite: announcementInfo.isFavourite
+      });
+      setIsFavourite(announcementInfo.isFavourite);
+    }
+  }, [announcementInfo]);
+  
   const addToFavourite = async () => {
     if (announcementInfo) {
       await apiService.get({
         url: `/ad/favorite/${announcementInfo.id}`,
       });
-      isFavourite ? setIsFavourite(false) : setIsFavourite(true);
+      const newFavouriteState = !isFavourite;
+      console.log('Переключение избранного:', {
+        announcementId: announcementInfo.id,
+        oldState: isFavourite,
+        newState: newFavouriteState
+      });
+      setIsFavourite(newFavouriteState);
+      
+      // Обновляем состояние announcementInfo чтобы сохранить актуальное значение
+      setAnnouncementInfo({
+        ...announcementInfo,
+        isFavourite: newFavouriteState
+      });
+      
+      // Обновляем данные карты
+      await queryClient.refetchQueries({ queryKey: ["/map"] });
       await queryClient.refetchQueries({ queryKey: ["ad/favorite/list"] });
       await queryClient.refetchQueries({
         queryKey: ["main-page-announcements"],
