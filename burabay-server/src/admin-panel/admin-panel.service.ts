@@ -40,11 +40,9 @@ export class AdminPanelService {
   @CatchErrors()
   async getStats() {
     // Получение кол-ва пользователей.
-    // const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
-    // const orgs = await this.organizationRepository.count();
     const [tourists, orgs] = await Promise.all([
       this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } }),
-      this.organizationRepository.count(),
+      this.userRepository.count({ where: { role: ROLE_TYPE.BUSINESS } }),
     ]);
     const totalUsers = tourists + orgs;
     const ga4DataPromise = this.analyticsService.getStatistic();
