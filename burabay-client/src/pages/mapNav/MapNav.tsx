@@ -548,36 +548,23 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       )}
 
       <div 
-        className="relative -top-navbar left-0 w-full px-4"
+        className="relative -top-navbar left-0 w-screen"
         style={{ 
-          overflowX: 'scroll',
+          overflowX: 'auto',
           overflowY: 'hidden',
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          touchAction: 'pan-x',
-          cursor: 'grab'
-        }}
-        onTouchStart={(e) => {
-          e.currentTarget.style.cursor = 'grabbing';
-        }}
-        onTouchEnd={(e) => {
-          e.currentTarget.style.cursor = 'grab';
         }}
       >
-        <style>{`
-          .scroll-container::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-        <div className="flex gap-2 pb-2" style={{ width: 'max-content' }}>
+        <div className="px-4 py-2 inline-block whitespace-nowrap">
           {!isSearchResultFound &&
-            categories.map((item) => {
+            categories.map((item, index) => {
               return (
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.preventDefault();
+                    e.stopPropagation();
                     navigate({
                       to: "/mapNav",
                       search: {
@@ -596,8 +583,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                     });
                   }}
                   key={item.id}
-                  style={{ touchAction: 'manipulation' }}
-                  className={`flex-shrink-0 whitespace-nowrap rounded-full justify-between flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
+                  className={`inline-flex whitespace-nowrap rounded-full justify-between items-center p-1 pr-4 gap-2 ${index > 0 ? 'ml-2' : ''} ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
                 >
                 <div
                   className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
