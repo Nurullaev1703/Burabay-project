@@ -548,11 +548,21 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
       )}
 
       <div 
-        className="relative -top-navbar left-0 w-full overflow-x-scroll overflow-y-hidden px-4"
+        className="relative -top-navbar left-0 w-full px-4"
         style={{ 
+          overflowX: 'scroll',
+          overflowY: 'hidden',
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          msOverflowStyle: 'none',
+          touchAction: 'pan-x',
+          cursor: 'grab'
+        }}
+        onTouchStart={(e) => {
+          e.currentTarget.style.cursor = 'grabbing';
+        }}
+        onTouchEnd={(e) => {
+          e.currentTarget.style.cursor = 'grab';
         }}
       >
         <style>{`
@@ -560,13 +570,14 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             display: none;
           }
         `}</style>
-        <div className="flex gap-2 pb-2" style={{ display: 'inline-flex', minWidth: 'min-content' }}>
+        <div className="flex gap-2 pb-2" style={{ width: 'max-content' }}>
           {!isSearchResultFound &&
             categories.map((item) => {
               return (
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.preventDefault();
                     navigate({
                       to: "/mapNav",
                       search: {
@@ -582,9 +593,10 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                             : item.name,
                         adName: filters.adName,
                       },
-                    })
-                  }
+                    });
+                  }}
                   key={item.id}
+                  style={{ touchAction: 'manipulation' }}
                   className={`flex-shrink-0 whitespace-nowrap rounded-full justify-between flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
                 >
                 <div
