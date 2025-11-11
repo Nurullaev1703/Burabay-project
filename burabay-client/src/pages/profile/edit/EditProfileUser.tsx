@@ -61,6 +61,8 @@ export const EditProfileUser: FC = function EditProfileUser() {
   const saveUser = async (form: FormType) => {
     try {
       setIsLoading(true);
+      setHasError(false);
+      setErrorText("");
 
       // Дополнительная фронт-валидация номера телефона перед отправкой
       // 1) Если есть плейсхолдеры маски (например '_' от input mask) — значит номер введён не полностью
@@ -74,6 +76,17 @@ export const EditProfileUser: FC = function EditProfileUser() {
       if (!form.phoneNumber.startsWith("+7")) {
         setIsLoading(false);
         handleError(t("invalidNumber"));
+        return;
+      }
+
+      // 3) Валидация email на фронтенде
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(form.email)) {
+        setIsLoading(false);
+        setError("email", {
+          type: "manual",
+          message: t("invalidEmail"),
+        });
         return;
       }
 
@@ -95,17 +108,18 @@ export const EditProfileUser: FC = function EditProfileUser() {
           handleError(t("invalidCode"));
         }
       } catch (err: any) {
-        // Проверяем тело ответа на стандартное сообщение валидации по телефону
+        // Проверяем тело ответа на стандартное сообщение валидации
         const serverMessage =
           err?.response?.data?.message || err?.data?.message || err?.message;
+        
         // serverMessage может быть массивом
         if (Array.isArray(serverMessage)) {
+          // Проверка на ошибку телефона
           if (
             serverMessage.some((m: string) =>
               String(m).toLowerCase().includes("phonenumber must be a valid phone number")
             )
           ) {
-            // Помещаем ошибку в поле phoneNumber
             setError("phoneNumber", {
               type: "server",
               message: t("invalidNumber"),
@@ -113,15 +127,39 @@ export const EditProfileUser: FC = function EditProfileUser() {
             setIsLoading(false);
             return;
           }
-        } else if (
-          String(serverMessage).toLowerCase().includes("phonenumber must be a valid phone number")
-        ) {
-          setError("phoneNumber", {
-            type: "server",
-            message: t("invalidNumber"),
-          });
-          setIsLoading(false);
-          return;
+          // Проверка на ошибку email
+          if (
+            serverMessage.some((m: string) =>
+              String(m).toLowerCase().includes("email")
+            )
+          ) {
+            setError("email", {
+              type: "server",
+              message: t("invalidEmail"),
+            });
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          const msgStr = String(serverMessage).toLowerCase();
+          // Проверка на ошибку телефона
+          if (msgStr.includes("phonenumber must be a valid phone number")) {
+            setError("phoneNumber", {
+              type: "server",
+              message: t("invalidNumber"),
+            });
+            setIsLoading(false);
+            return;
+          }
+          // Проверка на ошибку email
+          if (msgStr.includes("email")) {
+            setError("email", {
+              type: "server",
+              message: t("invalidEmail"),
+            });
+            setIsLoading(false);
+            return;
+          }
         }
 
         handleError(t("defaultError"));
@@ -131,6 +169,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
     } catch (e) {
       // на всякий случай оставляем общий обработчик
       handleError(t("defaultError"));
+      setIsLoading(false);
     }
   };
 
@@ -204,6 +243,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   label={t("email")}
+                  multiline
                   fullWidth={true}
                   variant="outlined"
                 />

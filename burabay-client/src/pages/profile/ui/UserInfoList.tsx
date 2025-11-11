@@ -47,23 +47,21 @@ export const UserInfoList: FC<Props> = function UserInfoList({
           <li key={index} className="border-b border-[#999999] py-3 mb-2">
             <Link
               to={"/profile/edit"}
-              className={`${param === "organizationAbout" || accountStatus === "done" ? "flex justify-between" : ""}`}
+              className={`flex justify-between items-start ${param === "organizationAbout" || accountStatus === "done" ? "" : ""}`}
             >
-              <div>
-                <p>
-                  {userInfo[`${param}`] && userInfo[`${param}`].length > 50
-                    ? `${userInfo[`${param}`].slice(0, 50)}...`
-                    : userInfo[`${param}`] || t("notFiled")}
+              <div className="flex-1 pr-2 min-w-0">
+                <p className="break-words whitespace-normal overflow-wrap-anywhere">
+                  {userInfo[`${param}`] || t("notFiled")}
                 </p>
                 <span className={`text-xs text-[#999999]`}>{t(param)}</span>
               </div>
               {param === "organizationAbout" && (
-                <img src={ArrowRight} alt="Стрелка" />
+                <img src={ArrowRight} alt="Стрелка" className="flex-shrink-0" />
               )}
 
               {accountStatus === "done" &&
                 param === "organizationName" && (
-                  <img src={ConfirmedIcon} alt="Галочка" />
+                  <img src={ConfirmedIcon} alt="Галочка" className="flex-shrink-0" />
                 )}
             </Link>
           </li>
