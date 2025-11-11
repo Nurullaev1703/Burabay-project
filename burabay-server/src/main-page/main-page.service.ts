@@ -4,14 +4,12 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { AdFilter } from 'src/ad/types/ad-filter.type';
 import { Category } from 'src/category/entities/category.entity';
 import { CatchErrors, Utils } from 'src/utilities';
-import stringSimilarity from 'string-similarity-js';
 import { Between, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw, Repository } from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { title } from 'process';
 
 @Injectable()
 export class MainPageService {
@@ -34,9 +32,7 @@ export class MainPageService {
     if (filter.category) {
       whereOptions = {
         ...whereOptions,
-        subcategory: {
-          category: { name: filter.category },
-        },
+        subcategory: { category: { name: filter.category } },
       };
     }
     let announcements = [];
@@ -81,13 +77,11 @@ export class MainPageService {
 
     const isNoAdditionalFilters = !Object.keys(other).length;
 
-    const cacheKey = `ads:${offset}:${limit}`;
+    const cacheKey = `ads:${tokenData.id}:${offset}:${limit}`;
 
     if (isNoAdditionalFilters) {
       const cachedAds = await this.cacheManager.get(cacheKey);
-      if (cachedAds) {
-        return cachedAds;
-      }
+      if (cachedAds) return cachedAds;
       const ads = await this.adRepository.find({
         where: { organization: { isBanned: false } },
         relations: {
@@ -97,10 +91,7 @@ export class MainPageService {
         },
         select: {
           id: true,
-          address: {
-            address: true,
-            specialName: true,
-          },
+          address: { address: true, specialName: true },
           title: true,
           description: true,
           images: true,
@@ -109,13 +100,7 @@ export class MainPageService {
           avgRating: true,
           reviewCount: true,
           createdAt: true,
-          subcategory: {
-            name: true,
-            category: {
-              name: true,
-              imgPath: true,
-            },
-          },
+          subcategory: { name: true, category: { name: true, imgPath: true } },
         },
         order: {
           createdAt: 'DESC',
@@ -123,11 +108,13 @@ export class MainPageService {
         skip: mainPageFilter.offset || 0,
         take: mainPageFilter.limit || 10,
       });
-      await this.cacheManager.set(cacheKey, ads, 3600);
-      return ads;
+
+      const result = ads.map((ad) => ({ ...ad, isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id) }));
+      await this.cacheManager.set(cacheKey, result, 3600);
+      return result;
     }
 
-    let whereOptions: any = {};
+    let whereOptions: any = { organization: { isBanned: false } };
 
     // Фильтр по цене
     if (mainPageFilter.minPrice && mainPageFilter.maxPrice) whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
@@ -135,34 +122,24 @@ export class MainPageService {
     else if (mainPageFilter.minPrice) whereOptions.price = MoreThanOrEqual(mainPageFilter.minPrice);
 
     // Фильтр только с высоким рейтингом — учитываем, что параметр может прийти как boolean или как строка 'true'
-    if (mainPageFilter.isHighRating === true || String(mainPageFilter.isHighRating) === 'true') {
-      whereOptions.avgRating = MoreThan(4.5);
-    }
+    if (mainPageFilter.isHighRating === true || String(mainPageFilter.isHighRating) === 'true') whereOptions.avgRating = MoreThan(4.5);
 
     // Поиск по свободным датам заселения и выезда.
     if (mainPageFilter.startDate && mainPageFilter.endDate) {
       const tryStartDate: Date = Utils.stringDateToDate(mainPageFilter.startDate);
       const tryEndDate: Date = Utils.stringDateToDate(mainPageFilter.endDate);
+
       const bookings = await this.bookingRepository.find({
         relations: { ad: true },
         where: {
-          dateStart: Between(tryStartDate, tryEndDate),
-          dateEnd: Between(tryStartDate, tryEndDate),
+          dateStart: LessThanOrEqual(tryEndDate),
+          dateEnd: MoreThanOrEqual(tryStartDate),
         },
-        select: {
-          ad: { id: true },
-          dateEnd: true,
-          dateStart: true,
-        },
+        select: { ad: { id: true }, dateEnd: true, dateStart: true },
       });
 
       const adsIds = bookings.map((booking) => booking.ad.id);
-      if (adsIds.length > 0) {
-        whereOptions = {
-          ...whereOptions,
-          id: Not(In(adsIds)),
-        };
-      }
+      if (adsIds.length > 0) whereOptions = { ...whereOptions, id: Not(In(adsIds)) };
     }
 
     // Фильтр по дате въезда, без даты выезда.
@@ -170,35 +147,16 @@ export class MainPageService {
       const tryStartDate: Date = Utils.stringDateToDate(mainPageFilter.startDate);
       const bookings = await this.bookingRepository.find({
         relations: { ad: true },
-        where: {
-          dateStart: LessThanOrEqual(tryStartDate),
-          dateEnd: MoreThanOrEqual(tryStartDate),
-        },
-        select: {
-          ad: { id: true },
-          dateEnd: true,
-          dateStart: true,
-        },
+        where: { dateStart: LessThanOrEqual(tryStartDate), dateEnd: MoreThanOrEqual(tryStartDate) },
+        select: { ad: { id: true }, dateEnd: true, dateStart: true },
       });
 
       const adsIds = bookings.map((booking) => booking.ad.id);
-      if (adsIds.length > 0) {
-        whereOptions = {
-          ...whereOptions,
-          id: Not(In(adsIds)),
-        };
-      }
+      if (adsIds.length > 0) whereOptions = { ...whereOptions, id: Not(In(adsIds)) };
     }
 
     // фильтр по категориям
-    if (mainPageFilter.category) {
-      whereOptions = {
-        ...whereOptions,
-        subcategory: {
-          category: { name: mainPageFilter.category },
-        },
-      };
-    }
+    if (mainPageFilter.category) whereOptions = { ...whereOptions, subcategory: { category: { name: mainPageFilter.category } } };
 
     // Фильтр по подкатегории
     if (mainPageFilter.subcategories) {
@@ -210,60 +168,76 @@ export class MainPageService {
     if (mainPageFilter.details) {
       const trueDetails = mainPageFilter.details.split(',');
 
-      if (trueDetails.length > 0) {
+      if (trueDetails.length > 0)
         whereOptions.details = Raw((alias) => `${alias} @> :details`, {
           details: JSON.stringify(Object.fromEntries(trueDetails.map((key) => [key, true]))),
         });
-      }
     }
 
-    // Получение объявлений
-    const ads = await this.adRepository.find({
-      where: whereOptions,
-      relations: {
-        subcategory: { category: true },
-        usersFavorited: true,
-        address: true,
-        organization: true,
-      },
-      select: {
-        id: true,
-        address: {
-          address: true,
-          specialName: true,
-        },
-        title: true,
-        description: true,
-        images: true,
-        price: true,
-        details: {},
-        avgRating: true,
-        reviewCount: true,
-        createdAt: true,
-        subcategory: {
-          name: true,
-          category: {
-            name: true,
-            imgPath: true,
-          },
-        },
-        organization: {
-          name: true,
-        },
-      },
-      order: {
-        createdAt: 'DESC',
-      },
-      skip: mainPageFilter.offset || 0,
-      take: mainPageFilter.limit || 10,
-    });
-    const result = ads.map((ad) => ({
-      ...ad,
-      isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id),
-    }));
+    let ads: Ad[];
 
     // Поиск по названию
-    return mainPageFilter.name ? this._searchAd(mainPageFilter.name, result) : result;
+    if (mainPageFilter.name) {
+      ads = await this.adRepository.find({
+        where: whereOptions,
+        relations: {
+          subcategory: { category: true },
+          usersFavorited: true,
+          address: true,
+          organization: true,
+        },
+        select: {
+          id: true,
+          address: { address: true, specialName: true },
+          title: true,
+          description: true,
+          images: true,
+          price: true,
+          details: {},
+          avgRating: true,
+          reviewCount: true,
+          createdAt: true,
+          subcategory: { name: true, category: { name: true, imgPath: true } },
+          organization: { name: true },
+        },
+        order: { createdAt: 'DESC' },
+      });
+      ads = this._searchAd(mainPageFilter.name, ads);
+      // Ограничение до 10 результатов.
+      ads = ads.slice(0, 10);
+    } else {
+      // Получение объявлений
+      ads = await this.adRepository.find({
+        where: whereOptions,
+        relations: {
+          subcategory: { category: true },
+          usersFavorited: true,
+          address: true,
+          organization: true,
+        },
+        select: {
+          id: true,
+          address: { address: true, specialName: true },
+          title: true,
+          description: true,
+          images: true,
+          price: true,
+          details: {},
+          avgRating: true,
+          reviewCount: true,
+          createdAt: true,
+          subcategory: { name: true, category: { name: true, imgPath: true } },
+          organization: { name: true },
+        },
+        order: { createdAt: 'DESC' },
+        skip: mainPageFilter.offset || 0,
+        take: mainPageFilter.limit || 10,
+      });
+    }
+
+    const result = ads.map((ad) => ({ ...ad, isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id) }));
+
+    return result;
   }
 
   /** Получить категории для главной страницы. */
