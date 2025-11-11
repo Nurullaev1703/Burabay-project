@@ -5,16 +5,7 @@ import { AdFilter } from 'src/ad/types/ad-filter.type';
 import { Category } from 'src/category/entities/category.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import stringSimilarity from 'string-similarity-js';
-import {
-  Between,
-  In,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Not,
-  Raw,
-  Repository,
-} from 'typeorm';
+import { Between, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw, Repository } from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
@@ -123,8 +114,7 @@ export class MainPageService {
     let whereOptions: any = {};
 
     // Фильтр по цене
-    if (mainPageFilter.minPrice && mainPageFilter.maxPrice)
-      whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
+    if (mainPageFilter.minPrice && mainPageFilter.maxPrice) whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
     else if (mainPageFilter.maxPrice) whereOptions.price = LessThanOrEqual(mainPageFilter.maxPrice);
     else if (mainPageFilter.minPrice) whereOptions.price = MoreThanOrEqual(mainPageFilter.minPrice);
 
@@ -289,11 +279,18 @@ export class MainPageService {
 
     // Поиск по заголовку
     if (search) {
-      findOptions.where = {
-        title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-          search: `%${search}%`,
-        }),
-      };
+      findOptions.where = [
+        {
+          title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          }),
+        },
+        {
+          text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          }),
+        },
+      ];
     }
 
     if (skip !== undefined) findOptions.skip = skip;
@@ -305,11 +302,18 @@ export class MainPageService {
     const totalCount = await this.bannerRepository.count(
       search
         ? {
-            where: {
-              text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-                search: `%${search}%`,
-              }),
-            },
+            where: [
+              {
+                title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                  search: `%${search}%`,
+                }),
+              },
+              {
+                text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
+                  search: `%${search}%`,
+                }),
+              },
+            ],
           }
         : {},
     );
@@ -322,13 +326,6 @@ export class MainPageService {
       hasMore: skip !== undefined && take !== undefined ? skip + take < totalCount : false,
     };
     return result;
-  }
-
-  async getBannerById(id: string) {
-    const banner = await this.bannerRepository.findOne({
-      where: { id },
-    });
-    return banner;
   }
 
   /** Поиск объявлений по имени. */
