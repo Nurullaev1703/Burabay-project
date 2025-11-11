@@ -150,6 +150,7 @@ export const EditProfile: FC = function EditProfile() {
             render={({ field, fieldState: { error } }) => (
               <div className="relative w-full">
                 <TextField
+                multiline
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
