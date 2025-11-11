@@ -547,35 +547,34 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
         </div>
       )}
 
-      <div className="relative px-4 -top-navbar left-0 flex justify-start w-full overflow-x-auto gap-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-        {!isSearchResultFound &&
-          categories.map((item) => {
-            return (
-              <button
-                type="button"
-                onClick={() =>
-                  navigate({
-                    to: "/mapNav",
-                    search: {
-                      categoryNames: filters.categoryNames
-                        ?.split(",")
-                        .includes(item.name)
-                        ? (filters?.categoryNames
-                            ?.split(",")
-                            .filter((cat) => cat != item.name)
-                            .join(",") ?? "")
-                        : filters.categoryNames
-                          ? filters.categoryNames + "," + item.name
-                          : item.name,
-                      adName: filters.adName,
-                    },
-                  })
-                }
-                key={item.id}
-                className={`
-                     w-fit
-                    rounded-full justify-between  flex  items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"} `}
-              >
+      <div className="relative px-4 -top-navbar left-0 w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}>
+        <div className="flex gap-2 w-max">
+          {!isSearchResultFound &&
+            categories.map((item) => {
+              return (
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate({
+                      to: "/mapNav",
+                      search: {
+                        categoryNames: filters.categoryNames
+                          ?.split(",")
+                          .includes(item.name)
+                          ? (filters?.categoryNames
+                              ?.split(",")
+                              .filter((cat) => cat != item.name)
+                              .join(",") ?? "")
+                          : filters.categoryNames
+                            ? filters.categoryNames + "," + item.name
+                            : item.name,
+                        adName: filters.adName,
+                      },
+                    })
+                  }
+                  key={item.id}
+                  className={`flex-shrink-0 w-fit rounded-full justify-between flex items-center p-1 pr-4 gap-2 ${filters.categoryNames?.split(",").includes(item.name) ? categoryBgColors[item.name] : "bg-white"}`}
+                >
                 <div
                   className={`relative min-w-7 min-h-7 rounded-full ${categoryBgColors[item.name]}  `}
                 >
@@ -605,6 +604,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
               </button>
             );
           })}
+        </div>
       </div>
 
       {/* Модальное окно для категории */}
