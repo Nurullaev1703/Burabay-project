@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -34,6 +34,9 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
+
+  // Локальное состояние для поискового запроса
+  const [searchInput, setSearchInput] = useState(filters.searchQuery ?? "");
 
   // Получаем пользователей с учетом пагинации
   const { data, isLoading } = useGetUsers({
@@ -71,6 +74,24 @@ export default function UsersList({ filters }: Props) {
   );
 
   const queryClient = useQueryClient();
+
+  // Дебаунс для поискового запроса
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchInput !== filters.searchQuery) {
+        updateFilters({ searchQuery: searchInput });
+      }
+    }, 500); // 500ms задержка
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
+
+  // Синхронизация локального состояния с фильтрами при изменении извне
+  useEffect(() => {
+    if (filters.searchQuery !== searchInput) {
+      setSearchInput(filters.searchQuery ?? "");
+    }
+  }, [filters.searchQuery]);
 
   // Обновляем фильтры и сбрасываем на первую страницу
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
@@ -328,8 +349,8 @@ export default function UsersList({ filters }: Props) {
             type="text"
             placeholder="Поиск по email, телефону или названию"
             className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
-            value={filters.searchQuery ?? ""}
-            onChange={(e) => updateFilters({ searchQuery: e.target.value })}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
 
           <div className="relative" ref={roleFilterRef}>

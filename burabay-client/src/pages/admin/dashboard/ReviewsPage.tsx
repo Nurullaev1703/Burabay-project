@@ -281,7 +281,9 @@ const ReviewsPage: FC = () => {
                                     }
                                   }}
                                 >
-                                  {review.user.fullName || "Не указано"}
+                                  <span className="break-words whitespace-normal">
+                                    {review.user.fullName || "Не указано"}
+                                  </span>
                                 </p>
                                 <p className="text-gray-500 text-sm ">
                                   {formatDate(review.date)}
@@ -415,7 +417,7 @@ const ReviewsPage: FC = () => {
                     errorImage={defaultImage}
                   />
                 </div>
-                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 px-4 break-words">
                   {selectedTourist.fullName}
                 </h2>
                 <div className="mt-4">
