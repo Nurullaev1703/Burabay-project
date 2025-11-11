@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { useAuth } from "../../../../features/auth";
 import { useTranslation } from "react-i18next";
 import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
@@ -24,6 +25,8 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   isAdmin,
   fromMap = false,
 }) {
+  const { user } = useAuth();
+  const isOwner = !!(user && user.organization && user.organization.id === ad.organization.id);
   const { t } = useTranslation();
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + ad.organization.imgUrl
@@ -125,7 +128,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
             className="flex justify-between"
-            to="/mapNav"
+            to={isOwner ? "/announcements/mapForAnnoun/" : "/mapNav"}
             search={{ adId: ad.id }}
           >
             <span>{t("locationOnMap")}</span>
