@@ -27,7 +27,8 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
+  const [isShowOldPassword, setIsShowOldPassword] = useState<boolean>(false);
+  const [isShowNewPassword, setIsShowNewPassword] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showErrorHint, setShowErrorHint] = useState<boolean>(false);
@@ -128,7 +129,7 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
                   error={Boolean(error?.message)}
                   helperText={error?.message}
                   fullWidth={true}
-                  type={isShowPassword ? "text" : "password"}
+                  type={isShowOldPassword ? "text" : "password"}
                   variant="outlined"
                   label={t("oldPassword")}
                   placeholder={t("inputPassword")}
@@ -142,10 +143,10 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
                   <IconContainer
                     align="center"
                     className="absolute right-0 top-[24px]"
-                    action={() => setIsShowPassword(!isShowPassword)}
+                    action={() => setIsShowOldPassword(!isShowOldPassword)}
                   >
                     <img
-                      src={isShowPassword ? ClosedEye : OpenedEye}
+                      src={isShowOldPassword ? ClosedEye : OpenedEye}
                       alt="eye"
                     />
                   </IconContainer>
@@ -173,7 +174,7 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
                     error={Boolean(error?.message) || passwordError}
                     helperText={error?.message || errorMessage}
                     fullWidth={true}
-                    type={isShowPassword ? "text" : "password"}
+                    type={isShowNewPassword ? "text" : "password"}
                     variant="outlined"
                     label={t("newPassword")}
                     placeholder={t("inputPassword")}
@@ -187,10 +188,10 @@ export const ChangePasswordPage: FC = function ChangePasswordPage() {
                     <IconContainer
                       align="center"
                       className="absolute right-0 top-[24px]"
-                      action={() => setIsShowPassword(!isShowPassword)}
+                      action={() => setIsShowNewPassword(!isShowNewPassword)}
                     >
                       <img
-                        src={isShowPassword ? ClosedEye : OpenedEye}
+                        src={isShowNewPassword ? ClosedEye : OpenedEye}
                         alt="eye"
                       />
                     </IconContainer>
