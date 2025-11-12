@@ -44,14 +44,10 @@ export class AdService {
   async create(createAdDto: CreateAdDto) {
     const { organizationId, subcategoryId, ...otherFields } = createAdDto;
 
-    const subcategory = await this.subcategoryRepository.findOne({
-      where: { id: subcategoryId },
-    });
+    const subcategory = await this.subcategoryRepository.findOne({ where: { id: subcategoryId } });
     Utils.checkEntity(subcategory, 'Подкатегория не найдена');
 
-    const organization = await this.organizationRepository.findOne({
-      where: { id: organizationId },
-    });
+    const organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
     Utils.checkEntity(organization, 'Организация не найдена');
 
     const newAd = this.adRepository.create({
@@ -60,6 +56,7 @@ export class AdService {
       createdAt: new Date(),
       ...otherFields,
     });
+
     await this.adRepository.save(newAd);
     await this.cacheManager.del('ads');
     return JSON.stringify(newAd.id);

@@ -1,6 +1,6 @@
 import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-/* Абстрактная сущность от которой наследуются другие сущности. Создает поле id и констурктор. */
+/* Абстрактная сущность от которой наследуются другие сущности. Создает поле id, даты создания, обновления и констурктор. */
 export class AbstractEntity<T> {
   @PrimaryGeneratedColumn('uuid')
   id: string;

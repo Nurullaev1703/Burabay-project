@@ -26,48 +26,9 @@ export class MainPageService {
     private cacheManager: Cache,
   ) {}
 
-  /** Скорее всего неактуальный метод, который не используется. */
-  async getMainPageAnnouncements(filter?: AdFilter) {
-    let whereOptions = {};
-    if (filter.category) {
-      whereOptions = {
-        ...whereOptions,
-        subcategory: { category: { name: filter.category } },
-      };
-    }
-    let announcements = [];
-    // Если поиск, то все и фильтруем по названию
-    if (filter.adName) {
-      announcements = await this.adRepository.find({
-        where: whereOptions,
-        relations: { organization: true, subcategory: { category: true }, address: true },
-        order: {
-          createdAt: 'DESC',
-        },
-      });
-      announcements = this._searchAd(filter.adName, announcements);
-      // Ограничение до 10 результатов.
-      announcements = announcements.slice(0, 10);
-    } else {
-      announcements = await this.adRepository.find({
-        where: whereOptions,
-        relations: { organization: true, subcategory: { category: true }, address: true },
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: filter.offset || 0,
-        take: filter.limit || 10,
-      });
-    }
-
-    return announcements;
-  }
-
   /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
   @CatchErrors()
   async getMainPageAds(tokenData: TokenData, mainPageFilter?: MainPageFilter) {
-    // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const offset = mainPageFilter?.offset ?? 0;
     const limit = mainPageFilter?.limit ?? 10;
 
@@ -77,40 +38,42 @@ export class MainPageService {
 
     const isNoAdditionalFilters = !Object.keys(other).length;
 
-    const cacheKey = `ads:${tokenData.id}:${offset}:${limit}`;
+    const cacheKey = `ads:${offset}:${limit}`;
 
+    // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
     if (isNoAdditionalFilters) {
       const cachedAds = await this.cacheManager.get(cacheKey);
-      if (cachedAds) return cachedAds;
-      const ads = await this.adRepository.find({
-        where: { organization: { isBanned: false } },
-        relations: {
-          subcategory: { category: true },
-          usersFavorited: true,
-          address: true,
-        },
-        select: {
-          id: true,
-          address: { address: true, specialName: true },
-          title: true,
-          description: true,
-          images: true,
-          price: true,
-          details: {},
-          avgRating: true,
-          reviewCount: true,
-          createdAt: true,
-          subcategory: { name: true, category: { name: true, imgPath: true } },
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: mainPageFilter.offset || 0,
-        take: mainPageFilter.limit || 10,
-      });
-
+      let ads: Ad[];
+      if (cachedAds) {
+        // Если нужный кэш есть, возвращаем его.
+        ads = cachedAds as Ad[];
+      } else {
+        // Если кэша нет, получаем объявления из БД.
+        ads = await this.adRepository.find({
+          where: { organization: { isBanned: false } },
+          relations: { subcategory: { category: true }, usersFavorited: true, address: true },
+          select: {
+            id: true,
+            address: { address: true, specialName: true },
+            title: true,
+            description: true,
+            images: true,
+            price: true,
+            details: {},
+            avgRating: true,
+            reviewCount: true,
+            createdAt: true,
+            subcategory: { name: true, category: { name: true, imgPath: true } },
+          },
+          order: { createdAt: 'DESC' },
+          skip: mainPageFilter.offset || 0,
+          take: mainPageFilter.limit || 10,
+        });
+        // Сохраняем полученные объявления в кэш.
+        await this.cacheManager.set(cacheKey, ads);
+      }
+      // Отмечаем избранные объявления для пользователя.
       const result = ads.map((ad) => ({ ...ad, isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id) }));
-      await this.cacheManager.set(cacheKey, result, 3600);
       return result;
     }
 
@@ -131,10 +94,7 @@ export class MainPageService {
 
       const bookings = await this.bookingRepository.find({
         relations: { ad: true },
-        where: {
-          dateStart: LessThanOrEqual(tryEndDate),
-          dateEnd: MoreThanOrEqual(tryStartDate),
-        },
+        where: { dateStart: LessThanOrEqual(tryEndDate), dateEnd: MoreThanOrEqual(tryStartDate) },
         select: { ad: { id: true }, dateEnd: true, dateStart: true },
       });
 
@@ -327,6 +287,43 @@ export class MainPageService {
       where: { id },
     });
     return banner;
+  }
+
+  /** Скорее всего неактуальный метод, который не используется. */
+  async getMainPageAnnouncements(filter?: AdFilter) {
+    let whereOptions = {};
+    if (filter.category) {
+      whereOptions = {
+        ...whereOptions,
+        subcategory: { category: { name: filter.category } },
+      };
+    }
+    let announcements = [];
+    // Если поиск, то все и фильтруем по названию
+    if (filter.adName) {
+      announcements = await this.adRepository.find({
+        where: whereOptions,
+        relations: { organization: true, subcategory: { category: true }, address: true },
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+      announcements = this._searchAd(filter.adName, announcements);
+      // Ограничение до 10 результатов.
+      announcements = announcements.slice(0, 10);
+    } else {
+      announcements = await this.adRepository.find({
+        where: whereOptions,
+        relations: { organization: true, subcategory: { category: true }, address: true },
+        order: {
+          createdAt: 'DESC',
+        },
+        skip: filter.offset || 0,
+        take: filter.limit || 10,
+      });
+    }
+
+    return announcements;
   }
 
   /** Поиск объявлений по имени. */
