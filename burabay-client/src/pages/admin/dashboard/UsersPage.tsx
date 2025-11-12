@@ -16,6 +16,7 @@ import defaultImage from "../../../app/icons/abstract-bg.svg?url";
 import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
+import { useDebounce } from "../../../shared/hooks/useDebounce";
 
 import document from "/document.svg?url";
 import confirmed from "/confirmed.svg?url";
@@ -37,6 +38,7 @@ export default function UsersList({ filters }: Props) {
 
   // Локальное состояние для поискового запроса
   const [searchInput, setSearchInput] = useState(filters.searchQuery ?? "");
+  const debouncedSearchInput = useDebounce(searchInput, 500);
 
   // Получаем пользователей с учетом пагинации
   const { data, isLoading } = useGetUsers({
@@ -345,13 +347,40 @@ export default function UsersList({ filters }: Props) {
       </div>
       <div className="relative z-10 flex flex-col w-full ml-[94px] h-screen pt-4">
         <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
-          <input
-            type="text"
-            placeholder="Поиск по email, телефону или названию"
-            className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Поиск по email, телефону или названию"
+              className="p-2 pr-10 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            {searchInput && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchInput("");
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
 
           <div className="relative" ref={roleFilterRef}>
             <button

@@ -25,6 +25,7 @@ import { Button } from "../../shared/ui/Button";
 import { Loader } from "../../components/Loader";
 import { useQueryClient } from "@tanstack/react-query";
 import { Announcement } from "../announcements/model/announcements";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 interface Props {
   categories: Category[];
@@ -47,6 +48,7 @@ export const Main: FC<Props> = function Main({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
 
   const [activeIndex, setActiveIndex] = useState<number>(
     filters.activeTab || 0
@@ -117,6 +119,18 @@ export const Main: FC<Props> = function Main({
     },
     [filters, navigate]
   );
+
+  // Дебоунс для поиска
+  useEffect(() => {
+    navigate({
+      to: "/main",
+      search: {
+        ...filters,
+        adName: debouncedSearchValue,
+        activeTab: activeIndex,
+      },
+    });
+  }, [debouncedSearchValue]);
 
   // Восстанавливаем скролл при монтировании
   useEffect(() => {
@@ -346,24 +360,46 @@ export const Main: FC<Props> = function Main({
         <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
           <img src={SearchIcon} alt="" />
           <input
-            type="search"
+            type="text"
             placeholder={t("adSearch")}
             className="flex-grow bg-transparent outline-none text-gray-700"
             autoCorrect="true"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              navigate({
-                to: "/main",
-                search: {
-                  ...filters,
-                  adName: searchValue,
-                  activeTab: activeIndex,
-                },
-              });
-            }}
           />
+          {searchValue && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setSearchValue("");
+                navigate({
+                  to: "/main",
+                  search: {
+                    ...filters,
+                    adName: "",
+                    activeTab: activeIndex,
+                  },
+                });
+              }}
+              className="flex-shrink-0"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="#0a7d9e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useRef, useState, useEffect } from "react";
 import { NavMenuClient } from "../../shared/ui/NavMenuClient";
 import SearchIcon from "../../app/icons/search-icon.svg";
 import { Category } from "../announcements/model/announcements";
@@ -15,6 +15,7 @@ import BackIcon from "../../app/icons/back-icon.svg";
 import FilterIcon from "../../app/icons/main/filter.svg";
 import FilterActiveIcon from "../../app/icons/main/filter-active.svg";
 import { MainPageFilter } from "./model/mainpage-types";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 interface Props {
   category: Category;
@@ -28,6 +29,18 @@ export const CategoryPage: FC<Props> = function CategoryPage({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
+
+  useEffect(() => {
+    navigate({
+      to: "/category/$categoryId",
+      params: { categoryId: category.id },
+      search: {
+        ...filters,
+        adName: debouncedSearchValue,
+      },
+    });
+  }, [debouncedSearchValue]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -91,24 +104,46 @@ export const CategoryPage: FC<Props> = function CategoryPage({
         <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
           <img src={SearchIcon} alt="" />
           <input
-            type="search"
+            type="text"
             placeholder={t("adSearch")}
             className="flex-grow bg-transparent outline-none text-gray-700"
             autoCorrect="true"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              navigate({
-                to: "/category/$categoryId",
-                params: { categoryId: category.id },
-                search: {
-                  ...filters,
-                  adName: searchValue,
-                },
-              });
-            }}
           />
+          {searchValue && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setSearchValue("");
+                navigate({
+                  to: "/category/$categoryId",
+                  params: { categoryId: category.id },
+                  search: {
+                    ...filters,
+                    adName: "",
+                  },
+                });
+              }}
+              className="flex-shrink-0"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="#0a7d9e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </div>
         <IconContainer
           align="center"

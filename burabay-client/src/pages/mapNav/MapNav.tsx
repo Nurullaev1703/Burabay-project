@@ -446,13 +446,37 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
           <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
             <img src={SearchIcon} />
             <input
-              onKeyDown={handleKeyDown}
-              type="search"
+              type="text"
               placeholder={t("adSearch")}
               onChange={(e) => setAnnouncementsName(e.target.value)}
               value={announcementsName}
               className="flex-grow bg-transparent outline-none "
             />
+            {announcementsName && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setAnnouncementsName("");
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </Header>
