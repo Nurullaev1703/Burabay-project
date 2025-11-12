@@ -21,28 +21,26 @@ function MainRoute() {
     useGetMainPageCategories();
   const { data: bannersData, isLoading: isBannersLoading } =
     useGetMainPageBanners();
-  const { data: announcementsData, isLoading: isAnnouncementsLoading } =
-    useGetMainPageAnnouncements(filters);
-  const { data: recommendedData, isLoading: isRecommendedLoading } =
-    useGetRecommendedAds(filters);
+  const announcementsQuery = useGetMainPageAnnouncements(filters);
+  const recommendedQuery = useGetRecommendedAds(filters);
 
   // Показываем лоадер пока загружаются все критичные данные
   const isLoading =
     isCategoriesLoading ||
     isBannersLoading ||
-    isAnnouncementsLoading ||
-    isRecommendedLoading;
+    announcementsQuery.isLoading ||
+    recommendedQuery.isLoading;
 
   const hasRestoredScroll = useRef(false);
 
   // Отключаем автоматическое восстановление скролла браузером
   useEffect(() => {
     if (history.scrollRestoration) {
-      history.scrollRestoration = 'manual';
+      history.scrollRestoration = "manual";
     }
     return () => {
       if (history.scrollRestoration) {
-        history.scrollRestoration = 'auto';
+        history.scrollRestoration = "auto";
       }
     };
   }, []);
@@ -54,8 +52,8 @@ function MainRoute() {
   if (
     categoriesData &&
     bannersData !== undefined &&
-    announcementsData &&
-    recommendedData
+    announcementsQuery.data &&
+    recommendedQuery.data
   ) {
     return (
       <Main
@@ -63,6 +61,8 @@ function MainRoute() {
         favouriteCategories={categoriesData.favouriteCategories}
         banners={bannersData}
         filters={filters}
+        announcementsData={announcementsQuery}
+        recommendedData={recommendedQuery}
       />
     );
   }
