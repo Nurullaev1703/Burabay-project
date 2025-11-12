@@ -47,6 +47,13 @@ export const BookingBan: FC<Props> = function BookingBan({
   const serviceTime = serviceTimeParam ? serviceTimeParam.split(",") : [];
   const { t, i18n } = useTranslation();
 
+  const checkBookingBan = () => {
+    if (announcement?.bookingBanDate && announcement?.bookingBanDate.length > 0) {
+      return true;
+    }
+    return false;
+  };
+
   // Проверяем, является ли услуга круглосуточной через поле isFullDay из announcement
   const isFullDayService = announcement?.isFullDay || false;
 
@@ -58,7 +65,8 @@ export const BookingBan: FC<Props> = function BookingBan({
       announcement?.bookingBanDate
         ?.filter((item) => item.date && !isNaN(new Date(item.date).getTime()))
         ?.map((item) => dayjs(item.date).format("DD.MM.YYYY")) || [];
-    return result;
+    // Убираем дубликаты дат
+    return Array.from(new Set(result));
   });
 
   const [dateSettings, setDateSettings] = useState<
@@ -388,7 +396,7 @@ export const BookingBan: FC<Props> = function BookingBan({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("bookingban")}
+              {checkBookingBan() ? t("changeAd") : t("bookingban")}
             </Typography>
             <Typography
               size={14}
@@ -396,7 +404,7 @@ export const BookingBan: FC<Props> = function BookingBan({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("optional")}
+              {t("optionalNew")}
             </Typography>
           </div>
           <IconContainer
@@ -516,7 +524,7 @@ export const BookingBan: FC<Props> = function BookingBan({
 
         {dates.map((date) => (
           <div
-            key={date}
+            key={`date-card-${date}`}
             className="p-3 bg-white border rounded shadow mb-2 flex justify-between items-start"
           >
             <div className="w-full">
@@ -584,7 +592,7 @@ export const BookingBan: FC<Props> = function BookingBan({
         dates.map((date) =>
           showModals[date] && dateSettings[date] ? (
             <div
-              key={date}
+              key={`modal-${date}`}
               className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20"
             >
               <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">

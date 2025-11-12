@@ -538,7 +538,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement ? t("changeAd") : t("newAnnouncemet")}
+              {announcement?.schedule ? t("changeAd") : t("adThirdStepTitle")}
             </Typography>
             <Typography
               size={14}
