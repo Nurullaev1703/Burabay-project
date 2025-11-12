@@ -25,7 +25,7 @@ export class MainPageService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
   @CatchErrors()
@@ -65,6 +65,7 @@ export class MainPageService {
             reviewCount: true,
             createdAt: true,
             subcategory: { name: true, category: { name: true, imgPath: true } },
+            organization: { name: true },
           },
           order: { createdAt: 'DESC' },
         });
@@ -269,12 +270,14 @@ export class MainPageService {
 
     // Получить общее количество баннеров с учетом фильтра поиска
     const totalCount = await this.bannerRepository.count(
-      search ? {
-        where: [
-          { title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
-          { text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
-        ]
-      } : {},
+      search
+        ? {
+            where: [
+              { title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%` }) },
+              { text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%` }) },
+            ],
+          }
+        : {},
     );
 
     const result = {

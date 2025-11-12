@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request, Req } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
@@ -61,13 +61,13 @@ export class AdController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto) {
-    return this.adService.update(id, updateAdDto);
+  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto, @Request() req: AuthRequest) {
+    return this.adService.update(id, updateAdDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.adService.remove(id, req.user);
   }
 
   private static adExample = {

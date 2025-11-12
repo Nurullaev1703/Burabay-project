@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +17,7 @@ import { ImagesService } from 'src/images/images.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { BookingStatus } from 'src/booking/types/booking.types';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 @Injectable()
 export class AdService {
@@ -37,7 +38,7 @@ export class AdService {
     private imageService: ImagesService,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) { }
+  ) {}
 
   /* Создания Объявления. Принимает айти Подкатегории и Организации. */
   @CatchErrors()
@@ -124,9 +125,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-          take: filter.limit,
-          skip: filter.offset,
-        }
+            take: filter.limit,
+            skip: filter.offset,
+          }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -248,8 +249,12 @@ export class AdService {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id }, relations: { favorites: true } });
     Utils.checkEntity(user, 'Пользователь не найден');
 
-    const ad = await this.adRepository.findOne({ where: { id: adId } });
+    const ad = await this.adRepository.findOne({ where: { id: adId }, relations: { organization: { user: true } } });
     Utils.checkEntity(ad, 'Объявление не найдено');
+
+    if (ad.organization.user.id === user.id)
+      throw new HttpException('Нельзя добавить в избранное свое же объявление', HttpStatus.FORBIDDEN);
+    delete ad.organization.user;
 
     // Проверяем, есть ли объявление уже в избранных
     const favoriteIndex = user.favorites.findIndex((fav) => fav.id === ad.id);
@@ -262,29 +267,30 @@ export class AdService {
 
   /* Редактирования Объявления. Принимает айди Объявления. */
   @CatchErrors()
-  async update(id: string, updateAdDto: UpdateAdDto) {
+  async update(id: string, updateAdDto: UpdateAdDto, tokenData: TokenData) {
     const { subcategoryId, ...oF } = updateAdDto;
-    const ad = await this.adRepository.findOne({ where: { id: id } });
+    const ad = await this.adRepository.findOne({ where: { id: id }, relations: { organization: { user: true } } });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    // Если не владелец объявления и не админ, то ошибка доступа.
+    if (ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на изменение этого объявления', HttpStatus.FORBIDDEN);
     if (subcategoryId) {
-      const subcategory = await this.subcategoryRepository.findOne({
-        where: { id: subcategoryId },
-      });
+      const subcategory = await this.subcategoryRepository.findOne({ where: { id: subcategoryId } });
       Utils.checkEntity(subcategory, 'Категория не найдена');
       Object.assign(ad, { subcategory: subcategory, ...oF });
-    } else {
-      Object.assign(ad, oF);
-    }
+    } else Object.assign(ad, oF);
     // Удалить кэш, чтобы получить актуальные данные.
     await this.cacheManager.del('ads');
-
+    delete ad.organization.user;
     return this.adRepository.save(ad);
   }
 
   /* Удаления Объявления. */
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
       const ad = await manager.findOne(Ad, {
         where: { id: id },
@@ -294,21 +300,29 @@ export class AdService {
           bookingBanDate: true,
           breaks: true,
           bookings: true,
+          organization: { user: true },
         },
       });
-
-      // Проверка существования объявления.
       Utils.checkEntity(ad, 'Объявление не найдено');
 
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец объявления и не админ, то ошибка доступа.
+      if (ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на удаление этого объявления', HttpStatus.FORBIDDEN);
+      delete ad.organization.user;
       // Проверка на наличие активных бронирований (где дата еще не прошла).
       const activeBookings = ad.bookings.filter(
         (booking) =>
-          booking.status === BookingStatus.CONFIRM || booking.status === BookingStatus.PAYED || booking.status === BookingStatus.IN_PROCESS,
+          booking.status === BookingStatus.CONFIRM ||
+          booking.status === BookingStatus.PAYED ||
+          booking.status === BookingStatus.IN_PROCESS,
       );
 
       if (activeBookings.length > 0) {
         return {
-          message: 'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
+          message:
+            'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
           code: HttpStatus.CONFLICT,
         };
       }
@@ -336,7 +350,6 @@ export class AdService {
             try {
               await this.imageService.deleteImage({ filepath: image });
             } catch (error) {
-              // Логируем ошибку, но не останавливаем процесс удаления
               console.warn(`Не удалось удалить изображение ${image}:`, error.message);
             }
           }),
@@ -419,7 +432,9 @@ export class AdService {
 
     const activeBookings = ad.bookings.filter(
       (booking) =>
-        booking.status === BookingStatus.CONFIRM || booking.status === BookingStatus.PAYED || booking.status === BookingStatus.IN_PROCESS,
+        booking.status === BookingStatus.CONFIRM ||
+        booking.status === BookingStatus.PAYED ||
+        booking.status === BookingStatus.IN_PROCESS,
     );
 
     return { hasActiveBookings: activeBookings.length > 0, count: activeBookings.length };
