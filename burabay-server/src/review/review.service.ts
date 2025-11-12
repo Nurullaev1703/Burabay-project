@@ -173,14 +173,19 @@ export class ReviewService {
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
       const review = await manager.findOne(Review, {
         where: { id: id },
         relations: { answer: true, report: true, ad: { reviews: true }, user: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
 
+      if (review.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('Нет прав для удаления отзыва', HttpStatus.FORBIDDEN);
       if (review.answer) await manager.remove(review.answer);
       if (review.report) await manager.remove(review.report);
 

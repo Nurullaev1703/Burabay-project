@@ -10,6 +10,7 @@ import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 
 @Injectable()
 export class ReviewReportService {
@@ -33,7 +34,8 @@ export class ReviewReportService {
         where: { id: tokenData.id },
         relations: { organization: true },
       });
-      if (!user || !user.organization) throw new HttpException('Организация не найдена', HttpStatus.NOT_FOUND);
+      Utils.checkEntity(user, 'Пользователь не найден');
+      if (user.organization) throw new HttpException('Организация не найдена', HttpStatus.NOT_FOUND);
       const review = await this.reviewRepository.findOne({
         where: { id: createReviewReportDto.reviewId },
         relations: { user: true, ad: true },
@@ -60,23 +62,29 @@ export class ReviewReportService {
   }
 
   @CatchErrors()
-  async update(id: string, updateReviewReportDto: UpdateReviewReportDto) {
+  async update(id: string, updateReviewReportDto: UpdateReviewReportDto, tokenData: TokenData) {
     const report = await this.reviewReportRepository.findOne({ where: { id: id } });
     Utils.checkEntity(report, 'Ответ не найден');
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, relations: { organization: true } });
+    if (!user || (user.role !== ROLE_TYPE.ADMIN && user.role !== ROLE_TYPE.BUSINESS))
+      throw new HttpException('Недостаточно прав для обновления отчета', HttpStatus.FORBIDDEN);
+
     Object.assign(report, updateReviewReportDto);
     await this.reviewReportRepository.save(report);
-    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     const report = await this.reviewReportRepository.findOne({ where: { id: id } });
     Utils.checkEntity(report, 'Ответ не найден');
+
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, relations: { organization: true } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.ADMIN && user.role !== ROLE_TYPE.BUSINESS)
+      throw new HttpException('Недостаточно прав для удаления отчета', HttpStatus.FORBIDDEN);
+
     await this.reviewReportRepository.remove(report);
-    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }

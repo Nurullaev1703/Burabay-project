@@ -54,7 +54,7 @@ export class ReviewController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.reviewService.remove(id, req.user);
   }
 }

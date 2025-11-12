@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateReviewAnswerDto } from './dto/create-review-answer.dto';
 import { UpdateReviewAnswerDto } from './dto/update-review-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,8 +9,8 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager/dist/cache.constants';
-import { Cache } from 'cache-manager';
+import { ROLE_TYPE } from 'src/users/types/user-types';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ReviewAnswersService {
@@ -21,6 +21,8 @@ export class ReviewAnswersService {
     private readonly reviewAnswerRepository: Repository<ReviewAnswer>,
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
     // @Inject(CACHE_MANAGER)
@@ -60,23 +62,27 @@ export class ReviewAnswersService {
   }
 
   @CatchErrors()
-  async update(id: string, updateReviewAnswerDto: UpdateReviewAnswerDto) {
+  async update(id: string, updateReviewAnswerDto: UpdateReviewAnswerDto, tokenData: TokenData) {
     const answer = await this.reviewAnswerRepository.findOne({ where: { id: id } });
     Utils.checkEntity(answer, 'Ответ не найден');
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.ADMIN && user.role !== ROLE_TYPE.BUSINESS)
+      throw new HttpException('Недостаточно прав для обновления ответа', HttpStatus.FORBIDDEN);
     Object.assign(answer, updateReviewAnswerDto);
     await this.reviewAnswerRepository.save(answer);
-    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     const answer = await this.reviewAnswerRepository.findOne({ where: { id: id } });
     Utils.checkEntity(answer, 'Ответ не найден');
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.ADMIN && user.role !== ROLE_TYPE.BUSINESS)
+      throw new HttpException('Недостаточно прав для удаления ответа', HttpStatus.FORBIDDEN);
     await this.reviewAnswerRepository.remove(answer);
-    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }
