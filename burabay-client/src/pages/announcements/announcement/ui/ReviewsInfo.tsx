@@ -94,27 +94,8 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
       {showReviews && (
         <>
           {reviews.length === 0 ? (
-            <div
-              className={`flex flex-col py-4 ${!isAdmin && role === ROLE_TYPE.TOURIST && ad.isBookable ? "pb-8" : ""}`}
-            >
+            <div className="flex flex-col py-4">
               <div className="text-gray-500">{t("noReviews")}</div>
-              {/* Кнопка написать отзыв для туристов */}
-              {!isAdmin && role === ROLE_TYPE.TOURIST && (
-                <button
-                  onClick={() =>
-                    navigate({
-                      to: "/announcements/reviews/add-review",
-                      state: { announcement: ad, fromMap } as unknown as Record<
-                        string,
-                        unknown
-                      >,
-                    })
-                  }
-                  className={`text-[16px] py-4 w-full font-medium ${COLORS_TEXT.blue200} hover:opacity-80 transition-opacity`}
-                >
-                  {t("writeReview")}
-                </button>
-              )}
             </div>
           ) : (
             <ul className="flex flex-col gap-8">
@@ -258,16 +239,41 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
           )}
         </>
       )}
-      {!isAdmin && hasMoreReviews && (
-        <Button
-          mode="transparent"
-          className="mb-4"
-          onClick={() =>
-            navigate({ to: `/announcements/reviews/${ad.id}`, replace: true })
-          }
-        >
-          {t("viewAllReviews")}
-        </Button>
+      {!isAdmin && (
+        <>
+          {(ad.reviewCount || 0) >= 5 ? (
+            <Button
+              mode="transparent"
+              className="mb-4"
+              onClick={() =>
+                navigate({
+                  to: `/announcements/reviews/${ad.id}`,
+                  replace: true,
+                })
+              }
+            >
+              {t("viewAllReviews")}
+            </Button>
+          ) : (
+            roleService.hasValue() &&
+            roleService.getValue() === ROLE_TYPE.TOURIST && (
+              <button
+                onClick={() =>
+                  navigate({
+                    to: "/announcements/reviews/add-review",
+                    state: { announcement: ad, fromMap } as unknown as Record<
+                      string,
+                      unknown
+                    >,
+                  })
+                }
+                className={`text-[16px] py-4 w-full font-medium ${COLORS_TEXT.blue200} hover:opacity-80 transition-opacity mb-4`}
+              >
+                {t("writeReview")}
+              </button>
+            )
+          )}
+        </>
       )}
       {roleService.hasValue() &&
         roleService.getValue() === ROLE_TYPE.TOURIST &&
