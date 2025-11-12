@@ -149,9 +149,8 @@ export class AdService {
       ...queryParams,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
+    if (filter.adName) ads = this._searchAd(filter.adName, ads);
+
     return ads;
   }
 
