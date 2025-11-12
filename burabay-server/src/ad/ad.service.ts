@@ -218,14 +218,20 @@ export class AdService {
 
     delete ad.organization.user;
 
-    // Получаем первые 4 отзыва отдельным запросом
+    // Получаем первые 4 отзыва отдельным запросом, включая пользователя (без пароля)
     const reviews = await this.dataSource
       .getRepository('Review')
       .createQueryBuilder('review')
+      .leftJoinAndSelect('review.user', 'user')
       .where('review.ad = :adId', { adId: id })
       .orderBy('review.date', 'DESC')
       .limit(4)
       .getMany();
+
+    // Удаляем пароль из пользователя в каждом отзыве
+    reviews.forEach((review) => {
+      if (review.user) delete review.user.password;
+    });
 
     const favCount = ad.usersFavorited.length;
     // Проверка, является ли объявление Избранным.

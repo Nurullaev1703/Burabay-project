@@ -12,6 +12,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { AllReviewParams } from './types/all-review.params';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -33,6 +34,7 @@ export class ReviewService {
       const { adId, ...oF } = createReviewDto;
       const user = await manager.findOne(User, { where: { id: tokenData.id } });
       Utils.checkEntity(user, 'Пользователь не найден');
+      if (user.role !== ROLE_TYPE.TOURIST) throw new Error('Только туристы могут оставлять отзывы');
       const ad = await manager.findOne(Ad, {
         where: { id: adId },
         relations: { reviews: true, organization: { user: true } },
