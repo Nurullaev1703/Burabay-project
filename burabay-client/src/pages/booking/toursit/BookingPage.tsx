@@ -347,8 +347,15 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   }
                                   className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                                 />
-                                <div className="flex flex-col w-full">
-                                  <span className="">{ad.title}</span>
+                                <div className="flex flex-col w-full min-w-0">
+                                  <div className="relative max-w-[250px]">
+                                    <span className="block truncate" style={{
+                                      WebkitMaskImage: 'linear-gradient(to right, black 70%, transparent 100%)',
+                                      maskImage: 'linear-gradient(to right, black 70%, transparent 100%)'
+                                    }}>
+                                      {ad.title}
+                                    </span>
+                                  </div>
                                   <div className="flex justify-between w-full gap-2 items-center">
                                     <div className="flex gap-2 items-center">
                                       <span className="text-sm">
