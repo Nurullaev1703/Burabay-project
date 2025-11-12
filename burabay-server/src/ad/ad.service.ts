@@ -72,7 +72,6 @@ export class AdService {
   /** Получить все Объявления. Может принимать фильтр по категориям и соответствию названия. */
   @CatchErrors()
   async findAll(tokenData: TokenData, filter?: AdFilter) {
-    if (!tokenData) return [];
     let ads: Ad[];
     // По Подкатегории.
     if (filter.categoryNames) {
@@ -286,8 +285,6 @@ export class AdService {
       Utils.checkEntity(subcategory, 'Категория не найдена');
       Object.assign(ad, { subcategory: subcategory, ...oF });
     } else Object.assign(ad, oF);
-    // Удалить кэш, чтобы получить актуальные данные.
-    await this.cacheManager.del('ads');
 
     return this.adRepository.save(ad);
   }
