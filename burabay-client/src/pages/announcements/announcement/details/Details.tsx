@@ -1,5 +1,4 @@
-
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import { Header } from "../../../../components/Header";
@@ -18,6 +17,18 @@ export const Details: FC<Props> = function Details({ announcement }) {
   const [services, _] = useState<AnnouncementDetails>(
     announcement.details || {}
   );
+
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+    if (scrollableElement) {
+      scrollableElement.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   return (
     <section className="bg-background md:bg-transparent min-h-screen">
       <Header className="md:max-w-[1200px] md:mx-auto">
