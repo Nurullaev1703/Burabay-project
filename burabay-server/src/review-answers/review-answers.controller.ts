@@ -16,12 +16,12 @@ export class ReviewAnswersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewAnswerDto: UpdateReviewAnswerDto) {
-    return this.reviewAnswersService.update(id, updateReviewAnswerDto);
+  update(@Param('id') id: string, @Body() updateReviewAnswerDto: UpdateReviewAnswerDto, @Request() req: AuthRequest) {
+    return this.reviewAnswersService.update(id, updateReviewAnswerDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewAnswersService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.reviewAnswersService.remove(id, req.user);
   }
 }
