@@ -38,7 +38,8 @@ export class AdminPanelService {
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
-  async getStats() {
+  async getStats(adminId: string) {
+    await this.#checkAdminRole(adminId);
     // Получение кол-ва пользователей.
     const [tourists, orgs] = await Promise.all([
       this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } }),
@@ -81,7 +82,8 @@ export class AdminPanelService {
 
   /** Получить данные для экрана жалоб в Админ Панели. */
   @CatchErrors()
-  async getReports() {
+  async getReports(adminId: string) {
+    await this.#checkAdminRole(adminId);
     const reviews = await this.reviewRepository.find({
       where: { report: { id: Not(IsNull()) }, isCheked: false },
       relations: { report: true, ad: { organization: true }, user: true },
@@ -131,7 +133,8 @@ export class AdminPanelService {
 
   /** Полные данные об Организации и ее Объявления для раскрытии карточки в Админ Панели. */
   @CatchErrors()
-  async getOrgInfo(orgId: string) {
+  async getOrgInfo(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({
       where: { id: orgId },
       relations: { ads: { address: true, subcategory: { category: true } }, user: true },
@@ -162,7 +165,8 @@ export class AdminPanelService {
 
   /** Полные данные об Пользователе для раскрытии карточки в Админ Панели. */
   @CatchErrors()
-  async getTouristInfo(userId: string) {
+  async getTouristInfo(userId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     return await this.userRepository.findOne({
       where: { id: userId },
       select: {
@@ -177,7 +181,8 @@ export class AdminPanelService {
 
   /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
   @CatchErrors()
-  async checkReview(reviewId: string) {
+  async checkReview(reviewId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const review = await this.reviewRepository.findOne({
       where: { id: reviewId },
       relations: { report: true },
@@ -200,7 +205,8 @@ export class AdminPanelService {
 
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
-  async getUsers(filter?: UsersFilter) {
+  async getUsers(adminId: string, filter?: UsersFilter) {
+    await this.#checkAdminRole(adminId);
     // Значения по умолчанию и преобразование в числа
     const page = filter.page ? Number(filter.page) : 1;
     const take = filter.take ? Number(filter.take) : 10;
@@ -248,7 +254,7 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        users = this._filterUsersBySearch(allUsers, filter.searchQuery);
+        users = this.#filterUsersBySearch(allUsers, filter.searchQuery);
       } else {
         users = allUsers;
       }
@@ -286,7 +292,7 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        orgsUsers = this._filterOrgsBySearch(allOrgs, filter.searchQuery);
+        orgsUsers = this.#filterOrgsBySearch(allOrgs, filter.searchQuery);
       } else {
         orgsUsers = allOrgs;
       }
@@ -330,8 +336,8 @@ export class AdminPanelService {
 
       // Применяем поиск по имени/email/телефону если есть
       if (filter.searchQuery) {
-        users = this._filterUsersBySearch(allUsers, filter.searchQuery);
-        orgsUsers = this._filterOrgsBySearch(allOrgs, filter.searchQuery);
+        users = this.#filterUsersBySearch(allUsers, filter.searchQuery);
+        orgsUsers = this.#filterOrgsBySearch(allOrgs, filter.searchQuery);
       } else {
         users = allUsers;
         orgsUsers = allOrgs;
@@ -362,7 +368,8 @@ export class AdminPanelService {
 
   /** Подтверждение Организации. */
   @CatchErrors()
-  async checkOrg(orgId: string) {
+  async checkOrg(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmed = true;
@@ -374,7 +381,8 @@ export class AdminPanelService {
 
   /** Отклонение подтверждения Орагнизации. */
   @CatchErrors()
-  async cancelCheckOrg(orgId: string) {
+  async cancelCheckOrg(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmCanceled = true;
@@ -386,7 +394,8 @@ export class AdminPanelService {
 
   /** Блокировка Пользователя. */
   @CatchErrors()
-  async banTourist(userId: string, value: boolean) {
+  async banTourist(userId: string, value: boolean, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const user = await this.userRepository.findOne({ where: { id: userId } });
     Utils.checkEntity(user, 'Пользователь не найден');
     user.isBanned = value;
@@ -396,7 +405,8 @@ export class AdminPanelService {
 
   /** Блокировка Орагнизации. */
   @CatchErrors()
-  async banOrg(orgId: string, value: boolean) {
+  async banOrg(orgId: string, value: boolean, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
@@ -404,77 +414,9 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  /** Поиск туристов по имени/email/телефону */
-  private _filterUsersBySearch(users: User[], searchQuery: string): User[] {
-    const normalizedQuery = `%${searchQuery.toLowerCase()}%`;
-
-    return users.filter((user) => {
-      const fullName = user.fullName?.toLowerCase() || '';
-      const email = user.email?.toLowerCase() || '';
-      const phone = user.phoneNumber?.toLowerCase() || '';
-      const query = searchQuery.toLowerCase();
-
-      return fullName.includes(query) || email.includes(query) || phone.includes(query);
-    });
-  }
-
-  /** Поиск организаций по названию/email/телефону */
-  private _filterOrgsBySearch(orgsUsers: User[], searchQuery: string): User[] {
-    const query = searchQuery.toLowerCase();
-
-    return orgsUsers.filter((org) => {
-      const orgName = org.organization?.name?.toLowerCase() || '';
-      const email = org.email?.toLowerCase() || '';
-      const phone = org.phoneNumber?.toLowerCase() || '';
-
-      return orgName.includes(query) || email.includes(query) || phone.includes(query);
-    });
-  }
-
-  /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */
-  private _searchUsersOrOrgs(
-    searchQuery: string,
-    users?: User[],
-    orgsUsers?: User[],
-  ): { searchedUsers: User[]; searchedOrgs: User[] } {
-    const searchedUsers: User[] = [],
-      searchedOrgs: User[] = [];
-
-    const normalizedQuery = searchQuery.toLowerCase().trim();
-
-    if (users) {
-      for (const user of users) {
-        // Поиск по имени, email и номеру телефона
-        const nameMatch = stringSimilarity(user.fullName.toLowerCase(), normalizedQuery);
-        const emailMatch = user.email?.toLowerCase().includes(normalizedQuery);
-        const phoneMatch = user.phoneNumber?.toLowerCase().includes(normalizedQuery);
-
-        if (nameMatch > 0.2 || emailMatch || phoneMatch) {
-          searchedUsers.push(user);
-        }
-      }
-    }
-
-    if (orgsUsers) {
-      for (const org of orgsUsers) {
-        // Поиск по названию организации, email и номеру телефона
-        const orgNameMatch = stringSimilarity(org.organization.name.toLowerCase(), normalizedQuery);
-        const emailMatch = org.email?.toLowerCase().includes(normalizedQuery);
-        const phoneMatch = org.phoneNumber?.toLowerCase().includes(normalizedQuery);
-
-        if (orgNameMatch > 0.2 || emailMatch || phoneMatch) {
-          searchedOrgs.push(org);
-        }
-      }
-    }
-
-    return { searchedUsers, searchedOrgs };
-  }
-
   @CatchErrors()
-  async createBanner(dto: BannerCreateDto, userId: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId }, select: { id: true, role: true } });
-    if (!user || user.role !== ROLE_TYPE.ADMIN) throw new HttpException('Доступ запрещен', HttpStatus.FORBIDDEN);
+  async createBanner(dto: BannerCreateDto, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const { title, text, imagePath, deleteDate } = dto;
     const banner = this.bannerRepository.create({
       title: title,
@@ -487,7 +429,8 @@ export class AdminPanelService {
   }
 
   @CatchErrors()
-  async deleteBanner(id: string) {
+  async deleteBanner(id: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     await this.bannerRepository.delete(id);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -530,4 +473,77 @@ export class AdminPanelService {
 
     return this._quickSortAdminPanelAds(left).concat(pivot, this._quickSortAdminPanelAds(right));
   };
+
+  /** Поиск туристов по имени/email/телефону */
+  #filterUsersBySearch(users: User[], searchQuery: string): User[] {
+    const normalizedQuery = `%${searchQuery.toLowerCase()}%`;
+
+    return users.filter((user) => {
+      const fullName = user.fullName?.toLowerCase() || '';
+      const email = user.email?.toLowerCase() || '';
+      const phone = user.phoneNumber?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+
+      return fullName.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }
+
+  /** Поиск организаций по названию/email/телефону */
+  #filterOrgsBySearch(orgsUsers: User[], searchQuery: string): User[] {
+    const query = searchQuery.toLowerCase();
+
+    return orgsUsers.filter((org) => {
+      const orgName = org.organization?.name?.toLowerCase() || '';
+      const email = org.email?.toLowerCase() || '';
+      const phone = org.phoneNumber?.toLowerCase() || '';
+
+      return orgName.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }
+
+  /** Поиск по названию/email/телефону среди Пользователей или Организациий. СТАРЫЙ МЕТОД */
+  #searchUsersOrOrgs(
+    searchQuery: string,
+    users?: User[],
+    orgsUsers?: User[],
+  ): { searchedUsers: User[]; searchedOrgs: User[] } {
+    const searchedUsers: User[] = [],
+      searchedOrgs: User[] = [];
+
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
+    if (users) {
+      for (const user of users) {
+        // Поиск по имени, email и номеру телефона
+        const nameMatch = stringSimilarity(user.fullName.toLowerCase(), normalizedQuery);
+        const emailMatch = user.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = user.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (nameMatch > 0.2 || emailMatch || phoneMatch) {
+          searchedUsers.push(user);
+        }
+      }
+    }
+
+    if (orgsUsers) {
+      for (const org of orgsUsers) {
+        // Поиск по названию организации, email и номеру телефона
+        const orgNameMatch = stringSimilarity(org.organization.name.toLowerCase(), normalizedQuery);
+        const emailMatch = org.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = org.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (orgNameMatch > 0.2 || emailMatch || phoneMatch) {
+          searchedOrgs.push(org);
+        }
+      }
+    }
+
+    return { searchedUsers, searchedOrgs };
+  }
+
+  /** Проверка роли Администратора. */
+  async #checkAdminRole(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, select: { role: true } });
+    if (!user || user.role !== ROLE_TYPE.ADMIN) throw new HttpException('Доступ запрещен', HttpStatus.FORBIDDEN);
+  }
 }
