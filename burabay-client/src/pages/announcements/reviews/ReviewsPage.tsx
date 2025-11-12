@@ -168,10 +168,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
             src={imageSrc}
             onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
-            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+            className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
           />
-          <div>
-            <span>{announcement.title}</span>
+          <div className="flex-1 min-w-0">
+            <span className="truncate w-full block">{announcement.title}</span>
             <div className="flex items-center">
               <div className="flex items-center mr-2">
                 <img src={StarIcon} className="w-[16px] mr-1 mb-1" />

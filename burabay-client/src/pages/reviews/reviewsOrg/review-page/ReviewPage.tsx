@@ -123,15 +123,15 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
         </div>
       </Header>
 
-      <div className="px-4 flex bg-white py-3 mb-2 mt-[36px]">
+      <div className="px-4 flex bg-white py-4 mb-2 mt-[36px]">
         <img
           src={imageSrc}
           onError={() => setImageSrc(DefaultIcon)}
           alt={reviewData.adTitle}
-          className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+          className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
         />
-        <div>
-          <span>{review.adTitle}</span>
+        <div className="flex-1 min-w-0">
+          <span className="truncate w-full block">{review.adTitle}</span>
           <div className="flex items-center">
             <div className="flex items-center mr-2">
               <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
@@ -149,9 +149,9 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
           </div>
         </div>
       </div>
-  <ul className="p-4 bg-white pb-24">
+      <ul className="p-4 bg-white pb-24">
         {reviewData.reviews.map((review, index) => (
-          <li key={index} className="border-b border-[#E4E9EA] pb-4">
+          <li key={index} className="border-b border-[#E4E9EA] pb-4 py-4">
             <div className="flex justify-between items-center mb-2.5">
               <div className="flex-1 flex flex-col min-w-0 pr-2">
                 <span className="break-all break-words whitespace-normal overflow-wrap-anywhere font-medium">
@@ -236,7 +236,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
             <ul>
               {review.answer && (
-                <li key={index}>
+                <li key={`answer-${review.id}`}>
                   <TextField
                     value={review.answer.text}
                     sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
@@ -248,7 +248,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                 </li>
               )}
               {review.report && (
-                <li key={index}>
+                <li key={`report-${review.id}`}>
                   <TextField
                     InputLabelProps={{
                       sx: {
@@ -267,17 +267,19 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
               )}
             </ul>
 
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-between">
               {!review.report && (
                 <img
                   src={WarningIcon}
                   alt="Опровергнуть"
                   onClick={() => openModal(review.id, "complain")}
+                  className="cursor-pointer"
                 />
               )}
+              {review.report && <div></div>}
               {!review.answer && (
                 <span
-                  className={`font-semibold ${COLORS_TEXT.blue200} ${!review.report ? 'ml-auto' : ''}`}
+                  className={`font-semibold ${COLORS_TEXT.blue200} cursor-pointer`}
                   onClick={() => openModal(review.id, "answer")}
                 >
                   {t("answer")}
