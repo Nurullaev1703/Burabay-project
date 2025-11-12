@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { AdminPanelService } from './admin-panel.service';
 import { BanUserDto } from './dto/ban-user.dto';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -14,8 +14,8 @@ export class AdminPanelController {
   constructor(private readonly adminPanelService: AdminPanelService) {}
 
   @Post('banner')
-  async createBanner(@Body() dto: BannerCreateDto) {
-    return this.adminPanelService.createBanner(dto);
+  async createBanner(@Body() dto: BannerCreateDto, @Request() req: AuthRequest) {
+    return this.adminPanelService.createBanner(dto, req.user.id);
   }
 
   @Get('statistic')

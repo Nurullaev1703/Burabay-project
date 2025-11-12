@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { CatchErrors, Utils } from 'src/utilities';
@@ -10,6 +10,8 @@ import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
 import { AllReviewParams } from './types/all-review.params';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -21,6 +23,8 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
@@ -53,7 +57,8 @@ export class ReviewService {
       };
 
       await this.notificationService.createForUser(notificationDto);
-
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }

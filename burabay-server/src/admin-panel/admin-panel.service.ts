@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
@@ -432,7 +432,11 @@ export class AdminPanelService {
   }
 
   /** Поиск по названию/email/телефону среди Пользователей или Организациий.  */
-  private _searchUsersOrOrgs(searchQuery: string, users?: User[], orgsUsers?: User[]): { searchedUsers: User[]; searchedOrgs: User[] } {
+  private _searchUsersOrOrgs(
+    searchQuery: string,
+    users?: User[],
+    orgsUsers?: User[],
+  ): { searchedUsers: User[]; searchedOrgs: User[] } {
     const searchedUsers: User[] = [],
       searchedOrgs: User[] = [];
 
@@ -468,7 +472,9 @@ export class AdminPanelService {
   }
 
   @CatchErrors()
-  async createBanner(dto: BannerCreateDto) {
+  async createBanner(dto: BannerCreateDto, userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, select: { id: true, role: true } });
+    if (!user || user.role !== ROLE_TYPE.ADMIN) throw new HttpException('Доступ запрещен', HttpStatus.FORBIDDEN);
     const { title, text, imagePath, deleteDate } = dto;
     const banner = this.bannerRepository.create({
       title: title,
