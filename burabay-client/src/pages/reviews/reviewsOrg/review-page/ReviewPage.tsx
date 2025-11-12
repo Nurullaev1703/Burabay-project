@@ -268,17 +268,21 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
             </ul>
 
             <div className="flex justify-between mb-4">
-              <img
-                src={WarningIcon}
-                alt="Опровергнуть"
-                onClick={() => openModal(review.id, "complain")}
-              />
-              <span
-                className={`font-semibold ${COLORS_TEXT.blue200}`}
-                onClick={() => openModal(review.id, "answer")}
-              >
-                {t("answer")}
-              </span>
+              {!review.report && (
+                <img
+                  src={WarningIcon}
+                  alt="Опровергнуть"
+                  onClick={() => openModal(review.id, "complain")}
+                />
+              )}
+              {!review.answer && (
+                <span
+                  className={`font-semibold ${COLORS_TEXT.blue200} ${!review.report ? 'ml-auto' : ''}`}
+                  onClick={() => openModal(review.id, "answer")}
+                >
+                  {t("answer")}
+                </span>
+              )}
             </div>
             {modalAnswer[review.id] === "answer" && (
               <div>
