@@ -21,10 +21,14 @@ interface FormType {
 export const EditProfile: FC = function EditProfile() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate()
-  const {history} = useRouter();
+  const navigate = useNavigate();
+  const { history } = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleSubmit, control, formState:{isValid} } = useForm<FormType>({
+  const {
+    handleSubmit,
+    control,
+    formState: { isValid },
+  } = useForm<FormType>({
     defaultValues: {
       organization: {
         name: user?.organization?.name || "",
@@ -107,7 +111,7 @@ export const EditProfile: FC = function EditProfile() {
             render={({ field, fieldState: { error } }) => (
               <div className="relative w-full">
                 <TextField
-                multiline
+                  multiline
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
@@ -157,16 +161,28 @@ export const EditProfile: FC = function EditProfile() {
           <Controller
             name="organization.siteUrl"
             control={control}
+            rules={{
+              maxLength: {
+                value: 500,
+                message: t("maxLengthExceeded", { count: 500 }),
+              },
+            }}
             render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                label={t("site")}
-                fullWidth={true}
-                variant="outlined"
-                placeholder="burabay.kz"
-              />
+              <div className="relative w-full">
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
+                  label={t("site")}
+                  fullWidth={true}
+                  variant="outlined"
+                  inputProps={{ maxLength: 500 }}
+                  placeholder="burabay.kz"
+                />
+                <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                  {field.value?.length || 0}/500
+                </span>
+              </div>
             )}
           />
 
@@ -180,7 +196,10 @@ export const EditProfile: FC = function EditProfile() {
               {t("save")}
             </Button>
           ) : (
-            <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
+            <Button
+              mode="red"
+              className="fixed bottom-4 left-3 w-header mt-8 z-10"
+            >
               {errorText}
             </Button>
           )}

@@ -769,5 +769,11 @@
   "today": "Бүгін",
   "tomorrow": "Ертең",
   "supportedFormats": "Қолдау көрсетілетін форматтар: PDF, DOC, DOCX",
-  "certificateStateReg": "Мемлекеттік тіркеу туралы куәлік"
+  "certificateStateReg": "Мемлекеттік тіркеу туралы куәлік",
+  "maxLengthExceeded": "Ең көп символ саны: {{count}}",
+  "minLengthRequired": "Ең аз символ саны: {{count}}",
+  "videoSizeExceeded": "Бейне өлшемі {{size}} асады",
+  "videoDurationExceeded": "Бейне ұзақтығы {{duration}} минутадан асады",
+  "fileSizeExceeded": "Файл өлшемі рұқсат етілген шегінен асады",
+  "fileTooLarge": "Файл тым үлкен"
 }

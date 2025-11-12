@@ -775,5 +775,11 @@
   "today": "Сегодня",
   "tomorrow": "Завтра",
   "supportedFormats": "Поддерживаемые форматы: PDF, DOC, DOCX",
-  "certificateStateReg": "Свидетельство о государственной регистрации"
+  "certificateStateReg": "Свидетельство о государственной регистрации",
+  "maxLengthExceeded": "Максимальное количество символов: {{count}}",
+  "minLengthRequired": "Минимальное количество символов: {{count}}",
+  "videoSizeExceeded": "Размер видео превышает {{size}}",
+  "videoDurationExceeded": "Длительность видео превышает {{duration}} минуты",
+  "fileSizeExceeded": "Размер файла превышает допустимый лимит",
+  "fileTooLarge": "Файл слишком большой"
 }
