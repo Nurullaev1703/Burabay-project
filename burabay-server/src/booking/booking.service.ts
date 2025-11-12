@@ -374,12 +374,24 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async findOne(id: string) {
+  async findOne(id: string, tokenData: TokenData) {
     const booking = await this.bookingRepository.findOne({
       where: { id: id },
-      relations: { ad: { organization: true }, user: true },
+      relations: { ad: { organization: { user: true } }, user: true },
     });
-    Utils.checkEntity(booking, 'Бронирование не найдено');
+    Utils.checkEntity(booking, 'Бронирование не найдено');
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на просмотр этого бронирования', HttpStatus.FORBIDDEN);
+    delete booking.ad.organization.user;
+    delete booking.user;
     return booking;
   }
 
@@ -395,22 +407,50 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async update(id: string, updateBookingDto: UpdateBookingDto) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+  async update(id: string, updateBookingDto: UpdateBookingDto, tokenData: TokenData) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: id },
+      relations: { user: true, ad: { organization: { user: true } } },
+    });
     Utils.checkEntity(booking, 'Бронирование не найдено');
+    if (booking.ad.organization.isBanned) throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на изменение этого бронирования', HttpStatus.FORBIDDEN);
+
     Object.assign(booking, updateBookingDto);
     this.bookingRepository.save(booking);
+    delete booking.ad.organization.user;
+    delete booking.user;
     return JSON.stringify(HttpStatus.OK);
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id: id },
-        relations: { user: true, ad: true },
+        relations: { user: true, ad: { organization: { user: true } } },
       });
-      Utils.checkEntity(booking, 'Бронирование не найдено');
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на удаление этого бронирования', HttpStatus.FORBIDDEN);
+
       await manager.remove(booking);
       const notificationDto = {
         email: booking.user.email,
@@ -431,12 +471,18 @@ export class BookingService {
         relations: { user: true, ad: { organization: { user: true } } },
       });
       Utils.checkEntity(booking, 'Бронирование не найдено');
-      booking.status = BookingStatus.CANCELED;
-      await manager.save(booking);
+
       const user = await this.userRepository.findOne({
         where: { id: tokenData.id },
         select: { id: true, role: true },
       });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на отмену этого бронирования', HttpStatus.FORBIDDEN);
+
+      booking.status = BookingStatus.CANCELED;
+      await manager.save(booking);
       const bbd = await manager.findOne(BookingBanDate, {
         where: {
           ad: { id: booking.ad.id },
@@ -445,6 +491,7 @@ export class BookingService {
         },
       });
       if (bbd) await manager.remove(bbd);
+      // Если отменил Бизнес, то уведомить Туриста.
       if (user.role === ROLE_TYPE.BUSINESS) {
         const notificationDto = {
           email: booking.ad.organization.user.email,
@@ -453,6 +500,7 @@ export class BookingService {
           message: `Бронь на объявление "${booking.ad.title}" была отменена`,
         };
         await this.notificationService.createForUser(notificationDto);
+        // Если отменил Турист, то уведомить Бизнес.
       } else if (user.role === ROLE_TYPE.TOURIST) {
         const notificationDto = {
           email: booking.user.email,
@@ -468,15 +516,24 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async bookingConfirm(id: string) {
+  async bookingConfirm(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
-        relations: { user: true, ad: true },
+        relations: { user: true, ad: { organization: { user: true } } },
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
-      if (booking.status == BookingStatus.CANCELED)
-        throw new HttpException('Бронь отменена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
+      if (booking.status == BookingStatus.CANCELED || booking.status == BookingStatus.DONE)
+        throw new HttpException('Бронь отменена/завершена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (user.id !== booking.user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на подтверждение этого бронирования', HttpStatus.FORBIDDEN);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
       const notificationDto = {
@@ -491,13 +548,24 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async bookingPayed(id: string) {
+  async bookingPayed(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
-        relations: { ad: { organization: { user: true } } },
+        relations: { ad: { organization: { user: true } }, user: true },
       });
-      Utils.checkEntity(booking, 'Объявление не найдено');
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на изменение статуса оплаты этого бронирования', HttpStatus.FORBIDDEN);
+
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
 
@@ -600,9 +668,23 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async bookingDone(id: string) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
-    Utils.checkEntity(booking, 'Объявление не найдено');
+  async bookingDone(id: string, tokenData: TokenData) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: id },
+      relations: { ad: { organization: { user: true } }, user: true },
+    });
+    Utils.checkEntity(booking, 'Бронирование не найдено');
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на завершение этого бронирования', HttpStatus.FORBIDDEN);
+
     booking.status = BookingStatus.DONE;
     await this.bookingRepository.save(booking);
     return JSON.stringify(HttpStatus.OK);
