@@ -277,7 +277,7 @@ export const AddReview: FC = function AddReview() {
   }
 
   return (
-    <section className="min-h-screen bg-background">
+    <section className="min-h-screen bg-background pb-24">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer
@@ -418,18 +418,28 @@ export const AddReview: FC = function AddReview() {
             control={control}
             rules={{
               required: t("requiredField"),
+              maxLength: {
+                value: 300,
+                message: t("maxLengthExceeded", { count: 300 }),
+              },
             }}
             render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                fullWidth={true}
-                multiline
-                label={t("review")}
-                variant="outlined"
-                placeholder={t("describeImpressions")}
-              />
+              <div className="relative w-full">
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
+                  fullWidth={true}
+                  multiline
+                  label={t("review")}
+                  variant="outlined"
+                  placeholder={t("describeImpressions")}
+                  inputProps={{ maxLength: 300 }}
+                />
+                <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                  {field.value?.length || 0}/300
+                </span>
+              </div>
             )}
           />
         </div>
