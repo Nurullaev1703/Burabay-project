@@ -14,8 +14,8 @@ export class AdController {
 
   @Post()
   @ApiBody({ schema: { example: AdController.adExample } })
-  create(@Body() createAdDto: CreateAdDto) {
-    return this.adService.create(createAdDto);
+  create(@Body() createAdDto: CreateAdDto, @Request() req: AuthRequest) {
+    return this.adService.create(createAdDto, req.user);
   }
 
   @Get()
@@ -61,13 +61,13 @@ export class AdController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto) {
-    return this.adService.update(id, updateAdDto);
+  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto, @Request() req: AuthRequest) {
+    return this.adService.update(id, updateAdDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.adService.remove(id, req.user);
   }
 
   private static adExample = {

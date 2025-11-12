@@ -27,7 +27,10 @@ export class MainPageService {
     private readonly dataSource: DataSource,
   ) { }
 
-  /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
+  /** 
+   * Получние всех Объявлений
+   * с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию. 
+   */
   @CatchErrors()
   async getMainPageAds(tokenData: TokenData, mainPageFilter?: MainPageFilter) {
     const offset = mainPageFilter?.offset ?? 0;
@@ -269,12 +272,14 @@ export class MainPageService {
 
     // Получить общее количество баннеров с учетом фильтра поиска
     const totalCount = await this.bannerRepository.count(
-      search ? {
-        where: [
-          { title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
-          { text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
-        ]
-      } : {},
+      search
+        ? {
+          where: [
+            { title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%` }) },
+            { text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%` }) },
+          ],
+        }
+        : {},
     );
 
     const result = {
