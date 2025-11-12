@@ -203,7 +203,7 @@ export class AdService {
       where: { id: id },
       relations: {
         subcategory: { category: true },
-        organization: true,
+        organization: { user: true },
         schedule: true,
         breaks: true,
         address: true,
@@ -211,9 +211,11 @@ export class AdService {
         bookingBanDate: true,
       },
     });
+    delete ad.organization.user;
     Utils.checkEntity(ad, 'Объявление не найдено');
 
-    if (ad.organization.isBanned) throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+    if (ad.organization.isBanned || ad.organization.user.isBanned)
+      throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
 
     // Получаем первые 4 отзыва отдельным запросом
     const reviews = await this.dataSource
