@@ -213,6 +213,8 @@ export class AdService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    if (ad.organization.isBanned) throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+
     // Получаем первые 4 отзыва отдельным запросом
     const reviews = await this.dataSource
       .getRepository('Review')

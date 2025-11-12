@@ -42,7 +42,8 @@ export class BookingService {
         where: { id: adId },
         relations: { subcategory: { category: true }, organization: { user: true } },
       });
-
+      if (ad.organization.isBanned === true)
+        throw new HttpException('Бронирование на это объявление невозможно', HttpStatus.FORBIDDEN);
       // Преобразовать строковые даты из DTO в тип js даты.
       let dateStart: Date;
       if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);
@@ -99,8 +100,12 @@ export class BookingService {
     }
 
     if (filter.status === 'ACTIVE')
-      whereOptions = { ...whereOptions, status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]) };
-    if (filter.status === 'DONE') whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
 
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
@@ -186,9 +191,13 @@ export class BookingService {
     }
 
     if (filter.status === 'ACTIVE')
-      whereOptions = { ...whereOptions, status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]) };
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
 
-    if (filter.status === 'DONE') whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
 
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
@@ -309,8 +318,12 @@ export class BookingService {
       if (filter.onlinePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.ONLINE };
     }
     if (filter.status === 'ACTIVE')
-      whereOptions = { ...whereOptions, status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]) };
-    if (filter.status === 'DONE') whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
 
     const bookings = await this.bookingRepository.find({ where: whereOptions, relations: { ad: true, user: true } });
     if (bookings.length === 0) return [];
