@@ -244,14 +244,9 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                 className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="relative max-w-[250px]">
-                                  <span className="block truncate bg-gradient-to-r from-black to-black bg-clip-text" style={{
-                                    WebkitMaskImage: 'linear-gradient(to right, black 70%, transparent 100%)',
-                                    maskImage: 'linear-gradient(to right, black 70%, transparent 100%)'
-                                  }}>
-                                    {ad.title}
-                                  </span>
-                                </div>
+                                <span className="block truncate max-w-[250px]">
+                                  {ad.title}
+                                </span>
                                 <div className="max-w-[300px] truncate">
                                   {ad.times.slice(0, 5).map((time, index) => {
                                     if (!time) return null;
