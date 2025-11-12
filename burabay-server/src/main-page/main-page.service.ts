@@ -4,7 +4,7 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { AdFilter } from 'src/ad/types/ad-filter.type';
 import { Category } from 'src/category/entities/category.entity';
 import { CatchErrors, Utils } from 'src/utilities';
-import { Between, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw, Repository } from 'typeorm';
+import { Between, DataSource, In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not, Raw, Repository } from 'typeorm';
 import { MainPageFilter } from './types/main-page-filters.type';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Banner } from 'src/admin-panel/entities/baner.entity';
@@ -24,7 +24,8 @@ export class MainPageService {
     private readonly bannerRepository: Repository<Banner>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
+    private readonly dataSource: DataSource,
+  ) { }
 
   /* Получние всех Объявлений с возможность Фильтрации по ценам, подкатегории, подробностям, высокому рейтингу, дате аренды и названию.  */
   @CatchErrors()
@@ -38,7 +39,7 @@ export class MainPageService {
 
     const isNoAdditionalFilters = !Object.keys(other).length;
 
-    const cacheKey = `ads:${offset}:${limit}`;
+    const cacheKey = `ads`;
 
     // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
     if (isNoAdditionalFilters) {
@@ -51,7 +52,7 @@ export class MainPageService {
         // Если кэша нет, получаем объявления из БД.
         ads = await this.adRepository.find({
           where: { organization: { isBanned: false } },
-          relations: { subcategory: { category: true }, usersFavorited: true, address: true },
+          relations: { subcategory: { category: true }, address: true, organization: true },
           select: {
             id: true,
             address: { address: true, specialName: true },
@@ -66,26 +67,39 @@ export class MainPageService {
             subcategory: { name: true, category: { name: true, imgPath: true } },
           },
           order: { createdAt: 'DESC' },
-          skip: mainPageFilter.offset || 0,
-          take: mainPageFilter.limit || 10,
         });
+
         // Сохраняем полученные объявления в кэш.
-        await this.cacheManager.set(cacheKey, ads);
+        await this.cacheManager.set(cacheKey, ads, 3600000); // Кэшируем на 1 час.
       }
-      // Отмечаем избранные объявления для пользователя.
-      const result = ads.map((ad) => ({ ...ad, isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id) }));
+      // Пагинация вручную из кэша.
+      ads = ads.slice(offset, offset + limit);
+
+      // Получаем избранные объявления пользователя.
+      const userFavorites = await this.dataSource
+        .createQueryBuilder()
+        .select('ad.id')
+        .from('user_favorites_ad', 'ufa')
+        .innerJoin('ad', 'ad', 'ad.id = ufa.adId')
+        .where('ufa.userId = :userId', { userId: tokenData.id })
+        .getRawMany();
+      // Преобразуем в Set для быстрого поиска.
+      const favoriteIds = new Set(userFavorites.map((f) => f.id));
+      const result = ads.map((ad) => ({ ...ad, isFavourite: favoriteIds.has(ad.id) }));
       return result;
     }
 
     let whereOptions: any = { organization: { isBanned: false } };
 
     // Фильтр по цене
-    if (mainPageFilter.minPrice && mainPageFilter.maxPrice) whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
+    if (mainPageFilter.minPrice && mainPageFilter.maxPrice)
+      whereOptions.price = Between(mainPageFilter.minPrice, mainPageFilter.maxPrice);
     else if (mainPageFilter.maxPrice) whereOptions.price = LessThanOrEqual(mainPageFilter.maxPrice);
     else if (mainPageFilter.minPrice) whereOptions.price = MoreThanOrEqual(mainPageFilter.minPrice);
 
     // Фильтр только с высоким рейтингом — учитываем, что параметр может прийти как boolean или как строка 'true'
-    if (mainPageFilter.isHighRating === true || String(mainPageFilter.isHighRating) === 'true') whereOptions.avgRating = MoreThan(4.5);
+    if (mainPageFilter.isHighRating === true || String(mainPageFilter.isHighRating) === 'true')
+      whereOptions.avgRating = MoreThan(4.5);
 
     // Поиск по свободным датам заселения и выезда.
     if (mainPageFilter.startDate && mainPageFilter.endDate) {
@@ -116,7 +130,8 @@ export class MainPageService {
     }
 
     // фильтр по категориям
-    if (mainPageFilter.category) whereOptions = { ...whereOptions, subcategory: { category: { name: mainPageFilter.category } } };
+    if (mainPageFilter.category)
+      whereOptions = { ...whereOptions, subcategory: { category: { name: mainPageFilter.category } } };
 
     // Фильтр по подкатегории
     if (mainPageFilter.subcategories) {
@@ -142,7 +157,6 @@ export class MainPageService {
         where: whereOptions,
         relations: {
           subcategory: { category: true },
-          usersFavorited: true,
           address: true,
           organization: true,
         },
@@ -166,12 +180,11 @@ export class MainPageService {
       // Ограничение до 10 результатов.
       ads = ads.slice(0, 10);
     } else {
-      // Получение объявлений
+      // Получение объявлений.
       ads = await this.adRepository.find({
         where: whereOptions,
         relations: {
           subcategory: { category: true },
-          usersFavorited: true,
           address: true,
           organization: true,
         },
@@ -194,9 +207,17 @@ export class MainPageService {
         take: mainPageFilter.limit || 10,
       });
     }
-
-    const result = ads.map((ad) => ({ ...ad, isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id) }));
-
+    // Получаем избранные объявления пользователя.
+    const userFavorites = await this.dataSource
+      .createQueryBuilder()
+      .select('ad.id')
+      .from('user_favorites_ad', 'ufa')
+      .innerJoin('ad', 'ad', 'ad.id = ufa.adId')
+      .where('ufa.userId = :userId', { userId: tokenData.id })
+      .getRawMany();
+    // Преобразуем в Set для быстрого поиска.
+    const favoriteIds = new Set(userFavorites.map((f) => f.id));
+    const result = ads.map((ad) => ({ ...ad, isFavourite: favoriteIds.has(ad.id) }));
     return result;
   }
 
@@ -204,10 +225,7 @@ export class MainPageService {
   async getMainPageCategories() {
     // Получить данные из Redis.
     const cachedCategories = await this.cacheManager.get('all_categories');
-
-    if (cachedCategories) {
-      return cachedCategories;
-    }
+    if (cachedCategories) return cachedCategories;
 
     const categories = await this.categoryRepository.find({
       select: {
@@ -216,8 +234,7 @@ export class MainPageService {
         imgPath: true,
       },
     });
-    // Категории в кэше хранятся год.
-    await this.cacheManager.set('all_categories', categories, 3600);
+    await this.cacheManager.set('all_categories', categories, 3600000);
     return categories;
   }
 
@@ -254,22 +271,12 @@ export class MainPageService {
 
     // Получить общее количество баннеров с учетом фильтра поиска
     const totalCount = await this.bannerRepository.count(
-      search
-        ? {
-            where: [
-              {
-                title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-                  search: `%${search}%`,
-                }),
-              },
-              {
-                text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, {
-                  search: `%${search}%`,
-                }),
-              },
-            ],
-          }
-        : {},
+      search ? {
+        where: [
+          { title: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
+          { text: Raw((alias) => `LOWER(${alias}) LIKE LOWER(:search)`, { search: `%${search}%`, }) },
+        ]
+      } : {},
     );
 
     const result = {

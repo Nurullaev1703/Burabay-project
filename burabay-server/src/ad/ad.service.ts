@@ -37,7 +37,7 @@ export class AdService {
     private imageService: ImagesService,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /* Создания Объявления. Принимает айти Подкатегории и Организации. */
   @CatchErrors()
@@ -58,6 +58,8 @@ export class AdService {
     });
 
     await this.adRepository.save(newAd);
+
+    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
     await this.cacheManager.del('ads');
     return JSON.stringify(newAd.id);
   }
@@ -122,9 +124,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-            take: filter.limit,
-            skip: filter.offset,
-          }
+          take: filter.limit,
+          skip: filter.offset,
+        }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -243,10 +245,7 @@ export class AdService {
   /* Добавление Объявление в список избранного Пользователя по его токену. */
   @CatchErrors()
   async addToFavorites(tokenData: TokenData, adId: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: tokenData.id },
-      relations: { favorites: true },
-    });
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, relations: { favorites: true } });
     Utils.checkEntity(user, 'Пользователь не найден');
 
     const ad = await this.adRepository.findOne({ where: { id: adId } });
@@ -254,11 +253,9 @@ export class AdService {
 
     // Проверяем, есть ли объявление уже в избранных
     const favoriteIndex = user.favorites.findIndex((fav) => fav.id === ad.id);
-    if (favoriteIndex === -1) {
-      user.favorites.push(ad);
-    } else {
-      user.favorites.splice(favoriteIndex, 1);
-    }
+    if (favoriteIndex === -1) user.favorites.push(ad);
+    else user.favorites.splice(favoriteIndex, 1);
+
     await this.userRepository.save(user);
     return JSON.stringify(HttpStatus.CREATED);
   }
@@ -279,6 +276,7 @@ export class AdService {
     } else {
       Object.assign(ad, oF);
     }
+    // Удалить кэш, чтобы получить актуальные данные.
     await this.cacheManager.del('ads');
 
     return this.adRepository.save(ad);
@@ -347,6 +345,7 @@ export class AdService {
 
       // Удаление самого объявления.
       await manager.remove(ad);
+      // Удалить кэш, чтобы получить актуальные данные.
       await this.cacheManager.del('ads');
       return JSON.stringify(HttpStatus.OK);
     });
