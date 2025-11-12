@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateReviewAnswerDto } from './dto/create-review-answer.dto';
 import { UpdateReviewAnswerDto } from './dto/update-review-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,8 +8,9 @@ import { DataSource, Repository } from 'typeorm';
 import { Organization } from 'src/users/entities/organization.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { NotificationType } from 'src/notification/types/notification.type';
-import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager/dist/cache.constants';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ReviewAnswersService {
@@ -22,35 +23,39 @@ export class ReviewAnswersService {
     private readonly organizationRepository: Repository<Organization>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
   async create(createReviewAnswerDto: CreateReviewAnswerDto, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
-    const org = await this.organizationRepository.findOne({
-      where: { user: { id: tokenData.id } },
-    });
-    Utils.checkEntity(org, 'Орагнизация не найдена');
-    const review = await this.reviewRepository.findOne({
-      where: { id: createReviewAnswerDto.reviewId },
-      relations: { user:true, ad:true }
-    });
-    Utils.checkEntity(review, 'Отзыв не найден');
-    const answer = this.reviewAnswerRepository.create({
-      review,
-      org,
-      text: createReviewAnswerDto.text,
-      date: new Date(),
-    });
-    await this.reviewAnswerRepository.save(answer);
-    const notificationDto = {
-      email: review.user.email,
-      title: '',
-      type: NotificationType.NEUTRAL,
-      message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
-    };
-    await this.notificationService.createForUser(notificationDto);
-    return JSON.stringify(HttpStatus.CREATED);
+      const org = await this.organizationRepository.findOne({
+        where: { user: { id: tokenData.id } },
+      });
+      Utils.checkEntity(org, 'Орагнизация не найдена');
+      const review = await this.reviewRepository.findOne({
+        where: { id: createReviewAnswerDto.reviewId },
+        relations: { user: true, ad: true },
+      });
+      Utils.checkEntity(review, 'Отзыв не найден');
+      const answer = this.reviewAnswerRepository.create({
+        review,
+        org,
+        text: createReviewAnswerDto.text,
+        date: new Date(),
+      });
+      await this.reviewAnswerRepository.save(answer);
+      const notificationDto = {
+        email: review.user.email,
+        title: '',
+        type: NotificationType.NEUTRAL,
+        message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
+      };
+      await this.notificationService.createForUser(notificationDto);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      await this.cacheManager.del(`ads`);
+      return JSON.stringify(HttpStatus.CREATED);
     });
   }
 
@@ -60,6 +65,8 @@ export class ReviewAnswersService {
     Utils.checkEntity(answer, 'Ответ не найден');
     Object.assign(answer, updateReviewAnswerDto);
     await this.reviewAnswerRepository.save(answer);
+    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+    await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -68,6 +75,8 @@ export class ReviewAnswersService {
     const answer = await this.reviewAnswerRepository.findOne({ where: { id: id } });
     Utils.checkEntity(answer, 'Ответ не найден');
     await this.reviewAnswerRepository.remove(answer);
+    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+    await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }

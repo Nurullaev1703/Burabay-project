@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateReviewReportDto } from './dto/create-review-report.dto';
 import { UpdateReviewReportDto } from './dto/update-review-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +10,8 @@ import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ReviewReportService {
@@ -24,6 +26,8 @@ export class ReviewReportService {
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
@@ -33,7 +37,7 @@ export class ReviewReportService {
         where: { id: tokenData.id },
         relations: { organization: true },
       });
-      Utils.checkEntity(user.organization, 'Организация не найдена');
+      if (!user || !user.organization) throw new HttpException('Организация не найдена', HttpStatus.NOT_FOUND);
       const review = await this.reviewRepository.findOne({
         where: { id: createReviewReportDto.reviewId },
         relations: { user: true, ad: true },
@@ -53,6 +57,8 @@ export class ReviewReportService {
         message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
       };
       await this.notificationService.createForUser(notificationDto);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -63,6 +69,8 @@ export class ReviewReportService {
     Utils.checkEntity(report, 'Ответ не найден');
     Object.assign(report, updateReviewReportDto);
     await this.reviewReportRepository.save(report);
+    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+    await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -71,6 +79,8 @@ export class ReviewReportService {
     const report = await this.reviewReportRepository.findOne({ where: { id: id } });
     Utils.checkEntity(report, 'Ответ не найден');
     await this.reviewReportRepository.remove(report);
+    // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+    await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }
