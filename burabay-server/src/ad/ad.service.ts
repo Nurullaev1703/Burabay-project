@@ -211,11 +211,13 @@ export class AdService {
         bookingBanDate: true,
       },
     });
-    delete ad.organization.user;
     Utils.checkEntity(ad, 'Объявление не найдено');
 
-    // if (ad.organization.isBanned || ad.organization.user.isBanned)
-    //   throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+    // Проверка на блокировку организации или пользователя организации
+    if (ad.organization.isBanned || ad.organization.user.isBanned)
+      throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+
+    delete ad.organization.user;
 
     // Получаем первые 4 отзыва отдельным запросом
     const reviews = await this.dataSource
