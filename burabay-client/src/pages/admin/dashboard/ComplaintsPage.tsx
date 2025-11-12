@@ -522,12 +522,12 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   ) : (
                     <div
                       key={review.id}
-                      className="h-full p-[32px] pr-[32px] flex flex-col border-r"
+                      className="h-full p-[32px] pr-[32px] flex flex-col border-r min-w-[300px]"
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-shrink-0 min-w-0 max-w-[200px]">
                           <p
-                            className={`text-sm font-semibold text-gray-700 ${
+                            className={`text-sm font-semibold truncate ${
                               !isLoading
                                 ? "cursor-pointer text-blue-500"
                                 : "text-gray-500 cursor-default"
@@ -551,7 +551,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
                         <div
                           key={review.adId}
-                          className="flex items-center"
+                          className="flex items-center flex-shrink-0 cursor-pointer"
                           onClick={() =>
                             navigate({
                               to: `/admin/announcements/${review.adId}`,
@@ -561,13 +561,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           <img
                             src={`${BASE_URL}${review.adImage}`}
                             alt="Фото курорта"
-                            className="w-[52px] h-[52px] rounded-2xl object-cover"
+                            className="w-[52px] h-[52px] rounded-2xl object-cover flex-shrink-0"
                             onError={(e) =>
                               (e.currentTarget.src = defaultImage)
                             }
                           />
-                          <div className="ml-2">
-                            <p className="text-sm font-semibold text-gray-700">
+                          <div className="ml-2 min-w-0">
+                            <p className="text-sm font-semibold text-gray-700 truncate">
                               {review.adName}
                             </p>
                             <div className="text-[16px] text-black flex items-center">
@@ -602,21 +602,21 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
                   {!review.status && (
                     <>
-                      <div className="border-r border-gray-300 p-[32px] flex flex-col">
+                      <div className="border-r border-gray-300 p-[32px] flex flex-col min-w-[300px]">
                         <div className="flex items-center gap-3">
                           <img
                             src={`${BASE_URL}${review.orgImage}`}
                             alt="Лого"
-                            className="w-[40px] h-[40px] rounded-full object-cover bg-gray-200"
+                            className="w-[40px] h-[40px] rounded-full object-cover bg-gray-200 flex-shrink-0"
                             onError={(e) =>
                               (e.currentTarget.src = defaultImage)
                             }
                           />
 
-                          <div>
+                          <div className="flex-1 min-w-0">
                             {review.orgName ? (
                               <p
-                                className="font-semibold cursor-pointer text-blue-500"
+                                className="font-semibold cursor-pointer text-blue-500 truncate"
                                 onClick={() =>
                                   fetchOrgInfo(
                                     review.orgId ||

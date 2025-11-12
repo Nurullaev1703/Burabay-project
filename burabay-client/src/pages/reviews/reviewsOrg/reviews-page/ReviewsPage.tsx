@@ -5,7 +5,7 @@ import StarIcon from "../../../../app/icons/announcements/star.svg";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import { Link } from "@tanstack/react-router";
 import { NavMenuOrg } from "../../../../shared/ui/NavMenuOrg";
-import DefaultIcon from "../../../../app/icons/abstract-bg.svg"
+import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { Typography } from "../../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
@@ -16,7 +16,7 @@ interface Props {
 
 export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
   const { t } = useTranslation();
-  
+
   return (
     <section>
       <div className="pt-4 px-4 pb-2 flex justify-center">
@@ -36,15 +36,17 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
                 to="/reviews/reviewsOrg/$announcementId"
                 params={{ announcementId: review.adId }}
               >
-                <div className="flex">
+                <div className="flex flex-1 min-w-0">
                   <img
                     src={imageSrc}
                     onError={() => setImageSrc(DefaultIcon)}
                     alt={review.adTitle}
-                    className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                    className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
                   />
-                  <div>
-                    <span>{review.adTitle}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="truncate w-full block">
+                      {review.adTitle}
+                    </span>
                     <div className="flex items-center">
                       <div className="flex items-center mr-2">
                         <img src={StarIcon} className="w-[16px] mr-1 mb-1" />

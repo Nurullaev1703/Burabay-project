@@ -43,6 +43,18 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const checkServiceSchedule = () => {
+    if (
+      announcement?.isFullDay ||
+      (announcement?.startTime && announcement?.startTime.length > 0) ||
+      announcement?.isDuration ||
+      announcement?.duration
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const { handleSubmit, watch, setValue, control } = useForm<FormType>({
     defaultValues: {
       isFullDay: announcement?.isFullDay || false,
@@ -255,7 +267,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("preview")}
+              {checkServiceSchedule() ? t("changeAd") : t("serviceSchedulenew")}
             </Typography>
             <Typography
               size={14}
@@ -263,7 +275,7 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("serviceSchedule")}
+              {t("serviceScheduleNew")}
             </Typography>
           </div>
           <IconContainer

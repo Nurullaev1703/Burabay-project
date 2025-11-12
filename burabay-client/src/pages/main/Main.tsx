@@ -13,11 +13,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { Typography } from "../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
-import {
-  useGetMainPageAnnouncements,
-  useGetRecommendedAds,
-  Banner,
-} from "./main-utils";
+import { Banner } from "./main-utils";
 import { RotatingLines } from "react-loader-spinner";
 import { MainPageFilter } from "./model/mainpage-types";
 import { apiService } from "../../services/api/ApiService";
@@ -28,12 +24,16 @@ import { TabMenu, TabMenuItem } from "../../shared/ui/TabMenu";
 import { Button } from "../../shared/ui/Button";
 import { Loader } from "../../components/Loader";
 import { useQueryClient } from "@tanstack/react-query";
+import { Announcement } from "../announcements/model/announcements";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 interface Props {
   categories: Category[];
   favouriteCategories: Category[];
   banners: Banner[];
   filters: MainPageFilter;
+  announcementsData: any; // UseInfiniteQueryResult
+  recommendedData: any; // UseInfiniteQueryResult
 }
 
 export const Main: FC<Props> = function Main({
@@ -41,11 +41,14 @@ export const Main: FC<Props> = function Main({
   filters,
   favouriteCategories,
   banners,
+  announcementsData,
+  recommendedData,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchValue, setSearchValue] = useState<string>(filters.adName || "");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
 
   const [activeIndex, setActiveIndex] = useState<number>(
     filters.activeTab || 0
@@ -62,9 +65,13 @@ export const Main: FC<Props> = function Main({
   useEffect(() => {
     // Предотвращаем скролл наверх при монтировании компонента
     // Получаем правильный скроллируемый элемент
-    const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
-    const scrollY = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
-    
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+    const scrollY = scrollableElement
+      ? scrollableElement.scrollTop
+      : window.scrollY;
+
     if (scrollY > 0) {
       // Если мы уже не в начале - восстанавливаем позицию
       if (scrollableElement) {
@@ -113,22 +120,36 @@ export const Main: FC<Props> = function Main({
     [filters, navigate]
   );
 
+  // Дебоунс для поиска
+  useEffect(() => {
+    navigate({
+      to: "/main",
+      search: {
+        ...filters,
+        adName: debouncedSearchValue,
+        activeTab: activeIndex,
+      },
+    });
+  }, [debouncedSearchValue]);
+
   // Восстанавливаем скролл при монтировании
   useEffect(() => {
     const savedScroll = sessionStorage.getItem("mainPageScroll");
     if (savedScroll) {
-      const scrollPosition = parseInt(savedScroll, 10); 
-      
+      const scrollPosition = parseInt(savedScroll, 10);
+
       // Получаем правильный скроллируемый элемент (iOS использует .ios-scrollable-content)
-      const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
+      const scrollableElement = document.querySelector(
+        ".ios-scrollable-content"
+      ) as HTMLElement;
       const targetElement = scrollableElement || window;
-      
+
       // Флаг для защиты от сброса скролла
       let isRestoring = true;
-      
+
       // Восстанавливаем скролл несколько раз с задержками
       const timeouts: NodeJS.Timeout[] = [];
-      
+
       // Функция для установки скролла
       const setScroll = (pos: number, attempt: number) => {
         if (scrollableElement) {
@@ -137,54 +158,60 @@ export const Main: FC<Props> = function Main({
           window.scrollTo(0, pos);
         }
       };
-      
+
       // Защита от сброса скролла
       const protectScroll = () => {
         if (isRestoring) {
-          const currentScroll = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
+          const currentScroll = scrollableElement
+            ? scrollableElement.scrollTop
+            : window.scrollY;
           if (currentScroll < scrollPosition - 10) {
             setScroll(scrollPosition, 0);
           }
         }
       };
-      
+
       if (scrollableElement) {
-        scrollableElement.addEventListener('scroll', protectScroll, { passive: true });
+        scrollableElement.addEventListener("scroll", protectScroll, {
+          passive: true,
+        });
       } else {
-        window.addEventListener('scroll', protectScroll, { passive: true });
+        window.addEventListener("scroll", protectScroll, { passive: true });
       }
-      
+
       // Первая попытка - сразу
       timeouts.push(setTimeout(() => setScroll(scrollPosition, 1), 0));
-      
+
       // Вторая попытка - через 50мс
       timeouts.push(setTimeout(() => setScroll(scrollPosition, 2), 50));
-      
+
       // Третья попытка - через 150мс
       timeouts.push(setTimeout(() => setScroll(scrollPosition, 3), 150));
-      
+
       // Четвертая попытка - через 300мс
       timeouts.push(setTimeout(() => setScroll(scrollPosition, 4), 300));
-      
+
       // Финальная попытка и отключение защиты - через 500мс
-      timeouts.push(setTimeout(() => {
-        setScroll(scrollPosition, 5);
-        isRestoring = false;
-        if (scrollableElement) {
-          scrollableElement.removeEventListener('scroll', protectScroll);
-        } else {
-          window.removeEventListener('scroll', protectScroll);
-        }
-      }, 500));
-      
+      timeouts.push(
+        setTimeout(() => {
+          setScroll(scrollPosition, 5);
+          isRestoring = false;
+          if (scrollableElement) {
+            scrollableElement.removeEventListener("scroll", protectScroll);
+          } else {
+            window.removeEventListener("scroll", protectScroll);
+          }
+        }, 500)
+      );
+
       return () => {
         isRestoring = false;
         if (scrollableElement) {
-          scrollableElement.removeEventListener('scroll', protectScroll);
+          scrollableElement.removeEventListener("scroll", protectScroll);
         } else {
-          window.removeEventListener('scroll', protectScroll);
+          window.removeEventListener("scroll", protectScroll);
         }
-        timeouts.forEach(t => clearTimeout(t));
+        timeouts.forEach((t) => clearTimeout(t));
       };
     }
   }, []); // Пустой массив - выполняется только при монтировании
@@ -192,10 +219,14 @@ export const Main: FC<Props> = function Main({
   // Сохраняем позицию скролла при каждом скролле
   useEffect(() => {
     // Получаем правильный скроллируемый элемент
-    const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
-    
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+
     const handleScroll = () => {
-      const scrollY = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
+      const scrollY = scrollableElement
+        ? scrollableElement.scrollTop
+        : window.scrollY;
       sessionStorage.setItem("mainPageScroll", scrollY.toString());
     };
 
@@ -225,21 +256,15 @@ export const Main: FC<Props> = function Main({
       });
     }
   };
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetMainPageAnnouncements(filters);
-
-  const {
-    data: recommends,
-    fetchNextPage: fetchNextRec,
-    hasNextPage: hasNextRec,
-    isFetchingNextPage: isFetchindNextRec,
-  } = useGetRecommendedAds(filters);
 
   // Мемоизируем массивы объявлений для избежания пересоздания при каждом рендере
-  const announcements = useMemo(() => data?.pages.flat() || [], [data?.pages]);
+  const announcements = useMemo(
+    () => announcementsData.data?.pages.flat() || [],
+    [announcementsData.data?.pages]
+  );
   const recommendedAds = useMemo(
-    () => recommends?.pages.flat() || [],
-    [recommends?.pages]
+    () => recommendedData.data?.pages.flat() || [],
+    [recommendedData.data?.pages]
   );
 
   // Используем useRef для хранения observer
@@ -249,34 +274,34 @@ export const Main: FC<Props> = function Main({
   // Callback для последнего элемента списка
   const lastElementRef = useCallback(
     (node: HTMLLIElement | null) => {
-      if (isFetchingNextPage) return;
+      if (announcementsData.isFetchingNextPage) return;
       if (observer.current) observer.current.disconnect();
 
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
+        if (entries[0].isIntersecting && announcementsData.hasNextPage) {
+          announcementsData.fetchNextPage();
         }
       });
 
       if (node) observer.current.observe(node);
     },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
+    [announcementsData]
   );
   // Callback для последнего элемента списка
   const lastElementRef_recs = useCallback(
     (node: HTMLLIElement | null) => {
-      if (isFetchindNextRec) return;
+      if (recommendedData.isFetchingNextPage) return;
       if (observer_recs.current) observer_recs.current.disconnect();
 
       observer_recs.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextRec) {
-          fetchNextRec();
+        if (entries[0].isIntersecting && recommendedData.hasNextPage) {
+          recommendedData.fetchNextPage();
         }
       });
 
       if (node) observer_recs.current.observe(node);
     },
-    [isFetchindNextRec, hasNextRec, fetchNextRec]
+    [recommendedData]
   );
 
   const addToFavourite = async () => {
@@ -335,24 +360,46 @@ export const Main: FC<Props> = function Main({
         <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
           <img src={SearchIcon} alt="" />
           <input
-            type="search"
+            type="text"
             placeholder={t("adSearch")}
             className="flex-grow bg-transparent outline-none text-gray-700"
             autoCorrect="true"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              navigate({
-                to: "/main",
-                search: {
-                  ...filters,
-                  adName: searchValue,
-                  activeTab: activeIndex,
-                },
-              });
-            }}
           />
+          {searchValue && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setSearchValue("");
+                navigate({
+                  to: "/main",
+                  search: {
+                    ...filters,
+                    adName: "",
+                    activeTab: activeIndex,
+                  },
+                });
+              }}
+              className="flex-shrink-0"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="#0a7d9e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -525,7 +572,7 @@ export const Main: FC<Props> = function Main({
       <div className={activeIndex === 0 ? "" : "hidden"}>
         {announcements.length > 0 && (
           <ul className="grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white px-4">
-            {announcements.map((item) => {
+            {announcements.map((item: Announcement) => {
               return (
                 <AdCard
                   ad={item}
@@ -552,7 +599,7 @@ export const Main: FC<Props> = function Main({
       <div className={activeIndex === 1 ? "" : "hidden"}>
         {recommendedAds.length > 0 && (
           <ul className="grid grid-cols-[repeat(auto-fit,_minmax(140px,_1fr))] gap-2 mb-navContent bg-white px-4">
-            {recommendedAds.map((item) => {
+            {recommendedAds.map((item: Announcement) => {
               return (
                 <AdCard
                   ad={item}
@@ -577,8 +624,8 @@ export const Main: FC<Props> = function Main({
       </div>
 
       {/* Индикатор загрузки новых данных */}
-      {isFetchingNextPage ||
-        (isFetchindNextRec && (
+      {announcementsData.isFetchingNextPage ||
+        (recommendedData.isFetchingNextPage && (
           <div className="flex justify-center items-center my-4">
             <RotatingLines strokeColor={COLORS.blue200} width="48px" />
           </div>

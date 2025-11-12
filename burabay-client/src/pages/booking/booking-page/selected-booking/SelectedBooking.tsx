@@ -55,7 +55,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   const { t } = useTranslation();
 
   // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
-  const formatDateHeader = (dateStr: string | undefined): string => {
+    const formatDateHeader = (dateStr: string | undefined): string => {
     if (!dateStr) return ""; // Если даты нет, возвращаем пустую строку
     
     const today = new Date();
@@ -122,14 +122,10 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </div>
       </Header>
 
-      <div className="px-4 flex flex-col">
+      <div className="p-4 flex flex-col">
         {userRole === "турист" ? (
-          <Link
-            className="flex items-center justify-between py-3"
-            to={`/announcements/$announcementId`}
-            params={{ announcementId: announcement.id }}
-          >
-            <div className="flex items-center">
+          announcement.organization?.isBanned ? (
+            <div className="flex items-center pb-4">
               <img
                 src={imageSrc}
                 onError={() => setImageSrc(DefaultIcon)}
@@ -140,8 +136,26 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                 {announcement.title}
               </span>
             </div>
-            <img src={ArrowBottomIcon} alt="Перейти" />
-          </Link>
+          ) : (
+            <Link
+              className="flex items-center justify-between pb-4"
+              to={`/announcements/$announcementId`}
+              params={{ announcementId: announcement.id }}
+            >
+              <div className="flex items-center">
+                <img
+                  src={imageSrc}
+                  onError={() => setImageSrc(DefaultIcon)}
+                  alt={announcement.title}
+                  className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                />
+                <span className="max-w-[266px] truncate">
+                  {announcement.title}
+                </span>
+              </div>
+              <img src={ArrowBottomIcon} alt="Перейти" />
+            </Link>
+          )
         ) : (
           <div className="flex items-center">
             <img

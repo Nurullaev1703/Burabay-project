@@ -17,6 +17,7 @@ import { ImagesService } from 'src/images/images.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { BookingStatus } from 'src/booking/types/booking.types';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 @Injectable()
 export class AdService {
@@ -35,9 +36,9 @@ export class AdService {
     private readonly bookingBanDatesRepository: Repository<BookingBanDate>,
     private readonly dataSource: DataSource,
     private imageService: ImagesService,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
-  ) { }
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
+  ) {}
 
   /* Создания Объявления. */
   @CatchErrors()
@@ -65,7 +66,7 @@ export class AdService {
     await this.adRepository.save(newAd);
 
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del('ads');
+    // await this.cacheManager.del('ads');
     return JSON.stringify(newAd.id);
   }
 
@@ -129,9 +130,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-          take: filter.limit,
-          skip: filter.offset,
-        }
+            take: filter.limit,
+            skip: filter.offset,
+          }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -153,9 +154,8 @@ export class AdService {
       ...queryParams,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
+    if (filter.adName) ads = this._searchAd(filter.adName, ads);
+
     return ads;
   }
 
@@ -207,7 +207,7 @@ export class AdService {
       where: { id: id },
       relations: {
         subcategory: { category: true },
-        organization: true,
+        organization: { user: true },
         schedule: true,
         breaks: true,
         address: true,
@@ -217,14 +217,26 @@ export class AdService {
     });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
-    // Получаем первые 4 отзыва отдельным запросом
+    // Проверка на блокировку организации или пользователя организации
+    // if (ad.organization.isBanned || ad.organization.user.isBanned)
+    // throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+
+    delete ad.organization.user;
+
+    // Получаем первые 4 отзыва отдельным запросом, включая пользователя (без пароля)
     const reviews = await this.dataSource
       .getRepository('Review')
       .createQueryBuilder('review')
+      .leftJoinAndSelect('review.user', 'user')
       .where('review.ad = :adId', { adId: id })
       .orderBy('review.date', 'DESC')
       .limit(4)
       .getMany();
+
+    // Удаляем пароль из пользователя в каждом отзыве
+    reviews.forEach((review) => {
+      if (review.user) delete review.user.password;
+    });
 
     const favCount = ad.usersFavorited.length;
     // Проверка, является ли объявление Избранным.
@@ -253,8 +265,12 @@ export class AdService {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id }, relations: { favorites: true } });
     Utils.checkEntity(user, 'Пользователь не найден');
 
-    const ad = await this.adRepository.findOne({ where: { id: adId } });
+    const ad = await this.adRepository.findOne({ where: { id: adId }, relations: { organization: { user: true } } });
     Utils.checkEntity(ad, 'Объявление не найдено');
+
+    if (ad.organization.user.id === user.id)
+      throw new HttpException('Нельзя добавить в избранное свое же объявление', HttpStatus.FORBIDDEN);
+    delete ad.organization.user;
 
     // Проверяем, есть ли объявление уже в избранных
     const favoriteIndex = user.favorites.findIndex((fav) => fav.id === ad.id);
@@ -278,14 +294,15 @@ export class AdService {
     const ad = await this.adRepository.findOne({ where: { id: id } });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
+    // Если не владелец объявления и не админ, то ошибка доступа.
+    if (ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на изменение этого объявления', HttpStatus.FORBIDDEN);
     if (subcategoryId) {
-      const subcategory = await this.subcategoryRepository.findOne({
-        where: { id: subcategoryId },
-      });
+      const subcategory = await this.subcategoryRepository.findOne({ where: { id: subcategoryId } });
       Utils.checkEntity(subcategory, 'Категория не найдена');
       Object.assign(ad, { subcategory: subcategory, ...oF });
     } else Object.assign(ad, oF);
-
+    delete ad.organization.user;
     return this.adRepository.save(ad);
   }
 
@@ -306,21 +323,29 @@ export class AdService {
           bookingBanDate: true,
           breaks: true,
           bookings: true,
+          organization: { user: true },
         },
       });
-
-      // Проверка существования объявления.
       Utils.checkEntity(ad, 'Объявление не найдено');
 
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец объявления и не админ, то ошибка доступа.
+      if (ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на удаление этого объявления', HttpStatus.FORBIDDEN);
+      delete ad.organization.user;
       // Проверка на наличие активных бронирований (где дата еще не прошла).
       const activeBookings = ad.bookings.filter(
         (booking) =>
-          booking.status === BookingStatus.CONFIRM || booking.status === BookingStatus.PAYED || booking.status === BookingStatus.IN_PROCESS,
+          booking.status === BookingStatus.CONFIRM ||
+          booking.status === BookingStatus.PAYED ||
+          booking.status === BookingStatus.IN_PROCESS,
       );
 
       if (activeBookings.length > 0) {
         return {
-          message: 'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
+          message:
+            'Невозможно удалить объявление, так как оно имеет активные бронирования. Вы можете скрыть объявление для брони',
           code: HttpStatus.CONFLICT,
         };
       }
@@ -348,7 +373,6 @@ export class AdService {
             try {
               await this.imageService.deleteImage({ filepath: image });
             } catch (error) {
-              // Логируем ошибку, но не останавливаем процесс удаления
               console.warn(`Не удалось удалить изображение ${image}:`, error.message);
             }
           }),
@@ -358,7 +382,7 @@ export class AdService {
       // Удаление самого объявления.
       await manager.remove(ad);
       // Удалить кэш, чтобы получить актуальные данные.
-      await this.cacheManager.del('ads');
+      // await this.cacheManager.del('ads');
       return JSON.stringify(HttpStatus.OK);
     });
   }

@@ -1,4 +1,4 @@
-import { FC, useRef, useCallback, useState } from "react";
+import { FC, useRef, useCallback, useState, useEffect } from "react";
 import { Typography } from "../../shared/ui/Typography";
 import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 import { Button } from "../../shared/ui/Button";
@@ -16,6 +16,7 @@ import { RotatingLines } from "react-loader-spinner";
 import { COLORS } from "../../shared/ui/colors";
 import AddAnnouncementIcon from "../../app/icons/Intersect.png";
 import { Loader } from "../../components/Loader";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 interface Props {
   orgId: string;
@@ -26,6 +27,18 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState<string>(filters?.adName || "");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
+
+  useEffect(() => {
+    navigate({
+      to: "/announcements",
+      search: {
+        ...filters,
+        adName: debouncedSearchValue,
+      },
+    });
+  }, [debouncedSearchValue]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
@@ -72,22 +85,44 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
           <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="" />
             <input
-              type="search"
+              type="text"
               placeholder={t("adSearch")}
               className="flex-grow bg-transparent outline-none text-gray-700"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={() => {
-                navigate({
-                  to: "/announcements",
-                  search: {
-                    ...filters,
-                    adName: searchValue,
-                  },
-                });
-              }}
             />
+            {searchValue && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchValue("");
+                  navigate({
+                    to: "/announcements",
+                    search: {
+                      ...filters,
+                      adName: "",
+                    },
+                  });
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <IconContainer align="end">
             <img

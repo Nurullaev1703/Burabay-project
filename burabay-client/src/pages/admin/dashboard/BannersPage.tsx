@@ -241,16 +241,44 @@ const BannersPage: React.FC = () => {
         <div className="flex items-center gap-4 mb-6">
           <div className="flex gap-3 flex-1">
             {/* Поиск */}
-            <input
-              type="text"
-              placeholder="Поиск по заголовкам..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] text-gray-700"
-            />
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Поиск по заголовкам..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A7D9E] text-gray-700"
+              />
+              {searchQuery && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="#0a7d9e"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
             <button
               onClick={() => setAddModalOpen(true)}
               className="bg-[#0A7D9E] text-white hover:bg-[#096b85] transition-colors font-medium rounded-lg px-6 py-3 shadow-lg whitespace-nowrap"

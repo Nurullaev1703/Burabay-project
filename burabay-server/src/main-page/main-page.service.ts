@@ -25,7 +25,7 @@ export class MainPageService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   /** 
    * Получние всех Объявлений
@@ -46,35 +46,36 @@ export class MainPageService {
 
     // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
     if (isNoAdditionalFilters) {
-      const cachedAds = await this.cacheManager.get(cacheKey);
+      // const cachedAds = await this.cacheManager.get(cacheKey);
       let ads: Ad[];
-      if (cachedAds) {
-        // Если нужный кэш есть, возвращаем его.
-        ads = cachedAds as Ad[];
-      } else {
-        // Если кэша нет, получаем объявления из БД.
-        ads = await this.adRepository.find({
-          where: { organization: { isBanned: false } },
-          relations: { subcategory: { category: true }, address: true, organization: true },
-          select: {
-            id: true,
-            address: { address: true, specialName: true },
-            title: true,
-            description: true,
-            images: true,
-            price: true,
-            details: {},
-            avgRating: true,
-            reviewCount: true,
-            createdAt: true,
-            subcategory: { name: true, category: { name: true, imgPath: true } },
-          },
-          order: { createdAt: 'DESC' },
-        });
+      // if (cachedAds) {
+      // Если нужный кэш есть, возвращаем его.
+      // ads = cachedAds as Ad[];
+      // } else {
+      // Если кэша нет, получаем объявления из БД.
+      ads = await this.adRepository.find({
+        where: { organization: { isBanned: false } },
+        relations: { subcategory: { category: true }, address: true, organization: true },
+        select: {
+          id: true,
+          address: { address: true, specialName: true },
+          title: true,
+          description: true,
+          images: true,
+          price: true,
+          details: {},
+          avgRating: true,
+          reviewCount: true,
+          createdAt: true,
+          subcategory: { name: true, category: { name: true, imgPath: true } },
+          organization: { name: true },
+        },
+        order: { createdAt: 'DESC' },
+      });
 
-        // Сохраняем полученные объявления в кэш.
-        await this.cacheManager.set(cacheKey, ads, 3600000); // Кэшируем на 1 час.
-      }
+      // Сохраняем полученные объявления в кэш.
+      // await this.cacheManager.set(cacheKey, ads, 3600000); // Кэшируем на 1 час.
+      // }
       // Пагинация вручную из кэша.
       ads = ads.slice(offset, offset + limit);
 

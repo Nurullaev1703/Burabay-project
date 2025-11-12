@@ -61,6 +61,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
     }));
   };
   const handleSubmitAnswer = async (type: "complain" | "answer") => {
+    // Валидация: проверяем, что текст не пустой
+    if (!answerText.text || answerText.text.trim() === "") {
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await apiService.post<string>({
@@ -168,10 +173,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
             src={imageSrc}
             onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
-            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+            className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
           />
-          <div>
-            <span>{announcement.title}</span>
+          <div className="flex-1 min-w-0">
+            <span className="truncate w-full block">{announcement.title}</span>
             <div className="flex items-center">
               <div className="flex items-center mr-2">
                 <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
@@ -336,35 +341,48 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
               {role === "бизнес" && (
                 <div className="flex justify-between mb-4">
-                  <img
-                    src={WarningIcon}
-                    alt="Опровергнуть"
-                    onClick={() => openModal(review.id, "complain")}
-                  />
-                  <span
-                    className={`font-semibold ${COLORS_TEXT.blue200}`}
-                    onClick={() => openModal(review.id, "answer")}
-                  >
-                    {t("answer")}
-                  </span>
+                  {!review.report && (
+                    <img
+                      src={WarningIcon}
+                      alt="Опровергнуть"
+                      onClick={() => openModal(review.id, "complain")}
+                      className="cursor-pointer"
+                    />
+                  )}
+                  {review.report && <div></div>}
+                  {!review.answer && (
+                    <span
+                      className={`font-semibold ${COLORS_TEXT.blue200} cursor-pointer`}
+                      onClick={() => openModal(review.id, "answer")}
+                    >
+                      {t("answer")}
+                    </span>
+                  )}
                 </div>
               )}
 
               {modalAnswer[review.id] === "answer" && (
                 <div>
-                  <TextField
-                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                    variant="outlined"
-                    fullWidth={true}
-                    label={t("yourAnswer")}
-                    placeholder={t("writeAnswer")}
-                    onChange={(e) =>
-                      setAnswerText({
-                        reviewId: review.id,
-                        text: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="relative w-full">
+                    <TextField
+                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                      variant="outlined"
+                      fullWidth={true}
+                      multiline
+                      label={t("yourAnswer")}
+                      placeholder={t("writeAnswer")}
+                      inputProps={{ maxLength: 300 }}
+                      onChange={(e) =>
+                        setAnswerText({
+                          reviewId: review.id,
+                          text: e.target.value,
+                        })
+                      }
+                    />
+                    <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                      {answerText.text?.length || 0}/300
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <Button
                       className="mr-2.5"
@@ -376,6 +394,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                     <Button
                       onClick={() => handleSubmitAnswer("answer")}
                       loading={isLoading}
+                      disabled={
+                        !answerText.text || answerText.text.trim() === ""
+                      }
                     >
                       {t("answer")}
                     </Button>
@@ -385,25 +406,32 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
 
               {modalAnswer[review.id] === "complain" && (
                 <div>
-                  <TextField
-                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                    variant="outlined"
-                    fullWidth={true}
-                    label={t("complaint")}
-                    placeholder={t("writeComplaint")}
-                    onChange={(e) =>
-                      setAnswerText({
-                        reviewId: review.id,
-                        text: e.target.value,
-                      })
-                    }
-                    InputLabelProps={{
-                      sx: {
-                        color: "red",
-                        "&.Mui-focused": { color: "red" },
-                      },
-                    }}
-                  />
+                  <div className="relative w-full">
+                    <TextField
+                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                      variant="outlined"
+                      fullWidth={true}
+                      multiline
+                      label={t("complaint")}
+                      placeholder={t("writeComplaint")}
+                      inputProps={{ maxLength: 300 }}
+                      onChange={(e) =>
+                        setAnswerText({
+                          reviewId: review.id,
+                          text: e.target.value,
+                        })
+                      }
+                      InputLabelProps={{
+                        sx: {
+                          color: "red",
+                          "&.Mui-focused": { color: "red" },
+                        },
+                      }}
+                    />
+                    <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                      {answerText.text?.length || 0}/300
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <Button
                       className="mr-2.5"
@@ -416,6 +444,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                       onClick={() => handleSubmitAnswer("complain")}
                       mode="error"
                       loading={isLoading}
+                      disabled={
+                        !answerText.text || answerText.text.trim() === ""
+                      }
                     >
                       {t("complain")}
                     </Button>

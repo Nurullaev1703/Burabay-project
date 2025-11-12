@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateBreakDto } from './dto/create-break.dto';
 import { UpdateBreakDto } from './dto/update-break.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Break } from './entities/break.entity';
 import { CatchErrors, Utils } from 'src/utilities';
+import { CACHE_MANAGER } from '@nestjs/cache-manager/dist/cache.constants';
 
 @Injectable()
 export class BreaksService {
@@ -14,6 +15,8 @@ export class BreaksService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Break)
     private readonly breakRepository: Repository<Break>,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   @CatchErrors()

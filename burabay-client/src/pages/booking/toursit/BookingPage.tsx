@@ -169,7 +169,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           ...(inProgress && { inProgress: true }),
           ...(confirmed && { confirm: true }),
           ...(completed && { done: true }),
-          ...(canceled && { canceled: true }),
+          // Убираем фильтр "отменено" при переходе на таб "Активные"
+          ...(canceled && index !== 0 && { canceled: true }),
         },
       });
     },
@@ -221,13 +222,37 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="Поиск" />
             <input
-              type="search"
+              type="text"
               placeholder={t("search")}
               className="flex-grow bg-transparent outline-none text-gray-700"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyDown={handleKeyDown}
             />
+            {searchValue && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchValue("");
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <Link
             to="/booking/filter"
@@ -235,6 +260,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               onlinePayment: onlinePayment,
               onSidePayment: onSidePayment,
               canceled: canceled,
+              status: status,
             }}
           >
             <img
@@ -275,16 +301,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             );
             return (
               <div key={`${ad.ad_id}-${ad.header}`}>
-                {Object.entries(groupedTimes).map(([timeKey, times]) => (
-                  <li
-                    key={`${ad.ad_id}-${timeKey}`}
-                    className="py-3 border-b border-[#E4E9EA]"
-                  >
-                    <Link
-                      to={`/booking/$bookingId/$category`}
-                      params={{ bookingId: ad.ad_id, category: ad.header }}
-                      search={{ status }}
-                    >
+                {Object.entries(groupedTimes).map(([timeKey, times]) => {
+                  const isBlocked = ad.isBanned === true;
+                  const content = (
+                    <>
                       <div className="mb-2">
                         <div className="flex justify-between">
                           <span
@@ -303,8 +323,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       <div>
                         {times.slice().map((time, index) => {
                           const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                          // const [imageSrc, setImageSrc] =
-                          //   useState<string>(baseUrl + ad.img);
                           return (
                             <div
                               key={index}
@@ -321,8 +339,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   }
                                   className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                                 />
-                                <div className="flex flex-col w-full">
-                                  <span className="">{ad.title}</span>
+                                <div className="flex flex-col w-full min-w-0">
+                                  <span className="block truncate max-w-[250px]">
+                                    {ad.title}
+                                  </span>
                                   <div className="flex justify-between w-full gap-2 items-center">
                                     <div className="flex gap-2 items-center">
                                       <span className="text-sm">
@@ -354,18 +374,39 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   </div>
                                 </div>
                               </div>
-                              <img
-                                className="min-w-2 ml-2"
-                                src={ArrowRightIcon}
-                                alt="Подробнее"
-                              />
+                              {!isBlocked && (
+                                <img
+                                  className="min-w-2 ml-2"
+                                  src={ArrowRightIcon}
+                                  alt="Подробнее"
+                                />
+                              )}
                             </div>
                           );
                         })}
                       </div>
-                    </Link>
-                  </li>
-                ))}
+                    </>
+                  );
+
+                  return (
+                    <li
+                      key={`${ad.ad_id}-${timeKey}`}
+                      className="py-3 border-b border-[#E4E9EA]"
+                    >
+                      {isBlocked ? (
+                        <div>{content}</div>
+                      ) : (
+                        <Link
+                          to={`/booking/$bookingId/$category`}
+                          params={{ bookingId: ad.ad_id, category: ad.header }}
+                          search={{ status }}
+                        >
+                          {content}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
               </div>
             );
           })}

@@ -77,12 +77,13 @@ export const Schedule: FC<Props> = function Schedule({ announcement }) {
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
           </IconContainer>
-          <div>
+          <div className="flex-1 min-w-0 px-2">
             <Typography
               size={18}
               weight={500}
               color={COLORS_TEXT.blue200}
               align="center"
+              className="truncate w-full"
             >
               {announcement.title}
             </Typography>

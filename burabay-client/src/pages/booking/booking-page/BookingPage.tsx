@@ -86,7 +86,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           status: newStatus,
           ...(onlinePayment && { onlinePayment: true }),
           ...(onSidePayment && { onSidePayment: true }),
-          ...(canceled && { canceled: true }),
+          // Убираем фильтр "отменено" при переходе на таб "Активные"
+          ...(canceled && index !== 0 && { canceled: true }),
         },
       });
     },
@@ -137,13 +138,37 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="Поиск" />
             <input
-              type="search"
+              type="text"
               placeholder={t("search")}
               className="flex-grow bg-transparent outline-none text-gray-700"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyDown={handleKeyDown}
             />
+            {searchValue && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchValue("");
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <Link
             to="/booking/filter"
@@ -151,6 +176,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               onlinePayment,
               onSidePayment,
               canceled,
+              status,
             }}
           >
             <img
@@ -217,8 +243,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                 alt={ad.title}
                                 className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
                               />
-                              <div>
-                                <span>{ad.title}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="block truncate max-w-[250px]">
+                                  {ad.title}
+                                </span>
                                 <div className="max-w-[300px] truncate">
                                   {ad.times.slice(0, 5).map((time, index) => {
                                     if (!time) return null;

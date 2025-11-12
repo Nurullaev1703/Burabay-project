@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { Utils } from 'src/utilities';
@@ -7,6 +7,8 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AddressService {
@@ -17,6 +19,8 @@ export class AddressService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   /*
@@ -118,6 +122,8 @@ export class AddressService {
         const ad = await this.adRepository.findOne({ where: { id: adId } });
         Utils.checkEntity(ad, 'Объявление не найдено');
         address.ad.push(ad);
+        // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+        // await this.cacheManager.del(`ads`);
       }
       Object.assign(address, oF);
       await this.addressRepository.save(address);
@@ -132,6 +138,8 @@ export class AddressService {
       const address = await this.addressRepository.findOne({ where: { id: id } });
       Utils.checkEntity(address, 'Адрес не найден');
       await this.addressRepository.remove(address);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       Utils.errorHandler(error);

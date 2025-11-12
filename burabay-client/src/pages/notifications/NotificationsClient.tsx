@@ -115,14 +115,14 @@ export const NotificationsClient: FC<Props> = function Notifications({
                       className={`w-0.5 h-[84px] ${getColorByType(notification.type)} rounded-full`}
                     ></div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <Typography
                         size={18}
                         weight={500}
                         color={COLORS_TEXT.totalBlack}
-                        className="mb-2 break-words hyphens-auto"
+                        className="mb-2 break-words w-full"
                         style={{
-                          wordBreak: "normal",
+                          wordBreak: "break-word",
                           overflowWrap: "break-word",
                         }}
                       >
@@ -133,9 +133,9 @@ export const NotificationsClient: FC<Props> = function Notifications({
                         size={14}
                         weight={400}
                         color={COLORS_TEXT.totalBlack}
-                        className="leading-5 break-words hyphens-auto whitespace-normal"
+                        className="leading-5 break-words w-full whitespace-normal"
                         style={{
-                          wordBreak: "normal",
+                          wordBreak: "break-word",
                           overflowWrap: "break-word",
                         }}
                       >

@@ -151,7 +151,7 @@ export const PriceService: FC<Props> = function PriceService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {checkPriceService() ? t("changeAd") : t("newService")}
+              {checkPriceService() ? t("changeAd") : t("priceService")}
             </Typography>
             <Typography
               size={14}
@@ -159,7 +159,7 @@ export const PriceService: FC<Props> = function PriceService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("priceService")}
+              {t("priceServiceNew")}
             </Typography>
           </div>
           <IconContainer

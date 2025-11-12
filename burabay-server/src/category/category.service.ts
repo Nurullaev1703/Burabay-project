@@ -168,15 +168,17 @@ export class CategoryService {
   }
 
   /** Поиск объявлений по названию */
-  private _searchAd(searchQuery: string, ads: Ad[]) {
-    const adsWithSimilarity = ads
-      .map((ad) => ({
-        ...ad,
-        similarity: stringSimilarity(searchQuery.toLowerCase(), ad.title.toLowerCase()),
-      }))
-      .filter((ad) => ad.similarity > 0.3)
-      .sort((a, b) => b.similarity - a.similarity);
-
-    return adsWithSimilarity.map(({ similarity, ...ad }) => ad);
+  private _searchAd(name: string, ads: Ad[]): Ad[] {
+    const searchedAds = [];
+    ads.forEach((ad) => {
+      const simValue = stringSimilarity(ad.title, name);
+      if (simValue > 0.2)
+        searchedAds.push({
+          prod: ad,
+          simValue: simValue,
+        });
+    });
+    searchedAds.sort((a, b) => b.simValue - a.simValue);
+    return searchedAds.map((ad) => ad.prod);
   }
 }

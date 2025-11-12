@@ -111,6 +111,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number>(0);
   const scrollLeftRef = useRef<number>(0);
+  
+  // Проверяем, пришли ли мы с детальной страницы бронирования
+  const isFromBooking = filters.adId !== undefined;
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
@@ -443,16 +446,45 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     <main className="min-h-screen">
       <Header pb="0" className="">
         <div className="flex justify-between items-center text-center w-full pb-2">
+          {isFromBooking && (
+            <IconContainer align="start" action={() => history.back()}>
+              <img src={BackIcon} alt="Назад" />
+            </IconContainer>
+          )}
           <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
             <img src={SearchIcon} />
             <input
-              onKeyDown={handleKeyDown}
-              type="search"
+              type="text"
               placeholder={t("adSearch")}
               onChange={(e) => setAnnouncementsName(e.target.value)}
               value={announcementsName}
               className="flex-grow bg-transparent outline-none "
             />
+            {announcementsName && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setAnnouncementsName("");
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </Header>
@@ -703,17 +735,37 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-full">
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 z-10"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
               <div className="flex flex-col gap-4 w-full">
-                <div className="flex flex-col w-full min-w-0">
+                <div className="flex flex-col w-full min-w-0 pr-8">
                   <Typography
                     size={18}
                     weight={500}
-                    className="truncate w-full"
+                    className="break-words"
                   >
                     {announcementInfo.title}
                   </Typography>
                   {announcementInfo.duration ? (
-                    <Typography className="mb-4 truncate w-full">
+                    <Typography className="mb-4 break-words">
                       {`${t("DurationOfService")} - ${announcementInfo.duration}`}
                     </Typography>
                   ) : (
