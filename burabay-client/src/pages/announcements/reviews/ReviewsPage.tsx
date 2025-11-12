@@ -126,7 +126,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
   const addReview = (announcement: Announcement) => {
     navigate({
       to: "/announcements/reviews/add-review",
-      state: { announcement } as unknown as Record<string, unknown>,
+      state: { announcement, fromReviews: true } as unknown as Record<
+        string,
+        unknown
+      >,
     });
   };
 
@@ -198,7 +201,7 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
           <Hint title={t("reviewsNav")} align="center" className="bg-blue200" />
         </div>
       ) : (
-  <ul className="px-4 flex flex-col gap-2 bg-white pb-24">
+        <ul className="px-4 flex flex-col gap-2 bg-white pb-24">
           {sortedReviews.map((review, index) => (
             <li key={index} className="border-b border-[#E4E9EA] py-4">
               <div className="flex justify-between items-center mb-2.5">

@@ -129,6 +129,7 @@
   "more": "More",
   "hide": "Hide",
   "viewAllReviews": "View all reviews",
+  "noReviews": "No reviews yet",
   "toBook": "Book",
   "serviceSchedule": "Service schedule",
   "preview": "Preview",
@@ -769,5 +770,11 @@
   "today": "Today",
   "tomorrow": "Tomorrow",
   "supportedFormats": "Supported formats: PDF, DOC, DOCX",
-  "certificateStateReg": "Certificate of state registration"
+  "certificateStateReg": "Certificate of state registration",
+  "maxLengthExceeded": "Maximum character count: {{count}}",
+  "minLengthRequired": "Minimum character count: {{count}}",
+  "videoSizeExceeded": "Video size exceeds {{size}}",
+  "videoDurationExceeded": "Video duration exceeds {{duration}} minutes",
+  "fileSizeExceeded": "File size exceeds the permitted limit",
+  "fileTooLarge": "File is too large"
 }

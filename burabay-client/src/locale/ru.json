@@ -27,7 +27,7 @@
   "details": "Подробнее",
   "favouriteNotice": "Обьявление добалено в избранное",
   "notFiled": "Не заполнено",
-  "accountWaiting": "Данные отправлены, ожидайте подтверждение",
+  "accountWaiting": "Данные отправлены, ожидайте подтверждения",
   "organizationName": "Название организации",
   "organizationAbout": "Об организации",
   "emailToLogin": "Адрес для входа в в аккаунт",
@@ -116,6 +116,7 @@
   "hide": "скрыть",
   "viewAllReviews": "Смотреть все отзывы",
   "reviews": "Отзывы",
+  "noReviews": "Отзывов пока нет",
   "toBook": "Забронировать",
   "serviceSchedule": "Расписание услуг",
   "preview": "Просмотр",
@@ -774,5 +775,11 @@
   "today": "Сегодня",
   "tomorrow": "Завтра",
   "supportedFormats": "Поддерживаемые форматы: PDF, DOC, DOCX",
-  "certificateStateReg": "Свидетельство о государственной регистрации"
+  "certificateStateReg": "Свидетельство о государственной регистрации",
+  "maxLengthExceeded": "Максимальное количество символов: {{count}}",
+  "minLengthRequired": "Минимальное количество символов: {{count}}",
+  "videoSizeExceeded": "Размер видео превышает {{size}}",
+  "videoDurationExceeded": "Длительность видео превышает {{duration}} минуты",
+  "fileSizeExceeded": "Размер файла превышает допустимый лимит",
+  "fileTooLarge": "Файл слишком большой"
 }

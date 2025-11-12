@@ -26,20 +26,20 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
   // Функция для правильной обработки URL
   const formatSiteUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined;
-    
+
     // Убираем все пробелы
-    let cleanUrl = url.replace(/\s+/g, '');
-    
+    let cleanUrl = url.replace(/\s+/g, "");
+
     // Если URL уже начинается с http:// или https://, возвращаем как есть
-    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+    if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
       return cleanUrl;
     }
-    
+
     // Если URL начинается с //, добавляем https:
-    if (cleanUrl.startsWith('//')) {
+    if (cleanUrl.startsWith("//")) {
       return `https:${cleanUrl}`;
     }
-    
+
     // В остальных случаях добавляем https://
     return `https://${cleanUrl}`;
   };
@@ -83,10 +83,10 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
                 errorImage={DefaultImage}
               />
             </div>
-            <h1 className="font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+            <h1 className="font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 break-words whitespace-pre-wrap">
               {org.name}
             </h1>
-            <p className="text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
+            <p className="text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2 break-words whitespace-pre-wrap">
               {org.description || "Описание отсутствует"}
             </p>
             <div className="mt-4 pb-4 mb-2">

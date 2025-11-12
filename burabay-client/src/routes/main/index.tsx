@@ -8,6 +8,7 @@ import {
   useGetRecommendedAds,
 } from "../../pages/main/main-utils";
 import { MainPageFilter } from "../../pages/main/model/mainpage-types";
+import { useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/main/")({
   component: MainRoute,
@@ -31,6 +32,20 @@ function MainRoute() {
     isBannersLoading ||
     isAnnouncementsLoading ||
     isRecommendedLoading;
+
+  const hasRestoredScroll = useRef(false);
+
+  // Отключаем автоматическое восстановление скролла браузером
+  useEffect(() => {
+    if (history.scrollRestoration) {
+      history.scrollRestoration = 'manual';
+    }
+    return () => {
+      if (history.scrollRestoration) {
+        history.scrollRestoration = 'auto';
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return <Loader />;

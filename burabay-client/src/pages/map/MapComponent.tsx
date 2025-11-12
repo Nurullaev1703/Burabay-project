@@ -165,12 +165,12 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
           url: `/booking/has-active/${adId}`,
         });
-        
+
         if (hasActiveResponse.data?.hasActive) {
           // Если есть активные бронирования, идем на страницу запрета дней
-          const serviceTime = announcement?.startTime?.join(',') || '';
+          const serviceTime = announcement?.startTime?.join(",") || "";
           navigate({
-            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ''}`,
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ""}`,
           });
         } else {
           // Иначе на шаг 5 (детали)
@@ -200,12 +200,12 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
           url: `/booking/has-active/${adId}`,
         });
-        
+
         if (hasActiveResponse.data?.hasActive) {
           // Если есть активные бронирования, идем на страницу запрета дней
-          const serviceTime = announcement?.startTime?.join(',') || '';
+          const serviceTime = announcement?.startTime?.join(",") || "";
           navigate({
-            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ''}`,
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ""}`,
           });
         } else {
           // Иначе на шаг 5 (детали)
@@ -316,19 +316,22 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       )}
       <div className="z-10" id="map" style={containerStyle}></div>
       {address && (
-        <div>
+        <div
+          className="fixed z-10"
+          style={{ top: "105px", left: "16px", right: "16px" }}
+        >
           <TextField
             value={address}
             label={t("adressService")}
             variant="outlined"
             placeholder={t("addressPlace")}
-            style={{
-              width: "80%",
-              height: "69px",
-              position: "absolute",
-              top: 105,
-              left: 55,
-              zIndex: 2,
+            disabled
+            multiline
+            fullWidth
+            slotProps={{
+              input: {
+                readOnly: true,
+              },
             }}
           />
         </div>

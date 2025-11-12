@@ -20,14 +20,14 @@ import { ImageViewModal } from "../../reviews/ui/ImageViewModal";
 
 interface Props {
   ad: Announcement;
-  review?: ReviewAnnouncement;
   isAdmin?: boolean;
+  fromMap?: boolean;
 }
 
 export const ReviewsInfo: FC<Props> = function ReviewsInfo({
   ad,
-  review,
   isAdmin,
+  fromMap = false,
 }) {
   // состояния для регулировки модалки с изображениями
   const [imageModal, setImageModal] = useState<boolean>(false);
@@ -36,7 +36,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
 
   const [showReviews, setShowReviews] = useState(!isAdmin);
   const [reviews, _] = useState<Review[]>(
-    Array.isArray(review?.reviews) ? review.reviews : []
+    Array.isArray(ad.reviews) ? ad.reviews.slice(0, 4) : []
   );
   const { t } = useTranslation();
   const [expandedReviews, setExpandedReviews] = useState<
@@ -44,7 +44,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
   >({});
   const navigate = useNavigate();
   const role = roleService.hasValue() ? roleService.getValue() : null;
-  const hasMoreReviews = (reviews.length > 3) || ((ad.reviewCount || 0) > 3);
+  const hasMoreReviews = (ad.reviewCount || 0) > 4;
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -57,11 +57,9 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
   }, []);
   return (
     <div className="bg-white p-4 mb-2">
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between mb-4 items-center">
         <div className="flex items-center">
-          <h2 className="text-[22px] font-medium mr-1">
-            {t("reviews")}
-          </h2>
+          <h2 className="text-[22px] font-medium mr-1">{t("reviews")}</h2>
           {!isAdmin && (
             <div className="w-6 h-6 flex justify-center items-center">
               <img src={ArrowIcon} alt="Стрелка" className="mt-0.5" />
@@ -96,136 +94,165 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
       {showReviews && (
         <>
           {reviews.length === 0 ? (
-            <div className="text-gray-500 py-4">{(t("noReviews") === "noReviews" ? "Нет отзывов" : t("noReviews"))}</div>
+            <div
+              className={`flex flex-col py-4 ${!isAdmin && role === ROLE_TYPE.TOURIST && ad.isBookable ? "pb-8" : ""}`}
+            >
+              <div className="text-gray-500">{t("noReviews")}</div>
+              {/* Кнопка написать отзыв для туристов */}
+              {!isAdmin && role === ROLE_TYPE.TOURIST && (
+                <button
+                  onClick={() =>
+                    navigate({
+                      to: "/announcements/reviews/add-review",
+                      state: { announcement: ad, fromMap } as unknown as Record<
+                        string,
+                        unknown
+                      >,
+                    })
+                  }
+                  className={`text-[16px] py-4 w-full font-medium ${COLORS_TEXT.blue200} hover:opacity-80 transition-opacity`}
+                >
+                  {t("writeReview")}
+                </button>
+              )}
+            </div>
           ) : (
             <ul className="flex flex-col gap-8">
-              {/* Вывод не более 3 отзывов */}
-              {reviews.slice(0, 3).map((review, index) => (
+              {/* Вывод первых 4 отзывов (все что пришли с сервера) */}
+              {reviews.map((review, index) => (
                 <li key={index} className="border-b border-[#E4E9EA] pb-4">
-              <div className="flex justify-between items-center mb-2.5">
-                <div className="flex-1 flex flex-col min-w-0 pr-2">
-                  <span className="break-words whitespace-normal overflow-wrap-anywhere font-medium">
-                    {review.user.fullName ? review.user.fullName : "Безымянный"}
-                  </span>
-                  <span className={`text-xs ${COLORS_TEXT.gray100}`}>
-                    {review.date
-                      ? new Date(review.date).toLocaleDateString("ru-RU", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
-                      : "Нет даты"}
-                  </span>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  {[...Array(5)].map((_, starIndex) => (
-                    <img
-                      key={starIndex}
-                      src={
-                        starIndex < review.stars ? StarIcon : UnfocusedStarIcon
-                      }
-                      alt={
-                        starIndex < review.stars
-                          ? "Активная звезда"
-                          : "Неактивная звезда"
-                      }
-                      width={16}
-                      height={16}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="leading-5 mb-2.5 break-words">
-                {expandedReviews[index] ? (
-                  <>
-                    {review.text}{" "}
-                    <span
-                      className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
-                      onClick={() => toggleReviewText(index)}
-                    >
-                      {t("hide")}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    {review.text.length > 150
-                      ? `${review.text.slice(0, 150)}...`
-                      : review.text}{" "}
-                    {review.text.length > 150 && (
-                      <span
-                        className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
-                        onClick={() => toggleReviewText(index)}
-                      >
-                        {t("more")}
+                  <div className="flex justify-between items-center mb-2.5">
+                    <div className="flex-1 flex flex-col min-w-0 pr-2">
+                      <span className="break-words whitespace-normal overflow-wrap-anywhere font-medium">
+                        {review.user?.fullName || "Безымянный"}
                       </span>
-                    )}
-                  </>
-                )}
-              </div>
+                      <span className={`text-xs ${COLORS_TEXT.gray100}`}>
+                        {review.date
+                          ? new Date(review.date).toLocaleDateString("ru-RU", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })
+                          : "Нет даты"}
+                      </span>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      {[...Array(5)].map((_, starIndex) => (
+                        <img
+                          key={starIndex}
+                          src={
+                            starIndex < review.stars
+                              ? StarIcon
+                              : UnfocusedStarIcon
+                          }
+                          alt={
+                            starIndex < review.stars
+                              ? "Активная звезда"
+                              : "Неактивная звезда"
+                          }
+                          width={16}
+                          height={16}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-              <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
-                {review.images.map((image, index) => (
-                  <li key={index} className="w-20 h-20 flex-shrink-0">
-                    <img
-                      src={baseUrl + image}
-                      alt="Изображение"
-                      className="rounded-lg  w-full h-full object-cover"
-                      onClick={() => {
-                        setSelectedImages(review.images);
-                        setImageIndex(index);
-                        setImageModal(true);
-                      }}
+                  <div className="leading-5 mb-2.5 break-words">
+                    {expandedReviews[index] ? (
+                      <>
+                        {review.text}{" "}
+                        <span
+                          className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
+                          onClick={() => toggleReviewText(index)}
+                        >
+                          {t("hide")}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {review.text.length > 150
+                          ? `${review.text.slice(0, 150)}...`
+                          : review.text}{" "}
+                        {review.text.length > 150 && (
+                          <span
+                            className={`${COLORS_TEXT.blue200} cursor-pointer font-semibold`}
+                            onClick={() => toggleReviewText(index)}
+                          >
+                            {t("more")}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <ul className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth mb-2">
+                    {review.images.map((image, index) => (
+                      <li key={index} className="w-20 h-20 flex-shrink-0">
+                        <img
+                          src={baseUrl + image}
+                          alt="Изображение"
+                          className="rounded-lg  w-full h-full object-cover"
+                          onClick={() => {
+                            setSelectedImages(review.images);
+                            setImageIndex(index);
+                            setImageModal(true);
+                          }}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {imageModal && (
+                    <ImageViewModal
+                      images={selectedImages.map((image, index) => {
+                        return {
+                          index: index,
+                          imgUrl: baseUrl + image,
+                        };
+                      })}
+                      open={imageModal}
+                      onClose={() => setImageModal(false)}
+                      firstItem={imageIndex}
                     />
-                  </li>
-                ))}
-              </ul>
-              {imageModal && (
-                <ImageViewModal
-                  images={selectedImages.map((image, index) => {
-                    return {
-                      index: index,
-                      imgUrl: baseUrl + image,
-                    };
-                  })}
-                  open={imageModal}
-                  onClose={() => setImageModal(false)}
-                  firstItem={imageIndex}
-                />
-              )}
-              <ul>
-                {review.answer && (
-                  <li key={index}>
-                    <TextField
-                      value={review.answer.text}
-                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                      variant="outlined"
-                      fullWidth={true}
-                      label={t("theAnswer")}
-                      InputProps={{ readOnly: true }}
-                    />
-                  </li>
-                )}
-                {review.report && role === ROLE_TYPE.BUSINESS && (
-                  <li key={index}>
-                    <TextField
-                      InputLabelProps={{
-                        sx: {
-                          color: "red",
-                          "&.Mui-focused": { color: "red" },
-                        },
-                      }}
-                      value={review.report.text}
-                      sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                      variant="outlined"
-                      fullWidth={true}
-                      label={t("complaint")}
-                      InputProps={{ readOnly: true }}
-                    />
-                  </li>
-                )}
-              </ul>
-            </li>
+                  )}
+                  <ul>
+                    {review.answer && (
+                      <li key={index}>
+                        <TextField
+                          value={review.answer.text}
+                          sx={{
+                            marginBottom: "8px",
+                            border: "solid #E4E9EA 1px",
+                          }}
+                          variant="outlined"
+                          fullWidth={true}
+                          label={t("theAnswer")}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </li>
+                    )}
+                    {review.report && role === ROLE_TYPE.BUSINESS && (
+                      <li key={index}>
+                        <TextField
+                          InputLabelProps={{
+                            sx: {
+                              color: "red",
+                              "&.Mui-focused": { color: "red" },
+                            },
+                          }}
+                          value={review.report.text}
+                          sx={{
+                            marginBottom: "8px",
+                            border: "solid #E4E9EA 1px",
+                          }}
+                          variant="outlined"
+                          fullWidth={true}
+                          label={t("complaint")}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </li>
+                    )}
+                  </ul>
+                </li>
               ))}
             </ul>
           )}

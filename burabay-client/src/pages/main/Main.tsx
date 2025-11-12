@@ -58,6 +58,23 @@ export const Main: FC<Props> = function Main({
     useState<Category[]>(favouriteCategories);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Отключаем автоматический скролл при монтировании
+  useEffect(() => {
+    // Предотвращаем скролл наверх при монтировании компонента
+    // Получаем правильный скроллируемый элемент
+    const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
+    const scrollY = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
+    
+    if (scrollY > 0) {
+      // Если мы уже не в начале - восстанавливаем позицию
+      if (scrollableElement) {
+        scrollableElement.scrollTop = scrollY;
+      } else {
+        window.scrollTo(0, scrollY);
+      }
+    }
+  }, []);
+
   // Синхронизируем activeIndex с фильтрами при изменении
   useEffect(() => {
     if (filters.activeTab !== undefined && filters.activeTab !== activeIndex) {
@@ -95,20 +112,104 @@ export const Main: FC<Props> = function Main({
     },
     [filters, navigate]
   );
+
+  // Восстанавливаем скролл при монтировании
   useEffect(() => {
     const savedScroll = sessionStorage.getItem("mainPageScroll");
     if (savedScroll) {
-      window.scrollTo(0, parseInt(savedScroll, 10));
+      const scrollPosition = parseInt(savedScroll, 10); 
+      
+      // Получаем правильный скроллируемый элемент (iOS использует .ios-scrollable-content)
+      const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
+      const targetElement = scrollableElement || window;
+      
+      // Флаг для защиты от сброса скролла
+      let isRestoring = true;
+      
+      // Восстанавливаем скролл несколько раз с задержками
+      const timeouts: NodeJS.Timeout[] = [];
+      
+      // Функция для установки скролла
+      const setScroll = (pos: number, attempt: number) => {
+        if (scrollableElement) {
+          scrollableElement.scrollTop = pos;
+        } else {
+          window.scrollTo(0, pos);
+        }
+      };
+      
+      // Защита от сброса скролла
+      const protectScroll = () => {
+        if (isRestoring) {
+          const currentScroll = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
+          if (currentScroll < scrollPosition - 10) {
+            setScroll(scrollPosition, 0);
+          }
+        }
+      };
+      
+      if (scrollableElement) {
+        scrollableElement.addEventListener('scroll', protectScroll, { passive: true });
+      } else {
+        window.addEventListener('scroll', protectScroll, { passive: true });
+      }
+      
+      // Первая попытка - сразу
+      timeouts.push(setTimeout(() => setScroll(scrollPosition, 1), 0));
+      
+      // Вторая попытка - через 50мс
+      timeouts.push(setTimeout(() => setScroll(scrollPosition, 2), 50));
+      
+      // Третья попытка - через 150мс
+      timeouts.push(setTimeout(() => setScroll(scrollPosition, 3), 150));
+      
+      // Четвертая попытка - через 300мс
+      timeouts.push(setTimeout(() => setScroll(scrollPosition, 4), 300));
+      
+      // Финальная попытка и отключение защиты - через 500мс
+      timeouts.push(setTimeout(() => {
+        setScroll(scrollPosition, 5);
+        isRestoring = false;
+        if (scrollableElement) {
+          scrollableElement.removeEventListener('scroll', protectScroll);
+        } else {
+          window.removeEventListener('scroll', protectScroll);
+        }
+      }, 500));
+      
+      return () => {
+        isRestoring = false;
+        if (scrollableElement) {
+          scrollableElement.removeEventListener('scroll', protectScroll);
+        } else {
+          window.removeEventListener('scroll', protectScroll);
+        }
+        timeouts.forEach(t => clearTimeout(t));
+      };
     }
+  }, []); // Пустой массив - выполняется только при монтировании
 
+  // Сохраняем позицию скролла при каждом скролле
+  useEffect(() => {
+    // Получаем правильный скроллируемый элемент
+    const scrollableElement = document.querySelector('.ios-scrollable-content') as HTMLElement;
+    
     const handleScroll = () => {
-      sessionStorage.setItem("mainPageScroll", window.scrollY.toString());
+      const scrollY = scrollableElement ? scrollableElement.scrollTop : window.scrollY;
+      sessionStorage.setItem("mainPageScroll", scrollY.toString());
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    if (scrollableElement) {
+      scrollableElement.addEventListener("scroll", handleScroll);
+      return () => {
+        scrollableElement.removeEventListener("scroll", handleScroll);
+      };
+    } else {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
   }, []);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {

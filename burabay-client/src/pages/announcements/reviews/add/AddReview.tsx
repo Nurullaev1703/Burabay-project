@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from "@tanstack/react-router";
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../../components/Header";
@@ -45,17 +45,15 @@ export const AddReview: FC = function AddReview() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { t } = useTranslation();
-  const { announcement } = (location.state || {}) as { announcement?: Announcement };
-  
-  if (!announcement) {
-    // Если нет данных, можно вернуть назад или показать ошибку
-    history.back();
-    return null;
-  }
-  
+  const { announcement, fromMap, fromReviews } = (location.state || {}) as {
+    announcement?: Announcement;
+    fromMap?: boolean;
+    fromReviews?: boolean;
+  };
+
   const [reviewImages, _] = useState([]);
   const [imageSrc, setImageSrc] = useState<string>(
-    baseUrl + announcement.images[0]
+    announcement?.images?.[0] ? baseUrl + announcement.images[0] : DefaultImage
   );
   // состояния для регулировки модалки с изображениями
   const [imageModal, setImageModal] = useState<boolean>(false);
@@ -66,7 +64,7 @@ export const AddReview: FC = function AddReview() {
     formState: { isValid, isSubmitting },
   } = useForm<FormType>({
     defaultValues: {
-      adId: announcement.id,
+      adId: announcement?.id || "",
       images: [],
       text: "",
       stars: 0,
@@ -266,11 +264,39 @@ export const AddReview: FC = function AddReview() {
     };
   }, []);
 
+  // Проверка на отсутствие данных - редирект назад
+  useEffect(() => {
+    if (!announcement) {
+      history.back();
+    }
+  }, [announcement]);
+
+  // Если нет данных, ничего не рендерим
+  if (!announcement) {
+    return null;
+  }
+
   return (
     <section className="min-h-screen bg-background">
       <Header>
         <div className="flex justify-between items-center text-center">
-          <IconContainer align="start" action={() => history.back()}>
+          <IconContainer
+            align="start"
+            action={() => {
+              if (fromReviews) {
+                navigate({
+                  to: `/announcements/reviews/${announcement.id}`,
+                  replace: true,
+                });
+              } else {
+                navigate({
+                  to: `/announcements/${announcement.id}`,
+                  search: fromMap ? { fromMap: true } : undefined,
+                  replace: true,
+                });
+              }
+            }}
+          >
             <img src={BackIcon} alt="" />
           </IconContainer>
           <div>
@@ -283,7 +309,23 @@ export const AddReview: FC = function AddReview() {
               {t("serviceReview")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => history.back()}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (fromReviews) {
+                navigate({
+                  to: `/announcements/reviews/${announcement.id}`,
+                  replace: true,
+                });
+              } else {
+                navigate({
+                  to: `/announcements/${announcement.id}`,
+                  search: fromMap ? { fromMap: true } : undefined,
+                  replace: true,
+                });
+              }
+            }}
+          >
             <img src={CloseIcon} alt="" />
           </IconContainer>
         </div>
@@ -295,10 +337,10 @@ export const AddReview: FC = function AddReview() {
             src={imageSrc}
             onError={() => setImageSrc(DefaultImage)}
             alt={announcement.title}
-            className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+            className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
           />
-          <div>
-            <span>{announcement.title}</span>
+          <div className="flex-1 min-w-0">
+            <span className="truncate block">{announcement.title}</span>
             <div className="flex items-center">
               <div className="flex items-center mr-2">
                 <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
@@ -333,10 +375,15 @@ export const AddReview: FC = function AddReview() {
             await queryClient.refetchQueries({ queryKey: [`/review/ad/`] });
             // После успешного добавления отзыва переводим на страницу списка отзывов данного объявления
             if (announcement && announcement.id) {
-              navigate({ to: `/announcements/reviews/${announcement.id}`, replace: true });
+              navigate({
+                to: `/announcements/reviews/${announcement.id}`,
+                replace: true,
+              });
             } else {
               // Фоллбек — жёсткий редирект если navigate не сработает
-              window.location.assign(`/announcements/reviews/${announcement?.id || ''}`);
+              window.location.assign(
+                `/announcements/reviews/${announcement?.id || ""}`
+              );
             }
           }
           setIsLoading(false);
