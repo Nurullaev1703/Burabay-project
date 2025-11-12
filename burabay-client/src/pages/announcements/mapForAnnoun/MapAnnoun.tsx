@@ -557,16 +557,16 @@ export const MapAnnoun: FC<Props> = ({ announcements }) => {
                 </svg>
               </button>
               <div className="flex flex-col gap-4 w-full">
-                <div className="flex flex-col w-full min-w-0">
+                <div className="flex flex-col w-full min-w-0 pr-8">
                   <Typography
                     size={18}
                     weight={500}
-                    className="truncate w-full"
+                    className="break-words"
                   >
                     {announcementInfo.title}
                   </Typography>
                   {announcementInfo.duration ? (
-                    <Typography className="mb-4 truncate w-full">
+                    <Typography className="mb-4 break-words">
                       {`${t("DurationOfService")} - ${announcementInfo.duration}`}
                     </Typography>
                   ) : (
