@@ -30,9 +30,8 @@ function RouteComponent() {
     return <Loader />;
   }
 
-  const hasParams = onlinePayment || onSidePayment || canceled;
-
-  if (data.length === 0 && !hasParams) {
+  // Если нет данных, показываем пустую страницу без поиска и фильтра
+  if (data.length === 0) {
     return <BookingTourist />;
   }
   /* @ts-ignore */

@@ -86,7 +86,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           status: newStatus,
           ...(onlinePayment && { onlinePayment: true }),
           ...(onSidePayment && { onSidePayment: true }),
-          ...(canceled && { canceled: true }),
+          // Убираем фильтр "отменено" при переходе на таб "Активные"
+          ...(canceled && index !== 0 && { canceled: true }),
         },
       });
     },
@@ -175,6 +176,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               onlinePayment,
               onSidePayment,
               canceled,
+              status,
             }}
           >
             <img

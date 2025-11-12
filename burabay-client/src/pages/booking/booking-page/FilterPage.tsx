@@ -26,6 +26,9 @@ export const FilterPage: FC = function FilterPage() {
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
 
+  // Получаем текущий статус из URL
+  const currentStatus = queryParams.get("status") || "ACTIVE";
+
   const [filters, setFilters] = useState<FilterType>({
     onlinePayment: queryParams.get("onlinePayment") === "true",
     onSidePayment: queryParams.get("onSidePayment") === "true",
@@ -45,7 +48,14 @@ export const FilterPage: FC = function FilterPage() {
 
     if (filters.onlinePayment) searchParams.set("onlinePayment", "true");
     if (filters.onSidePayment) searchParams.set("onSidePayment", "true");
-    if (filters.canceled) searchParams.set("canceled", "true");
+    if (filters.canceled) {
+      searchParams.set("canceled", "true");
+      // Если выбран фильтр "отменено", всегда переходим на вкладку "Архив"
+      searchParams.set("status", "DONE");
+    } else {
+      // Если "отменено" НЕ выбрано, сохраняем текущую вкладку
+      searchParams.set("status", currentStatus);
+    }
 
     // Обновляем URL с новыми фильтрами
     navigate({
