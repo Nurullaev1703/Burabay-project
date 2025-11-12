@@ -46,7 +46,7 @@ export const SortModal: FC<Props> = function SortModal({
           },
         }}
       >
-        <div className="flex justify-between items-center mb-4 py-2.5">
+        <div className="flex justify-between items-center mb-4">
           <span className="text-xl font-bold">{t("showFirst")}</span>
           <div
             className="w-11 h-11 flex items-center justify-end"
