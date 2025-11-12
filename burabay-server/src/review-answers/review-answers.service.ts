@@ -23,8 +23,8 @@ export class ReviewAnswersService {
     private readonly organizationRepository: Repository<Organization>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
@@ -54,7 +54,7 @@ export class ReviewAnswersService {
       };
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      await this.cacheManager.del(`ads`);
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -66,7 +66,7 @@ export class ReviewAnswersService {
     Object.assign(answer, updateReviewAnswerDto);
     await this.reviewAnswerRepository.save(answer);
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del(`ads`);
+    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -76,7 +76,7 @@ export class ReviewAnswersService {
     Utils.checkEntity(answer, 'Ответ не найден');
     await this.reviewAnswerRepository.remove(answer);
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del(`ads`);
+    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }

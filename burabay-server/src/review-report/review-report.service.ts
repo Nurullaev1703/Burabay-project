@@ -26,8 +26,8 @@ export class ReviewReportService {
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
@@ -58,7 +58,7 @@ export class ReviewReportService {
       };
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      await this.cacheManager.del(`ads`);
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -70,7 +70,7 @@ export class ReviewReportService {
     Object.assign(report, updateReviewReportDto);
     await this.reviewReportRepository.save(report);
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del(`ads`);
+    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -80,7 +80,7 @@ export class ReviewReportService {
     Utils.checkEntity(report, 'Ответ не найден');
     await this.reviewReportRepository.remove(report);
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del(`ads`);
+    // await this.cacheManager.del(`ads`);
     return JSON.stringify(HttpStatus.OK);
   }
 }
