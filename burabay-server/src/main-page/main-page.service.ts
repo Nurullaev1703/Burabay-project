@@ -78,13 +78,12 @@ export class MainPageService {
       // Получаем избранные объявления пользователя.
       const userFavorites = await this.dataSource
         .createQueryBuilder()
-        .select('ad.id')
+        .select('ufa.adId')
         .from('user_favorites_ad', 'ufa')
-        .innerJoin('ad', 'ad', 'ad.id = ufa.adId')
         .where('ufa.userId = :userId', { userId: tokenData.id })
         .getRawMany();
       // Преобразуем в Set для быстрого поиска.
-      const favoriteIds = new Set(userFavorites.map((f) => f.id));
+      const favoriteIds = new Set(userFavorites.map((f) => f.adId));
       const result = ads.map((ad) => ({ ...ad, isFavourite: favoriteIds.has(ad.id) }));
       return result;
     }
