@@ -213,8 +213,8 @@ export class AdService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Проверка на блокировку организации или пользователя организации
-    if (ad.organization.isBanned || ad.organization.user.isBanned)
-      throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+    // if (ad.organization.isBanned || ad.organization.user.isBanned)
+    // throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
 
     delete ad.organization.user;
 
