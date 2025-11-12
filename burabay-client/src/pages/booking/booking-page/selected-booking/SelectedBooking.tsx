@@ -55,7 +55,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
   const { t } = useTranslation();
 
   // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
-  const formatDateHeader = (dateStr: string | undefined): string => {
+    const formatDateHeader = (dateStr: string | undefined): string => {
     if (!dateStr) return ""; // Если даты нет, возвращаем пустую строку
     
     const today = new Date();
@@ -122,10 +122,10 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </div>
       </Header>
 
-      <div className="px-4 flex flex-col">
+      <div className="px-4 pt-4 flex flex-col">
         {userRole === "турист" ? (
           <Link
-            className="flex items-center justify-between py-3"
+            className="flex items-center justify-between pb-4"
             to={`/announcements/$announcementId`}
             params={{ announcementId: announcement.id }}
           >
