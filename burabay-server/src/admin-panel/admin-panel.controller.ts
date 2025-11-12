@@ -9,7 +9,6 @@ import { BannerCreateDto } from './dto/banner-create.dto';
 @Controller('admin')
 @ApiTags('Админ Панель')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
 export class AdminPanelController {
   constructor(private readonly adminPanelService: AdminPanelService) {}
 
