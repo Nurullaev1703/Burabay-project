@@ -301,16 +301,10 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             );
             return (
               <div key={`${ad.ad_id}-${ad.header}`}>
-                {Object.entries(groupedTimes).map(([timeKey, times]) => (
-                  <li
-                    key={`${ad.ad_id}-${timeKey}`}
-                    className="py-3 border-b border-[#E4E9EA]"
-                  >
-                    <Link
-                      to={`/booking/$bookingId/$category`}
-                      params={{ bookingId: ad.ad_id, category: ad.header }}
-                      search={{ status }}
-                    >
+                {Object.entries(groupedTimes).map(([timeKey, times]) => {
+                  const isBlocked = ad.isBanned === true;
+                  const content = (
+                    <>
                       <div className="mb-2">
                         <div className="flex justify-between">
                           <span
@@ -329,8 +323,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       <div>
                         {times.slice().map((time, index) => {
                           const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
-                          // const [imageSrc, setImageSrc] =
-                          //   useState<string>(baseUrl + ad.img);
                           return (
                             <div
                               key={index}
@@ -382,18 +374,39 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                                   </div>
                                 </div>
                               </div>
-                              <img
-                                className="min-w-2 ml-2"
-                                src={ArrowRightIcon}
-                                alt="Подробнее"
-                              />
+                              {!isBlocked && (
+                                <img
+                                  className="min-w-2 ml-2"
+                                  src={ArrowRightIcon}
+                                  alt="Подробнее"
+                                />
+                              )}
                             </div>
                           );
                         })}
                       </div>
-                    </Link>
-                  </li>
-                ))}
+                    </>
+                  );
+
+                  return (
+                    <li
+                      key={`${ad.ad_id}-${timeKey}`}
+                      className="py-3 border-b border-[#E4E9EA]"
+                    >
+                      {isBlocked ? (
+                        <div>{content}</div>
+                      ) : (
+                        <Link
+                          to={`/booking/$bookingId/$category`}
+                          params={{ bookingId: ad.ad_id, category: ad.header }}
+                          search={{ status }}
+                        >
+                          {content}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
               </div>
             );
           })}

@@ -71,6 +71,7 @@ interface AnnouncementOrganization {
   isConfirmed: boolean;
   description: string;
   siteUrl: string;
+  isBanned?: boolean;
 }
 export interface Announcement {
   subcategory: Subcategory;

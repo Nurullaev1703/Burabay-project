@@ -14,7 +14,7 @@ interface TouristBookingAd {
   img: string;
   times: TouristBookingTime[];
   createdAt: string;
-
+  isBanned?: boolean;
 }
 
 interface TouristBookingTime {
