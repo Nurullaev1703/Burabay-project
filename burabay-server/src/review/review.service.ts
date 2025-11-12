@@ -23,8 +23,8 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
@@ -58,7 +58,7 @@ export class ReviewService {
 
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      await this.cacheManager.del(`ads`);
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -160,6 +160,8 @@ export class ReviewService {
       Utils.checkEntity(review, 'Отзыв не найден');
       Object.assign(review, oF);
       await this.reviewRepository.save(review);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       Utils.errorHandler(error);
@@ -194,6 +196,8 @@ export class ReviewService {
         message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
       };
       await this.notificationService.createForUser(notificationDto);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     });
   }

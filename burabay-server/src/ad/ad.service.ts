@@ -36,8 +36,8 @@ export class AdService {
     private readonly bookingBanDatesRepository: Repository<BookingBanDate>,
     private readonly dataSource: DataSource,
     private imageService: ImagesService,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
   ) {}
 
   /* Создания Объявления. Принимает айти Подкатегории и Организации. */
@@ -61,7 +61,7 @@ export class AdService {
     await this.adRepository.save(newAd);
 
     // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-    await this.cacheManager.del('ads');
+    // await this.cacheManager.del('ads');
     return JSON.stringify(newAd.id);
   }
 
@@ -149,9 +149,8 @@ export class AdService {
       ...queryParams,
     });
     Utils.checkEntity(ads, 'Объявления не найдены');
-    if (filter.adName) {
-      ads = this._searchAd(filter.adName, ads);
-    }
+    if (filter.adName) ads = this._searchAd(filter.adName, ads);
+
     return ads;
   }
 
@@ -289,7 +288,7 @@ export class AdService {
       Object.assign(ad, { subcategory: subcategory, ...oF });
     } else Object.assign(ad, oF);
     // Удалить кэш, чтобы получить актуальные данные.
-    await this.cacheManager.del('ads');
+    // await this.cacheManager.del('ads');
     delete ad.organization.user;
     return this.adRepository.save(ad);
   }
@@ -365,7 +364,7 @@ export class AdService {
       // Удаление самого объявления.
       await manager.remove(ad);
       // Удалить кэш, чтобы получить актуальные данные.
-      await this.cacheManager.del('ads');
+      // await this.cacheManager.del('ads');
       return JSON.stringify(HttpStatus.OK);
     });
   }
