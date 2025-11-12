@@ -111,6 +111,9 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number>(0);
   const scrollLeftRef = useRef<number>(0);
+  
+  // Проверяем, пришли ли мы с детальной страницы бронирования
+  const isFromBooking = filters.adId !== undefined;
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAP_API_KEY, // Замените на ваш ключ API
@@ -443,6 +446,11 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
     <main className="min-h-screen">
       <Header pb="0" className="">
         <div className="flex justify-between items-center text-center w-full pb-2">
+          {isFromBooking && (
+            <IconContainer align="start" action={() => history.back()}>
+              <img src={BackIcon} alt="Назад" />
+            </IconContainer>
+          )}
           <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1 shadow-sm">
             <img src={SearchIcon} />
             <input
