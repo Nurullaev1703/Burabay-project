@@ -10,8 +10,6 @@ import { ReviewReport } from './entities/review-report.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ReviewReportService {
@@ -26,8 +24,6 @@ export class ReviewReportService {
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-    // @Inject(CACHE_MANAGER)
-    // private cacheManager: Cache,
   ) {}
 
   @CatchErrors()
