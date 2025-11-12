@@ -243,7 +243,9 @@ export const Booking: FC = function Booking() {
                   helperText={error?.message}
                   label={t("name")}
                   fullWidth={true}
+                  multiline
                   variant="outlined"
+                  inputProps={{ maxLength: 40 }}
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/40

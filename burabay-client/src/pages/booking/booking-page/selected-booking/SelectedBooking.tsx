@@ -122,7 +122,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </div>
       </Header>
 
-      <div className="px-4 pt-4 flex flex-col">
+      <div className="p-4 flex flex-col">
         {userRole === "турист" ? (
           <Link
             className="flex items-center justify-between pb-4"

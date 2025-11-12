@@ -61,6 +61,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
     }));
   };
   const handleSubmitAnswer = async (type: "complain" | "answer") => {
+    // Валидация: проверяем, что текст не пустой
+    if (!answerText.text || answerText.text.trim() === "") {
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await apiService.post<string>({
@@ -376,6 +381,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                     <Button
                       onClick={() => handleSubmitAnswer("answer")}
                       loading={isLoading}
+                      disabled={
+                        !answerText.text || answerText.text.trim() === ""
+                      }
                     >
                       {t("answer")}
                     </Button>
@@ -416,6 +424,9 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                       onClick={() => handleSubmitAnswer("complain")}
                       mode="error"
                       loading={isLoading}
+                      disabled={
+                        !answerText.text || answerText.text.trim() === ""
+                      }
                     >
                       {t("complain")}
                     </Button>

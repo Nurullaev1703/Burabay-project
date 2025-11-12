@@ -77,9 +77,17 @@ export const Announcement: FC<Props> = function Announcement({
   const [showModal, setShowModal] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAdActions, setIsAdActions] = useState<boolean>(false);
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+   useEffect(() => {
+     const scrollableElement = document.querySelector(
+       ".ios-scrollable-content"
+     ) as HTMLElement;
+     if (scrollableElement) {
+       scrollableElement.scrollTop = 0;
+     } else {
+       window.scrollTo(0, 0);
+     }
+   }, []);
+
 
   const addToFavourite = async () => {
     const response = await apiService.get({
