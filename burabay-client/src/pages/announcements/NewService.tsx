@@ -96,9 +96,18 @@ export const NewService: FC<Props> = function NewService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {checkPeople() ? t("changeAd") : t("newService")}
+              {checkPeople() ? t("changeAd") : t("newServiceNew")}
+            </Typography>
+              <Typography
+              size={14}
+              weight={400}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
+              {t("newServiceNewTwo")}
             </Typography>
           </div>
+
           <IconContainer
             align="end"
             action={() => {

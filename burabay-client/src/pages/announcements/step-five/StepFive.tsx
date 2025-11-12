@@ -283,7 +283,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement?.schedule ? t("changeAd") : t("newAnnouncemet")}
+              {announcement?.schedule ? t("changeAd") : t("workingDays")}
             </Typography>
             <Typography
               size={14}
@@ -291,7 +291,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("workingDays")}
+              {t("workingDaysNew")}
             </Typography>
           </div>
           <IconContainer

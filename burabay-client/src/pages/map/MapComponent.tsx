@@ -248,7 +248,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement?.address ? t("changeAd") : t("addNewAd")}
+              {announcement?.address ? t("changeAd") : t("choisePlaceTitle")}
             </Typography>
             <Typography
               size={14}
