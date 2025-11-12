@@ -740,8 +740,7 @@ export const MapNav: FC<Props> = ({ announcements, categories, filters }) => {
                 >
                   <path
                     d="M18 6L6 18M6 6L18 18"
-                    stroke="#0a7d9e
-"
+                    stroke="#0a7d9e"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
