@@ -27,11 +27,13 @@ export class UserController {
     return this.userService.deleteOrganizationsAndUsers();
   }
 
+  @ApiBearerAuth()
   @Get('language')
   getLanguage(@Request() authRequest: AuthRequest) {
     return this.userService.getLangugage(authRequest.user.id);
   }
 
+  @ApiBearerAuth()
   @Patch('language')
   updateLanguage(@Request() authRequest: AuthRequest, @Body('language') language: string) {
     return this.userService.changeLangugae(authRequest.user.id, language);
