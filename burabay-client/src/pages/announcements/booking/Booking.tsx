@@ -317,7 +317,7 @@ export const Booking: FC = function Booking() {
               " — " +
               (announcement.adultsNumber
                 ? announcement.adultsNumber
-                : "без ограничений")}
+                : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxAdults")}
@@ -329,7 +329,7 @@ export const Booking: FC = function Booking() {
               " — " +
               (announcement.kidsNumber
                 ? announcement.kidsNumber
-                : "без ограничений")}
+                : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxKids")}
