@@ -1,10 +1,11 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Catch, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { getAcceptMessage } from './mail-visual/mail.example';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { getResetMessage } from './mail-visual/reset.example';
+import { CatchErrors } from 'src/utilities';
 
 @Injectable()
 export class EmailService {
@@ -43,6 +44,7 @@ export class EmailService {
     }
   }
 
+  @CatchErrors()
   async sendNotificationMessage(email: string, message: string, title?: string) {
     const data = {
       to: email,
@@ -57,7 +59,7 @@ export class EmailService {
       return JSON.stringify(HttpStatus.FAILED_DEPENDENCY);
     }
   }
-  
+
   async resetPasswordMessage(email: string) {
     const code = this._generateCode();
     // Устанавливаем время жизни кода - 60 минут (время в миллисекундах)
