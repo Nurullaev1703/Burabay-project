@@ -46,7 +46,7 @@ export const AdminAnnouncementModal: FC<Props> =
 
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[560px]">
+        <div className="bg-white rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
           <div className="flex items-center justify-between p-4 sticky top-0 bg-white border-b border-[#E4E9EA] z-50">
             <button
               className="h-[44px] w-[44px] flex items-center justify-center flex-shrink-0"
@@ -88,7 +88,7 @@ export const AdminAnnouncementModal: FC<Props> =
               </h1>
             </div>
 
-            <h1 className="font-medium text-[18px] break-words mb-2">
+            <h1 className="font-medium text-[18px] truncate mb-2">
               {announcement.title}
             </h1>
 

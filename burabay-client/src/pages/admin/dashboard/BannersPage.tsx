@@ -14,6 +14,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./datepicker-custom.css";
 import { baseUrl } from "../../../services/api/ServerData";
 
+import Close from "/Close.png?url";
+
 interface Banner {
   id?: string;
   title: string;
@@ -44,10 +46,10 @@ const BannersPage: React.FC = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  
+
   const formatDate = (d?: string) => {
     if (!d) return "-";
     try {
@@ -75,31 +77,35 @@ const BannersPage: React.FC = () => {
     try {
       const skip = (currentPage - 1) * itemsPerPage;
       const take = itemsPerPage;
-      
+
       let url = `/main-pages/banners?skip=${skip}&take=${take}`;
-      
+
       // Добавляем сортировку если выбрана
       if (sortDir) {
         url += `&sortDir=${sortDir}`;
       }
-      
+
       // Добавляем поиск если есть
       if (debouncedSearchQuery.trim()) {
         url += `&search=${encodeURIComponent(debouncedSearchQuery.trim())}`;
       }
-      
-      const response = await apiService.get<{ data: any[], total: number, hasMore: boolean }>({ 
-        url 
+
+      const response = await apiService.get<{
+        data: any[];
+        total: number;
+        hasMore: boolean;
+      }>({
+        url,
       });
-      
+
       // Бэк возвращает объект с полями data, total, hasMore, skip, take
       const banners = response.data?.data || [];
       const total = response.data?.total || 0;
-      
+
       setBannersList(banners);
       setTotalBanners(total);
     } catch (e) {
-      console.error('Error fetching banners:', e);
+      console.error("Error fetching banners:", e);
     }
   };
 
@@ -107,7 +113,9 @@ const BannersPage: React.FC = () => {
     fetchBannersList();
   }, [currentPage, itemsPerPage, sortDir, debouncedSearchQuery]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setBanner((prev) => ({ ...prev, [name]: value }));
   };
@@ -129,7 +137,7 @@ const BannersPage: React.FC = () => {
       setError("Добавьте изображение");
       return;
     }
-    
+
     if (!selectedDate) {
       setError("Выберите дату удаления");
       return;
@@ -213,9 +221,9 @@ const BannersPage: React.FC = () => {
 
   const toggleSort = () => {
     if (sortDir === null) {
-      setSortDir('asc');
-    } else if (sortDir === 'asc') {
-      setSortDir('desc');
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
     } else {
       setSortDir(null);
     }
@@ -297,68 +305,88 @@ const BannersPage: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-base font-semibold text-black">Картинка</th>
-                    <th className="px-4 py-3 text-left text-base font-semibold text-black">Заголовок</th>
-                    <th className="px-4 py-3 text-left text-base font-semibold text-black">Текст</th>
-                    <th 
+                    <th className="px-4 py-3 text-left text-base font-semibold text-black">
+                      Картинка
+                    </th>
+                    <th className="px-4 py-3 text-left text-base font-semibold text-black">
+                      Заголовок
+                    </th>
+                    <th className="px-4 py-3 text-left text-base font-semibold text-black">
+                      Текст
+                    </th>
+                    <th
                       className="px-4 py-3 text-left text-base font-semibold text-black cursor-pointer hover:bg-gray-100 transition-colors select-none"
                       onClick={toggleSort}
                     >
                       <div className="flex items-center gap-3">
                         <span>Дата удаления</span>
                         <div className="flex flex-col gap-0.5">
-                          <span className={`text-xs leading-none ${sortDir === 'asc' ? 'text-[#0A7D9E]' : 'text-gray-400'}`}>▲</span>
-                          <span className={`text-xs leading-none ${sortDir === 'desc' ? 'text-[#0A7D9E]' : 'text-gray-400'}`}>▼</span>
+                          <span
+                            className={`text-xs leading-none ${sortDir === "asc" ? "text-[#0A7D9E]" : "text-gray-400"}`}
+                          >
+                            ▲
+                          </span>
+                          <span
+                            className={`text-xs leading-none ${sortDir === "desc" ? "text-[#0A7D9E]" : "text-gray-400"}`}
+                          >
+                            ▼
+                          </span>
                         </div>
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-base font-semibold text-black">Действия</th>
+                    <th className="px-4 py-3 text-right text-base font-semibold text-black">
+                      Действия
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {bannersList.map((b) => (
-                    <tr 
-                      key={b.id} 
+                    <tr
+                      key={b.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td 
+                      <td
                         className="px-4 py-4 cursor-pointer"
-                        onClick={() => { 
-                          setModalBanner(b); 
-                          setModalOpen(true); 
+                        onClick={() => {
+                          setModalBanner(b);
+                          setModalOpen(true);
                         }}
                       >
                         <div className="w-32 h-20 overflow-hidden rounded-md">
-                          <img 
-                            src={`${baseUrl}${b.imagePath}`} 
-                            alt={b.text} 
+                          <img
+                            src={`${baseUrl}${b.imagePath}`}
+                            alt={b.text}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       </td>
-                      <td 
+                      <td
                         className="px-4 py-4 max-w-[200px] cursor-pointer"
-                        onClick={() => { 
-                          setModalBanner(b); 
-                          setModalOpen(true); 
+                        onClick={() => {
+                          setModalBanner(b);
+                          setModalOpen(true);
                         }}
                       >
-                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">{b.title}</div>
+                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">
+                          {b.title}
+                        </div>
                       </td>
-                      <td 
+                      <td
                         className="px-4 py-4 max-w-[400px] cursor-pointer"
-                        onClick={() => { 
-                          setModalBanner(b); 
-                          setModalOpen(true); 
+                        onClick={() => {
+                          setModalBanner(b);
+                          setModalOpen(true);
                         }}
                       >
-                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">{b.text}</div>
+                        <div className="text-black text-base truncate overflow-hidden whitespace-nowrap">
+                          {b.text}
+                        </div>
                       </td>
-                      <td 
+                      <td
                         className="px-4 py-4 text-base text-black cursor-pointer"
-                        onClick={() => { 
-                          setModalBanner(b); 
-                          setModalOpen(true); 
+                        onClick={() => {
+                          setModalBanner(b);
+                          setModalOpen(true);
                         }}
                       >
                         {formatDate(b.deleteDate)}
@@ -366,20 +394,39 @@ const BannersPage: React.FC = () => {
                       <td className="px-4 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
                           <button
-                            onClick={(e) => { e.stopPropagation(); setModalBanner(b); setModalOpen(true); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalBanner(b);
+                              setModalOpen(true);
+                            }}
                             className="p-2 rounded hover:bg-gray-100 transition-colors"
                             aria-label="Просмотр"
                           >
-                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5ZM12 17.5C9.24 17.5 7 15.26 7 12.5C7 9.74 9.24 7.5 12 7.5C14.76 7.5 17 9.74 17 12.5C17 15.26 14.76 17.5 12 17.5ZM12 9.5C10.34 9.5 9 10.84 9 12.5C9 14.16 10.34 15.5 12 15.5C13.66 15.5 15 14.16 15 12.5C15 10.84 13.66 9.5 12 9.5Z" fill="rgb(10, 125, 158)"/>
+                            <svg
+                              className="w-6 h-6"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5ZM12 17.5C9.24 17.5 7 15.26 7 12.5C7 9.74 9.24 7.5 12 7.5C14.76 7.5 17 9.74 17 12.5C17 15.26 14.76 17.5 12 17.5ZM12 9.5C10.34 9.5 9 10.84 9 12.5C9 14.16 10.34 15.5 12 15.5C13.66 15.5 15 14.16 15 12.5C15 10.84 13.66 9.5 12 9.5Z"
+                                fill="rgb(10, 125, 158)"
+                              />
                             </svg>
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); openDeleteModal(b.id); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteModal(b.id);
+                            }}
                             className="p-2 rounded hover:bg-gray-100"
                             aria-label="Удалить"
                           >
-                            <img src={deleteIcon} alt="Удалить" className="w-6 h-6" />
+                            <img
+                              src={deleteIcon}
+                              alt="Удалить"
+                              className="w-6 h-6"
+                            />
                           </button>
                         </div>
                       </td>
@@ -389,7 +436,7 @@ const BannersPage: React.FC = () => {
               </table>
             </div>
           )}
-          
+
           {/* Pagination - скрываем при поиске */}
           {totalBanners > 0 && !debouncedSearchQuery.trim() && (
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg">
@@ -398,16 +445,16 @@ const BannersPage: React.FC = () => {
                 <span className="text-sm text-gray-700">Показывать:</span>
                 <select
                   value={itemsPerPage}
-                  onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                  onChange={(e) =>
+                    handleItemsPerPageChange(Number(e.target.value))
+                  }
                   className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A7D9E]"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                 </select>
-                <span className="text-sm text-gray-700">
-                  из {totalBanners}
-                </span>
+                <span className="text-sm text-gray-700">из {totalBanners}</span>
               </div>
 
               {/* Page numbers */}
@@ -419,20 +466,22 @@ const BannersPage: React.FC = () => {
                 >
                   ←
                 </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 rounded-md text-sm font-medium ${
-                      currentPage === page
-                        ? 'bg-[#0A7D9E] text-white'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded-md text-sm font-medium ${
+                        currentPage === page
+                          ? "bg-[#0A7D9E] text-white"
+                          : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
 
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
@@ -447,24 +496,38 @@ const BannersPage: React.FC = () => {
         </div>
       </div>
       {modalOpen && modalBanner && (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl w-[92%] sm:w-[80%] max-w-[900px] max-h-[85vh] overflow-y-auto relative p-6">
-            <button
-              onClick={() => { setModalOpen(false); setModalBanner(null); }}
-              className="absolute right-6 top-6 text-[#0A7D9E] text-4xl leading-none hover:opacity-70 transition-opacity z-10"
-              aria-label="Закрыть"
-            >
-              ×
-            </button>
-            <div className="w-full pt-8">
-              <img 
-                src={`${baseUrl}${modalBanner.imagePath}`} 
-                alt={modalBanner.text} 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
+                Баннер
+              </h2>
+              <button
+                onClick={() => {
+                  setModalOpen(false);
+                  setModalBanner(null);
+                }}
+                className="h-[44px] w-[44px]"
+                aria-label="Закрыть"
+              >
+                <img src={Close} alt="Закрыть" className="w-full h-full" />
+              </button>
+            </div>
+            <div className="w-full">
+              <img
+                src={`${baseUrl}${modalBanner.imagePath}`}
+                alt={modalBanner.text}
                 className="w-full max-h-[70vh] object-contain mb-4 rounded-lg cursor-pointer"
-                onClick={() => window.open(`${baseUrl}${modalBanner.imagePath}`, '_blank')}
+                onClick={() =>
+                  window.open(`${baseUrl}${modalBanner.imagePath}`, "_blank")
+                }
               />
-              <h3 className="text-xl text-black font-semibold mb-2 break-words">{modalBanner.title}</h3>
-              <p className="text-black whitespace-pre-wrap break-words overflow-wrap-anywhere">{modalBanner.text}</p>
+              <h3 className="text-xl text-black font-semibold mb-2 break-words">
+                {modalBanner.title}
+              </h3>
+              <p className="text-black whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {modalBanner.text}
+              </p>
             </div>
           </div>
         </div>
@@ -472,24 +535,47 @@ const BannersPage: React.FC = () => {
 
       {/* Модалка подтверждения удаления */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl w-[90%] sm:w-[500px] p-8 shadow-2xl">
-            <h3 className="text-2xl font-bold mb-4" style={{ color: '#000000' }}>Удалить баннер?</h3>
-            <p className="font-medium mb-2" style={{ color: '#000000' }}>Вы уверены, что хотите удалить этот баннер?</p>
-            <p className="font-semibold text-base mb-8" style={{ color: '#DC2626' }}>Это действие нельзя отменить!</p>
-            
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
+                Удалить баннер?
+              </h2>
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setBannerToDelete(null);
+                }}
+                className="h-[44px] w-[44px]"
+              >
+                <img src={Close} alt="Закрыть" className="w-full h-full" />
+              </button>
+            </div>
+            <p className="font-medium mb-2" style={{ color: "#000000" }}>
+              Вы уверены, что хотите удалить этот баннер?
+            </p>
+            <p
+              className="font-semibold text-base mb-8"
+              style={{ color: "#DC2626" }}
+            >
+              Это действие нельзя отменить!
+            </p>
+
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => { setDeleteModalOpen(false); setBannerToDelete(null); }}
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setBannerToDelete(null);
+                }}
                 className="px-8 py-3 rounded-lg text-white font-medium hover:bg-[#096b85] transition-colors"
-                style={{ backgroundColor: '#0A7D9E' }}
+                style={{ backgroundColor: "#0A7D9E" }}
               >
                 Отмена
               </button>
               <button
                 onClick={() => handleDelete(bannerToDelete || undefined)}
                 className="px-8 py-3 rounded-lg text-white font-medium hover:bg-red-700 transition-colors"
-                style={{ backgroundColor: '#DC2626' }}
+                style={{ backgroundColor: "#DC2626" }}
               >
                 Удалить
               </button>
@@ -497,17 +583,24 @@ const BannersPage: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {/* Модалка добавления баннера */}
       {addModalOpen && (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-2xl w-[90%] sm:w-[600px] max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl text-[#0A7D9E] font-semibold">Добавить баннер</h2>
+              <h2 className="text-2xl text-[#0A7D9E] font-semibold">
+                Добавить баннер
+              </h2>
               <button
-                onClick={() => { 
-                  setAddModalOpen(false); 
-                  setBanner({ title: "", text: "", image: null, deleteDate: "" });
+                onClick={() => {
+                  setAddModalOpen(false);
+                  setBanner({
+                    title: "",
+                    text: "",
+                    image: null,
+                    deleteDate: "",
+                  });
                   setSelectedDate(null);
                   setImagePreview(null);
                   setError(null);
@@ -517,12 +610,15 @@ const BannersPage: React.FC = () => {
                 ×
               </button>
             </div>
-            
+
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="title" className="block text-sm text-gray-700 font-medium mb-2">
+                <label
+                  htmlFor="title"
+                  className="block text-sm text-gray-700 font-medium mb-2"
+                >
                   Заголовок:
                 </label>
                 <textarea
@@ -538,7 +634,10 @@ const BannersPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="text" className="block text-sm text-gray-700 font-medium mb-2">
+                <label
+                  htmlFor="text"
+                  className="block text-sm text-gray-700 font-medium mb-2"
+                >
                   Текст:
                 </label>
                 <textarea
@@ -554,7 +653,10 @@ const BannersPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="deleteDate" className="block text-sm text-gray-700 font-medium mb-2">
+                <label
+                  htmlFor="deleteDate"
+                  className="block text-sm text-gray-700 font-medium mb-2"
+                >
                   Дата удаления:
                 </label>
                 <DatePicker
@@ -579,9 +681,17 @@ const BannersPage: React.FC = () => {
                 </label>
                 <div className="relative w-32 h-32 border-2 border-gray-300 rounded-md overflow-hidden hover:border-[#0A7D9E] transition-colors">
                   {imagePreview ? (
-                    <img src={imagePreview} alt="Предпросмотр" className="w-full h-full object-cover" />
+                    <img
+                      src={imagePreview}
+                      alt="Предпросмотр"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <img src={imageIcon} alt="Выберите изображение" className="w-full h-full object-contain opacity-50 p-4" />
+                    <img
+                      src={imageIcon}
+                      alt="Выберите изображение"
+                      className="w-full h-full object-contain opacity-50 p-4"
+                    />
                   )}
                   <input
                     type="file"
