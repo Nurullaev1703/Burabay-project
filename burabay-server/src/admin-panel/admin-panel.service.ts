@@ -430,6 +430,33 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
+  async removeAd(adId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
+    const ad = await this.adRepository.findOne({
+      where: { id: adId },
+      relations: {
+        reviews: { report: true, answer: true },
+        schedule: true,
+        bookingBanDate: true,
+        breaks: true,
+        bookings: true,
+        organization: { user: true },
+      },
+    });
+    Utils.checkEntity(ad, 'Объявление не найдено');
+    for (const b of ad.bookings) {
+      await this.notificationService.createForUser({
+        title: `Ваша бронь на объявление ${b.ad.title} удалена`,
+        message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
+        email: b.user.email,
+        type: NotificationType.POSITIVE
+      });
+    }
+
+    await this.adRepository.remove(ad);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
   @CatchErrors()
   async createBanner(dto: BannerCreateDto, adminId: string) {
     await this.#checkAdminRole(adminId);
