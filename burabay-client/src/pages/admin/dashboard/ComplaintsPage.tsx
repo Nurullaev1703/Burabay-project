@@ -734,7 +734,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
@@ -761,13 +761,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 errorImage={defaultImage}
               />
             </div>
-            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
               {selectedOrg.name || "Не указано"}
             </h2>
             <div className="mt-4">
-              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
+              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
                     {selectedOrg.website || "Не указано"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -775,9 +775,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   </strong>
                 </div>
               </div>
-              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                     {selectedOrg.phone || "Не указано"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -785,9 +785,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   </strong>
                 </div>
               </div>
-              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                     {selectedOrg.user?.email || "Не указан"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -855,7 +855,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       )}
       {isTouristModalOpen && selectedTourist && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
@@ -882,13 +882,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 errorImage={defaultImage}
               />
             </div>
-            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
               {selectedTourist.fullName || "Не указано"}
             </h2>
             <div className="mt-4">
-              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                     {selectedTourist.phoneNumber || "Не указан"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -896,9 +896,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   </strong>
                 </div>
               </div>
-              <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                     {selectedTourist.email || "Не указан"}
                   </p>
                   <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">

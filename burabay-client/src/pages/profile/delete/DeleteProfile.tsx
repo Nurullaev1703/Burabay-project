@@ -71,7 +71,7 @@ export const DeleteProfile: FC = function DeleteProfile() {
           <IconContainer
             align="center"
             className="ml-auto"
-            action={() => navigate({ to: "/" })}
+            action={() => navigate({ to: "/profile" })}
           >
             <img src={CrossIcon} alt="close" />
           </IconContainer>

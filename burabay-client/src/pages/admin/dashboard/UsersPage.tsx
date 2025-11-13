@@ -930,7 +930,7 @@ export default function UsersList({ filters }: Props) {
       {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
@@ -962,7 +962,7 @@ export default function UsersList({ filters }: Props) {
                   onError={(e) => (e.currentTarget.src = defaultImage)}
                 />
               </div>
-              <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+              <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
                 {selectedUser.fullName ||
                   selectedUser.organization?.name ||
                   "Без названия"}
@@ -971,17 +971,17 @@ export default function UsersList({ filters }: Props) {
 
             {selectedUser.role === "турист" ? (
               <div>
-                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
                   <p className="text-[#999999] text-[12px] flex">Email</p>
-                  <Typography className="font-medium">
+                  <Typography className="font-medium truncate">
                     {selectedUser.email || "Не указан"}
                   </Typography>
                 </div>
-                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
                   <p className="text-[#999999] text-[12px] flex">
                     Phone Number
                   </p>
-                  <Typography className="font-medium">
+                  <Typography className="font-medium truncate">
                     {selectedUser.phoneNumber || "Не указан"}
                   </Typography>
                 </div>
@@ -1014,9 +1014,9 @@ export default function UsersList({ filters }: Props) {
             ) : selectedUser.role === "бизнес" ? (
               <div>
                 <div className="mt-4">
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
                         {selectedUser.website || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -1024,9 +1024,9 @@ export default function UsersList({ filters }: Props) {
                       </strong>
                     </div>
                   </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                         {selectedUser.phone || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -1034,9 +1034,9 @@ export default function UsersList({ filters }: Props) {
                       </strong>
                     </div>
                   </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                         {selectedUser.email || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
