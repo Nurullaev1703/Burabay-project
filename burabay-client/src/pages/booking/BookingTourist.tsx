@@ -60,8 +60,9 @@ export const BookingTourist: FC<Props> = function BookingTourist() {
 
   return (
     <section className="bg-almostWhite min-h-screen">
-      {/* Фиксированный хедер с табами */}
+      {/* Фиксированный хедер с табами и поиском */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        {/* Табы */}
         <div className="py-4 px-4 bg-white">
           <TabMenu
             data={TABS_DATA}
@@ -69,27 +70,29 @@ export const BookingTourist: FC<Props> = function BookingTourist() {
             onChangeIndex={handleTabChange}
           />
         </div>
-        
-        {/* Поиск и фильтр */}
-        <div className="flex items-center gap-2 px-4 pb-4 bg-white">
-          <div className="flex items-center gap-3 flex-1 px-4 py-3 bg-almostWhite rounded-xl">
-            <img src={SearchIcon} className="w-5 h-5" alt="Search" />
+
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white pb-4">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+            <img src={SearchIcon} alt="Поиск" />
             <input
               type="text"
               placeholder={t("search")}
+              className="flex-grow bg-transparent outline-none text-gray-700"
               disabled={true}
-              className="flex-1 bg-transparent outline-none text-base text-gray-400 cursor-not-allowed"
             />
           </div>
           <Link
             to="/booking/filter"
-            search={{ status }}
-            className="flex items-center justify-center w-12 h-12 rounded-xl bg-almostWhite"
+            search={{
+              onlinePayment,
+              onSidePayment,
+              canceled,
+              status,
+            }}
           >
             <img
               src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-              className="w-6 h-6"
-              alt="Filter"
+              alt="Фильтр"
             />
           </Link>
         </div>
@@ -98,7 +101,7 @@ export const BookingTourist: FC<Props> = function BookingTourist() {
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      {/* Основной контент с пустым состоянием на весь экран */}
+      {/* Основной контент с пустым состоянием */}
       <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
         <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
         <div className="flex flex-col justify-center items-center gap-2">

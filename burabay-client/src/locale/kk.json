@@ -14,6 +14,7 @@
   "aboutService": "Қызмет туралы",
   "help": "Көмек",
   "apply": "Қолдану",
+  "resetFilters": "Сүзгілерді тастау",
   "estimateService": "Қызметті бағалау",
   "safety": "Қауіпсіздік",
   "invalidTimeFormat": "Қате уақыт форматы. HH:MM форматын қолданыңыз.",

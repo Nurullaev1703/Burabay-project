@@ -8,7 +8,6 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import FilterIcon from "../../app/icons/main/filter.svg";
 import ActiveFilterIcon from "../../app/icons/active-filter.svg";
 import SearchIcon from "../../app/icons/search-icon.svg";
-import { Button } from "../../shared/ui/Button";
 
 interface Props {}
 
@@ -60,10 +59,19 @@ export const BookingBusiness: FC<Props> = function BookingBusiness() {
 
   return (
     <section className="bg-almostWhite min-h-screen">
-      {/* Фиксированный хедер с поиском, фильтром и табами */}
+      {/* Фиксированный хедер с табами и поиском */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
-        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
-          <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+        {/* Табы */}
+        <div className="py-4 px-4 bg-white">
+          <TabMenu
+            data={TABS_DATA}
+            activeIndex={activeIndex}
+            onChangeIndex={handleTabChange}
+          />
+        </div>
+
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white pb-4">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="Поиск" />
             <input
               type="text"
@@ -75,32 +83,24 @@ export const BookingBusiness: FC<Props> = function BookingBusiness() {
           <Link
             to="/booking/filter"
             search={{
-              onlinePayment: onlinePayment ? "true" : undefined,
-              onSidePayment: onSidePayment ? "true" : undefined,
-              canceled: canceled ? "true" : undefined,
+              onlinePayment,
+              onSidePayment,
+              canceled,
               status,
             }}
           >
             <img
               src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-              className="mt-4"
               alt="Фильтр"
             />
           </Link>
-        </div>
-        <div className="py-4 px-4 bg-white">
-          <TabMenu
-            data={TABS_DATA}
-            activeIndex={activeIndex}
-            onChangeIndex={handleTabChange}
-          />
         </div>
       </div>
 
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      {/* Основной контент с пустым состоянием на весь экран */}
+      {/* Основной контент с пустым состоянием */}
       <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
         <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
         <div className="flex flex-col justify-center items-center gap-2">
