@@ -13,6 +13,7 @@ import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
 import { AnnouncementInfoList } from "../../announcements/announcement/ui/AnnouncementInfoList";
 import { CostInfoList } from "../../announcements/announcement/ui/CostInfoList";
+import { AdminReviewsInfo } from "./ui/AdminReviewsInfo";
 import { Button } from "../../../shared/ui/Button";
 import { ModalDelete } from "../../announcements/announcement/ui/ModalDelete";
 
@@ -46,7 +47,7 @@ export const AdminAnnouncementModal: FC<Props> =
 
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
+        <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
           <div className="flex items-center justify-between p-4 sticky top-0 bg-white border-b border-[#E4E9EA] z-50">
             <button
               className="h-[44px] w-[44px] flex items-center justify-center flex-shrink-0"
@@ -57,7 +58,12 @@ export const AdminAnnouncementModal: FC<Props> =
             <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] leading-[20px] tracking-[0.4px] text-center flex-grow">
               {t("ad")}
             </h2>
-            <div className="h-11 w-11"></div>
+            <button
+              className="h-[44px] w-[44px] flex items-center justify-center flex-shrink-0"
+              onClick={onClose}
+            >
+              <img src={Close} alt="Закрыть" className="w-full h-full" />
+            </button>
           </div>
 
           <div className="p-4">
@@ -109,6 +115,10 @@ export const AdminAnnouncementModal: FC<Props> =
             <div className="mb-4 border-t border-[#E4E9EA] pt-3">
               <AnnouncementInfoList ad={announcement} isAdmin={true} />
             </div>
+
+            <CostInfoList ad={announcement} />
+
+            <AdminReviewsInfo announcementId={announcement.id} />
 
             <div className="flex flex-col items-center gap-3">
               <Button

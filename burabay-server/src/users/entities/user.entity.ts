@@ -28,6 +28,9 @@ export class User extends AbstractEntity<User> {
   @Column({ nullable: true })
   password: string;
 
+  @Column({ default: 'ru' })
+  language: string;
+
   @Column()
   isEmailConfirmed: boolean;
 

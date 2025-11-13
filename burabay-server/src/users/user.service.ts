@@ -21,7 +21,7 @@ export class UserService {
     private readonly organizationRep: Repository<Organization>,
     private readonly dataSource: DataSource,
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   /* Удаление аккаунта пользователя. При наличии, удаление организации и ее объявлений. */
   @CatchErrors()
@@ -106,7 +106,7 @@ export class UserService {
         .where('(password IS NULL OR password = :password)', { password: '' })
         .andWhere('createdAt < :date', { date: twentyFourHoursAgo })
         .execute();
-      
+
       console.log(`Удалено ${deleteUsers.affected} пользователей без пароля старше 24 часов`);
       return deleteUsers;
     } catch (error) {
@@ -114,8 +114,23 @@ export class UserService {
     }
   }
 
-  /** Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
-   *  Метод испольузется в TasksService.
+  async getLangugage(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    return user.language;
+  }
+
+  async changeLangugae(userId: string, language: string) {  
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    user.language = language;
+    await this.userRepository.save(user);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  /**
+   * Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
+   * Метод испольузется в TasksService.
    */
   async deleteOrganizationsAndUsers() {
     await this.dataSource.transaction(async (manager) => {

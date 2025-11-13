@@ -734,7 +734,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
+          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
@@ -855,7 +855,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       )}
       {isTouristModalOpen && selectedTourist && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
+          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
