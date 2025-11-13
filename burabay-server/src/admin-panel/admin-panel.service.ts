@@ -430,7 +430,7 @@ export class AdminPanelService {
     return JSON.stringify(HttpStatus.OK);
   }
 
-  async removeAd(adId: string, adminId: string) {
+  async deleteAd(adId: string, adminId: string) {
     await this.#checkAdminRole(adminId);
     const ad = await this.adRepository.findOne({
       where: { id: adId },
