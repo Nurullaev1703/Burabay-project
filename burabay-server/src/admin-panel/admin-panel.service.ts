@@ -6,7 +6,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { CatchErrors, Utils } from 'src/utilities';
-import { IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import { DataSource, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
@@ -39,7 +39,8 @@ export class AdminPanelService {
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly dataSource: DataSource,
   ) { }
 
   /** Получить данные для экрана статистики в Админ Панели. */
@@ -422,7 +423,7 @@ export class AdminPanelService {
       await this.notificationService.createForUser({
         email: b.user.email,
         title: `Ваша бронь на объявление ${b.ad.title} отменена`,
-        message: `Организация создавшая объявление была заблокированна администратором. Ваша бронь отменена.`,
+        message: `Организация создавшая объявление была заблокирована администратором. Ваша бронь отменена.`,
         type: NotificationType.POSITIVE,
       });
     }
@@ -432,29 +433,50 @@ export class AdminPanelService {
 
   async deleteAd(adId: string, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const ad = await this.adRepository.findOne({
-      where: { id: adId },
-      relations: {
-        reviews: { report: true, answer: true },
-        schedule: true,
-        bookingBanDate: true,
-        breaks: true,
-        bookings: true,
-        organization: { user: true },
-      },
-    });
-    Utils.checkEntity(ad, 'Объявление не найдено');
-    for (const b of ad.bookings) {
-      await this.notificationService.createForUser({
-        title: `Ваша бронь на объявление ${b.ad.title} удалена`,
-        message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
-        email: b.user.email,
-        type: NotificationType.POSITIVE
+    return await this.dataSource.transaction(async (manager) => {
+      const ad = await manager.findOne(Ad, {
+        where: { id: adId },
+        relations: {
+          reviews: { report: true, answer: true },
+          schedule: true,
+          bookingBanDate: true,
+          breaks: true,
+          bookings: true,
+          organization: { user: true },
+        },
       });
-    }
+      Utils.checkEntity(ad, 'Объявление не найдено');
 
-    await this.adRepository.remove(ad);
-    return JSON.stringify(HttpStatus.OK);
+      // Уведомления по бронированиям
+      for (const b of ad.bookings) {
+        await this.notificationService.createForUser({
+          title: `Ваша бронь на объявление ${b.ad.title} удалена`,
+          message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
+          email: b.user.email,
+          type: NotificationType.POSITIVE
+        });
+      }
+
+      // Удаление связанных сущностей
+      if (ad.schedule) await manager.remove(ad.schedule);
+      if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
+      if (ad.breaks?.length) await manager.remove(ad.breaks);
+      if (ad.bookings) await manager.remove(ad.bookings);
+
+      if (ad.reviews?.length) {
+        await Promise.all(
+          ad.reviews.map(async (review) => {
+            if (review.answer) await manager.remove(review.answer);
+            if (review.report) await manager.remove(review.report);
+          })
+        );
+        await manager.remove(ad.reviews);
+      }
+
+      // Удаление самого объявления
+      await manager.remove(ad);
+      return JSON.stringify(HttpStatus.OK);
+    });
   }
 
   @CatchErrors()
