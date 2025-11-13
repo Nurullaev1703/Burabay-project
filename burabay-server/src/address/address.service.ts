@@ -31,13 +31,18 @@ export class AddressService {
    */
   async create(createAddressDto: CreateAddressDto, tokenData: TokenData) {
     try {
-      await this.#checkRole(tokenData.id);
+      const currentUser = await this.#checkRole(tokenData.id);
       let newAddress: Address;
       const { organizationId, adId, ...oF } = createAddressDto;
       const organization = await this.organizationRepository.findOne({
         where: { id: organizationId },
       });
       Utils.checkEntity(organization, 'Организация не найдена');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(organizationId, currentUser);
+      
 
       if (adId) {
         // Создание для объявления.
@@ -113,14 +118,20 @@ export class AddressService {
    */
   async update(id: string, updateAddressDto: UpdateAddressDto, tokenData: TokenData) {
     try {
-      await this.#checkRole(tokenData.id);
+      const currentUser = await this.#checkRole(tokenData.id);
 
       const { adId, ...oF } = updateAddressDto;
       const address = await this.addressRepository.findOne({
         where: { id: id },
-        relations: { ad: true },
+        relations: { ad: true, organization: true },
       });
       Utils.checkEntity(address, 'Адрес не найден');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(address.organization.id, currentUser);
+      
+
       if (adId) {
         const ad = await this.adRepository.findOne({ where: { id: adId } });
         Utils.checkEntity(ad, 'Объявление не найдено');
@@ -138,9 +149,15 @@ export class AddressService {
 
   async remove(id: string, tokenData: TokenData) {
     try {
-      await this.#checkRole(tokenData.id);
-      const address = await this.addressRepository.findOne({ where: { id: id } });
+      const currentUser = await this.#checkRole(tokenData.id);
+      const address = await this.addressRepository.findOne({ where: { id: id }, relations: { organization: true } });
       Utils.checkEntity(address, 'Адрес не найден');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(address.organization.id, currentUser);
+      
+
       await this.addressRepository.remove(address);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
       // await this.cacheManager.del(`ads`);
@@ -150,11 +167,16 @@ export class AddressService {
     }
   }
 
- async #checkRole(userId: string) {
-   const user = await this.userRepository.findOne({ where: { id: userId }, select: { id: true, role: true } })
-   Utils.checkEntity(user, 'Пользователь не найден');
+  async #checkRole(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: { organization: true } });
+    Utils.checkEntity(user, 'Пользователь не найден');
     if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
-      throw new HttpException('Недостаточно прав для создания адреса', HttpStatus.FORBIDDEN);
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
+    return user;
+  }
 
+  async #checkAccess(organizationId: string, user: User) {
+    if (user.organization.id !== organizationId)
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
   }
 }
