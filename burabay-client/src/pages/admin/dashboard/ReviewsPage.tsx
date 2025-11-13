@@ -63,6 +63,7 @@ const ReviewsPage: FC = () => {
     string | null
   >(null);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const navigate = useNavigate();
   const take = 9;
 
@@ -77,9 +78,7 @@ const ReviewsPage: FC = () => {
     reviewHints,
   } = useGetReviews({ take });
 
-  const reviews = (data?.pages.flat() || [])
-    .slice()
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const reviews = data?.pages.flat() || [];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -351,7 +350,7 @@ const ReviewsPage: FC = () => {
                           {!review.status && (
                             <div className="flex flex-col items-center space-y-3 w-full pb-8">
                               <button
-                                onClick={() => handleDeleteReview(review.id)}
+                                onClick={() => setDeleteConfirm(review.id)}
                                 className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
                               >
                                 Удалить отзыв
@@ -393,7 +392,7 @@ const ReviewsPage: FC = () => {
 
           {isTouristModalOpen && selectedTourist && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-4 rounded-lg shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
+              <div className="bg-white p-4 rounded-[16px] shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
                 <div className="flex items-center justify-between w-full p-4 gap-4 border-b border-[#E4E9EA] sticky top-0 bg-white z-50">
                   <button
                     className="h-[44px] w-[44px]"
@@ -487,6 +486,43 @@ const ReviewsPage: FC = () => {
             setSelectedAnnouncementId(null);
           }}
         />
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-[16px] shadow-lg max-w-sm w-full mx-4 flex flex-col gap-4 relative">
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="absolute top-4 right-4 h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <img src={Close} alt="Закрыть" className="w-6 h-6" />
+            </button>
+            <h2 className="text-lg font-semibold text-black pr-8">
+              Подтверждение удаления
+            </h2>
+            <p className="text-gray-600">
+              Вы уверены, что хотите удалить этот отзыв? Это действие невозможно
+              отменить.
+            </p>
+            <div className="flex gap-3 justify-end pt-4">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors"
+              >
+                Отменить
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteReview(deleteConfirm);
+                  setDeleteConfirm(null);
+                }}
+                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity"
+              >
+                Удалить
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

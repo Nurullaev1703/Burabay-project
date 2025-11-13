@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -35,6 +35,15 @@ export const FilterPage: FC = function FilterPage() {
     canceled: queryParams.get("canceled") === "true",
   });
 
+  // Обновляем фильтры когда меняется URL (когда возвращаемся на страницу)
+  useEffect(() => {
+    setFilters({
+      onlinePayment: queryParams.get("onlinePayment") === "true",
+      onSidePayment: queryParams.get("onSidePayment") === "true",
+      canceled: queryParams.get("canceled") === "true",
+    });
+  }, [location.search]);
+
   const handleFilterChange = (filterName: keyof FilterType) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -62,6 +71,16 @@ export const FilterPage: FC = function FilterPage() {
       to: `/booking/${userRole === "турист" ? "tourist" : "business"}?${searchParams.toString()}`,
     });
   };
+
+  // Сбрасываем все фильтры
+  const resetFilters = () => {
+    setFilters({
+      onlinePayment: false,
+      onSidePayment: false,
+      canceled: false,
+    });
+  };
+
   return (
     <section>
       <Header>
@@ -114,13 +133,14 @@ export const FilterPage: FC = function FilterPage() {
           label={t("cancelled")}
         />
       </div>
-      <Button
-        className="fixed bottom-4 left-3 w-header z-10"
-        type="submit"
-        onClick={applyFilters}
-      >
-        {t("apply")}
-      </Button>
+      <div className="fixed bottom-4 left-3 w-header z-10 flex flex-col gap-2">
+        <Button mode="border" type="button" onClick={resetFilters}>
+          {t("resetFilters")}
+        </Button>
+        <Button type="submit" onClick={applyFilters}>
+          {t("apply")}
+        </Button>
+      </div>
     </section>
   );
 };

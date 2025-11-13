@@ -45,7 +45,7 @@ export const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4">
+      <div className="bg-white rounded-[16px] shadow-lg w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
             Организация

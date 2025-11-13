@@ -17,6 +17,7 @@ import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
+import { Button } from "../../../shared/ui/Button";
 
 import document from "/document.svg?url";
 import confirmed from "/confirmed.svg?url";
@@ -879,49 +880,34 @@ export default function UsersList({ filters }: Props) {
       )}
       {isConfirmActionModalOpen && confirmAction && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div
-            className="bg-white rounded-[16px] w-[390px] min-w-[390px] max-w-[744px] p-4 flex flex-col gap-2"
-            style={{ height: "200px" }}
-          >
-            <Typography className="mb-4 text-[18px] text-center text-bold">
-              {confirmAction === "confirm"
-                ? "Подтвердить аккаунт?"
-                : "Отклонить аккаунт?"}
-            </Typography>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={confirmActionHandler}
-                className={`pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] ${
-                  confirmAction === "confirm"
-                    ? "bg-[#39B56B] text-white"
-                    : "bg-[#FF5959] text-white"
-                }`}
-                style={{
-                  fontFamily: "Roboto",
-                  fontWeight: 500,
-                  fontSize: "18px",
-                  lineHeight: "20px",
-                  letterSpacing: "0.4px",
-                  textAlign: "center",
-                }}
-              >
-                {confirmAction === "confirm" ? "Подтвердить" : "Отклонить"}
-              </button>
-            </div>
-            <div className="flex justify-center">
+          <div className="bg-white rounded-[16px] w-[480px] p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-2">
+              <Typography className="text-[18px] font-semibold">
+                {confirmAction === "confirm"
+                  ? "Подтвердить аккаунт?"
+                  : "Отклонить аккаунт?"}
+              </Typography>
               <button
                 onClick={closeConfirmActionModal}
-                className="pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] bg-[#0A7D9E] text-white"
-                style={{
-                  fontFamily: "Roboto",
-                  fontWeight: 500,
-                  fontSize: "18px",
-                  lineHeight: "20px",
-                  letterSpacing: "0.4px",
-                  textAlign: "center",
-                }}
+                className="h-[28px] w-[28px] flex-shrink-0"
+              >
+                <img src={Close} alt="Закрыть" className="w-full h-full" />
+              </button>
+            </div>
+            <div className="flex gap-3 justify-end mt-4">
+              <button
+                onClick={closeConfirmActionModal}
+                className="px-6 py-3 border border-gray-300 rounded-[32px] hover:bg-gray-50 transition-colors font-medium text-black"
               >
                 Отмена
+              </button>
+              <button
+                onClick={confirmActionHandler}
+                className={`px-6 py-3 rounded-[32px] text-white font-medium transition-opacity hover:opacity-80 ${
+                  confirmAction === "confirm" ? "bg-[#39B56B]" : "bg-[#FF5959]"
+                }`}
+              >
+                {confirmAction === "confirm" ? "Подтвердить" : "Отклонить"}
               </button>
             </div>
           </div>
@@ -930,7 +916,7 @@ export default function UsersList({ filters }: Props) {
       {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
+          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
             <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"

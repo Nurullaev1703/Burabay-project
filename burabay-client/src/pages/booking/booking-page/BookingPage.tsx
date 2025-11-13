@@ -11,6 +11,7 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import BookingWaitingIcon from "../../../app/icons/booking-waiting.svg";
 import { Typography } from "../../../shared/ui/Typography";
 
 interface Props {
@@ -132,10 +133,19 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   return (
     <section className="bg-almostWhite min-h-screen">
-      {/* Фиксированный хедер с поиском и фильтром */}
+      {/* Фиксированный хедер с табами и поиском */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
-        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
-          <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+        {/* Табы */}
+        <div className="py-4 px-4 bg-white">
+          <TabMenu
+            data={TABS_DATA}
+            activeIndex={activeIndex}
+            onChangeIndex={handleTabChange}
+          />
+        </div>
+
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white pb-4">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="Поиск" />
             <input
               type="text"
@@ -181,26 +191,25 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           >
             <img
               src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-              className="mt-4"
               alt="Фильтр"
             />
           </Link>
-        </div>
-
-        {/* Табы */}
-        <div className="py-4 px-4 bg-white">
-          <TabMenu
-            data={TABS_DATA}
-            activeIndex={activeIndex}
-            onChangeIndex={handleTabChange}
-          />
         </div>
       </div>
 
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      {filteredAds.length > 0 ? (
+      {searchValue && filteredAds.length === 0 ? (
+        <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
+          <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
+          <div className="flex flex-col justify-center items-center gap-2">
+            <Typography size={18} weight={500}>
+              {t("noSearchResults")}
+            </Typography>
+          </div>
+        </div>
+      ) : (
         <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
           {filteredAds.map((category, index) => (
             <li key={index} className="flex flex-col mb-8">
@@ -295,19 +304,6 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
             </li>
           ))}
         </ul>
-      ) : (
-        <div className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-8 pb-8">
-          <Typography size={16} weight={500} align="center" className="mb-2">
-            {activeIndex === 0
-              ? t("noActiveBookings")
-              : t("noArchivedBookings")}
-          </Typography>
-          {activeIndex === 1 && (
-            <Typography weight={400} align="center" color={COLORS_TEXT.gray100}>
-              {t("archivedBookingsInfo")}
-            </Typography>
-          )}
-        </div>
       )}
 
       <NavMenuOrg />
