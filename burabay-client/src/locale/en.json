@@ -558,6 +558,7 @@
   "tourist": "Tourist",
   "business": "Business",
   "noAds": "No advertisements found",
+  "noSearchResults": "Nothing found for your query",
   "noSavedYet": "No saved items yet",
   "clickBookmarkToSave": "Click on the bookmark in an ad to add it to saved",
   "changeAd": "Changing an ad",

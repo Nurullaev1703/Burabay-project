@@ -11,6 +11,8 @@ import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import BookingWaitingIcon from "../../../app/icons/booking-waiting.svg";
+import { Typography } from "../../../shared/ui/Typography";
 
 interface Props {
   ads: BookingList[];
@@ -198,24 +200,34 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
-        {filteredAds.map((category, index) => (
-          <li key={index} className="flex flex-col mb-8">
-            <span
-              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
-            >
-              {formatDateHeader(category.header)}
-            </span>
-            <ul>
-              {category.ads
-                .slice()
-                .sort((a, b) => {
-                  const aDate = new Date(a.createdAt || 0).getTime();
-                  const bDate = new Date(b.createdAt || 0).getTime();
-                  return bDate - aDate;
-                })
-                .map((ad) => {
-                  const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+      {searchValue && filteredAds.length === 0 ? (
+        <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
+          <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
+          <div className="flex flex-col justify-center items-center gap-2">
+            <Typography size={18} weight={500}>
+              {t("noSearchResults")}
+            </Typography>
+          </div>
+        </div>
+      ) : (
+        <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
+          {filteredAds.map((category, index) => (
+            <li key={index} className="flex flex-col mb-8">
+              <span
+                className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
+              >
+                {formatDateHeader(category.header)}
+              </span>
+              <ul>
+                {category.ads
+                  .slice()
+                  .sort((a, b) => {
+                    const aDate = new Date(a.createdAt || 0).getTime();
+                    const bDate = new Date(b.createdAt || 0).getTime();
+                    return bDate - aDate;
+                  })
+                  .map((ad) => {
+                    const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
                     return (
                       <div key={`${ad.ad_id}`}>
                         <li className="py-3 border-b border-[#E4E9EA]">
@@ -291,7 +303,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               </ul>
             </li>
           ))}
-      </ul>
+        </ul>
+      )}
 
       <NavMenuOrg />
     </section>

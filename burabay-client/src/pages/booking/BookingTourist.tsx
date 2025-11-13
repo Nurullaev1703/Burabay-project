@@ -72,12 +72,12 @@ export const BookingTourist: FC<Props> = function BookingTourist() {
         </div>
 
         <div className="flex justify-between items-center text-center gap-3 px-4 bg-white pb-4">
-          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
-            <img src={SearchIcon} alt="Поиск" />
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm opacity-50">
+            <img src={SearchIcon} alt="Поиск" className="opacity-50" />
             <input
               type="text"
               placeholder={t("search")}
-              className="flex-grow bg-transparent outline-none text-gray-700"
+              className="flex-grow bg-transparent outline-none text-gray-400 cursor-not-allowed"
               disabled={true}
             />
           </div>

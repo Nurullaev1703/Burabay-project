@@ -13,6 +13,8 @@ import DefaultIcon from "../../../app/icons/abstract-bg.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
 import React from "react";
 import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import BookingWaitingIcon from "../../../app/icons/booking-waiting.svg";
+import { Typography } from "../../../shared/ui/Typography";
 
 interface Props {
   ads: TouristBookingList[];
@@ -262,8 +264,18 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       {/* Отступ для фиксированного хедера */}
       <div className="h-[140px]"></div>
 
-      <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
-        {allAdsFlat.map((ad) => {
+      {searchValue && allAdsFlat.length === 0 ? (
+        <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
+          <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
+          <div className="flex flex-col justify-center items-center gap-2">
+            <Typography size={18} weight={500}>
+              {t("noSearchResults")}
+            </Typography>
+          </div>
+        </div>
+      ) : (
+        <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
+          {allAdsFlat.map((ad) => {
           const groupedTimes = ad.times.reduce(
             (acc, time) => {
               if (!time.time) return acc;
@@ -387,7 +399,8 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
               </div>
             );
           })}
-      </ul>
+        </ul>
+      )}
       <NavMenuClient />
     </section>
   );
