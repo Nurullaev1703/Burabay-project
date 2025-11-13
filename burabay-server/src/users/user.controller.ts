@@ -1,4 +1,4 @@
-import { Controller, Delete, Request, Post, Patch, Body } from '@nestjs/common';
+import { Controller, Delete, Request, Post, Patch, Body, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { Public } from 'src/constants';
@@ -7,7 +7,7 @@ import { UpdateDocsDto } from './dto/update-docs.dto';
 @ApiTags('Пользователи')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @ApiBearerAuth()
   @Delete('/delete-account')
@@ -25,6 +25,16 @@ export class UserController {
   @Post('delete-empty-name-orgs')
   deleteEmptyNameOrgs() {
     return this.userService.deleteOrganizationsAndUsers();
+  }
+
+  @Get('language')
+  getLanguage(@Request() authRequest: AuthRequest) {
+    return this.userService.getLangugage(authRequest.user.id);
+  }
+
+  @Patch('language')
+  updateLanguage(@Request() authRequest: AuthRequest, @Body('language') language: string) {
+    return this.userService.changeLangugae(authRequest.user.id, language);
   }
 
   @ApiBearerAuth()
