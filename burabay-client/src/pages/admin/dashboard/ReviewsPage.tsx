@@ -10,6 +10,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
+import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
+import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
 
 import Back from "/Back.svg?url";
 import Close from "/Close.png?url";
@@ -57,6 +59,10 @@ const ReviewsPage: FC = () => {
     null
   );
   const [selectedTourist, setSelectedTourist] = useState<Review | null>(null);
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+    string | null
+  >(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const navigate = useNavigate();
   const take = 9;
 
@@ -292,11 +298,10 @@ const ReviewsPage: FC = () => {
                               <div
                                 key={review.ad.id}
                                 className="flex items-center gap-2 flex-shrink-0 cursor-pointer"
-                                onClick={() =>
-                                  navigate({
-                                    to: `/admin/announcements/${review.ad.id}`,
-                                  })
-                                }
+                                onClick={() => {
+                                  setSelectedAnnouncementId(review.ad.id);
+                                  setIsAnnouncementModalOpen(true);
+                                }}
                               >
                                 <img
                                   src={`${BASE_URL}${review.ad.images[0]}`}
@@ -469,8 +474,59 @@ const ReviewsPage: FC = () => {
           )}
         </div>
       </div>
+      {selectedAnnouncementId && (
+        <AnnouncementModalWrapper
+          announcementId={selectedAnnouncementId}
+          open={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+          onBack={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+        />
+      )}
     </div>
   );
 };
+
+// Компонент-обертка для загрузки объявления
+function AnnouncementModalWrapper({
+  announcementId,
+  open,
+  onClose,
+  onBack,
+}: {
+  announcementId: string;
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
+  const { data, isLoading } = UseGetAnnouncement(announcementId);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-4">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <AdminAnnouncementModal
+      announcement={data}
+      open={open}
+      onClose={onBack || onClose}
+    />
+  );
+}
 
 export default ReviewsPage;
