@@ -326,9 +326,9 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                           return (
                             <div
                               key={index}
-                              className="flex justify-between mt-6"
+                              className="flex justify-between mt-6 overflow-hidden"
                             >
-                              <div className="flex w-full">
+                              <div className="flex w-full min-w-0 flex-1">
                                 <img
                                   src={imageSrc}
                                   onError={() =>

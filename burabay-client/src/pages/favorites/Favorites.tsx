@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
+import FlagEmptyIcon from "/flaginempty.svg?url";
 import { Announcement } from "../announcements/model/announcements";
 
 interface Props {
@@ -53,6 +54,7 @@ export const Favorites: FC<Props> = function Favorites({ favoritesList }) {
         </ul>
       ) : (
         <div className="flex flex-col items-center justify-center px-6 mt-[40%]">
+          <img src={FlagEmptyIcon} alt="" className="mb-6" />
           <Typography size={24} weight={600} color={COLORS_TEXT.totalBlack} align="center" className="mb-3">
             {t("noSavedYet")}
           </Typography>

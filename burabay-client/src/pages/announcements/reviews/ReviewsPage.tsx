@@ -380,7 +380,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                       }
                     />
                     <span className="absolute top-2 right-2 text-gray-400 text-sm">
-                      {answerText.text?.length || 0}/300
+                      {answerText.reviewId === review.id
+                        ? answerText.text?.length || 0
+                        : 0}
+                      /300
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -429,7 +432,10 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
                       }}
                     />
                     <span className="absolute top-2 right-2 text-gray-400 text-sm">
-                      {answerText.text?.length || 0}/300
+                      {answerText.reviewId === review.id
+                        ? answerText.text?.length || 0
+                        : 0}
+                      /300
                     </span>
                   </div>
                   <div className="flex justify-between">

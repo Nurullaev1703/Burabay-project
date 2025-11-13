@@ -223,7 +223,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                       <div key={`${ad.ad_id}`}>
                         <li className="py-3 border-b border-[#E4E9EA]">
                           <Link
-                            className="flex justify-between items-center"
+                            className="flex justify-between items-center overflow-hidden"
                             to={`/booking/$bookingId/$category`}
                             params={{
                               bookingId: ad.ad_id,
@@ -231,7 +231,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                             }}
                             search={{ status }}
                           >
-                            <div className="flex">
+                            <div className="flex min-w-0 flex-1">
                               <img
                                 src={imageSrc}
                                 onError={() =>
