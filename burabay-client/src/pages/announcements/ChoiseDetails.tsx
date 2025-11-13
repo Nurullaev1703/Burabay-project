@@ -488,7 +488,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
         // Инвалидируем кэш для конкретного объявления
         await queryClient.invalidateQueries({
-          queryKey: [`/ad/${announcement.id}`],
+          queryKey: [`/ad/${announcement.id}`, announcement.id],
         });
 
         navigate({ to: "/announcements" });
@@ -679,7 +679,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
               // Инвалидируем кэш для конкретного объявления
               await queryClient.invalidateQueries({
-                queryKey: [`/ad/${announcement.id}`],
+                queryKey: [`/ad/${announcement.id}`, announcement.id],
               });
 
               navigate({
