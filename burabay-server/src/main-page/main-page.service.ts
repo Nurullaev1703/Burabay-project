@@ -25,7 +25,7 @@ export class MainPageService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   /** 
    * Получние всех Объявлений
@@ -44,18 +44,12 @@ export class MainPageService {
 
     const cacheKey = `ads`;
 
-    // Если фильтры не переданы, то возвращаем все объявления, при наличии из кэша.
+    // Если фильтры не переданы, то возвращаем все объявления.
     if (isNoAdditionalFilters) {
-      // const cachedAds = await this.cacheManager.get(cacheKey);
       let ads: Ad[];
-      // if (cachedAds) {
-      // Если нужный кэш есть, возвращаем его.
-      // ads = cachedAds as Ad[];
-      // } else {
-      // Если кэша нет, получаем объявления из БД.
       ads = await this.adRepository.find({
         where: { organization: { isBanned: false } },
-        relations: { subcategory: { category: true }, address: true, organization: true },
+        relations: { subcategory: { category: true }, address: true, organization: true, usersFavorited: true },
         select: {
           id: true,
           address: { address: true, specialName: true },
@@ -71,24 +65,16 @@ export class MainPageService {
           organization: { name: true },
         },
         order: { createdAt: 'DESC' },
+        skip: offset || 0,
+        take: limit || 10,
       });
 
-      // Сохраняем полученные объявления в кэш.
-      // await this.cacheManager.set(cacheKey, ads, 3600000); // Кэшируем на 1 час.
-      // }
-      // Пагинация вручную из кэша.
-      ads = ads.slice(offset, offset + limit);
+      // ads = ads.slice(offset, offset + limit);
 
-      // Получаем избранные объявления пользователя.
-      const userFavorites = await this.dataSource
-        .createQueryBuilder()
-        .select('ufa.adId')
-        .from('user_favorites_ad', 'ufa')
-        .where('ufa.userId = :userId', { userId: tokenData.id })
-        .getRawMany();
-      // Преобразуем в Set для быстрого поиска.
-      const favoriteIds = new Set(userFavorites.map((f) => f.adId));
-      const result = ads.map((ad) => ({ ...ad, isFavourite: favoriteIds.has(ad.id) }));
+      const result = ads.map((ad) => ({
+        ...ad,
+        isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id),
+      }));
       return result;
     }
 
@@ -210,16 +196,10 @@ export class MainPageService {
         take: mainPageFilter.limit || 10,
       });
     }
-    // Получаем избранные объявления пользователя.
-    const userFavorites = await this.dataSource
-      .createQueryBuilder()
-      .select('ufa.adId')
-      .from('user_favorites_ad', 'ufa')
-      .where('ufa.userId = :userId', { userId: tokenData.id })
-      .getRawMany();
-    // Преобразуем в Set для быстрого поиска.
-    const favoriteIds = new Set(userFavorites.map((f) => f.adId));
-    const result = ads.map((ad) => ({ ...ad, isFavourite: favoriteIds.has(ad.id) }));
+    const result = ads.map((ad) => ({
+      ...ad,
+      isFavourite: ad.usersFavorited.some((user) => user.id === tokenData.id),
+    }));
     return result;
   }
 
