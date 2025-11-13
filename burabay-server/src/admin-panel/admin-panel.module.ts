@@ -15,7 +15,7 @@ import { NotificationService } from 'src/notification/notification.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking, Banner]),
+    TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking, Banner, Notification]),
   ],
   controllers: [AdminPanelController, AnalyticsController],
   providers: [AdminPanelService, AnalyticsService, NotificationService],
