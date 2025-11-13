@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +11,7 @@ import {
   CreateCategoryNotificationDto,
 } from './dto/create-all-notifications.dto';
 import { FirebaseAdminService } from './firebase-admin.service';
+import { EmailService } from 'src/authentication/email.service';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 
@@ -22,6 +23,8 @@ export class NotificationService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly firebaseAdminService: FirebaseAdminService,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
   ) {}
 
   //Создание для пользователя
@@ -59,6 +62,10 @@ export class NotificationService {
       };
       await this.firebaseAdminService.sendNotification(user.pushToken, payload);
     }
+    // Отправка email-уведомления
+    if (user.email) 
+      await this.emailService.sendNotificationMessage(user.email, of.message, of.title);
+    
 
     return JSON.stringify(HttpStatus.CREATED);
   }
@@ -84,7 +91,7 @@ export class NotificationService {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
 
-    // Отправка push-уведомлений всем пользователям
+    // Отправка push- и email-уведомлений всем пользователям
     const users = await this.userRepository.find();
     for (const user of users) {
       // Создаём уведомление для каждого пользователя
@@ -114,6 +121,9 @@ export class NotificationService {
           },
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
+      }
+      if (user.email) {
+        await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
       }
     }
 
@@ -218,6 +228,9 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(tourist.pushToken, payload);
       }
+      if (tourist.email) 
+        await this.emailService.sendNotificationMessage(tourist.email, of.message, 'Burabay администратор');
+      
     }
 
     return JSON.stringify(HttpStatus.CREATED);
@@ -264,6 +277,9 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(organization.pushToken, payload);
       }
+      if (organization.email) 
+        await this.emailService.sendNotificationMessage(organization.email, of.message, 'Burabay администратор');
+      
     }
 
     return JSON.stringify(HttpStatus.CREATED);
@@ -321,6 +337,9 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
       }
+      if (user.email) 
+        await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
+      
 
       // Помечаем пользователя как обработанного
       processedUserIds.add(user.id);
