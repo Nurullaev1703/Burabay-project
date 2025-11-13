@@ -136,7 +136,7 @@ export const Booking: FC = function Booking() {
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
           <div className="flex-1 min-w-0">
-            <span className="block font-medium truncate max-w-full">{announcement.title}</span>
+            <span className="block font-normal truncate max-w-full">{announcement.title}</span>
             <div className="flex items-center">
               <div className="flex items-center mr-2">
                 <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
