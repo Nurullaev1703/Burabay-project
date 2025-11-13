@@ -232,8 +232,8 @@ const AnalyticsPage = () => {
                     imageSrc={`${BASE_URL}${ad.image}`}
                     errorImage={defaultImage}
                   />
-                  <div>
-                    <p className="text-4">{ad.title}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-4 truncate w-full">{ad.title}</p>
                     <div className="flex">
                       <p>⭐{ad.avgRating}</p>
                       <p className="text-[#999999] text-4 ml-1">

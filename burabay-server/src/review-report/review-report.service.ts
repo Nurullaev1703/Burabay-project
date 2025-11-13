@@ -35,7 +35,7 @@ export class ReviewReportService {
         relations: { organization: true },
       });
       Utils.checkEntity(user, 'Пользователь не найден');
-      if (user.organization) throw new HttpException('Организация не найдена', HttpStatus.NOT_FOUND);
+      if (!user.organization) throw new HttpException('Организация не найдена', HttpStatus.NOT_FOUND);
       const review = await this.reviewRepository.findOne({
         where: { id: createReviewReportDto.reviewId },
         relations: { user: true, ad: true },
