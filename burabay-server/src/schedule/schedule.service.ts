@@ -1,13 +1,13 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, HttpException } from '@nestjs/common';
 import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Utils } from 'src/utilities';
+import { User } from 'src/users/entities/user.entity';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './entities/schedule.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Repository } from 'typeorm';
-import { Cache } from 'cache-manager';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class ScheduleService {
@@ -16,23 +16,17 @@ export class ScheduleService {
     private readonly scheduleRepository: Repository<Schedule>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
-    // @Inject(CACHE_MANAGER)
-    // private cacheManager: Cache,
-  ) {}
-  async create(createScheduleDto: CreateScheduleDto) {
+  ) { }
+  async create(createScheduleDto: CreateScheduleDto, tokenData: TokenData) {
     try {
+      const currentUser = await this.#checkRole(tokenData.id);
       const { adId, ...oF } = createScheduleDto;
-      const ad = await this.adRepository.findOne({ where: { id: adId } });
+      const ad = await this.adRepository.findOne({ where: { id: adId }, relations: { organization: true } });
       Utils.checkEntity(ad, 'Объявление не найдено');
-
-      const newSchedule = this.scheduleRepository.create({
-        ad: ad,
-        ...oF,
-      });
-
+      if (currentUser.role === ROLE_TYPE.BUSINESS)
+        await this.#checkAccess(ad.organization.id, currentUser);
+      const newSchedule = this.scheduleRepository.create({ ad: ad, ...oF, });
       await this.scheduleRepository.save(newSchedule);
-      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     } catch (error) {
       Utils.errorHandler(error);
@@ -49,30 +43,46 @@ export class ScheduleService {
     }
   }
 
-  async update(id: string, updateScheduleDto: UpdateScheduleDto) {
+  async update(id: string, updateScheduleDto: UpdateScheduleDto, tokenData: TokenData) {
     try {
-      const schedule = await this.scheduleRepository.findOne({ where: { id: id } });
+      const currentUser = await this.#checkRole(tokenData.id);
+      const schedule = await this.scheduleRepository.findOne({ where: { id: id }, relations: { ad: { organization: true } } });
       Utils.checkEntity(schedule, 'График не найден');
+      if (currentUser.role === ROLE_TYPE.BUSINESS)
+        await this.#checkAccess(schedule.ad.organization.id, currentUser);
       Object.assign(schedule, updateScheduleDto);
       await this.scheduleRepository.save(schedule);
-      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     try {
-      const schedule = await this.scheduleRepository.findOne({ where: { id: id } });
+      const currentUser = await this.#checkRole(tokenData.id);
+      const schedule = await this.scheduleRepository.findOne({ where: { id: id }, relations: { ad: { organization: true } } });
       Utils.checkEntity(schedule, 'График не найден');
+      if (currentUser.role === ROLE_TYPE.BUSINESS)
+        await this.#checkAccess(schedule.ad.organization.id, currentUser);
       await this.scheduleRepository.remove(schedule);
-      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       Utils.errorHandler(error);
+    }
+  }
+  async #checkRole(userId: string) {
+    const userRepo = this.scheduleRepository.manager.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: userId }, relations: { organization: true } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
+    return user;
+  }
+
+  async #checkAccess(organizationId: string, user: User) {
+    if (!user.organization || user.organization.id !== organizationId) {
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
     }
   }
 }
