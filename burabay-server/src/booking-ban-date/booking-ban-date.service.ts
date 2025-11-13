@@ -33,8 +33,8 @@ export class BookingBanDateService {
       Utils.checkEntity(ad, 'Объявление не найдено');
 
       // Проверяем права доступа для бизнес-пользователей
-      if (currentUser.role === ROLE_TYPE.BUSINESS)
-        await this.#checkOrganization(currentUser, ad.organization.user);
+      // if (currentUser.role === ROLE_TYPE.BUSINESS)
+      //   await this.#checkOrganization(currentUser, ad.organization.user);
 
 
       const newBookingBanDate = this.bookingBanDateRepository.create({
