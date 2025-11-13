@@ -259,7 +259,18 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer 
+            align="end" 
+            action={() => {
+              // Если метка НЕ поставлена (нет координат с бэка) - показываем модалку
+              // Если метка УЖЕ поставлена (есть координаты с бэка) - просто закрываем
+              if (!announcement?.address?.latitude || !announcement?.address?.longitude) {
+                setShowModal(true);
+              } else {
+                navigate({ to: "/announcements" });
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
