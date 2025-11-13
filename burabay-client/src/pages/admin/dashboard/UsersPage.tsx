@@ -27,6 +27,8 @@ import arrow from "/arrow.svg?url";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
 import { useQueryClient } from "@tanstack/react-query";
+import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
+import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
 
 interface Props {
   filters: UsersFilter;
@@ -74,6 +76,10 @@ export default function UsersList({ filters }: Props) {
   const [announcementsError, setAnnouncementsError] = useState<string | null>(
     null
   );
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+    string | null
+  >(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -979,7 +985,7 @@ export default function UsersList({ filters }: Props) {
                     {selectedUser.phoneNumber || "Не указан"}
                   </Typography>
                 </div>
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-4 mt-4">
                   {selectedUser.isBanned ? (
                     <div>
                       <button
@@ -1049,13 +1055,17 @@ export default function UsersList({ filters }: Props) {
                       {organizationAnnouncements.map((ad: any) => (
                         <div
                           key={ad.id}
-                          onClick={() =>
-                            navigate({
-                              to: `/admin/announcements/${ad.id}`,
-                            })
-                          }
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSelectedAnnouncementId(ad.id);
+                            setIsAnnouncementModalOpen(true);
+                          }}
                         >
-                          <AdCard ad={ad} isOrganization={true} />
+                          <AdCard
+                            ad={ad}
+                            isOrganization={true}
+                            disableLink={true}
+                          />
                         </div>
                       ))}
                     </div>
@@ -1066,7 +1076,7 @@ export default function UsersList({ filters }: Props) {
                   )}
                 </div>
 
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-4 mt-4">
                   {selectedUser.organization?.isBanned ? (
                     <div>
                       <button
@@ -1098,6 +1108,57 @@ export default function UsersList({ filters }: Props) {
           </div>
         </div>
       )}
+      {selectedAnnouncementId && (
+        <AnnouncementModalWrapper
+          announcementId={selectedAnnouncementId}
+          open={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+          onBack={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+// Компонент-обертка для загрузки объявления
+function AnnouncementModalWrapper({
+  announcementId,
+  open,
+  onClose,
+  onBack,
+}: {
+  announcementId: string;
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
+  const { data, isLoading } = UseGetAnnouncement(announcementId);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-4">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <AdminAnnouncementModal
+      announcement={data}
+      open={open}
+      onClose={onBack || onClose}
+    />
   );
 }

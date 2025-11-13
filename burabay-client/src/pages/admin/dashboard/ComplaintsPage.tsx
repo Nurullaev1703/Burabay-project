@@ -11,6 +11,8 @@ import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
+import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
+import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
 
 import Back from "/Back.svg?url";
 import Close from "/Close.png?url";
@@ -91,6 +93,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [announcementsError, setAnnouncementsError] = useState<string | null>(
     null
   );
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+    string | null
+  >(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
 
   // Функция для выполнения всех отложенных запросов (useCallback для стабильной ссылки)
@@ -596,11 +602,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                         <div
                           key={review.adId}
                           className="flex items-center flex-shrink-0 cursor-pointer"
-                          onClick={() =>
-                            navigate({
-                              to: `/admin/announcements/${review.adId}`,
-                            })
-                          }
+                          onClick={() => {
+                            setSelectedAnnouncementId(review.adId);
+                            setIsAnnouncementModalOpen(true);
+                          }}
                         >
                           <img
                             src={`${BASE_URL}${review.adImage}`}
@@ -801,13 +806,17 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   {organizationAnnouncements.map((ad: any) => (
                     <div
                       key={ad.id}
-                      onClick={() =>
-                        navigate({
-                          to: `/admin/announcements/${ad.id}`,
-                        })
-                      }
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedAnnouncementId(ad.id);
+                        setIsAnnouncementModalOpen(true);
+                      }}
                     >
-                      <AdCard ad={ad} isOrganization={true} />
+                      <AdCard
+                        ad={ad}
+                        isOrganization={true}
+                        disableLink={true}
+                      />
                     </div>
                   ))}
                 </div>
@@ -815,7 +824,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 <p className="text-gray-500">Нет объявлений</p>
               )}
             </div>
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 mt-4">
               {!selectedTourist?.isBanned && (
                 <div>
                   <button
@@ -898,7 +907,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 mt-4">
               {selectedTourist.isBanned ? (
                 <div>
                   <button
@@ -926,8 +935,59 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           </div>
         </div>
       )}
+      {selectedAnnouncementId && (
+        <AnnouncementModalWrapper
+          announcementId={selectedAnnouncementId}
+          open={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+          onBack={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+        />
+      )}
     </div>
   );
 };
+
+// Компонент-обертка для загрузки объявления
+function AnnouncementModalWrapper({
+  announcementId,
+  open,
+  onClose,
+  onBack,
+}: {
+  announcementId: string;
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
+  const { data, isLoading } = UseGetAnnouncement(announcementId);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-4">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <AdminAnnouncementModal
+      announcement={data}
+      open={open}
+      onClose={onBack || onClose}
+    />
+  );
+}
 
 export default ComplaintsPage;
