@@ -17,6 +17,7 @@ interface Props {
   isOrganization?: boolean;
   width?: string;
   ref?: (node: HTMLLIElement | null) => void;
+  disableLink?: boolean;
 }
 
 export const AdCard: FC<Props> = function AdCard({
@@ -24,6 +25,7 @@ export const AdCard: FC<Props> = function AdCard({
   isOrganization,
   width,
   ref,
+  disableLink,
 }) {
   const [isFavourite, setIsFavourite] = useState<boolean>(
     ad.isFavourite || false
@@ -50,12 +52,16 @@ export const AdCard: FC<Props> = function AdCard({
       className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`}
       ref={ref}
     >
-      <Link
-        to="/announcements/$announcementId"
-        params={{ announcementId: ad.id }}
-      >
+      {disableLink ? (
         <Carousel items={carouselItems} />
-      </Link>
+      ) : (
+        <Link
+          to="/announcements/$announcementId"
+          params={{ announcementId: ad.id }}
+        >
+          <Carousel items={carouselItems} />
+        </Link>
+      )}
       <div
         className={`absolute top-2 right-2 ${categoryBgColors[ad?.subcategory?.category?.name] || "bg-white"} rounded-full p-1 z-20`}
       >
@@ -75,7 +81,7 @@ export const AdCard: FC<Props> = function AdCard({
           >
             {ad.price
               ? (ad.price || 0).toLocaleString("ru-RU") + " ₸"
-              : (t("free"))}
+              : t("free")}
           </Typography>
           {!isOrganization && (
             <img

@@ -90,6 +90,25 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
               <span className="truncate w-full">{ad.organization.name}</span>
             </div>
           </div>
+        ) : isAdmin ? (
+          <div className="flex justify-between items-center">
+            <div className="flex items-center relative flex-1 min-w-0">
+              <img
+                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
+                src={imageSrc}
+                alt={ad.organization.name}
+                onError={() => setImageSrc(DefaultImage)}
+              />
+              {ad.organization.isConfirmed && (
+                <img
+                  src={ConfirmedIcon}
+                  className="absolute top-[-5px] left-6"
+                  alt="Подтверждено"
+                />
+              )}
+              <span className="truncate w-full">{ad.organization.name}</span>
+            </div>
+          </div>
         ) : (
           <Link
             to="/announcements/org-page/$organizationId"
@@ -132,23 +151,25 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
             )}
         </li>
       )}
-      <li className="border-b border-[#E4E9EA] py-3">
-        <Link
-          to="/announcements/schedule/$announcementId"
-          params={{ announcementId: ad.id }}
-          className="flex justify-between"
-        >
-          <div className="flex flex-col">
-            <span>
-              {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
-            </span>
-            <span className={`${COLORS_TEXT.gray100} text-sm`}>
-              {t("workingDays")}
-            </span>
-          </div>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
+      {!isAdmin && (
+        <li className="border-b border-[#E4E9EA] py-3">
+          <Link
+            to="/announcements/schedule/$announcementId"
+            params={{ announcementId: ad.id }}
+            className="flex justify-between"
+          >
+            <div className="flex flex-col">
+              <span>
+                {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
+              </span>
+              <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                {t("workingDays")}
+              </span>
+            </div>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        </li>
+      )}
       {!isAdmin && ad.address && !fromMap && (
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
@@ -161,16 +182,18 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </Link>
         </li>
       )}
-      <li className="py-3">
-        <Link
-          to="/announcements/details/$announcementId"
-          params={{ announcementId: ad.id }}
-          className="flex justify-between"
-        >
-          <span>{t("details")}</span>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
+      {!isAdmin && (
+        <li className="py-3">
+          <Link
+            to="/announcements/details/$announcementId"
+            params={{ announcementId: ad.id }}
+            className="flex justify-between"
+          >
+            <span>{t("details")}</span>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        </li>
+      )}
     </ul>
   );
 };

@@ -19,7 +19,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({ ad, isAdmin }) {
     window.scrollTo(0, 0);
   }, []);
   return (
-    <div className="bg-white p-4 mb-2">
+    <div className="bg-white p-4 lg:p-0 mb-2">
       <h2 className="font-medium text-lg mb-2">{t("cost")}</h2>
       <ul className="flex mb-4">
         <li className="flex flex-col w-44">
