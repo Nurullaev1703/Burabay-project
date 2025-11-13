@@ -48,7 +48,10 @@ export const BookingBan: FC<Props> = function BookingBan({
   const { t, i18n } = useTranslation();
 
   const checkBookingBan = () => {
-    if (announcement?.bookingBanDate && announcement?.bookingBanDate.length > 0) {
+    if (
+      announcement?.bookingBanDate &&
+      announcement?.bookingBanDate.length > 0
+    ) {
       return true;
     }
     return false;
@@ -58,7 +61,9 @@ export const BookingBan: FC<Props> = function BookingBan({
   const isFullDayService = announcement?.isFullDay || false;
 
   // Состояние для забронированных дат
-  const [bookedDates, setBookedDates] = useState<Array<{ startDate: string; endDate?: string }>>([]);
+  const [bookedDates, setBookedDates] = useState<
+    Array<{ startDate: string; endDate?: string }>
+  >([]);
 
   const [dates, setDates] = useState<string[]>(() => {
     const result =
@@ -88,7 +93,9 @@ export const BookingBan: FC<Props> = function BookingBan({
   useEffect(() => {
     const fetchBookedDates = async () => {
       try {
-        const response = await apiService.get<Array<{ startDate: string; endDate?: string }>>({
+        const response = await apiService.get<
+          Array<{ startDate: string; endDate?: string }>
+        >({
           url: `/ad/check-dates/${adId}`,
         });
         if (response.data) {
@@ -98,7 +105,7 @@ export const BookingBan: FC<Props> = function BookingBan({
         console.error("Ошибка загрузки забронированных дат:", error);
       }
     };
-    
+
     fetchBookedDates();
   }, [adId]);
 
@@ -118,7 +125,7 @@ export const BookingBan: FC<Props> = function BookingBan({
         }
       }
     };
-    
+
     checkActiveBookings();
   }, [adId, announcement]);
 
@@ -160,32 +167,88 @@ export const BookingBan: FC<Props> = function BookingBan({
   // Проверка, заблокирована ли дата
   const shouldDisableDate = (date: Dayjs) => {
     const formattedDate = date.format("DD.MM.YYYY");
-    
+
     // Блокируем прошедшие даты и уже выбранные
     if (date.isBefore(dayjs(), "day") || dates.includes(formattedDate)) {
       return true;
     }
-    
+
+    // Проверяем, является ли расписание полностью круглосуточным (все дни 00:00 - 00:00)
+    let isFullyUnavailable = false; // Все дни недоступны (00:00 - 00:00)
+    if (announcement?.schedule) {
+      const schedule = announcement.schedule;
+      const allDaysUnavailable =
+        schedule.monStart === "00:00" &&
+        schedule.monEnd === "00:00" &&
+        schedule.tueStart === "00:00" &&
+        schedule.tueEnd === "00:00" &&
+        schedule.wenStart === "00:00" &&
+        schedule.wenEnd === "00:00" &&
+        schedule.thuStart === "00:00" &&
+        schedule.thuEnd === "00:00" &&
+        schedule.friStart === "00:00" &&
+        schedule.friEnd === "00:00" &&
+        schedule.satStart === "00:00" &&
+        schedule.satEnd === "00:00" &&
+        schedule.sunStart === "00:00" &&
+        schedule.sunEnd === "00:00";
+
+      // Если не все дни 00:00 - 00:00, то у нас есть график работы
+      if (!allDaysUnavailable) {
+        // Блокируем дни недели, которые недоступны в расписании (00:00 - 00:00)
+        const dayOfWeek = date.day(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const dayMap: Record<number, { start: string; end: string }> = {
+          1: { start: schedule.monStart, end: schedule.monEnd },
+          2: { start: schedule.tueStart, end: schedule.tueEnd },
+          3: { start: schedule.wenStart, end: schedule.wenEnd },
+          4: { start: schedule.thuStart, end: schedule.thuEnd },
+          5: { start: schedule.friStart, end: schedule.friEnd },
+          6: { start: schedule.satStart, end: schedule.satEnd },
+          0: { start: schedule.sunStart, end: schedule.sunEnd },
+        };
+
+        const daySchedule = dayMap[dayOfWeek];
+        // Если оба времени "00:00" - день полностью недоступен
+        if (
+          daySchedule &&
+          daySchedule.start === "00:00" &&
+          daySchedule.end === "00:00"
+        ) {
+          return true;
+        }
+      }
+      // Если все дни 00:00 - 00:00, то это круглосуточно - не блокируем по расписанию
+    }
+
     // Блокируем даты, которые уже забронированы
     for (const booking of bookedDates) {
       if (booking.endDate) {
         // Для диапазона дат (аренда жилья)
-        const startDate = dayjs(booking.startDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
+        const startDate = dayjs(booking.startDate, [
+          "DD.MM.YYYY",
+          "YYYY-MM-DD",
+        ]);
         const endDate = dayjs(booking.endDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
-        
+
         // Проверяем, попадает ли дата в диапазон [startDate, endDate)
-        if ((date.isAfter(startDate, "day") || date.isSame(startDate, "day")) && date.isBefore(endDate, "day")) {
+        if (
+          (date.isAfter(startDate, "day") || date.isSame(startDate, "day")) &&
+          date.isBefore(endDate, "day")
+        ) {
           return true;
         }
       } else {
         // Для одной даты (почасовое бронирование)
-        const bookedDate = dayjs(booking.startDate, ["DD.MM.YYYY", "YYYY-MM-DD"]);
+        const bookedDate = dayjs(booking.startDate, [
+          "DD.MM.YYYY",
+          "YYYY-MM-DD",
+        ]);
         if (date.isSame(bookedDate, "day")) {
           return true;
         }
       }
     }
-    
+
     return false;
   };
   function transformData(data: BookingBanDate[]): TransformedData {
@@ -502,7 +565,6 @@ export const BookingBan: FC<Props> = function BookingBan({
             <Typography
               size={14}
               weight={500}
-              
               color={COLORS_TEXT.red}
               className="text-center"
             >
