@@ -38,7 +38,7 @@ export class AdService {
     private imageService: ImagesService,
     // @Inject(CACHE_MANAGER)
     // private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /* Создания Объявления. */
   @CatchErrors()
@@ -130,9 +130,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-            take: filter.limit,
-            skip: filter.offset,
-          }
+          take: filter.limit,
+          skip: filter.offset,
+        }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -284,7 +284,9 @@ export class AdService {
   /* Редактирования Объявления. Принимает айди Объявления. */
   @CatchErrors()
   async update(id: string, updateAdDto: UpdateAdDto, tokenData: TokenData) {
+    console.log(tokenData);
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    console.log(user);
     Utils.checkEntity(user, 'Пользователь не найден');
     if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
       throw new HttpException('Объявление может редактировать только организация или админ', HttpStatus.FORBIDDEN);
