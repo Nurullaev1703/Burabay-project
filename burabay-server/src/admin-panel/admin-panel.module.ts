@@ -11,13 +11,14 @@ import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { Banner } from './entities/baner.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Organization, Ad, Review, ReviewReport, Booking, Banner]),
   ],
   controllers: [AdminPanelController, AnalyticsController],
-  providers: [AdminPanelService, AnalyticsService],
+  providers: [AdminPanelService, AnalyticsService, NotificationService],
   exports: [AdminPanelService],
 })
-export class AdminPanelModule {}
+export class AdminPanelModule { }

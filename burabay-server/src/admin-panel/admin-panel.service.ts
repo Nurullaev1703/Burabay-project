@@ -15,6 +15,9 @@ import { BookingStatus } from 'src/booking/types/booking.types';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { BannerCreateDto } from './dto/banner-create.dto';
 import { Banner } from './entities/baner.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Injectable()
 export class AdminPanelService {
@@ -29,12 +32,15 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(ReviewReport)
     private readonly reviewReportRepository: Repository<ReviewReport>,
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
-  ) {}
+    private readonly notificationService: NotificationService
+  ) { }
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
@@ -407,9 +413,19 @@ export class AdminPanelService {
   @CatchErrors()
   async banOrg(orgId: string, value: boolean, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const org = await this.organizationRepository.findOne({ where: { id: orgId } });
+    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
+    for (const b of org.ads.flatMap((ad) => ad.bookings)) {
+      b.status = BookingStatus.CANCELED;
+      await this.bookingRepository.save(b);
+      await this.notificationService.createForUser({
+        email: b.user.email,
+        title: `Ваша бронь на объявление ${b.ad.title} отменена`,
+        message: `Организация создавшая объявление была заблокированна администратором. Ваша бронь отменена.`,
+        type: NotificationType.POSITIVE,
+      });
+    }
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
   }
