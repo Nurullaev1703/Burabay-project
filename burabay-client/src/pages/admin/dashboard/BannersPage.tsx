@@ -476,7 +476,7 @@ const BannersPage: React.FC = () => {
           <div className="bg-white rounded-2xl w-[90%] sm:w-[500px] p-8 shadow-2xl">
             <h3 className="text-2xl font-bold mb-4" style={{ color: '#000000' }}>Удалить баннер?</h3>
             <p className="font-medium mb-2" style={{ color: '#000000' }}>Вы уверены, что хотите удалить этот баннер?</p>
-            <p className="font-semibold text-base mb-8" style={{ color: '#DC2626' }}>⚠️ Это действие нельзя отменить!</p>
+            <p className="font-semibold text-base mb-8" style={{ color: '#DC2626' }}>Это действие нельзя отменить!</p>
             
             <div className="flex gap-3 justify-center">
               <button
