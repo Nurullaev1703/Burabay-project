@@ -240,14 +240,14 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                     key={b.bookingId}
                     className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
                   >
-                    <div className="flex items-center py-3 border-t border-[#E4E9EA]">
+                    <div className="flex items-center py-3 border-t border-[#E4E9EA] min-w-0">
                       <img
                         src={imageSrc}
                         onError={() => setImageSrc(DefaultIcon)}
                         alt={b.name}
-                        className="w-[52px] h-[52px] object-cover rounded-full mr-4"
+                        className="w-[52px] h-[52px] object-cover rounded-full mr-4 flex-shrink-0"
                       />
-                      <span>{b.name}</span>
+                      <span className="truncate">{b.name}</span>
                     </div>
 
                     <ul className="mb-8">
