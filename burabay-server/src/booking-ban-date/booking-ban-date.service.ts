@@ -33,9 +33,8 @@ export class BookingBanDateService {
       Utils.checkEntity(ad, 'Объявление не найдено');
 
       // Проверяем права доступа для бизнес-пользователей
-      // if (currentUser.role === ROLE_TYPE.BUSINESS)
-      //   await this.#checkOrganization(currentUser, ad.organization.user);
-
+      if (currentUser.role === ROLE_TYPE.BUSINESS)
+        await this.#checkOrganization(currentUser, ad.organization.user);
 
       const newBookingBanDate = this.bookingBanDateRepository.create({
         ad: ad,
@@ -92,12 +91,13 @@ export class BookingBanDateService {
   }
 
   async #checkRole(tokenData: TokenData) {
-    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, select: { role: true } });
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, select: { id: true, role: true } });
     Utils.checkEntity(user, 'Пользователь не найден');
     if (user.role !== ROLE_TYPE.ADMIN && user.role !== ROLE_TYPE.BUSINESS)
       throw new HttpException('Недостаточно прав для создания запрещенной даты', HttpStatus.FORBIDDEN);
     return user;
   }
+
   async #checkOrganization(currentUser: User, orgUser: User) {
     if (currentUser.id !== orgUser.id)
       throw new HttpException('Недостаточно прав для редактирования этой даты', HttpStatus.FORBIDDEN);
