@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useMemo, useEffect } from "react";
 import { Announcement, Booking } from "../../model/announcements";
 import { Header } from "../../../../components/Header";
 import { IconContainer } from "../../../../shared/ui/IconContainer";
@@ -27,39 +27,159 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
   announcement,
 }) {
   const { t, i18n } = useTranslation();
+
+  // Отладка: выводим данные о заблокированных датах
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [times, setTimes] = useState<{ time: string; isBlocked: boolean }[]>(
-    []
-  );
+  // Инициализируем times со всеми доступными временами при загрузке
+  const [times, setTimes] = useState<string[]>(announcement.startTime || []);
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
 
-  // Установка времени с учетом заблокированных
+  // Вычисляем дни недели, которые заблокированы в расписании (00:00 - 00:00)
+  const blockedDaysOfWeek = useMemo(() => {
+    // Если круглосуточно или это полный день - не блокируем по расписанию
+    if (announcement.isFullDay || announcement.isRoundTheClock) {
+      return [];
+    }
+
+    // Проверяем все дни - если все 00:00 - 00:00, то это круглосуточно
+    if (announcement.schedule) {
+      const schedule = announcement.schedule;
+      const allDaysUnavailable =
+        schedule.monStart === "00:00" &&
+        schedule.monEnd === "00:00" &&
+        schedule.tueStart === "00:00" &&
+        schedule.tueEnd === "00:00" &&
+        schedule.wenStart === "00:00" &&
+        schedule.wenEnd === "00:00" &&
+        schedule.thuStart === "00:00" &&
+        schedule.thuEnd === "00:00" &&
+        schedule.friStart === "00:00" &&
+        schedule.friEnd === "00:00" &&
+        schedule.satStart === "00:00" &&
+        schedule.satEnd === "00:00" &&
+        schedule.sunStart === "00:00" &&
+        schedule.sunEnd === "00:00";
+
+      // Если все дни 00:00 - это круглосуточно
+      if (allDaysUnavailable) {
+        return [];
+      }
+    }
+
+    // Извлекаем дни, которые заблокированы (00:00 - 00:00)
+    return Object.entries(announcement.schedule ?? {})
+      .filter(([key, value]) => {
+        if (!key.endsWith("Start") || value !== "00:00") return false;
+        const endKey = key.replace("Start", "End");
+        const endValue =
+          announcement.schedule?.[endKey as keyof typeof announcement.schedule];
+        return endValue === "00:00";
+      })
+      .map(([key]) => {
+        const dayMap: Record<string, number> = {
+          monStart: 1,
+          tueStart: 2,
+          wenStart: 3,
+          thuStart: 4,
+          friStart: 5,
+          satStart: 6,
+          sunStart: 0,
+        };
+        return dayMap[key] ?? null;
+      })
+      .filter((day): day is number => day !== null);
+  }, [announcement]);
+
+  // Проверяем, заблокирована ли дата по расписанию
+  const isDayBlockedBySchedule = (date: Dayjs): boolean => {
+    return blockedDaysOfWeek.includes(date.day());
+  };
+
+  // Проверяем, заблокирована ли дата в serviceSchedule (с allDay: true)
+  const isDateBlockedByOrganization = (date: Dayjs): boolean => {
+    return (
+      serviceSchedule?.some((banDate) => {
+        // ВАЖНО: Пропускаем даты, забронированные через систему бронирования (isByBooking: true)
+        // Показываем только даты, заблокированные самой организацией (isByBooking: false)
+        if (banDate.isByBooking) return false;
+
+        const isSameDate = dayjs(banDate.date).isSame(date, "day");
+        if (!isSameDate) return false;
+
+        // Блокируем только если allDay: true
+        if (banDate.allDay) {
+          return true;
+        }
+
+        // Для times - НЕ блокируем дату, просто скроем недоступные времена
+        return false;
+      }) ?? false
+    );
+  };
+
+  // Основная функция для блокирования дат в календаре
+  const shouldDisableDate = (date: Dayjs): boolean => {
+    const today = dayjs().startOf("day");
+
+    if (date.isBefore(today)) return true; // Блокируем прошедшие дни
+    if (isDayBlockedBySchedule(date)) return true; // Блокируем дни с "00:00"
+    if (isDateBlockedByOrganization(date)) return true; // Блокируем заблокированные даты
+
+    return false;
+  };
+
+  // Находим ближайшую доступную дату и устанавливаем её при загрузке
+  useEffect(() => {
+    // Ищем ближайшую дату, которая не заблокирована
+    let currentDate = dayjs().startOf("day");
+    let maxIterations = 365; // Ищем не более года в будущем
+    let i = 0;
+
+    while (i < maxIterations) {
+      if (!shouldDisableDate(currentDate)) {
+        // Нашли доступную дату
+        setSelectedDate(currentDate);
+        handleDateChange(currentDate);
+        break;
+      }
+      currentDate = currentDate.add(1, "day");
+      i++;
+    }
+  }, [announcement, serviceSchedule]);
+
+  // Установка времени с учетом заблокированных (только доступные времена)
   const handleDateChange = (date: Dayjs | null) => {
     setSelectedDate(date);
     if (!date) return;
 
-    const formattedDate = date.format("DD.MM.YYYY");
-    const matchingDate = serviceSchedule.find(
-      (currDate) => currDate.date === formattedDate
+    // Находим все записи для выбранной даты в serviceSchedule
+    // Учитываем ТОЛЬКО записи где isByBooking: false (заблокированные организацией)
+    const matchingDates = serviceSchedule.filter(
+      (currDate) =>
+        dayjs(currDate.date).isSame(date, "day") && !currDate.isByBooking
     );
 
     const availableTimes = announcement.startTime || []; // Общие временные интервалы
-    if (matchingDate) {
-      const blockedTimes = matchingDate.times; // Временные интервалы, которые заблокированы
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: blockedTimes.includes(time),
-      }));
-      setTimes(combinedTimes);
+
+    if (matchingDates.length > 0) {
+      // Собираем все заблокированные времена из записей организации
+      const allBlockedTimes = matchingDates.reduce((acc, curr) => {
+        return [...acc, ...(curr.times || [])];
+      }, [] as string[]);
+
+      // Убираем дубликаты
+      const uniqueBlockedTimes = [...new Set(allBlockedTimes)];
+
+      // Исключаем только те времена, которые заблокированы организацией
+      const availableTimes_filtered = availableTimes.filter(
+        (time) => !uniqueBlockedTimes.includes(time)
+      );
+      setTimes(availableTimes_filtered);
     } else {
       // Если даты нет в расписании, все времена доступны
-      const combinedTimes = availableTimes.map((time) => ({
-        time,
-        isBlocked: false,
-      }));
-      setTimes(combinedTimes);
+      setTimes(availableTimes);
     }
   };
 
@@ -87,7 +207,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
         </div>
       </Header>
 
-      <div className="mb-4 px-4">
+      <div className="mb-4 p-4">
         <div className="flex">
           <img
             src={imageSrc}
@@ -120,24 +240,20 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
         <BookingCalendar
           value={selectedDate}
           onChange={handleDateChange}
-          shouldDisableDate={(date: Dayjs) => date.isBefore(dayjs(), "day")}
+          shouldDisableDate={shouldDisableDate}
           locale={i18n.language as "ru" | "kk" | "en"}
         />
       </div>
 
-      <div className="px-4">
+      <div className="px-4 pb-24">
         {times.length > 0 ? (
           <>
             <h2 className="mb-4">{t("serviceDuration")}</h2>
             <ul className="flex flex-wrap gap-2">
-              {times.map(({ time, isBlocked }, index) => (
+              {times.map((time, index) => (
                 <li
                   key={index}
-                  className={`border-2 rounded-3xl w-28 h-12 flex items-center justify-center ${
-                    isBlocked
-                      ? "border-gray-400 text-gray-400 cursor-not-allowed"
-                      : `${COLORS_BORDER.blue200} bg-white cursor-pointer`
-                  }`}
+                  className={`border-2 ${COLORS_BORDER.blue200} bg-white cursor-pointer rounded-3xl w-28 h-12 flex items-center justify-center`}
                 >
                   <span>{time}</span>
                 </li>
@@ -154,7 +270,7 @@ export const ServiceSchedule: FC<Props> = function ServiceSchedule({
       </div>
 
       {/* Кнопка назад внизу страницы, как на других шагах */}
-      <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
+      <div className="fixed left-0 bottom-0 mb-2 p-2 w-full z-10">
         <Button onClick={() => history.back()}>{t("back")}</Button>
       </div>
     </section>
