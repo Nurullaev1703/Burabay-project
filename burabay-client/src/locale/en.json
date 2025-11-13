@@ -574,6 +574,7 @@
   "withoutNotiAprove": "Without this we will not be able to send them.",
   "iosNotificationHint": "To receive notifications, add the app to your home screen",
   "loading": "Loading...",
+  "banner": "Banner",
   "notificationSettings": "Notification Settings",
   "notificationStatus": "Notification Status",
   "notificationEnabled": "Notifications Enabled",

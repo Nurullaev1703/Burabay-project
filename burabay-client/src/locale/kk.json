@@ -574,6 +574,7 @@
   "withoutNotiAprove": "Онсыз біз оларды жібере алмаймыз.",
   "iosNotificationHint": "Хабарландыруларды алу үшін қолданбаны басты экранға қосыңыз",
   "loading": "Жүктелуде...",
+  "banner": "Баннер",
   "notificationSettings": "Хабарландыру параметрлері",
   "notificationStatus": "Хабарландыру күйі",
   "notificationEnabled": "Хабарландырулар қосылған",

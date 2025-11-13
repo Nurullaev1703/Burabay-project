@@ -3,6 +3,9 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import Close from "/Close.png?url";
 import { baseUrl } from "../../services/api/ServerData";
 import { apiService } from "../../services/api/ApiService";
+import { useTranslation } from "react-i18next";
+import { RotatingLines } from "react-loader-spinner";
+import { COLORS } from "../../shared/ui/colors";
 
 interface Banner {
   id: string;
@@ -13,6 +16,7 @@ interface Banner {
 }
 
 const BannerViewPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { bannerId } = useParams({ from: "/banner/$bannerId" });
   const [banner, setBanner] = useState<Banner | null>(null);
@@ -42,8 +46,9 @@ const BannerViewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-500">Загрузка...</p>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <RotatingLines strokeColor={COLORS.blue200} width="48px"/>
+        <p className="text-gray-500 mt-4">{t("loading")}</p>
       </div>
     );
   }
@@ -58,7 +63,7 @@ const BannerViewPage: React.FC = () => {
       <div className="sticky top-0 bg-white z-20 flex items-center justify-between px-3 py-2 border-b shadow-sm">
         <div className="w-[44px] h-[44px]" />
         <div className="flex-grow text-center">
-          <p className="text-[#0A7D9E] text-[18px] font-semibold">Баннер</p>
+          <p className="text-[#0A7D9E] text-[18px] font-semibold">{t("banner")}</p>
         </div>
         <button
           aria-label="Закрыть баннер"

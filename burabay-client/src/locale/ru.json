@@ -576,6 +576,7 @@
   "withoutNotiAprove": "Без этого мы не сможем их отправлять",
   "iosNotificationHint": "Для получения уведомлений добавьте приложение на главный экран",
   "loading": "Загрузка...",
+  "banner": "Баннер",
   "notificationSettings": "Настройки уведомлений",
   "notificationStatus": "Статус уведомлений",
   "notificationEnabled": "Уведомления включены",
