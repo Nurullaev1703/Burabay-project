@@ -733,7 +733,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
+                <div className="mb-2 relative">
                   <TextField
                     {...field}
                     error={Boolean(error?.message)}
@@ -755,7 +755,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     size={12}
                     weight={400}
                     color={COLORS_TEXT.gray100}
-                    className="absolute top-[110px] right-5"
+                    className="absolute top-2 right-2"
                   >
                     {field.value?.length || 0}/40
                   </Typography>
@@ -773,7 +773,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
+                <div className="mb-2 relative">
                   <TextField
                     {...field}
                     error={Boolean(error?.message)}
@@ -794,7 +794,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     size={12}
                     weight={400}
                     color={COLORS_TEXT.gray100}
-                    className="absolute top-[192px] right-5"
+                    className="absolute top-2 right-2"
                   >
                     {field.value?.length || 0}/300
                   </Typography>

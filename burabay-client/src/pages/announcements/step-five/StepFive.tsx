@@ -127,7 +127,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   };
 
   const addBreak = () => {
-    if (breaks.length < 2) {
+    if (breaks.length < 5) {
       // Добавляем новый объект с пустыми значениями времени
       const newBreak = { adId: id, start: "", end: "" };
       setBreaks([...breaks, newBreak]);
@@ -260,7 +260,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   };
 
   return (
-    <section className="min-h-screen bg-background pb-24">
+    <section className="min-h-screen bg-background pb-8">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer
@@ -592,7 +592,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           ))}
         </ul>
 
-        {breaks.length < 2 && (
+        {breaks.length < 5 && (
           <div
             onClick={addBreak}
             className={`mt-2 h-11 w-fit items-center flex cursor-pointer ${COLORS_TEXT.blue200} font-semibold`}

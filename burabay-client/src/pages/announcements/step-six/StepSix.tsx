@@ -427,7 +427,9 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                             onKeyDown={(e) => {
                               if (
                                 e.key == "Enter" &&
-                                /^\d{2}:\d{2}$/.test(tempTime)
+                                /^\d{2}:\d{2}$/.test(
+                                  (e.target as HTMLInputElement).value
+                                )
                               ) {
                                 handleBlur();
                               }
@@ -438,7 +440,12 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                             className="w-4 h-4"
                             src={XIcon}
                             alt="Удалить"
-                            onClick={() => setIsCreating(false)}
+                            onClick={() => {
+                              setIsCreating(false);
+                              setTempTime("");
+                              setError(false);
+                              setErrorText("");
+                            }}
                           />
                         </div>
                       );
@@ -491,7 +498,12 @@ export const StepSix: FC<Props> = function StepSix({ id, announcement }) {
                               className="w-4 h-4"
                               src={XIcon}
                               alt="Удалить"
-                              onClick={() => deleteTime(index)}
+                              onClick={() => {
+                                deleteTime(index);
+                                setEditingIndex(null);
+                                setError(false);
+                                setErrorText("");
+                              }}
                             />
                           </div>
                         );
