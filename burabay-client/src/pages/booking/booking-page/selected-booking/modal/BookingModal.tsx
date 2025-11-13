@@ -91,7 +91,7 @@ export const BookingModal: FC<Props> = function BookingModal({
               <img
                 src={profileImg}
                 alt={booking.name}
-                className="w-[52px] h-[52px] object-cover rounded-full mr-4"
+                className="w-[52px] h-[52px] object-cover rounded-full mr-4 flex-shrink-0"
                 onError={() => setProfileImg(BaseLogoIcon)}
               />
               <span>{booking.name}</span>
