@@ -23,7 +23,6 @@ export class NotificationService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly firebaseAdminService: FirebaseAdminService,
-    @Inject(EmailService)
     private readonly emailService: EmailService,
   ) {}
 

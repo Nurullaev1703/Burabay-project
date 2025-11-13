@@ -9,9 +9,10 @@ import { FirebaseAdminService } from 'src/notification/firebase-admin.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { User } from 'src/users/entities/user.entity';
+import { NotificationModule } from 'src/notification/notification.module';
 @Module({
-  imports: [TypeOrmModule.forFeature([ReviewAnswer, Review, Organization, Notification, User])],
+  imports: [TypeOrmModule.forFeature([ReviewAnswer, Review, Organization, Notification, User]), NotificationModule],
   controllers: [ReviewAnswersController],
-  providers: [ReviewAnswersService,NotificationService, FirebaseAdminService],
+  providers: [ReviewAnswersService, FirebaseAdminService],
 })
 export class ReviewAnswersModule {}
