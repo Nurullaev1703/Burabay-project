@@ -84,6 +84,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
   const [isTouristModalOpen, setIsTouristModalOpen] = useState(false);
   const [selectedTourist, setSelectedTourist] = useState<User | null>(null);
+  const [organizationAnnouncements, setOrganizationAnnouncements] = useState<
+    any[]
+  >([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [announcementsError, setAnnouncementsError] = useState<string | null>(
+    null
+  );
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
 
   // Функция для выполнения всех отложенных запросов (useCallback для стабильной ссылки)
@@ -383,6 +390,30 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       if (response.status === 200) {
         setSelectedOrg(response.data);
         setIsModalOpen(true);
+
+        // Загружаем объявления организации
+        setOrganizationAnnouncements([]);
+        setAnnouncementsLoading(true);
+        setAnnouncementsError(null);
+
+        try {
+          const announcementsResponse = await apiService.get<Announcement[]>({
+            url: `/ad/by-org/${orgId}`,
+          });
+          if (announcementsResponse.status === 200) {
+            setOrganizationAnnouncements(announcementsResponse.data);
+          } else {
+            setAnnouncementsError(
+              `Ошибка при загрузке объявлений: ${announcementsResponse.status}`
+            );
+          }
+        } catch (error: any) {
+          setAnnouncementsError(
+            `Ошибка при загрузке объявлений: ${error.message}`
+          );
+        } finally {
+          setAnnouncementsLoading(false);
+        }
       }
     } catch (error) {}
   };
@@ -435,6 +466,19 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
         dto: { value: true },
+      });
+      if (response.status === 200) {
+        setIsTouristModalOpen(false);
+      } else {
+      }
+    } catch (error) {}
+  };
+
+  const handleUnblockTourist = async (userId: string) => {
+    try {
+      const response = await apiService.patch({
+        url: `/admin/ban-tourist/${userId}`,
+        dto: { value: false },
       });
       if (response.status === 200) {
         setIsTouristModalOpen(false);
@@ -684,9 +728,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         </div>
       </div>
       {isModalOpen && selectedOrg && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg max-h-[90vh] w-[772px] overflow-y-auto admin-scrollbar relative">
-            <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
+            <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
@@ -703,7 +747,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div className="flex justify-center mt-[68px]">
+            <div className="flex justify-center space-x-4">
               <CoveredImage
                 width="w-[128px]"
                 height="h-[128px]"
@@ -715,9 +759,6 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
             <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
               {selectedOrg.name || "Не указано"}
             </h2>
-            <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-left text-black mt-2">
-              {selectedOrg.description || "Описание отсутствует"}
-            </p>
             <div className="mt-4">
               <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
                 <div className="flex flex-col items-start">
@@ -750,23 +791,30 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               </div>
             </div>
-            {selectedOrg.ads.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {selectedOrg.ads.map((ad, index) => (
-                  <div
-                    onClick={() =>
-                      navigate({
-                        to: `/admin/announcements/${ad.id}`,
-                      })
-                    }
-                  >
-                    <AdCard key={index} ad={ad} isOrganization={true} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Нет объявлений</p>
-            )}
+            <div className="mt-4">
+              {announcementsLoading ? (
+                <Loader />
+              ) : announcementsError ? (
+                <p className="text-red-500">{announcementsError}</p>
+              ) : organizationAnnouncements.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {organizationAnnouncements.map((ad: any) => (
+                    <div
+                      key={ad.id}
+                      onClick={() =>
+                        navigate({
+                          to: `/admin/announcements/${ad.id}`,
+                        })
+                      }
+                    >
+                      <AdCard ad={ad} isOrganization={true} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">Нет объявлений</p>
+              )}
+            </div>
             <div className="flex flex-col items-center gap-4">
               {!selectedTourist?.isBanned && (
                 <div>
@@ -797,9 +845,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         </div>
       )}
       {isTouristModalOpen && selectedTourist && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto admin-scrollbar relative">
-            <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[772px]">
+            <div className="flex items-center justify-between w-full">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsTouristModalOpen(false)}
@@ -816,7 +864,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div className="flex justify-center mt-[68px]">
+            <div className="flex justify-center space-x-4">
               <CoveredImage
                 width="w-[128px]"
                 height="h-[128px]"
@@ -850,17 +898,30 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-center gap-4 mt-4">
-              <div>
-                <button
-                  className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                  onClick={() => {
-                    handleBlockTourist(selectedTourist.id);
-                  }}
-                >
-                  Заблокировать пользователя
-                </button>
-              </div>
+            <div className="flex flex-col items-center gap-4">
+              {selectedTourist.isBanned ? (
+                <div>
+                  <button
+                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                    onClick={() => {
+                      handleUnblockTourist(selectedTourist.id);
+                    }}
+                  >
+                    Разблокировать
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <button
+                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                    onClick={() => {
+                      handleBlockTourist(selectedTourist.id);
+                    }}
+                  >
+                    Заблокировать пользователя
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
