@@ -11,6 +11,7 @@ import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { User } from 'src/users/entities/user.entity';
+import { NotificationsMessages } from 'src/notifications';
 
 @Injectable()
 export class ReviewAnswersService {
@@ -25,9 +26,7 @@ export class ReviewAnswersService {
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-    // @Inject(CACHE_MANAGER)
-    // private cacheManager: Cache,
-  ) {}
+  ) { }
 
   @CatchErrors()
   async create(createReviewAnswerDto: CreateReviewAnswerDto, tokenData: TokenData) {
@@ -48,15 +47,14 @@ export class ReviewAnswersService {
         date: new Date(),
       });
       await this.reviewAnswerRepository.save(answer);
+      const notificationData = NotificationsMessages.answerReviewForTourist(review.user.language, review.ad.title);
       const notificationDto = {
         email: review.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEUTRAL,
-        message: `На ваш отзыв в объявлении "${review.ad.title}" поступил ответ`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
-      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
-      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }

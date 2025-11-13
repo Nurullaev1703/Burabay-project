@@ -18,6 +18,8 @@ import { Banner } from './entities/baner.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { NotificationContent, NotificationsMessages } from 'src/notifications';
+import { NotificationContext } from 'twilio/lib/rest/api/v2010/account/notification';
 
 @Injectable()
 export class AdminPanelService {
@@ -406,10 +408,16 @@ export class AdminPanelService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     Utils.checkEntity(user, 'Пользователь не найден');
     user.isBanned = value;
+    let notificationData: NotificationContent;
+    if (value) {
+      notificationData = NotificationsMessages.getAccountBlockedMessage(user.language)
+    } else {
+      notificationData = NotificationsMessages.getAccountUnblockedMessage(user.language)
+    }
     await this.notificationService.createForUser({
       email: user.email,
-      title: `Ваш аккаунт был ${value ? 'заблокирован' : 'разблокирован'}`,
-      message: `Администратор ${value ? 'заблокировал' : 'разблокировал'} ваш аккаунт.`,
+      title: notificationData.title,
+      message: notificationData.text,
       type: NotificationType.POSITIVE,
     })
     await this.userRepository.save(user);
@@ -426,10 +434,11 @@ export class AdminPanelService {
     for (const b of org.ads.flatMap((ad) => ad.bookings)) {
       b.status = BookingStatus.CANCELED;
       await this.bookingRepository.save(b);
+      const notificationData = NotificationsMessages.getCancelBookingByBlockOrgMessage(b.user.language, b.ad.title);
       await this.notificationService.createForUser({
         email: b.user.email,
-        title: `Ваша бронь на объявление ${b.ad.title} отменена`,
-        message: `Организация создавшая объявление была заблокирована администратором. Ваша бронь отменена.`,
+        title: notificationData.title,
+        message: notificationData.text,
         type: NotificationType.POSITIVE,
       });
     }
@@ -455,6 +464,7 @@ export class AdminPanelService {
 
       // Уведомления по бронированиям
       for (const b of ad.bookings) {
+        const notificationData = NotificationsMessages.getDeleteBookingByDeleteAdMessage(b.user.language, b.ad.title);
         await this.notificationService.createForUser({
           title: `Ваша бронь на объявление ${b.ad.title} удалена`,
           message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,

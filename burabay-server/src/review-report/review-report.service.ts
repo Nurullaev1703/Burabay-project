@@ -11,6 +11,7 @@ import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { NotificationsMessages } from 'src/notifications';
 
 @Injectable()
 export class ReviewReportService {
@@ -25,7 +26,7 @@ export class ReviewReportService {
     private readonly userRepository: Repository<User>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   @CatchErrors()
   async create(createReviewReportDto: CreateReviewReportDto, tokenData: TokenData) {
@@ -48,11 +49,12 @@ export class ReviewReportService {
         date: new Date(),
       });
       await this.reviewReportRepository.save(report);
+      const notificationData = NotificationsMessages.reportReviewForTourist(review.user.language, review.ad.title);
       const notificationDto = {
         email: review.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `На ваш отзыв в объявлении "${review.ad.title}" поступила жалоба`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.

@@ -46,7 +46,7 @@ export class NotificationService {
       const payload = {
         data: {
           title: of.title,
-          body: of.message,
+          body: of.message, 
           icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
           click_action: 'https://burabay-damu.kz',
         },
