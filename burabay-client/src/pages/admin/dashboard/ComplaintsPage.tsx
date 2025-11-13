@@ -613,7 +613,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             }
                           />
 
-                          <div className="flex-1 min-w-0 max-w-[120px]">
+                          <div className="flex-1 min-w-0 w-full">
                             {review.orgName ? (
                               <p
                                 className="font-semibold cursor-pointer text-blue-500 truncate"
