@@ -22,7 +22,7 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   @CatchErrors()
   async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
@@ -30,11 +30,8 @@ export class ReviewService {
       const { adId, ...oF } = createReviewDto;
       const user = await manager.findOne(User, { where: { id: tokenData.id } });
       Utils.checkEntity(user, 'Пользователь не найден');
-      if (user.role !== ROLE_TYPE.TOURIST) throw new Error('Только туристы могут оставлять отзывы');
-      const ad = await manager.findOne(Ad, {
-        where: { id: adId },
-        relations: { reviews: true, organization: { user: true } },
-      });
+      if (user.role !== ROLE_TYPE.TOURIST) throw new HttpException('Только туристы могут оставлять отзывы', HttpStatus.FORBIDDEN);
+      const ad = await manager.findOne(Ad, { where: { id: adId }, relations: { reviews: true, organization: { user: true } } });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newReview = manager.create(Review, {
         user: user,
