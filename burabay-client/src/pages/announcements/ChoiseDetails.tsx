@@ -39,6 +39,7 @@ interface VideoData {
   duration: number;
   size: number;
   serverPath: string; // Добавляем поле для хранения пути на сервере
+  isDeleted?: boolean; // Флаг для отслеживания удаления
 }
 
 interface Props {
@@ -199,13 +200,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       reader.readAsDataURL(file);
     });
   };
-  const deleteImageFromServer = async (imageUrl: string) => {
+  const deleteImageFromServer = async (imageUrl: string): Promise<boolean> => {
     try {
       await apiService.delete({
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-    } catch (error) {}
+      return true;
+    } catch (error) {
+      console.error("Ошибка при удалении изображения:", error);
+      return false;
+    }
   };
 
   const handleImageUpload = async (index: number, files: FileList) => {
@@ -226,7 +231,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       const updatedImages = [...prevImages];
 
       // Очищаем старый preview, если заменяем фото
-      if (updatedImages[index]?.preview) {
+      if (
+        updatedImages[index]?.preview &&
+        !updatedImages[index]?.serverPreview
+      ) {
+        // Очищаем blob только если это не URL с сервера
         URL.revokeObjectURL(updatedImages[index].preview);
       }
 
@@ -390,8 +399,21 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   };
 
   const uploadVideo = async (): Promise<string | null> => {
+    // Если видео было удалено пользователем
+    if (video?.isDeleted && video?.serverPath) {
+      try {
+        await apiService.delete({
+          url: "/video",
+          dto: { filepath: video.serverPath.replace(baseUrl, "") },
+        });
+      } catch (error) {
+        console.error("Ошибка при удалении видео:", error);
+      }
+      return null;
+    }
+
+    // Если нет нового файла, возвращаем существующий путь
     if (!video?.file) {
-      // Если файл не изменился, возвращаем существующий путь без baseUrl
       return video?.serverPath ? video.serverPath.replace(baseUrl, "") : null;
     }
 
@@ -416,6 +438,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
       return response.data; // Возвращаем путь без baseUrl для API
     } catch (error) {
+      console.error("Ошибка при загрузке видео:", error);
       return null;
     }
   };
@@ -426,9 +449,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
     const video = await uploadVideo();
 
     try {
-      const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "")
+      const phoneNumberDto = mask.current?.value
         ? {
-            phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+            phoneNumber: formatPhoneNumber(mask.current.value),
           }
         : null;
 
@@ -508,6 +531,18 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       }
     }
     return true;
+  };
+
+  // Унифицированная функция для форматирования номера телефона
+  const formatPhoneNumber = (value: string): string => {
+    if (!value) return "";
+    // Удаляем всё кроме цифр и + в начале
+    const cleaned = value.replace(/[^\d+]/g, "");
+    // Если нет +7, добавляем его
+    if (!cleaned.startsWith("+7")) {
+      return "+" + cleaned.replace(/^\+?/, "");
+    }
+    return cleaned;
   };
   return (
     <section className="min-h-screen bg-[#F1F2F6]">
@@ -614,10 +649,8 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
 
             if (announcement) {
               const phoneNumberDto = mask.current?.value
-                .replace(/\D/g, "")
-                .replace("7", "")
                 ? {
-                    phoneNumber: "+" + mask.current?.value.replace(/\D/g, ""),
+                    phoneNumber: formatPhoneNumber(mask.current.value),
                   }
                 : null;
               await apiService.patch<string>({
@@ -656,9 +689,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               });
             } else {
-              const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "")
+              const phoneNumberDto = mask.current?.value
                 ? {
-                    phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+                    phoneNumber: formatPhoneNumber(mask.current.value),
                   }
                 : null;
               const response = await apiService.post<string>({
@@ -897,17 +930,26 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     <button
                       type="button"
                       onClick={async () => {
-                        if (
-                          video.preview &&
-                          video.preview.startsWith(baseUrl)
-                        ) {
-                          await apiService.delete({
-                            url: "/video",
-                            dto: {
-                              filepath: video.preview.replace(baseUrl, ""),
-                            },
-                          });
+                        // Удаляем видео с сервера если оно было загружено
+                        if (video?.serverPath) {
+                          const serverPath = video.serverPath.replace(
+                            baseUrl,
+                            ""
+                          );
+                          try {
+                            await apiService.delete({
+                              url: "/video",
+                              dto: { filepath: serverPath },
+                            });
+                          } catch (error) {
+                            console.error("Ошибка при удалении видео:", error);
+                          }
                         }
+                        // Очищаем blob ссылку если это локальный файл
+                        if (video?.preview && video?.file) {
+                          URL.revokeObjectURL(video.preview);
+                        }
+                        // Помечаем видео как удаленное или полностью удаляем
                         setVideo(null);
                       }}
                       className="absolute top-2 right-2 bg-white rounded-full p-1"
