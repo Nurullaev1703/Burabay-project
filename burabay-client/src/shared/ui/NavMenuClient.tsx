@@ -29,9 +29,17 @@ export const NavMenuClient: FC = function NavMenuClient() {
       clearTimeout(clickTimeout.current);
       clickTimeout.current = null;
       if (location.pathname === "/main") {
-        // Двойной клик - скроллим наверх и очищаем сохраненную позицию
+        // Двойной клик - скроллим наверх
         sessionStorage.removeItem("mainPageScroll");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        // Ищем скролируемый контейнер
+        const scrollableElement = document.querySelector(
+          ".ios-scrollable-content"
+        ) as HTMLElement;
+        if (scrollableElement) {
+          scrollableElement.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       }
     } else {
       clickTimeout.current = setTimeout(() => {
