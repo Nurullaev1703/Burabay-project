@@ -148,6 +148,7 @@ export class MainPageService {
           subcategory: { category: true },
           address: true,
           organization: true,
+          usersFavorited: true
         },
         select: {
           id: true,
@@ -176,6 +177,7 @@ export class MainPageService {
           subcategory: { category: true },
           address: true,
           organization: true,
+          usersFavorited: true
         },
         select: {
           id: true,
