@@ -293,7 +293,7 @@ export class AdService {
 
     const { subcategoryId, ...oF } = updateAdDto;
 
-    const ad = await this.adRepository.findOne({ where: { id: id } });
+    const ad = await this.adRepository.findOne({ where: { id: id }, relations: { organization: { user: true } } });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Если не владелец объявления и не админ, то ошибка доступа.
