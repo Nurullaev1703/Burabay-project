@@ -456,9 +456,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       >
         <SideNav />
       </div>
-      <div className="flex-1 flex flex-col  items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
+      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px] overflow-x-hidden max-w-full">
         {reviews.length > 0 && (
-          <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px]">
+          <div className="h-[68px] grid grid-cols-[1fr_1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px] min-w-0">
             <div className="border-r pl-[32px] h-full flex items-center">
               <div className="text-left text-[24px] font-normal flex items-center ">
                 Отзыв
@@ -477,7 +477,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           </div>
         )}
         <div
-          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto admin-scrollbar"
+          className="w-full flex flex-col py-[10px] gap-4 overflow-y-auto admin-scrollbar overflow-x-hidden"
           style={{ maxHeight: "calc(100vh - 68px)" }}
         >
           {isLoading ? (
@@ -487,7 +487,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
               {reviews.slice(0, visibleReviewsCount).map((review) => (
                 <div
                   key={review.reviewId}
-                  className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] ${
+                  className={`grid grid-cols-[1fr_1fr_332px] max-h-[330px] rounded-[16px] min-w-0 ${
                     review.hint
                       ? review.hint.type === "success"
                         ? "bg-[#59C183]"
@@ -522,7 +522,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   ) : (
                     <div
                       key={review.id}
-                      className="h-full p-[32px] pr-[32px] flex flex-col border-r min-w-[300px]"
+                      className="h-full p-[32px] pr-[32px] flex flex-col border-r min-w-[250px] overflow-hidden"
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-shrink-0 min-w-0 max-w-[200px]">
@@ -566,7 +566,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                               (e.currentTarget.src = defaultImage)
                             }
                           />
-                          <div className="ml-2 min-w-0">
+                          <div className="ml-2 min-w-0 max-w-[250px]">
                             <p className="text-sm font-semibold text-gray-700 truncate">
                               {review.adName}
                             </p>
@@ -579,7 +579,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                      <p className="text-sm text-[#000000] mt-2 break-words">
                         {review.reviewText}
                       </p>
                       {review.reviewImages && (
@@ -602,7 +602,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
 
                   {!review.status && (
                     <>
-                      <div className="border-r border-gray-300 p-[32px] flex flex-col min-w-[300px]">
+                      <div className="border-r border-gray-300 p-[32px] flex flex-col min-w-[250px] overflow-hidden">
                         <div className="flex items-center gap-3">
                           <img
                             src={`${BASE_URL}${review.orgImage}`}
@@ -613,7 +613,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             }
                           />
 
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 max-w-[120px]">
                             {review.orgName ? (
                               <p
                                 className="font-semibold cursor-pointer text-blue-500 truncate"
@@ -634,7 +634,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                        <p className="text-sm text-[#000000] mt-2 break-words">
                           {review.reportText}
                         </p>
                       </div>
