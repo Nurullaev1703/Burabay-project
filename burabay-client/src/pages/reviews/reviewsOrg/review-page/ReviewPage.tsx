@@ -288,19 +288,29 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
             </div>
             {modalAnswer[review.id] === "answer" && (
               <div>
-                <TextField
-                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                  variant="outlined"
-                  fullWidth={true}
-                  label={t("yourAnswer")}
-                  placeholder={t("writeAnswer")}
-                  onChange={(e) =>
-                    setAnswerText({
-                      reviewId: review.id,
-                      text: e.target.value,
-                    })
-                  }
-                />
+                <div className="relative w-full">
+                  <TextField
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    multiline
+                    label={t("yourAnswer")}
+                    placeholder={t("writeAnswer")}
+                    inputProps={{ maxLength: 300 }}
+                    onChange={(e) =>
+                      setAnswerText({
+                        reviewId: review.id,
+                        text: e.target.value,
+                      })
+                    }
+                  />
+                  <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                    {answerText.reviewId === review.id
+                      ? answerText.text?.length || 0
+                      : 0}
+                    /300
+                  </span>
+                </div>
                 <div className="flex justify-between">
                   <Button
                     className="mr-2.5"
@@ -312,6 +322,9 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                   <Button
                     onClick={() => handleSubmitAnswer("answer")}
                     loading={isLoading}
+                    disabled={
+                      !answerText.text || answerText.text.trim() === ""
+                    }
                   >
                     {t("answer")}
                   </Button>
@@ -321,25 +334,35 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
 
             {modalAnswer[review.id] === "complain" && (
               <div>
-                <TextField
-                  sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
-                  variant="outlined"
-                  fullWidth={true}
-                  label={t("complaint")}
-                  placeholder={t("writeComplaint")}
-                  onChange={(e) =>
-                    setAnswerText({
-                      reviewId: review.id,
-                      text: e.target.value,
-                    })
-                  }
-                  InputLabelProps={{
-                    sx: {
-                      color: "red",
-                      "&.Mui-focused": { color: "red" },
-                    },
-                  }}
-                />
+                <div className="relative w-full">
+                  <TextField
+                    sx={{ marginBottom: "8px", border: "solid #E4E9EA 1px" }}
+                    variant="outlined"
+                    fullWidth={true}
+                    multiline
+                    label={t("complaint")}
+                    placeholder={t("writeComplaint")}
+                    inputProps={{ maxLength: 300 }}
+                    onChange={(e) =>
+                      setAnswerText({
+                        reviewId: review.id,
+                        text: e.target.value,
+                      })
+                    }
+                    InputLabelProps={{
+                      sx: {
+                        color: "red",
+                        "&.Mui-focused": { color: "red" },
+                      },
+                    }}
+                  />
+                  <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                    {answerText.reviewId === review.id
+                      ? answerText.text?.length || 0
+                      : 0}
+                    /300
+                  </span>
+                </div>
                 <div className="flex justify-between">
                   <Button
                     className="mr-2.5"
@@ -352,6 +375,9 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                     onClick={() => handleSubmitAnswer("complain")}
                     mode="error"
                     loading={isLoading}
+                    disabled={
+                      !answerText.text || answerText.text.trim() === ""
+                    }
                   >
                     {t("complain")}
                   </Button>
