@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import KeyIcon from "../../app/icons/profile/key.svg";
 import BaseLogo from "../../app/icons/profile/settings/image.svg";
 import AttentionIcon from "../../app/icons/profile/attention.svg";
-import FavouriteIcon from "../../app/icons/profile/favourite.svg";
+import FavouriteIcon from "/flaginprofile.svg?url";
 import StarIcon from "../../app/icons/profile/star.svg";
 import LifebuoyIcon from "../../app/icons/profile/lifebuoy.svg";
 import LanguageIcon from "../../app/icons/language-blue.svg";
@@ -250,8 +250,8 @@ export const Profile: FC = function Profile() {
         </li>
         {user?.role === "турист" && (
           <li className={`border-t  ${COLORS_BORDER.gray300}`}>
-            <Link className="flex py-3" to={"/favorites"}>
-              <img src={FavouriteIcon} alt={t("saved")} className="mr-2" />
+            <Link className="flex py-3 items-center" to={"/favorites"}>
+              <img src={FavouriteIcon} alt={t("saved")} className="mr-2 w-6 h-6" />
               <span>{t("saved")}</span>
             </Link>
           </li>
