@@ -393,7 +393,7 @@ const ReviewsPage: FC = () => {
 
           {isTouristModalOpen && selectedTourist && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-4 rounded-lg shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
+              <div className="bg-white p-4 rounded-[16px] shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
                 <div className="flex items-center justify-between w-full p-4 gap-4 border-b border-[#E4E9EA] sticky top-0 bg-white z-50">
                   <button
                     className="h-[44px] w-[44px]"

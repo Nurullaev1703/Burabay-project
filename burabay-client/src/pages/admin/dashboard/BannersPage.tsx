@@ -497,7 +497,7 @@ const BannersPage: React.FC = () => {
       </div>
       {modalOpen && modalBanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col p-4">
+          <div className="bg-white rounded-[16px] max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col p-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
                 Баннер
@@ -536,7 +536,7 @@ const BannersPage: React.FC = () => {
       {/* Модалка подтверждения удаления */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4 shadow-lg">
+          <div className="bg-white rounded-[16px] w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
                 Удалить баннер?
@@ -587,7 +587,7 @@ const BannersPage: React.FC = () => {
       {/* Модалка добавления баннера */}
       {addModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl w-[90%] sm:w-[600px] max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
+          <div className="bg-white rounded-[16px] w-[90%] sm:w-[600px] max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl text-[#0A7D9E] font-semibold">
                 Добавить баннер
@@ -605,9 +605,9 @@ const BannersPage: React.FC = () => {
                   setImagePreview(null);
                   setError(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-3xl leading-none"
+                className="h-[28px] w-[28px] flex items-center justify-center flex-shrink-0"
               >
-                ×
+                <img src={Close} alt="Закрыть" className="w-6 h-6" />
               </button>
             </div>
 
