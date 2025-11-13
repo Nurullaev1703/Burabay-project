@@ -406,6 +406,12 @@ export class AdminPanelService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     Utils.checkEntity(user, 'Пользователь не найден');
     user.isBanned = value;
+    await this.notificationService.createForUser({
+      email: user.email,
+      title: `Ваш аккаунт был ${value ? 'заблокирован' : 'разблокирован'}`,
+      message: `Администратор ${value ? 'заблокировал' : 'разблокировал'} ваш аккаунт.`,
+      type: NotificationType.POSITIVE,
+    })
     await this.userRepository.save(user);
     return JSON.stringify(HttpStatus.OK);
   }
