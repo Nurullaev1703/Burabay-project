@@ -11,5 +11,6 @@ import { FirebaseAdminService } from './firebase-admin.service';
   imports:[TypeOrmModule.forFeature([User, Notification])],
   controllers: [NotificationController],
   providers: [NotificationService, FirebaseAdminService],
+  exports: [NotificationService],
 })
 export class NotificationModule {}
