@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -127,6 +127,11 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({
       sort === "highReview" ? b.stars - a.stars : a.stars - b.stars
     );
   }, [reviewData.reviews, sort]);
+
+  // Прокрутка вверх при загрузке компонента
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const addReview = (announcement: Announcement) => {
     navigate({
