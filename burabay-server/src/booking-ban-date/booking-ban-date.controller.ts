@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
 import { BookingBanDateService } from './booking-ban-date.service';
 import { CreateBookingBanDateDto } from './dto/create-booking-ban-date.dto';
 import { UpdateBookingBanDateDto } from './dto/update-booking-ban-date.dto';
@@ -12,8 +12,8 @@ export class BookingBanDateController {
 
   @Post()
   @ApiBody({ schema: { example: BookingBanDateController.createExample } })
-  create(@Body() createBookingBanDateDto: CreateBookingBanDateDto[]) {
-    return this.bookingBanDateService.create(createBookingBanDateDto);
+  create(@Body() createBookingBanDateDto: CreateBookingBanDateDto[], @Request() req: AuthRequest) {
+    return this.bookingBanDateService.create(createBookingBanDateDto, req.user);
   }
 
   @Get(':adId')
@@ -22,13 +22,13 @@ export class BookingBanDateController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingBanDateDto: UpdateBookingBanDateDto) {
-    return this.bookingBanDateService.update(id, updateBookingBanDateDto);
+  update(@Param('id') id: string, @Body() updateBookingBanDateDto: UpdateBookingBanDateDto, @Request() req: AuthRequest) {
+    return this.bookingBanDateService.update(id, updateBookingBanDateDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookingBanDateService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.bookingBanDateService.remove(id, req.user);
   }
 
   private static createExample = [

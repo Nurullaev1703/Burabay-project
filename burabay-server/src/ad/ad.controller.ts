@@ -14,8 +14,8 @@ export class AdController {
 
   @Post()
   @ApiBody({ schema: { example: AdController.adExample } })
-  create(@Body() createAdDto: CreateAdDto) {
-    return this.adService.create(createAdDto);
+  create(@Body() createAdDto: CreateAdDto, @Request() req: AuthRequest) {
+    return this.adService.create(createAdDto, req.user);
   }
 
   @Get()

@@ -82,7 +82,7 @@ export class AdminPanelController {
     return this.adminPanelService.banTourist(userId, banUserDto.value, req.user.id);
   }
 
-  @Patch('check-review/:reviewId')
+  @Patch('check-review/:reviewId')  
   async checkReview(@Param('reviewId') reviewId: string, @Request() req: AuthRequest) {
     return this.adminPanelService.checkReview(reviewId, req.user.id);
   }
@@ -95,5 +95,10 @@ export class AdminPanelController {
   @Delete('banner/:bannerId')
   async deleteBanner(@Param('bannerId') bannerId: string, @Request() req: AuthRequest) {
     return this.adminPanelService.deleteBanner(bannerId, req.user.id);
+  }
+
+  @Delete('ad/:adId')
+  async deleteAd(@Param('adId') adId: string, @Request() req: AuthRequest) {
+    return this.adminPanelService.deleteAd(adId, req.user.id);
   }
 }

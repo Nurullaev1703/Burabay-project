@@ -6,7 +6,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { CatchErrors, Utils } from 'src/utilities';
-import { IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import { DataSource, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
@@ -15,6 +15,9 @@ import { BookingStatus } from 'src/booking/types/booking.types';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { BannerCreateDto } from './dto/banner-create.dto';
 import { Banner } from './entities/baner.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Injectable()
 export class AdminPanelService {
@@ -29,12 +32,16 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(ReviewReport)
     private readonly reviewReportRepository: Repository<ReviewReport>,
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
-  ) {}
+    private readonly notificationService: NotificationService,
+    private readonly dataSource: DataSource,
+  ) { }
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
@@ -407,11 +414,69 @@ export class AdminPanelService {
   @CatchErrors()
   async banOrg(orgId: string, value: boolean, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const org = await this.organizationRepository.findOne({ where: { id: orgId } });
+    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
+    for (const b of org.ads.flatMap((ad) => ad.bookings)) {
+      b.status = BookingStatus.CANCELED;
+      await this.bookingRepository.save(b);
+      await this.notificationService.createForUser({
+        email: b.user.email,
+        title: `Ваша бронь на объявление ${b.ad.title} отменена`,
+        message: `Организация создавшая объявление была заблокирована администратором. Ваша бронь отменена.`,
+        type: NotificationType.POSITIVE,
+      });
+    }
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
+  }
+
+  async deleteAd(adId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
+    return await this.dataSource.transaction(async (manager) => {
+      const ad = await manager.findOne(Ad, {
+        where: { id: adId },
+        relations: {
+          reviews: { report: true, answer: true },
+          schedule: true,
+          bookingBanDate: true,
+          breaks: true,
+          bookings: true,
+          organization: { user: true },
+        },
+      });
+      Utils.checkEntity(ad, 'Объявление не найдено');
+
+      // Уведомления по бронированиям
+      for (const b of ad.bookings) {
+        await this.notificationService.createForUser({
+          title: `Ваша бронь на объявление ${b.ad.title} удалена`,
+          message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
+          email: b.user.email,
+          type: NotificationType.POSITIVE
+        });
+      }
+
+      // Удаление связанных сущностей
+      if (ad.schedule) await manager.remove(ad.schedule);
+      if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
+      if (ad.breaks?.length) await manager.remove(ad.breaks);
+      if (ad.bookings) await manager.remove(ad.bookings);
+
+      if (ad.reviews?.length) {
+        await Promise.all(
+          ad.reviews.map(async (review) => {
+            if (review.answer) await manager.remove(review.answer);
+            if (review.report) await manager.remove(review.report);
+          })
+        );
+        await manager.remove(ad.reviews);
+      }
+
+      // Удаление самого объявления
+      await manager.remove(ad);
+      return JSON.stringify(HttpStatus.OK);
+    });
   }
 
   @CatchErrors()

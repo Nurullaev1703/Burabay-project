@@ -9,8 +9,6 @@ import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
 import { NotificationType } from 'src/notification/types/notification.type';
-import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.service';
-import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { NotificationService } from 'src/notification/notification.service';
@@ -19,17 +17,14 @@ import { NotificationService } from 'src/notification/notification.service';
 export class BookingService {
   constructor(
     private dataSource: DataSource,
-    private bookingBanDateService: BookingBanDateService,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
-    @InjectRepository(BookingBanDate)
-    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -38,12 +33,14 @@ export class BookingService {
     return await this.dataSource.transaction(async () => {
       const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
       const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      if (user.role !== ROLE_TYPE.TOURIST)
+        throw new HttpException('Создать бронирование может только турист', HttpStatus.FORBIDDEN);
       const ad = await this.adRepository.findOne({
         where: { id: adId },
         relations: { subcategory: { category: true }, organization: { user: true } },
       });
       if (ad.organization.isBanned === true)
-        throw new HttpException('Бронирование на это объявление невозможно', HttpStatus.FORBIDDEN);
+        throw new HttpException('Бронирование на это объявление невозможно - организация заблокированна', HttpStatus.FORBIDDEN);
       // Преобразовать строковые даты из DTO в тип js даты.
       let dateStart: Date;
       if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);

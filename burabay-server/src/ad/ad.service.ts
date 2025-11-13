@@ -38,12 +38,17 @@ export class AdService {
     private imageService: ImagesService,
     // @Inject(CACHE_MANAGER)
     // private cacheManager: Cache,
-  ) {}
+  ) { }
 
-  /* Создания Объявления. Принимает айти Подкатегории и Организации. */
+  /* Создания Объявления. */
   @CatchErrors()
-  async create(createAdDto: CreateAdDto) {
+  async create(createAdDto: CreateAdDto, tokenData: TokenData) {
     const { organizationId, subcategoryId, ...otherFields } = createAdDto;
+
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.BUSINESS)
+      throw new HttpException('Объявление может создать только бизнес-пользователь', HttpStatus.FORBIDDEN);
 
     const subcategory = await this.subcategoryRepository.findOne({ where: { id: subcategoryId } });
     Utils.checkEntity(subcategory, 'Подкатегория не найдена');
@@ -125,9 +130,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-            take: filter.limit,
-            skip: filter.offset,
-          }
+          take: filter.limit,
+          skip: filter.offset,
+        }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -279,12 +284,18 @@ export class AdService {
   /* Редактирования Объявления. Принимает айди Объявления. */
   @CatchErrors()
   async update(id: string, updateAdDto: UpdateAdDto, tokenData: TokenData) {
+    console.log(tokenData);
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    console.log(user);
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('Объявление может редактировать только организация или админ', HttpStatus.FORBIDDEN);
+
     const { subcategoryId, ...oF } = updateAdDto;
+
     const ad = await this.adRepository.findOne({ where: { id: id }, relations: { organization: { user: true } } });
     Utils.checkEntity(ad, 'Объявление не найдено');
 
-    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
-    Utils.checkEntity(user, 'Пользователь не найден');
     // Если не владелец объявления и не админ, то ошибка доступа.
     if (ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
       throw new HttpException('У вас нет прав на изменение этого объявления', HttpStatus.FORBIDDEN);
@@ -293,8 +304,6 @@ export class AdService {
       Utils.checkEntity(subcategory, 'Категория не найдена');
       Object.assign(ad, { subcategory: subcategory, ...oF });
     } else Object.assign(ad, oF);
-    // Удалить кэш, чтобы получить актуальные данные.
-    // await this.cacheManager.del('ads');
     delete ad.organization.user;
     return this.adRepository.save(ad);
   }
@@ -302,6 +311,11 @@ export class AdService {
   /* Удаления Объявления. */
   @CatchErrors()
   async remove(id: string, tokenData: TokenData) {
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('Объявление может удалить только организация или админ', HttpStatus.FORBIDDEN);
+
     return await this.dataSource.transaction(async (manager) => {
       const ad = await manager.findOne(Ad, {
         where: { id: id },
@@ -376,42 +390,42 @@ export class AdService {
   }
 
   /* Проверка свободного диапазона для Бронирования. */
-  @CatchErrors()
-  async _checkDates(adId: string, startDateDto: string, endDateDto: string) {
-    // Форматирование переданных дат в тип даты.
-    const startDate = Utils.stringDateToDate(startDateDto);
-    const endDate = Utils.stringDateToDate(endDateDto);
-    // Получение всех броней в указанном диапазоне.
-    const bookings = await this.bookingRepository.find({
-      where: {
-        ad: { id: adId },
-        dateStart: LessThanOrEqual(endDate),
-        dateEnd: MoreThanOrEqual(startDate),
-      },
-    });
-    // Получение всех Booking Ban Dates с указанной датой.
-    const bookingBanDates = await this.bookingBanDatesRepository.find({
-      where: { ad: { id: adId }, date: Utils.dateToString(startDate) },
-    });
+  // @CatchErrors()
+  // async _checkDates(adId: string, startDateDto: string, endDateDto: string) {
+  //   // Форматирование переданных дат в тип даты.
+  //   const startDate = Utils.stringDateToDate(startDateDto);
+  //   const endDate = Utils.stringDateToDate(endDateDto);
+  //   // Получение всех броней в указанном диапазоне.
+  //   const bookings = await this.bookingRepository.find({
+  //     where: {
+  //       ad: { id: adId },
+  //       dateStart: LessThanOrEqual(endDate),
+  //       dateEnd: MoreThanOrEqual(startDate),
+  //     },
+  //   });
+  //   // Получение всех Booking Ban Dates с указанной датой.
+  //   const bookingBanDates = await this.bookingBanDatesRepository.find({
+  //     where: { ad: { id: adId }, date: Utils.dateToString(startDate) },
+  //   });
 
-    // Если брони в указанном диапазоне не были найдены,то вернуть true, иначе вернуть занятные даты.
-    if (bookings.length === 0 && bookingBanDates.length === 0) {
-      return true;
-    } else {
-      return {
-        message: 'Даты заняты',
-        dates: bookings.map(
-          (booking) => {
-            return {
-              startDate: Utils.dateToString(booking.dateStart),
-              endDate: Utils.dateToString(booking.dateEnd),
-            };
-          },
-          // `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
-        ),
-      };
-    }
-  }
+  //   // Если брони в указанном диапазоне не были найдены,то вернуть true, иначе вернуть занятные даты.
+  //   if (bookings.length === 0 && bookingBanDates.length === 0) {
+  //     return true;
+  //   } else {
+  //     return {
+  //       message: 'Даты заняты',
+  //       dates: bookings.map(
+  //         (booking) => {
+  //           return {
+  //             startDate: Utils.dateToString(booking.dateStart),
+  //             endDate: Utils.dateToString(booking.dateEnd),
+  //           };
+  //         },
+  //         // `${Utils.dateToString(booking.dateStart)} - ${Utils.dateToString(booking.dateEnd)}`,
+  //       ),
+  //     };
+  //   }
+  // }
 
   @CatchErrors()
   async checkDates(adId: string) {
@@ -435,38 +449,23 @@ export class AdService {
 
   @CatchErrors()
   async hasActiveBookings(adId: string) {
-    const ad = await this.adRepository.findOne({
-      where: { id: adId },
-      relations: { bookings: true },
-    });
+    const ad = await this.adRepository.findOne({ where: { id: adId }, relations: { bookings: true } });
     Utils.checkEntity(ad, 'Объявление не найдено');
-
-    const activeBookings = ad.bookings.filter(
-      (booking) =>
-        booking.status === BookingStatus.CONFIRM ||
-        booking.status === BookingStatus.PAYED ||
-        booking.status === BookingStatus.IN_PROCESS,
+    const activeBookings = ad.bookings.filter((booking) =>
+      booking.status === BookingStatus.CONFIRM ||
+      booking.status === BookingStatus.PAYED ||
+      booking.status === BookingStatus.IN_PROCESS,
     );
-
     return { hasActiveBookings: activeBookings.length > 0, count: activeBookings.length };
   }
 
   @CatchErrors()
   async getAdsFromOrg(orgId: string, tokenData: TokenData) {
-    const user = await this.userRepository.findOne({
-      where: { id: tokenData.id },
-      select: { id: true },
-    });
+    const user = await this.userRepository.findOne({ where: { id: tokenData.id }, select: { id: true } });
     Utils.checkEntity(user, 'Пользователь не найден');
     const org = await this.organizationRepository.findOne({
       where: { id: orgId },
-      relations: {
-        ads: {
-          subcategory: { category: true },
-          usersFavorited: true,
-          address: true,
-        },
-      },
+      relations: { ads: { subcategory: { category: true }, usersFavorited: true, address: true } },
       select: {
         id: true,
         name: true,
@@ -485,11 +484,7 @@ export class AdService {
           avgRating: true,
           reviewCount: true,
           subcategory: {
-            name: true,
-            category: {
-              name: true,
-              imgPath: true,
-            },
+            name: true, category: { name: true, imgPath: true }
           },
         },
       },
@@ -499,15 +494,9 @@ export class AdService {
     org.ads.forEach((ad) => {
       const result = ad.usersFavorited.filter((userFav) => userFav.id === user.id).length;
       delete ad.usersFavorited;
-      ads.push({
-        isFavourite: result > 0,
-        ...ad,
-      });
+      ads.push({ isFavourite: result > 0, ...ad, });
     });
-    return {
-      ...org,
-      ads,
-    };
+    return { ...org, ads };
   }
 
   /* Поиск среди Объявлений. */
@@ -516,10 +505,7 @@ export class AdService {
     ads.forEach((ad) => {
       const simValue = stringSimilarity(ad.title, name);
       if (simValue > 0.2)
-        searchedAds.push({
-          prod: ad,
-          simValue: simValue,
-        });
+        searchedAds.push({ prod: ad, simValue: simValue, });
     });
     searchedAds.sort((a, b) => b.simValue - a.simValue);
     return searchedAds.map((ad) => ad.prod);

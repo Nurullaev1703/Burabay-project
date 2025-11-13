@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { Utils } from 'src/utilities';
@@ -7,8 +7,8 @@ import { Ad } from 'src/ad/entities/ad.entity';
 import { Organization } from 'src/users/entities/organization.entity';
 import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
-import { Cache } from 'cache-manager';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { User } from 'src/users/entities/user.entity';
+import { ROLE_TYPE } from 'src/users/types/user-types';
 
 @Injectable()
 export class AddressService {
@@ -19,9 +19,9 @@ export class AddressService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
-    // @Inject(CACHE_MANAGER)
-    // private cacheManager: Cache,
-  ) {}
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) { }
 
   /*
    * Метод для создания Адреса для Объявления или Организации.
@@ -29,14 +29,20 @@ export class AddressService {
    * - При отсутствии adId, создается основной Адрес для Профиля Организации с полем isMain: true.
    * - Для Профиля Организации должен быть только один Адрес с полем isMain: true.
    */
-  async create(createAddressDto: CreateAddressDto) {
+  async create(createAddressDto: CreateAddressDto, tokenData: TokenData) {
     try {
+      const currentUser = await this.#checkRole(tokenData.id);
       let newAddress: Address;
       const { organizationId, adId, ...oF } = createAddressDto;
       const organization = await this.organizationRepository.findOne({
         where: { id: organizationId },
       });
       Utils.checkEntity(organization, 'Организация не найдена');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(organizationId, currentUser);
+      
 
       if (adId) {
         // Создание для объявления.
@@ -110,14 +116,22 @@ export class AddressService {
    * Метод для обновления данных Адреса.
    * - При получении adId, добавляет указанное Объявление в массив Объявлений с этим Адресом.
    */
-  async update(id: string, updateAddressDto: UpdateAddressDto) {
+  async update(id: string, updateAddressDto: UpdateAddressDto, tokenData: TokenData) {
     try {
+      const currentUser = await this.#checkRole(tokenData.id);
+
       const { adId, ...oF } = updateAddressDto;
       const address = await this.addressRepository.findOne({
         where: { id: id },
-        relations: { ad: true },
+        relations: { ad: true, organization: true },
       });
       Utils.checkEntity(address, 'Адрес не найден');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(address.organization.id, currentUser);
+      
+
       if (adId) {
         const ad = await this.adRepository.findOne({ where: { id: adId } });
         Utils.checkEntity(ad, 'Объявление не найдено');
@@ -133,10 +147,17 @@ export class AddressService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     try {
-      const address = await this.addressRepository.findOne({ where: { id: id } });
+      const currentUser = await this.#checkRole(tokenData.id);
+      const address = await this.addressRepository.findOne({ where: { id: id }, relations: { organization: true } });
       Utils.checkEntity(address, 'Адрес не найден');
+
+      // Проверка доступа для бизнес аккаунтов
+      if (currentUser.role === ROLE_TYPE.BUSINESS) 
+        await this.#checkAccess(address.organization.id, currentUser);
+      
+
       await this.addressRepository.remove(address);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
       // await this.cacheManager.del(`ads`);
@@ -144,5 +165,18 @@ export class AddressService {
     } catch (error) {
       Utils.errorHandler(error);
     }
+  }
+
+  async #checkRole(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: { organization: true } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    if (user.role !== ROLE_TYPE.BUSINESS && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
+    return user;
+  }
+
+  async #checkAccess(organizationId: string, user: User) {
+    if (user.organization.id !== organizationId)
+      throw new HttpException('Недостаточно прав', HttpStatus.FORBIDDEN);
   }
 }
