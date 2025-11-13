@@ -12,6 +12,7 @@ import { AnalyticsService } from './analytics.service';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { Banner } from './entities/baner.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Module({
   imports: [
