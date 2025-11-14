@@ -9,7 +9,6 @@ import { CatchErrors, Utils } from 'src/utilities';
 import { Subcategory } from 'src/subcategory/entities/subcategory.entity';
 import { User } from 'src/users/entities/user.entity';
 import { AdFilter } from './types/ad-filter.type';
-import stringSimilarity from 'string-similarity-js';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
@@ -38,7 +37,7 @@ export class AdService {
     private imageService: ImagesService,
     // @Inject(CACHE_MANAGER)
     // private cacheManager: Cache,
-  ) { }
+  ) {}
 
   /* Создания Объявления. */
   @CatchErrors()
@@ -130,9 +129,9 @@ export class AdService {
     const queryParams =
       filter.limit && filter.offset
         ? {
-          take: filter.limit,
-          skip: filter.offset,
-        }
+            take: filter.limit,
+            skip: filter.offset,
+          }
         : {};
     let ads = await this.adRepository.find({
       where: {
@@ -451,10 +450,11 @@ export class AdService {
   async hasActiveBookings(adId: string) {
     const ad = await this.adRepository.findOne({ where: { id: adId }, relations: { bookings: true } });
     Utils.checkEntity(ad, 'Объявление не найдено');
-    const activeBookings = ad.bookings.filter((booking) =>
-      booking.status === BookingStatus.CONFIRM ||
-      booking.status === BookingStatus.PAYED ||
-      booking.status === BookingStatus.IN_PROCESS,
+    const activeBookings = ad.bookings.filter(
+      (booking) =>
+        booking.status === BookingStatus.CONFIRM ||
+        booking.status === BookingStatus.PAYED ||
+        booking.status === BookingStatus.IN_PROCESS,
     );
     return { hasActiveBookings: activeBookings.length > 0, count: activeBookings.length };
   }
@@ -484,7 +484,8 @@ export class AdService {
           avgRating: true,
           reviewCount: true,
           subcategory: {
-            name: true, category: { name: true, imgPath: true }
+            name: true,
+            category: { name: true, imgPath: true },
           },
         },
       },
@@ -494,20 +495,20 @@ export class AdService {
     org.ads.forEach((ad) => {
       const result = ad.usersFavorited.filter((userFav) => userFav.id === user.id).length;
       delete ad.usersFavorited;
-      ads.push({ isFavourite: result > 0, ...ad, });
+      ads.push({ isFavourite: result > 0, ...ad });
     });
     return { ...org, ads };
   }
 
-  /* Поиск среди Объявлений. */
+  /** Поиск объявлений по названию и организации */
   private _searchAd(name: string, ads: Ad[]): Ad[] {
-    const searchedAds = [];
-    ads.forEach((ad) => {
-      const simValue = stringSimilarity(ad.title, name);
-      if (simValue > 0.2)
-        searchedAds.push({ prod: ad, simValue: simValue, });
+    const query = name.toLowerCase();
+
+    return ads.filter((ad) => {
+      const title = ad.title?.toLowerCase() || '';
+      const orgName = ad.organization?.name?.toLowerCase() || '';
+
+      return title.includes(query) || orgName.includes(query);
     });
-    searchedAds.sort((a, b) => b.simValue - a.simValue);
-    return searchedAds.map((ad) => ad.prod);
   }
 }
