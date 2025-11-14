@@ -36,7 +36,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
 
   const [showReviews, setShowReviews] = useState(!isAdmin);
   const [reviews, _] = useState<Review[]>(
-    Array.isArray(ad.reviews) ? ad.reviews.slice(0, 4) : []
+    Array.isArray(ad.reviews) ? ad.reviews.slice(0, 3) : []
   );
   const { t } = useTranslation();
   const [expandedReviews, setExpandedReviews] = useState<
@@ -44,7 +44,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
   >({});
   const navigate = useNavigate();
   const role = roleService.hasValue() ? roleService.getValue() : null;
-  const hasMoreReviews = (ad.reviewCount || 0) > 4;
+  const hasMoreReviews = (ad.reviewCount || 0) > 3;
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -241,7 +241,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
       )}
       {!isAdmin && (
         <>
-          {(ad.reviewCount || 0) >= 5 ? (
+          {(ad.reviewCount || 0) > 3 ? (
             <Button
               mode="transparent"
               className="mb-4"
