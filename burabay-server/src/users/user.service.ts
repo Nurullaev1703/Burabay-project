@@ -21,7 +21,7 @@ export class UserService {
     private readonly organizationRep: Repository<Organization>,
     private readonly dataSource: DataSource,
     private readonly entityManager: EntityManager,
-  ) { }
+  ) {}
 
   /* Удаление аккаунта пользователя. При наличии, удаление организации и ее объявлений. */
   @CatchErrors()
@@ -120,7 +120,7 @@ export class UserService {
     return user.language;
   }
 
-  async changeLangugae(userId: string, language: string) {  
+  async changeLangugae(userId: string, language: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     Utils.checkEntity(user, 'Пользователь не найден');
     user.language = language;
