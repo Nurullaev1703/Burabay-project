@@ -142,9 +142,51 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     field: keyof Breaks,
     value: string
   ) => {
+    // Очищаем ошибку при изменении
+    if (
+      error &&
+      (errorText === t("duplicateBreakTime") ||
+        errorText === t("invalidBreakTime"))
+    ) {
+      setError(false);
+      setErrorText("");
+    }
+
     // Update the break in the state
     const updatedBreaks = [...breaks];
     updatedBreaks[index] = { ...updatedBreaks[index], [field]: value };
+
+    // Проверка на корректность времени (время окончания должно быть больше времени начала)
+    const currentBreak = updatedBreaks[index];
+    if (currentBreak.start && currentBreak.end) {
+      const [startHours, startMinutes] = currentBreak.start
+        .split(":")
+        .map(Number);
+      const [endHours, endMinutes] = currentBreak.end.split(":").map(Number);
+
+      const startTimeInMinutes = startHours * 60 + startMinutes;
+      const endTimeInMinutes = endHours * 60 + endMinutes;
+
+      if (endTimeInMinutes <= startTimeInMinutes) {
+        handleError(t("invalidBreakTime"));
+        return;
+      }
+
+      // Проверка на дубликаты перерывов
+      const isDuplicate = updatedBreaks.some((breakItem, i) => {
+        return (
+          i !== index &&
+          breakItem.start === currentBreak.start &&
+          breakItem.end === currentBreak.end
+        );
+      });
+
+      if (isDuplicate) {
+        handleError(t("duplicateBreakTime"));
+        return;
+      }
+    }
+
     setBreaks(updatedBreaks);
 
     // Update the value in the form through setValue
