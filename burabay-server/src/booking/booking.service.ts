@@ -12,6 +12,7 @@ import { NotificationType } from 'src/notification/types/notification.type';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { NotificationService } from 'src/notification/notification.service';
+import { NotificationsMessages } from 'src/notifications';
 
 @Injectable()
 export class BookingService {
@@ -24,7 +25,7 @@ export class BookingService {
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -40,7 +41,10 @@ export class BookingService {
         relations: { subcategory: { category: true }, organization: { user: true } },
       });
       if (ad.organization.isBanned === true)
-        throw new HttpException('Бронирование на это объявление невозможно - организация заблокированна', HttpStatus.FORBIDDEN);
+        throw new HttpException(
+          'Бронирование на это объявление невозможно - организация заблокированна',
+          HttpStatus.FORBIDDEN,
+        );
       // Преобразовать строковые даты из DTO в тип js даты.
       let dateStart: Date;
       if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);
@@ -69,12 +73,15 @@ export class BookingService {
 
       // Сохранение.
       await this.bookingRepository.save(newBooking);
-
+      const notificationData = NotificationsMessages.getNewBookingForAdMessage(
+        newBooking.ad.organization.user.language,
+        newBooking.ad.title,
+      );
       const notificationDto = {
         email: ad.organization.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Новая бронь на объявление "${ad.title}"`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.CREATED);
@@ -449,11 +456,12 @@ export class BookingService {
         throw new HttpException('У вас нет прав на удаление этого бронирования', HttpStatus.FORBIDDEN);
 
       await manager.remove(booking);
+      const notificationData = NotificationsMessages.getDeleteBookingMessage(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
@@ -490,20 +498,28 @@ export class BookingService {
       if (bbd) await manager.remove(bbd);
       // Если отменил Бизнес, то уведомить Туриста.
       if (user.role === ROLE_TYPE.BUSINESS) {
+        const notificationData = NotificationsMessages.getCancelBookingMessageForTourist(
+          booking.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.ad.organization.user.email,
-          title: '',
+          title: notificationData.title,
           type: NotificationType.NEGATIVE,
-          message: `Бронь на объявление "${booking.ad.title}" была отменена`,
+          message: notificationData.text,
         };
         await this.notificationService.createForUser(notificationDto);
         // Если отменил Турист, то уведомить Бизнес.
       } else if (user.role === ROLE_TYPE.TOURIST) {
+        const notificationData = NotificationsMessages.getCancelBookingMessageForOrg(
+          booking.ad.organization.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.user.email,
-          title: '',
+          title: notificationData.title,
           type: NotificationType.NEGATIVE,
-          message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
+          message: notificationData.text,
         };
         await this.notificationService.createForUser(notificationDto);
       }
@@ -533,11 +549,12 @@ export class BookingService {
         throw new HttpException('У вас нет прав на подтверждение этого бронирования', HttpStatus.FORBIDDEN);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
+      const notificationData = NotificationsMessages.acceptBookingForOrg(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была подтверждена`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
@@ -565,12 +582,15 @@ export class BookingService {
 
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
-
+      const notificationData = NotificationsMessages.payBooking(
+        booking.ad.organization.user.language,
+        booking.ad.title,
+      );
       const notificationDto = {
         email: booking.ad.organization.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Бронь на объявление "${booking.ad.title}" была оплачена`,
+        message: notificationData.text,
       };
 
       await this.notificationService.createForUser(notificationDto);
@@ -615,11 +635,12 @@ export class BookingService {
     for (const booking of expiredBookings) {
       booking.status = BookingStatus.CANCELED;
       await this.bookingRepository.save(booking);
+      const notificationData = NotificationsMessages.expiredBooking(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была отменена из-за истечения срока подтверждения`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
     }

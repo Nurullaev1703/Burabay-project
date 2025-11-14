@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useMemo, useEffect } from "react";
 import { ReviewAnnouncement } from "../../../announcements/model/announcements";
 import { useTranslation } from "react-i18next";
 import { Header } from "../../../../components/Header";
@@ -9,6 +9,7 @@ import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import { baseUrl, HTTP_STATUS } from "../../../../services/api/ServerData";
 import StarIcon from "../../../../app/icons/announcements/star.svg";
 import UnfocusedStarIcon from "../../../../app/icons/announcements/unfocused-star.svg";
+import SortIcon from "../../../../app/icons/announcements/reviews/sort.svg";
 import WarningIcon from "../../../../app/icons/announcements/reviews/warning.svg";
 import { TextField } from "@mui/material";
 import { Button } from "../../../../shared/ui/Button";
@@ -16,6 +17,7 @@ import { apiService } from "../../../../services/api/ApiService";
 import { queryClient } from "../../../../ini/InitializeApp";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { ImageViewModal } from "../../../announcements/reviews/ui/ImageViewModal";
+import { SortModal } from "../../../announcements/reviews/ui/SortModal";
 
 interface Props {
   review: ReviewAnnouncement;
@@ -45,6 +47,8 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
     reviewId: "",
     text: "",
   });
+  const [sortModal, setSortModal] = useState<boolean>(false);
+  const [sort, setSort] = useState<"highReview" | "lowReview">("highReview");
 
   const toggleReviewText = (index: number) => {
     setExpandedReviews((prevState) => ({
@@ -53,6 +57,18 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
     }));
   };
   const { t } = useTranslation();
+
+  // Сортировка отзывов
+  const sortedReviews = useMemo(() => {
+    return [...reviewData.reviews].sort((a, b) =>
+      sort === "highReview" ? b.stars - a.stars : a.stars - b.stars
+    );
+  }, [reviewData.reviews, sort]);
+
+  // Прокрутка вверх при загрузке компонента
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleSubmitAnswer = async (type: "complain" | "answer") => {
     try {
@@ -123,35 +139,43 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
         </div>
       </Header>
 
-      <div className="px-4 flex bg-white py-4 mb-2 mt-[36px]">
-        <img
-          src={imageSrc}
-          onError={() => setImageSrc(DefaultIcon)}
-          alt={reviewData.adTitle}
-          className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0">
-          <span className="truncate w-full block">{review.adTitle}</span>
-          <div className="flex items-center">
-            <div className="flex items-center mr-2">
-              <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
-              <span className="mr-1">
-                {reviewData.adAvgRating ? review.adAvgRating : 0}
+      <div className="p-4 bg-white mb-2 mt-[36px]">
+        <div className="flex">
+          <img
+            src={imageSrc}
+            onError={() => setImageSrc(DefaultIcon)}
+            alt={reviewData.adTitle}
+            className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <span className="truncate w-full block">{reviewData.adTitle}</span>
+            <div className="flex items-center">
+              <div className="flex items-center mr-2">
+                <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
+                <span className="mr-1">
+                  {reviewData.adAvgRating ? reviewData.adAvgRating : 0}
+                </span>
+              </div>
+              <div
+                className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
+              ></div>
+              <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
+                {reviewData.adReviewCount ? reviewData.adReviewCount : 0}{" "}
+                {t("grades")}
               </span>
             </div>
-            <div
-              className={`${COLORS_BACKGROUND.gray100} w-1 h-1 rounded-full mr-2`}
-            ></div>
-            <span className={`mr-1 ${COLORS_TEXT.gray100}`}>
-              {reviewData.adReviewCount ? review.adReviewCount : 0}{" "}
-              {t("grades")}
-            </span>
           </div>
         </div>
+
+        <div className="flex pt-2.5" onClick={() => setSortModal(true)}>
+          <img className="mr-1" src={SortIcon} alt="Сортировка" />
+          <span>{t(sort)}</span>
+        </div>
       </div>
-      <ul className="p-4 bg-white pb-24">
-        {reviewData.reviews.map((review, index) => (
-          <li key={index} className="border-b border-[#E4E9EA] pb-4 py-4">
+
+      <ul className="px-4 flex flex-col gap-2 bg-white pb-24">
+        {sortedReviews.map((review, index) => (
+          <li key={index} className="border-b border-[#E4E9EA] py-4">
             <div className="flex justify-between items-center mb-2.5">
               <div className="flex-1 flex flex-col min-w-0 pr-2">
                 <span className="break-all break-words whitespace-normal overflow-wrap-anywhere font-medium">
@@ -322,9 +346,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                   <Button
                     onClick={() => handleSubmitAnswer("answer")}
                     loading={isLoading}
-                    disabled={
-                      !answerText.text || answerText.text.trim() === ""
-                    }
+                    disabled={!answerText.text || answerText.text.trim() === ""}
                   >
                     {t("answer")}
                   </Button>
@@ -375,9 +397,7 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
                     onClick={() => handleSubmitAnswer("complain")}
                     mode="error"
                     loading={isLoading}
-                    disabled={
-                      !answerText.text || answerText.text.trim() === ""
-                    }
+                    disabled={!answerText.text || answerText.text.trim() === ""}
                   >
                     {t("complain")}
                   </Button>
@@ -400,6 +420,14 @@ export const ReviewPage: FC<Props> = function ReviewPage({ review }) {
           />
         )}
       </ul>
+      {sortModal && (
+        <SortModal
+          open={sortModal}
+          onClose={() => setSortModal(false)}
+          sort={sort}
+          setSort={setSort}
+        />
+      )}
     </section>
   );
 };

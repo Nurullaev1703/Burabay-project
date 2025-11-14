@@ -11,6 +11,7 @@ import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
 import { AllReviewParams } from './types/all-review.params';
 import { ROLE_TYPE } from 'src/users/types/user-types';
+import { NotificationsMessages } from 'src/notifications';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -44,13 +45,14 @@ export class ReviewService {
       ad.reviewCount = length;
       await manager.save(ad);
       await manager.save(newReview);
+      const notificationData = NotificationsMessages.newReviewForOrg(ad.organization.user.language, ad.title);
       const notificationDto = {
         email: ad.organization.user.email, // Используем email пользователя
-        title: '',
-        message: `Новый отзыв на объявление "${ad.title}"`,
+        title: notificationData.title,
+        message: notificationData.text,
         type: NotificationType.POSITIVE,
       };
-
+      
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
       // await this.cacheManager.del(`ads`);
@@ -194,12 +196,12 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
-
+      const notificationData = NotificationsMessages.deleteReviewForTourist(user.language, ad.title);
       const notificationDto = {
         email: review.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.

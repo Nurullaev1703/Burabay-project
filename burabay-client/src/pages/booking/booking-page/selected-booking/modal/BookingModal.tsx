@@ -28,12 +28,13 @@ export const BookingModal: FC<Props> = function BookingModal({
   const [isConfirmed, setIsConfirmed] = useState<boolean>(
     booking.status == "подтверждено"
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const [profileImg, setProfileImg] = useState<string>(
     baseUrl + booking.avatar
   );
   const { t } = useTranslation();
-  
+
   // Если открыта модалка отмены, показываем только её
   if (isCancel) {
     return (
@@ -44,7 +45,7 @@ export const BookingModal: FC<Props> = function BookingModal({
       />
     );
   }
-  
+
   return (
     <section>
       {open && (
@@ -53,25 +54,25 @@ export const BookingModal: FC<Props> = function BookingModal({
           <div
             onClick={onClose}
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
               zIndex: 1400,
             }}
           />
           {/* Контент модалки */}
           <div
             style={{
-              position: 'fixed',
+              position: "fixed",
               bottom: 0,
               left: 0,
               right: 0,
               zIndex: 1401,
-              maxWidth: '600px',
-              margin: '0 auto',
+              maxWidth: "600px",
+              margin: "0 auto",
             }}
           >
             <Box
@@ -86,83 +87,94 @@ export const BookingModal: FC<Props> = function BookingModal({
                 flexDirection: "column",
               }}
             >
-          <div className="mb-4">
-            <div className="flex items-center py-3">
-              <img
-                src={profileImg}
-                alt={booking.name}
-                className="w-[52px] h-[52px] object-cover rounded-full mr-4 flex-shrink-0"
-                onError={() => setProfileImg(BaseLogoIcon)}
-              />
-              <span>{booking.name}</span>
-            </div>
-
-            <ul>
-              <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                <div className="flex">
-                  <span className="mr-2">
-                    {booking.payment_method === "cash"
-                      ? t("onSidePayment")
-                      : t("onlinePayment")}
-                  </span>
-                  <span className={`${COLORS_TEXT.access}`}>
-                    {booking.status === "оплачено" ? t("paid") : ""}
-                  </span>
+              <div className="mb-4">
+                <div className="flex items-center py-3">
+                  <img
+                    src={profileImg}
+                    alt={booking.name}
+                    className="w-[52px] h-[52px] object-cover rounded-full mr-4 flex-shrink-0"
+                    onError={() => setProfileImg(BaseLogoIcon)}
+                  />
+                  <span>{booking.name}</span>
                 </div>
-                <span className={`${COLORS_TEXT.blue200}`}>
-                  {formatPrice(booking.price)}
-                </span>
-              </li>
-              <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                <span>{t("rate")}</span>
-                <span>
-                  {booking.rate === "Детский"
-                    ? t("childRate")
-                    : t("adultsService")}
-                </span>
-              </li>
-              <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
-                <div className="flex flex-col">
-                  <span>{formatPhoneNumber(booking.user_number)}</span>
-                  <span className={`${COLORS_TEXT.gray100} text-sm`}>
-                    {t("contactPhone")}
-                  </span>
-                </div>
-                <a href={`tel:${booking.user_number}`}>
-                  <img src={PhoneIcon} alt="Звонить" />
-                </a>
-              </li>
-            </ul>
-          </div>
-          {!isConfirmed && (
-            <Button
-              className={isConfirmed ? "hidden" : ""}
-              onClick={async () => {
-                await apiService.patch({
-                  url: `/booking/${booking.bookingId}/confirm`,
-                });
-                setIsConfirmed(true);
-                // Инвалидируем кэш после подтверждения
-                await queryClient.invalidateQueries({
-                  queryKey: [`/booking/org`],
-                });
-                await queryClient.invalidateQueries({
-                  queryKey: [`/booking/by-ad`],
-                  refetchType: "all",
-                });
-                navigate({
-                  to: "/booking/business",
-                });
-              }}
-            >
-              {t("accept")}
-            </Button>
-          )}
 
-          <Button className="mb-4" onClick={() => setIsCancel(true)} mode="red">
-            {t("cancel")}
-          </Button>
-        </Box>
+                <ul>
+                  <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                    <div className="flex">
+                      <span className="mr-2">
+                        {booking.payment_method === "cash"
+                          ? t("onSidePayment")
+                          : t("onlinePayment")}
+                      </span>
+                      <span className={`${COLORS_TEXT.access}`}>
+                        {booking.status === "оплачено" ? t("paid") : ""}
+                      </span>
+                    </div>
+                    <span className={`${COLORS_TEXT.blue200}`}>
+                      {formatPrice(booking.price)}
+                    </span>
+                  </li>
+                  <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                    <span>{t("rate")}</span>
+                    <span>
+                      {booking.rate === "Детский"
+                        ? t("childRate")
+                        : t("adultsService")}
+                    </span>
+                  </li>
+                  <li className="flex justify-between py-[18px] border-b border-[#E4E9EA]">
+                    <div className="flex flex-col">
+                      <span>{formatPhoneNumber(booking.user_number)}</span>
+                      <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                        {t("contactPhone")}
+                      </span>
+                    </div>
+                    <a href={`tel:${booking.user_number}`}>
+                      <img src={PhoneIcon} alt="Звонить" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              {!isConfirmed && (
+                <Button
+                  className={isConfirmed ? "hidden" : ""}
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      await apiService.patch({
+                        url: `/booking/${booking.bookingId}/confirm`,
+                      });
+                      setIsConfirmed(true);
+                      // Инвалидируем кэш после подтверждения
+                      await queryClient.invalidateQueries({
+                        queryKey: [`/booking/org`],
+                      });
+                      await queryClient.invalidateQueries({
+                        queryKey: [`/booking/by-ad`],
+                        refetchType: "all",
+                      });
+                      navigate({
+                        to: "/booking/business",
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  loading={isLoading}
+                >
+                  {t("accept")}
+                </Button>
+              )}
+
+              <Button
+                className="mb-4"
+                onClick={() => setIsCancel(true)}
+                mode="red"
+                loading={isLoading}
+              >
+                {t("cancel")}
+              </Button>
+            </Box>
           </div>
         </>
       )}
