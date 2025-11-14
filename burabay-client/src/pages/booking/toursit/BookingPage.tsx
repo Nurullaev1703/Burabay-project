@@ -262,7 +262,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
       </div>
 
       {/* Отступ для фиксированного хедера */}
-      <div className="h-[140px]"></div>
+      <div className="h-[128px]"></div>
 
       {searchValue && allAdsFlat.length === 0 ? (
         <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
@@ -274,7 +274,7 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
           </div>
         </div>
       ) : (
-        <ul className="px-4 mt-4 mb-32 bg-white rounded-t-2xl pt-4">
+        <ul className="px-4 mb-32 bg-white pt-4">
           {allAdsFlat.map((ad) => {
           const groupedTimes = ad.times.reduce(
             (acc, time) => {

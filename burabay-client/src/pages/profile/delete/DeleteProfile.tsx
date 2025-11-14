@@ -59,18 +59,15 @@ export const DeleteProfile: FC = function DeleteProfile() {
   return (
     <div className="h-screen flex flex-col">
       <Header>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-4">
           <IconContainer
-            align="center"
-            action={() => navigate({ to: "/profile/security" })}
+            align="start"
+            action={() => history.back()}
           >
             <img src={BackIcon} alt="back" />
           </IconContainer>
-          <Typography>
-          </Typography>
           <IconContainer
-            align="center"
-            className="ml-auto"
+            align="end"
             action={() => navigate({ to: "/profile" })}
           >
             <img src={CrossIcon} alt="close" />

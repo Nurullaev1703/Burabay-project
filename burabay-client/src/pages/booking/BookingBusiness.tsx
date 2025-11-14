@@ -98,7 +98,7 @@ export const BookingBusiness: FC<Props> = function BookingBusiness() {
       </div>
 
       {/* Отступ для фиксированного хедера */}
-      <div className="h-[140px]"></div>
+      <div className="h-[128px]"></div>
 
       {/* Основной контент с пустым состоянием */}
       <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
