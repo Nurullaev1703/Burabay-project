@@ -25,7 +25,7 @@ export class BookingService {
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
     private readonly notificationService: NotificationService,
-  ) { }
+  ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
@@ -41,7 +41,10 @@ export class BookingService {
         relations: { subcategory: { category: true }, organization: { user: true } },
       });
       if (ad.organization.isBanned === true)
-        throw new HttpException('Бронирование на это объявление невозможно - организация заблокированна', HttpStatus.FORBIDDEN);
+        throw new HttpException(
+          'Бронирование на это объявление невозможно - организация заблокированна',
+          HttpStatus.FORBIDDEN,
+        );
       // Преобразовать строковые даты из DTO в тип js даты.
       let dateStart: Date;
       if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);
@@ -70,7 +73,10 @@ export class BookingService {
 
       // Сохранение.
       await this.bookingRepository.save(newBooking);
-      const notificationData = NotificationsMessages.getNewBookingForAdMessage(newBooking.ad.organization.user.language, newBooking.ad.title);
+      const notificationData = NotificationsMessages.getNewBookingForAdMessage(
+        newBooking.ad.organization.user.language,
+        newBooking.ad.title,
+      );
       const notificationDto = {
         email: ad.organization.user.email,
         title: notificationData.title,
@@ -492,7 +498,10 @@ export class BookingService {
       if (bbd) await manager.remove(bbd);
       // Если отменил Бизнес, то уведомить Туриста.
       if (user.role === ROLE_TYPE.BUSINESS) {
-        const notificationData = NotificationsMessages.getCancelBookingMessageForTourist(booking.user.language, booking.ad.title);
+        const notificationData = NotificationsMessages.getCancelBookingMessageForTourist(
+          booking.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.ad.organization.user.email,
           title: notificationData.title,
@@ -502,7 +511,10 @@ export class BookingService {
         await this.notificationService.createForUser(notificationDto);
         // Если отменил Турист, то уведомить Бизнес.
       } else if (user.role === ROLE_TYPE.TOURIST) {
-        const notificationData = NotificationsMessages.getCancelBookingMessageForOrg(booking.ad.organization.user.language, booking.ad.title);
+        const notificationData = NotificationsMessages.getCancelBookingMessageForOrg(
+          booking.ad.organization.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.user.email,
           title: notificationData.title,
@@ -537,7 +549,7 @@ export class BookingService {
         throw new HttpException('У вас нет прав на подтверждение этого бронирования', HttpStatus.FORBIDDEN);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
-      const notificationData = NotificationsMessages.acceptBookingForTourist(booking.user.language, booking.ad.title);
+      const notificationData = NotificationsMessages.acceptBookingForOrg(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
         title: notificationData.title,
@@ -570,7 +582,10 @@ export class BookingService {
 
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
-      const notificationData = NotificationsMessages.payBooking(booking.ad.organization.user.language, booking.ad.title);
+      const notificationData = NotificationsMessages.payBooking(
+        booking.ad.organization.user.language,
+        booking.ad.title,
+      );
       const notificationDto = {
         email: booking.ad.organization.user.email,
         title: notificationData.title,
@@ -620,7 +635,7 @@ export class BookingService {
     for (const booking of expiredBookings) {
       booking.status = BookingStatus.CANCELED;
       await this.bookingRepository.save(booking);
-      const notificationData = NotificationsMessages.expiredBooking(booking.user.language, booking.ad.title)
+      const notificationData = NotificationsMessages.expiredBooking(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
         title: notificationData.title,
