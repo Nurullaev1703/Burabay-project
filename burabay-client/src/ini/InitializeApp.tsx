@@ -29,15 +29,15 @@ const InnerApp: FC = function InnerApp() {
 export const InitializeApp: FC = function InitializeApp() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <ThemeProvider theme={theme}>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <AuthProvider>
+            <LanguageProvider>
               <InnerApp />
-            </AuthProvider>
-          </GoogleOAuthProvider>
-        </ThemeProvider>
-      </LanguageProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
