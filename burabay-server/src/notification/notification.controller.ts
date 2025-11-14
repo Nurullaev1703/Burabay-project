@@ -3,10 +3,7 @@ import { NotificationService } from './notification.service';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import {
-  CreateAllNotificationDto,
-  CreateCategoryNotificationDto,
-} from './dto/create-all-notifications.dto';
+import { CreateAllNotificationDto, CreateCategoryNotificationDto } from './dto/create-all-notifications.dto';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 
 @ApiBearerAuth()
@@ -14,6 +11,11 @@ import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+
+  @Get('/check-notifications')
+  checkNotifications(@Request() req: AuthRequest) {
+    return this.notificationService.checkNotifications(req.user);
+  }
 
   @Post('/user')
   createForUser(@Body() createNotificationDto: CreateNotificationDto) {

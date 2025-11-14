@@ -6,10 +6,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import {
-  CreateAllNotificationDto,
-  CreateCategoryNotificationDto,
-} from './dto/create-all-notifications.dto';
+import { CreateAllNotificationDto, CreateCategoryNotificationDto } from './dto/create-all-notifications.dto';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { EmailService } from 'src/authentication/email.service';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
@@ -46,7 +43,7 @@ export class NotificationService {
       const payload = {
         data: {
           title: of.title,
-          body: of.message, 
+          body: of.message,
           icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
           click_action: 'https://burabay-damu.kz',
         },
@@ -62,9 +59,7 @@ export class NotificationService {
       await this.firebaseAdminService.sendNotification(user.pushToken, payload);
     }
     // Отправка email-уведомления
-    if (user.email) 
-      await this.emailService.sendNotificationMessage(user.email, of.message, of.title);
-    
+    if (user.email) await this.emailService.sendNotificationMessage(user.email, of.message, of.title);
 
     return JSON.stringify(HttpStatus.CREATED);
   }
@@ -82,6 +77,15 @@ export class NotificationService {
     }
 
     return JSON.stringify(HttpStatus.CREATED);
+  }
+
+  @CatchErrors()
+  async checkNotifications(tokenData: TokenData) {
+    const notifications = await this.notificationRepository.count({
+      where: { users: { id: tokenData.id }, isRead: false },
+    });
+    if (notifications > 0) return true;
+    else return false;
   }
 
   //Создание для уведов для всех
@@ -135,9 +139,7 @@ export class NotificationService {
       relations: ['users'],
     });
 
-    return notifications.filter(
-      (notification) => !notification.users || notification.users.length === 0,
-    );
+    return notifications.filter((notification) => !notification.users || notification.users.length === 0);
   }
 
   @CatchErrors()
@@ -151,9 +153,7 @@ export class NotificationService {
 
     const filterNotifications = notificationsfilter.filter(
       (notification) =>
-        !notification.users ||
-        notification.users.length === 0 ||
-        notification.users.some((u) => u.id === user.id),
+        !notification.users || notification.users.length === 0 || notification.users.some((u) => u.id === user.id),
     );
 
     const mapNotifications = filterNotifications.map((notifications) => ({
@@ -227,9 +227,8 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(tourist.pushToken, payload);
       }
-      if (tourist.email) 
+      if (tourist.email)
         await this.emailService.sendNotificationMessage(tourist.email, of.message, 'Burabay администратор');
-      
     }
 
     return JSON.stringify(HttpStatus.CREATED);
@@ -276,9 +275,8 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(organization.pushToken, payload);
       }
-      if (organization.email) 
+      if (organization.email)
         await this.emailService.sendNotificationMessage(organization.email, of.message, 'Burabay администратор');
-      
     }
 
     return JSON.stringify(HttpStatus.CREATED);
@@ -336,9 +334,7 @@ export class NotificationService {
         };
         await this.firebaseAdminService.sendNotification(user.pushToken, payload);
       }
-      if (user.email) 
-        await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
-      
+      if (user.email) await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
 
       // Помечаем пользователя как обработанного
       processedUserIds.add(user.id);
