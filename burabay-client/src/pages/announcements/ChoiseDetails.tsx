@@ -958,29 +958,33 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                       <img src={XIcon} className="w-[15px]" alt="" />
                     </button>
                     <div className="flex justify-between mt-1">
-                      <Typography
-                        size={12}
-                        weight={400}
-                        color={COLORS_TEXT.gray100}
-                      >
-                        {(t("duration") || "Длительность") +
-                          ": " +
-                          Math.floor(video.duration / 60) +
-                          ":" +
-                          Math.floor(video.duration % 60)
-                            .toString()
-                            .padStart(2, "0")}
-                      </Typography>
-                      <Typography
-                        size={12}
-                        weight={400}
-                        color={COLORS_TEXT.gray100}
-                      >
-                        {t("size") +
-                          ": " +
-                          (video.size / (1024 * 1024)).toFixed(2) +
-                          " МБ"}
-                      </Typography>
+                      {video.duration > 0 && (
+                        <>
+                          <Typography
+                            size={12}
+                            weight={400}
+                            color={COLORS_TEXT.gray100}
+                          >
+                            {(t("duration") || "Длительность") +
+                              ": " +
+                              Math.floor(video.duration / 60) +
+                              ":" +
+                              Math.floor(video.duration % 60)
+                                .toString()
+                                .padStart(2, "0")}
+                          </Typography>
+                          <Typography
+                            size={12}
+                            weight={400}
+                            color={COLORS_TEXT.gray100}
+                          >
+                            {t("size") +
+                              ": " +
+                              (video.size / (1024 * 1024)).toFixed(2) +
+                              " МБ"}
+                          </Typography>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
