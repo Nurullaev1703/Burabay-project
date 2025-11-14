@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useContext } from "react";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -15,6 +15,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { Profile } from "../model/profile";
 import { formatToDisplayPhoneNumber } from "../../../shared/ui/format-phone";
+import { LanguageContext } from "../../../shared/context/LanguageProvider";
 
 interface FormType {
   fullName: string;
@@ -24,6 +25,7 @@ interface FormType {
 export const EditProfileUser: FC = function EditProfileUser() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
+  const languageContext = useContext(LanguageContext);
   const mask = useMask({
     mask: "+7 ___ ___-__-__",
     replacement: { _: /\d/ },
@@ -80,6 +82,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
       const updatedForm = {
         ...form,
         phoneNumber: formatPhoneNumber(form.phoneNumber),
+        language: languageContext?.language || "ru",
       };
 
       try {

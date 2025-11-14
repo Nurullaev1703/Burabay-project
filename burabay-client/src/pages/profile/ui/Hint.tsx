@@ -22,21 +22,21 @@ export const Hint: FC<Props> = function Hint({ accountStatus }) {
     <div className="mb-2">
       {accountStatus === "unconfirmed" && (
         <div
-          className={`relative w-full bg-gradient-to-r from-[#FFB863] to-[#FF7A2F] rounded-2xl`}
+          className={`relative w-full bg-gradient-to-r from-[#FFB863] to-[#FF7A2F] rounded-2xl flex items-center justify-between px-4 py-3`}
         >
-            <div className="h-[72px] pl-4 flex flex-col justify-center">
-              <span className={`tracking-tighter font-semibold text-white`}>
+            <div className="flex flex-col justify-center flex-1 pr-4">
+              <span className={`tracking-tighter font-semibold text-white leading-tight`}>
                 {t("accountConfirm")}
               </span>
               <button
                 onClick={() => navigate({ to: "/profile/confirm" })}
-                className={`mt-2 font-semibold text-white border-solid border-2 rounded-lg py-1 px-3.5 border-white w-fit`}
+                className={`mt-3 font-semibold text-white border-solid border-2 rounded-lg py-1 px-3.5 border-white w-fit`}
               >
                 {t("details")}
               </button>
             </div>
             <img
-              className="absolute right-4 top-1/2 transform -translate-y-1/2"
+              className="flex-shrink-0 object-contain"
               src={CheckMark}
               alt="Галочка"
             />

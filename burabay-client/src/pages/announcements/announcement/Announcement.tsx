@@ -39,6 +39,7 @@ interface Props {
   announcement: AnnouncementType;
   fromMap?: boolean;
   fromBusinessMap?: boolean;
+  fromAnnouncementsPage?: boolean;
 }
 
 export const formatPrice = (value: number) => {
@@ -48,6 +49,7 @@ export const Announcement: FC<Props> = function Announcement({
   announcement,
   fromMap = false,
   fromBusinessMap = false,
+  fromAnnouncementsPage = false,
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -117,6 +119,22 @@ export const Announcement: FC<Props> = function Announcement({
                 navigate({ to: "/announcements/mapForAnnoun", replace: true });
               } else if (fromMap) {
                 navigate({ to: "/mapNav", replace: true });
+              } else if (fromAnnouncementsPage) {
+                // Восстанавливаем скролл при возврате на страницу объявлений
+                const savedScroll = sessionStorage.getItem("announcementsPageScroll");
+                navigate({ to: "/announcements", replace: true });
+                // Восстанавливаем позицию скролла после навигации
+                if (savedScroll) {
+                  setTimeout(() => {
+                    const scrollPosition = parseInt(savedScroll, 10);
+                    const scrollableElement = document.querySelector(".ios-scrollable-content") as HTMLElement;
+                    if (scrollableElement) {
+                      scrollableElement.scrollTop = scrollPosition;
+                    } else {
+                      window.scrollTo(0, scrollPosition);
+                    }
+                  }, 100);
+                }
               } else {
                 history.back();
               }

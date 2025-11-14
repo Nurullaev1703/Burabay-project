@@ -39,6 +39,101 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
     });
   }, [debouncedSearchValue]);
 
+  // Восстанавливаем скролл при монтировании
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("announcementsPageScroll");
+    if (savedScroll) {
+      const scrollPosition = parseInt(savedScroll, 10);
+
+      const scrollableElement = document.querySelector(
+        ".ios-scrollable-content"
+      ) as HTMLElement;
+      const targetElement = scrollableElement || window;
+
+      let isRestoring = true;
+      const timeouts: NodeJS.Timeout[] = [];
+
+      const setScroll = (pos: number) => {
+        if (scrollableElement) {
+          scrollableElement.scrollTop = pos;
+        } else {
+          window.scrollTo(0, pos);
+        }
+      };
+
+      const protectScroll = () => {
+        if (isRestoring) {
+          const currentScroll = scrollableElement
+            ? scrollableElement.scrollTop
+            : window.scrollY;
+          if (currentScroll < scrollPosition - 10) {
+            setScroll(scrollPosition);
+          }
+        }
+      };
+
+      if (scrollableElement) {
+        scrollableElement.addEventListener("scroll", protectScroll, {
+          passive: true,
+        });
+      } else {
+        window.addEventListener("scroll", protectScroll, { passive: true });
+      }
+
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 0));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 50));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 150));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 300));
+      timeouts.push(
+        setTimeout(() => {
+          setScroll(scrollPosition);
+          isRestoring = false;
+          if (scrollableElement) {
+            scrollableElement.removeEventListener("scroll", protectScroll);
+          } else {
+            window.removeEventListener("scroll", protectScroll);
+          }
+        }, 500)
+      );
+
+      return () => {
+        isRestoring = false;
+        if (scrollableElement) {
+          scrollableElement.removeEventListener("scroll", protectScroll);
+        } else {
+          window.removeEventListener("scroll", protectScroll);
+        }
+        timeouts.forEach((t) => clearTimeout(t));
+      };
+    }
+  }, []);
+
+  // Сохраняем позицию скролла при каждом скролле
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+
+    const handleScroll = () => {
+      const scrollY = scrollableElement
+        ? scrollableElement.scrollTop
+        : window.scrollY;
+      sessionStorage.setItem("announcementsPageScroll", scrollY.toString());
+    };
+
+    if (scrollableElement) {
+      scrollableElement.addEventListener("scroll", handleScroll);
+      return () => {
+        scrollableElement.removeEventListener("scroll", handleScroll);
+      };
+    } else {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, []);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
@@ -165,10 +260,18 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
                     isOrganization
                     ref={lastElementRef}
                     width={adList.length == 1 ? "w-[50%]" : ""}
+                    fromAnnouncementsPage={true}
                   />
                 );
               }
-              return <AdCard ad={item} key={item.id} isOrganization />;
+              return (
+                <AdCard
+                  ad={item}
+                  key={item.id}
+                  isOrganization
+                  fromAnnouncementsPage={true}
+                />
+              );
             })}
             {/* Индикатор загрузки новых данных */}
             {isFetchingNextPage && (

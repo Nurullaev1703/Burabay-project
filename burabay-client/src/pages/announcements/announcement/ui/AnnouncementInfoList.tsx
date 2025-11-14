@@ -182,7 +182,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </Link>
         </li>
       )}
-      {!isAdmin && (
+      {!isAdmin && Object.keys(ad.details || {}).length > 0 && (
         <li className="py-3">
           <Link
             to="/announcements/details/$announcementId"

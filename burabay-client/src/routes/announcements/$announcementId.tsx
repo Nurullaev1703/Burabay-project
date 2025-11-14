@@ -7,18 +7,20 @@ export const Route = createFileRoute("/announcements/$announcementId")({
   component: RouteComponent,
   validateSearch: (
     search: Record<string, unknown>
-  ): { fromMap?: boolean; fromBusinessMap?: boolean } => {
+  ): { fromMap?: boolean; fromBusinessMap?: boolean; fromAnnouncementsPage?: boolean } => {
     return {
       fromMap: search.fromMap === true || search.fromMap === "true",
       fromBusinessMap:
         search.fromBusinessMap === true || search.fromBusinessMap === "true",
+      fromAnnouncementsPage:
+        search.fromAnnouncementsPage === true || search.fromAnnouncementsPage === "true",
     };
   },
 });
 
 function RouteComponent() {
   const { announcementId } = Route.useParams();
-  const { fromMap, fromBusinessMap } = Route.useSearch();
+  const { fromMap, fromBusinessMap, fromAnnouncementsPage } = Route.useSearch();
   const { data, isLoading } = UseGetAnnouncement(announcementId);
 
   if (isLoading) {
@@ -31,6 +33,7 @@ function RouteComponent() {
         announcement={data}
         fromMap={fromMap}
         fromBusinessMap={fromBusinessMap}
+        fromAnnouncementsPage={fromAnnouncementsPage}
       />
     );
   }
