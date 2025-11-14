@@ -168,8 +168,9 @@ export const BookingModal: FC<Props> = function BookingModal({
 
               <Button
                 className="mb-4"
-                onClick={() => !isLoading && setIsCancel(true)}
+                onClick={() => setIsCancel(true)}
                 mode="red"
+                loading={isLoading}
               >
                 {t("cancel")}
               </Button>

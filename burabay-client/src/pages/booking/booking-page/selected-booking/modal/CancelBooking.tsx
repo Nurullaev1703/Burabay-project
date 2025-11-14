@@ -88,9 +88,8 @@ export const CancelBooking: FC<Props> = function CancelBooking({
               <Button
                 className="mb-4"
                 mode="red"
-                onClick={() => cancelBooking(bookingId)}
                 loading={isLoading}
-              >
+                onClick={() => cancelBooking(bookingId)}              >
                 {t("cancelBooking")}
               </Button>
               <Button className="mb-4" onClick={() => !isLoading && onClose()}>
