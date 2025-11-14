@@ -18,6 +18,7 @@ interface Props {
   width?: string;
   ref?: (node: HTMLLIElement | null) => void;
   disableLink?: boolean;
+  fromAnnouncementsPage?: boolean;
 }
 
 export const AdCard: FC<Props> = function AdCard({
@@ -26,6 +27,7 @@ export const AdCard: FC<Props> = function AdCard({
   width,
   ref,
   disableLink,
+  fromAnnouncementsPage = false,
 }) {
   const [isFavourite, setIsFavourite] = useState<boolean>(
     ad.isFavourite || false
@@ -58,6 +60,7 @@ export const AdCard: FC<Props> = function AdCard({
         <Link
           to="/announcements/$announcementId"
           params={{ announcementId: ad.id }}
+          search={fromAnnouncementsPage ? { fromAnnouncementsPage: true } : {}}
         >
           <Carousel items={carouselItems} />
         </Link>
