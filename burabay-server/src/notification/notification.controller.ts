@@ -62,6 +62,11 @@ export class NotificationController {
     return this.notificationService.update(id, updateNotificationDto);
   }
 
+  @Patch('read-all')
+  markAllAsRead(@Request() req: AuthRequest) {
+    return this.notificationService.markAllAsRead(req.user);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.notificationService.remove(id);
