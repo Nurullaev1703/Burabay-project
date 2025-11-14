@@ -54,17 +54,30 @@ export const Details: FC<Props> = function Details({ announcement }) {
       </Header>
 
       <div className="bg-white m-4 rounded-lg md:max-w-[1200px] md:mx-auto">
-        <ul>
-          {Object.keys(services).map((service, index) => (
-            <li
-              key={index}
-              className="flex justify-between p-3 h-16 items-center border-b border-gray-300"
+        {Object.keys(services).length > 0 ? (
+          <ul>
+            {Object.keys(services).map((service, index) => (
+              <li
+                key={index}
+                className="flex justify-between p-3 h-16 items-center border-b border-gray-300"
+              >
+                <span>{t(`${service}`)}</span>
+                <img src={CheckMarkIcon} alt={t(`${service}`)} className="w-6" />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center py-12">
+            <Typography
+              size={16}
+              weight={400}
+              color={COLORS_TEXT.gray100}
+              align="center"
             >
-              <span>{t(`${service}`)}</span>
-              <img src={CheckMarkIcon} alt={t(`${service}`)} className="w-6" />
-            </li>
-          ))}
-        </ul>
+              {t("noDetails")}
+            </Typography>
+          </div>
+        )}
       </div>
     </section>
   );
