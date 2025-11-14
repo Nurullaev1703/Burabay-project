@@ -431,22 +431,29 @@ export const PriceService: FC<Props> = function PriceService({
           className="sr-only"
         />
       </div>
-      <div className="px-4 mt-2 mb-32">
-        <Typography size={12} weight={700} color={COLORS_TEXT.red}>
-          {t("accessAcount")}{" "}
-          <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>
+      <div className="px-4 mt-2">
+        <Typography size={12} weight={400} color={COLORS_TEXT.red}>
+          {t("onlinePaymentNotAvailable")}
         </Typography>
-        <Button
-          onClick={() =>
-            navigate({
-              to: `/profile`,
-            })
-          }
-          mode="transparent"
-        >
-          {t("accessAccountBtn")}
-        </Button>
       </div>
+      {!announcement?.organization?.isConfirmed && (
+        <div className="px-4 mt-2 mb-32">
+          <Typography size={12} weight={700} color={COLORS_TEXT.red}>
+            {t("accessAcount")}{" "}
+            <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>
+          </Typography>
+          <Button
+            onClick={() =>
+              navigate({
+                to: `/profile`,
+              })
+            }
+            mode="transparent"
+          >
+            {t("accessAccountBtn")}
+          </Button>
+        </div>
+      )}
     </main>
   );
 };
