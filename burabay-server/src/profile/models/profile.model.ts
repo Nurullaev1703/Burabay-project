@@ -1,5 +1,4 @@
 import { Organization } from "src/users/entities/organization.entity"
-import { User } from "src/users/entities/user.entity"
 import { ROLE_TYPE } from "src/users/types/user-types"
 
 export class Profile{
@@ -10,6 +9,7 @@ export class Profile{
     email: string = ""
     isEmailConfirmed: boolean = false
     organization: Organization | null = null
+    language: string = "ru"
 
     constructor(item:any){
         const keys = Object.keys(this)
