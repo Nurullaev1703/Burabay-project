@@ -170,7 +170,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
           </Link>
         </li>
       )}
-      {!isAdmin && ad.address && !fromMap && (
+      {!isAdmin && ad.address && !fromMap && !isOwner && (
         <li className="border-b border-[#E4E9EA] py-3">
           <Link
             className="flex justify-between"
