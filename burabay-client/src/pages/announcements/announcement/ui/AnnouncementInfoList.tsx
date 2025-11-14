@@ -15,6 +15,7 @@ interface Props {
   ad: Announcement;
   isAdmin?: boolean;
   fromMap?: boolean;
+  fromAnnouncementsPage?: boolean;
 }
 export const formatPhoneNumber = (number: number | string) => {
   const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
@@ -24,6 +25,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
   isAdmin,
   fromMap = false,
+  fromAnnouncementsPage = false,
 }) {
   const { user } = useAuth();
   const isOwner = !!(
@@ -71,26 +73,7 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   return (
     <ul>
       <li className="py-3">
-        {isOwner ? (
-          <div className="flex justify-between items-center">
-            <div className="flex items-center relative flex-1 min-w-0">
-              <img
-                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
-                src={imageSrc}
-                alt={ad.organization.name}
-                onError={() => setImageSrc(DefaultImage)}
-              />
-              {ad.organization.isConfirmed && (
-                <img
-                  src={ConfirmedIcon}
-                  className="absolute top-[-5px] left-6"
-                  alt="Подтверждено"
-                />
-              )}
-              <span className="truncate w-full">{ad.organization.name}</span>
-            </div>
-          </div>
-        ) : isAdmin ? (
+        {isOwner || isAdmin || fromAnnouncementsPage ? (
           <div className="flex justify-between items-center">
             <div className="flex items-center relative flex-1 min-w-0">
               <img

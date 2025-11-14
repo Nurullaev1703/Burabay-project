@@ -122,6 +122,7 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
                   onClick={() =>
                     navigate({
                       to: `/announcements/${ad.id}`,
+                      search: { fromAnnouncementsPage: true },
                     })
                   }
                 >

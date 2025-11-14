@@ -79,17 +79,16 @@ export const Announcement: FC<Props> = function Announcement({
   const [showModal, setShowModal] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAdActions, setIsAdActions] = useState<boolean>(false);
-   useEffect(() => {
-     const scrollableElement = document.querySelector(
-       ".ios-scrollable-content"
-     ) as HTMLElement;
-     if (scrollableElement) {
-       scrollableElement.scrollTop = 0;
-     } else {
-       window.scrollTo(0, 0);
-     }
-   }, []);
-
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+    if (scrollableElement) {
+      scrollableElement.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   const addToFavourite = async () => {
     const response = await apiService.get({
@@ -119,22 +118,6 @@ export const Announcement: FC<Props> = function Announcement({
                 navigate({ to: "/announcements/mapForAnnoun", replace: true });
               } else if (fromMap) {
                 navigate({ to: "/mapNav", replace: true });
-              } else if (fromAnnouncementsPage) {
-                // Восстанавливаем скролл при возврате на страницу объявлений
-                const savedScroll = sessionStorage.getItem("announcementsPageScroll");
-                navigate({ to: "/announcements", replace: true });
-                // Восстанавливаем позицию скролла после навигации
-                if (savedScroll) {
-                  setTimeout(() => {
-                    const scrollPosition = parseInt(savedScroll, 10);
-                    const scrollableElement = document.querySelector(".ios-scrollable-content") as HTMLElement;
-                    if (scrollableElement) {
-                      scrollableElement.scrollTop = scrollPosition;
-                    } else {
-                      window.scrollTo(0, scrollPosition);
-                    }
-                  }, 100);
-                }
               } else {
                 history.back();
               }
@@ -282,7 +265,11 @@ export const Announcement: FC<Props> = function Announcement({
             {announcement.description}
           </p>
 
-          <AnnouncementInfoList ad={announcement} fromMap={fromMap} />
+          <AnnouncementInfoList
+            ad={announcement}
+            fromMap={fromMap}
+            fromAnnouncementsPage={fromAnnouncementsPage}
+          />
         </div>
         <CostInfoList ad={announcement} />
         <ReviewsInfo ad={announcement} fromMap={fromMap} />
