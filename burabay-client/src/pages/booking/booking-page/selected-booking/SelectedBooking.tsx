@@ -26,11 +26,13 @@ import { queryClient } from "../../../../ini/InitializeApp";
 interface Props {
   announcement: Announcement;
   booking: TSelectedBooking;
+  fromBookingList?: boolean;
 }
 
 export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
+  fromBookingList = false,
 }) {
   const navigate = useNavigate();
   const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);

@@ -10,6 +10,7 @@ import { roleService } from "../../services/storage/Factory";
 export const Route = createFileRoute("/booking/$bookingId/$category")({
   validateSearch: (search: Record<string, unknown>) => ({
     status: (search.status as string) || "ACTIVE",
+    fromBookingList: search.fromBookingList === true || search.fromBookingList === "true",
   }),
   component: RouteComponent,
 });
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/booking/$bookingId/$category")({
 function RouteComponent() {
   const navigate = useNavigate();
   const { bookingId, category } = Route.useParams();
-  const { status } = Route.useSearch();
+  const { status, fromBookingList } = Route.useSearch();
   const { data, isLoading } = useGetBooking(bookingId, category, status);
   const { data: announcementData, isLoading: announcementIsLoading } =
     UseGetAnnouncement(bookingId);
@@ -39,7 +40,7 @@ function RouteComponent() {
   
   if (isLoading && announcementIsLoading) return <Loader />;
   if (data && announcementData && data.bookings && data.bookings.length > 0)
-    return <SelectedBooking booking={data} announcement={announcementData} />;
+    return <SelectedBooking booking={data} announcement={announcementData} fromBookingList={fromBookingList} />;
   
   return <Loader />;
 }
