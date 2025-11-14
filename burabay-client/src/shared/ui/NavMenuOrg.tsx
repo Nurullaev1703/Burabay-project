@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
 import { Announcements } from "../../app/icons/navbar/announcements";
 import { Star } from "../../app/icons/navbar/star";
 import { COLORS_BACKGROUND, COLORS_TEXT } from "./colors";
@@ -7,6 +7,7 @@ import { ProfileIcon } from "../../app/icons/navbar/profile";
 import { Notifications} from "../../app/icons/navbar/notifications";
 import { useTranslation } from "react-i18next";
 import { Booking } from "../../app/icons/navbar/booking";
+import { apiService } from "../../services/api/ApiService";
 
 
 
@@ -14,6 +15,41 @@ import { Booking } from "../../app/icons/navbar/booking";
 export const NavMenuOrg: FC = function NavMenuOrg() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(false);
+
+  // Проверяем непрочитанные уведомления при монтировании и каждую минуту
+  useEffect(() => {
+    const checkNotifications = async () => {
+      try {
+        const response = await apiService.get({
+          url: "/notification/check-notifications",
+        });
+        console.log("Notifications response:", response);
+        // Обрабатываем варианты ответа
+        let hasUnread = false;
+        if (typeof response === "boolean") {
+          hasUnread = response;
+        } else if (typeof response.data === "boolean") {
+          hasUnread = response.data;
+        } else if (response.data && typeof response.data === "object") {
+          hasUnread = (response.data as any).has_unread || false;
+        }
+        console.log("Has unread notifications:", hasUnread);
+        setHasUnreadNotifications(hasUnread);
+      } catch (error) {
+        console.error("Error checking notifications:", error);
+      }
+    };
+
+    // Проверяем сразу при загрузке
+    checkNotifications();
+
+    // Устанавливаем интервал для проверки каждую минуту (60000 мс)
+    const intervalId = setInterval(checkNotifications, 60000);
+
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
+  }, []);
 
   const getStrokeColor = (path: string) =>
     location.pathname.includes(path) ? "#0A7D9E" : "#999999";
@@ -109,7 +145,10 @@ export const NavMenuOrg: FC = function NavMenuOrg() {
           }}
           
         >
-          <div className="flex justify-center items-center flex-col cursor-pointer">
+          <div className="flex justify-center items-center flex-col cursor-pointer relative">
+            {hasUnreadNotifications && (
+              <div className="absolute bg-red text-red top-[0px] -right-[-20px] w-[5px] h-[5px] rounded-full"></div>
+            )}
             <Notifications
               strokeColor={getStrokeColor("notifications")}
               fillColor={getFillColor("notifications")}

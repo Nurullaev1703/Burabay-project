@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Typography } from "../../../shared/ui/Typography";
 import { useTranslation } from "react-i18next";
 import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
@@ -8,6 +8,7 @@ import { Notification, NotificationType } from "./model/notifications";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import { useNavigate } from "@tanstack/react-router";
 import { Profile } from "../../profile/model/profile";
+import { apiService } from "../../../services/api/ApiService";
 
 interface Props {
   notifications: Notification[];
@@ -20,11 +21,52 @@ export const Notifications: FC<Props> = function Notifications({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
 
   // Прокручиваем вниз при загрузке компонента
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, []);
+
+  // Используем Intersection Observer для отметки видимых уведомлений как прочитанных
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const notificationId = entry.target.getAttribute("data-notification-id");
+            if (notificationId && !readNotifications.has(notificationId)) {
+              // Найдём уведомление в массиве
+              const notification = notifications.find(n => n.id === notificationId);
+              
+              // Отправляем PATCH только если уведомление не прочитано
+              if (notification && !notification.isRead) {
+                try {
+                  await apiService.patch({
+                    url: `/notification/${notificationId}`,
+                    dto: { isRead: true },
+                  });
+                  setReadNotifications(prev => new Set([...prev, notificationId]));
+                } catch (error) {
+                  console.error(`Error marking notification ${notificationId} as read:`, error);
+                }
+              }
+            }
+          }
+        }
+      },
+      { threshold: 0.5 } // Срабатывает когда 50% элемента видимо
+    );
+
+    // Наблюдаем за всеми уведомлениями
+    const notificationElements = document.querySelectorAll("[data-notification-id]");
+    notificationElements.forEach(el => observer.observe(el));
+
+    return () => {
+      notificationElements.forEach(el => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [notifications, readNotifications]);
 
   const getColorByType = (type: string) => {
     const typeToColorMap: Record<string, string> = {
@@ -106,6 +148,7 @@ export const Notifications: FC<Props> = function Notifications({
                 {sortedItems.map((notification) => (
                   <div
                     key={notification.id}
+                    data-notification-id={notification.id}
                     className="bg-[#FFFFFFBF] rounded-[18px] p-3 mt-2 flex items-start gap-3"
                   >
                     <div
