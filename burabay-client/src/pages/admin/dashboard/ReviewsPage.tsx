@@ -9,9 +9,9 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import SideNav from "../../../components/admin/SideNav";
-import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
 import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import Back from "/Back.svg?url";
 import Close from "/Close.png?url";
@@ -25,6 +25,7 @@ interface Review {
   text: string;
   stars: number;
   isCheked: boolean;
+  isBanned?: boolean;
   date: string;
   picture: string;
   email: string;
@@ -64,7 +65,10 @@ const ReviewsPage: FC = () => {
   >(null);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
   const take = 9;
 
   const {
@@ -76,6 +80,8 @@ const ReviewsPage: FC = () => {
     handleDeleteReview,
     handleCancelHint,
     reviewHints,
+    isDeleteLoading,
+    deleteLoadingId,
   } = useGetReviews({ take });
 
   const reviews = data?.pages.flat() || [];
@@ -89,29 +95,49 @@ const ReviewsPage: FC = () => {
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
-        url: `/admin/ban-org/${userId}`,
+        url: `/admin/ban-tourist/${userId}`,
         dto: { value: false },
       });
       if (response.status === 200) {
-        setIsModalOpen(false);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: false } : null
+        );
+        showToast(`Пользователь "${userName}" успешно разблокирован`, "success");
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при разблокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
         dto: { value: true },
       });
       if (response.status === 200) {
-        setIsTouristModalOpen(null);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: true } : null
+        );
+        showToast(`Пользователь "${userName}" успешно заблокирован`, "success");
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при блокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
   const fetchTouristInfo = async (userId: string) => {
     try {
@@ -133,6 +159,7 @@ const ReviewsPage: FC = () => {
 
   return (
     <div className="relative w-full min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="fixed inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
         className="fixed inset-0 bg-cover bg-center opacity-25 z-[-1]"
@@ -392,8 +419,8 @@ const ReviewsPage: FC = () => {
 
           {isTouristModalOpen && selectedTourist && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-4 rounded-[16px] shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
-                <div className="flex items-center justify-between w-full p-4 gap-4 border-b border-[#E4E9EA] sticky top-0 bg-white z-50">
+              <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+                <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
                   <button
                     className="h-[44px] w-[44px]"
                     onClick={() => setIsTouristModalOpen(null)}
@@ -410,63 +437,74 @@ const ReviewsPage: FC = () => {
                     <img src={Close} alt="Выход" className="w-full h-full" />
                   </button>
                 </div>
-                <div className="flex justify-center mt-4">
-                  <CoveredImage
-                    width="w-[128px]"
-                    height="h-[128px]"
-                    borderRadius="rounded-full"
-                    imageSrc={
-                      selectedTourist.picture
-                        ? `${BASE_URL}${selectedTourist.picture}`
-                        : defaultImage
-                    }
-                    errorImage={defaultImage}
-                  />
-                </div>
-                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 px-4 break-words">
-                  {selectedTourist.fullName}
-                </h2>
-                <div className="mt-4">
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+                  <div className="p-4">
+                    <div className="flex justify-center space-x-4">
+                      <img
+                        className="w-[128px] h-[128px] rounded-full object-cover"
+                        src={
+                          selectedTourist.picture
+                            ? `${BASE_URL}${selectedTourist.picture}`
+                            : defaultImage
+                        }
+                        onError={(e) => (e.currentTarget.src = defaultImage)}
+                      />
+                    </div>
+                    <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
+                      {selectedTourist.fullName}
+                    </h2>
+                  </div>
+                  <div className="px-4">
+                    <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                      <p className="text-[#999999] text-[12px] flex">Телефон</p>
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
                         {selectedTourist.phoneNumber || "Не указан"}
                       </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Телефон
-                      </strong>
                     </div>
-                  </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                      <p className="text-[#999999] text-[12px] flex">Email</p>
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
                         {selectedTourist.email || "Не указан"}
                       </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Email
-                      </strong>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-4">
-                  <div>
+                <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
+                  {selectedTourist?.isBanned ? (
                     <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => handleBlockTourist(selectedTourist.id)}
+                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleUnblockUser(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
                     >
-                      Заблокировать пользователя
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Разблокировать"
+                      )}
                     </button>
-                    <div>
-                      <button
-                        className="bg-[#39B56B] mt-4 text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                        onClick={() => {
-                          handleUnblockUser(selectedTourist.id);
-                        }}
-                      >
-                        Разблокировать пользователя
-                      </button>
-                    </div>
-                  </div>
+                  ) : (
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleBlockTourist(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                    >
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Заблокировать пользователя"
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -490,35 +528,54 @@ const ReviewsPage: FC = () => {
 
       {deleteConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-[16px] shadow-lg max-w-sm w-full mx-4 flex flex-col gap-4 relative">
-            <button
-              onClick={() => setDeleteConfirm(null)}
-              className="absolute top-4 right-4 h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <img src={Close} alt="Закрыть" className="w-6 h-6" />
-            </button>
-            <h2 className="text-lg font-semibold text-black pr-8">
-              Подтверждение удаления
-            </h2>
-            <p className="text-gray-600">
-              Вы уверены, что хотите удалить этот отзыв? Это действие невозможно
-              отменить.
-            </p>
-            <div className="flex gap-3 justify-end pt-4">
+          <div className="bg-white rounded-[16px] shadow-lg max-w-sm w-full mx-4 flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between p-4 z-10">
+              <h2 className="text-lg font-semibold text-black flex-grow">
+                Подтверждение удаления
+              </h2>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors"
+                className="h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleteLoading}
+              >
+                <img src={Close} alt="Закрыть" className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <p className="text-gray-600">
+                Вы уверены, что хотите удалить этот отзыв? Это действие невозможно
+                отменить.
+              </p>
+            </div>
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex gap-3 justify-end px-6 py-4 z-10">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleteLoading}
               >
                 Отменить
               </button>
               <button
-                onClick={() => {
-                  handleDeleteReview(deleteConfirm);
+                onClick={async () => {
+                  const result = await handleDeleteReview(deleteConfirm);
+                  if (result?.success) {
+                    showToast("Отзыв успешно удален", "success");
+                  } else {
+                    showToast(result?.message || "Ошибка при удалении отзыва", "error");
+                  }
                   setDeleteConfirm(null);
                 }}
-                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity"
+                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                disabled={isDeleteLoading}
               >
-                Удалить
+                {isDeleteLoading ? (
+                  <>
+                    <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    Обработка...
+                  </>
+                ) : (
+                  "Удалить"
+                )}
               </button>
             </div>
           </div>
