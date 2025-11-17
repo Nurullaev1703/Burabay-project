@@ -9,7 +9,6 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import SideNav from "../../../components/admin/SideNav";
-import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
 import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
 import { useToast, ToastContainer } from "../../../shared/ui/Toast";
@@ -420,8 +419,8 @@ const ReviewsPage: FC = () => {
 
           {isTouristModalOpen && selectedTourist && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-4 rounded-[16px] shadow-lg max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col">
-                <div className="flex items-center justify-between w-full p-4 gap-4 border-b border-[#E4E9EA] sticky top-0 bg-white z-50">
+              <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
+                <div className="flex items-center justify-between w-full">
                   <button
                     className="h-[44px] w-[44px]"
                     onClick={() => setIsTouristModalOpen(null)}
@@ -438,83 +437,71 @@ const ReviewsPage: FC = () => {
                     <img src={Close} alt="Выход" className="w-full h-full" />
                   </button>
                 </div>
-                <div className="flex justify-center mt-4">
-                  <CoveredImage
-                    width="w-[128px]"
-                    height="h-[128px]"
-                    borderRadius="rounded-full"
-                    imageSrc={
-                      selectedTourist.picture
-                        ? `${BASE_URL}${selectedTourist.picture}`
-                        : defaultImage
-                    }
-                    errorImage={defaultImage}
-                  />
-                </div>
-                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 px-4 break-words">
-                  {selectedTourist.fullName}
-                </h2>
-                <div className="mt-4">
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                        {selectedTourist.phoneNumber || "Не указан"}
-                      </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Телефон
-                      </strong>
-                    </div>
+                <div>
+                  <div className="flex justify-center space-x-4">
+                    <img
+                      className="w-[128px] h-[128px] rounded-full object-cover"
+                      src={
+                        selectedTourist.picture
+                          ? `${BASE_URL}${selectedTourist.picture}`
+                          : defaultImage
+                      }
+                      onError={(e) => (e.currentTarget.src = defaultImage)}
+                    />
                   </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
-                        {selectedTourist.email || "Не указан"}
-                      </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Email
-                      </strong>
-                    </div>
+                  <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
+                    {selectedTourist.fullName}
+                  </h2>
+                </div>
+                <div>
+                  <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                    <p className="text-[#999999] text-[12px] flex">Телефон</p>
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
+                      {selectedTourist.phoneNumber || "Не указан"}
+                    </p>
+                  </div>
+                  <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                    <p className="text-[#999999] text-[12px] flex">Email</p>
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
+                      {selectedTourist.email || "Не указан"}
+                    </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-4">
+                <div className="flex flex-col items-center gap-4 mt-4 w-full px-4">
                   {selectedTourist?.isBanned ? (
-                    <div>
-                      <button
-                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleUnblockUser(selectedTourist.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedTourist.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Разблокировать"
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleUnblockUser(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                    >
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Разблокировать"
+                      )}
+                    </button>
                   ) : (
-                    <div>
-                      <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleBlockTourist(selectedTourist.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedTourist.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Заблокировать пользователя"
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleBlockTourist(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                    >
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Заблокировать пользователя"
+                      )}
+                    </button>
                   )}
                 </div>
               </div>
