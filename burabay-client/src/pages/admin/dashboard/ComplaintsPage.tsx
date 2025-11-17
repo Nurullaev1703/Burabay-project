@@ -19,6 +19,10 @@ import Close from "/Close.png?url";
 
 const LOCAL_STORAGE_DELETION_KEY = "delayedDeletions";
 const LOCAL_STORAGE_ACCEPTANCE_KEY = "delayedAcceptances";
+const LOCAL_STORAGE_DELETION_TIMERS_KEY = "delayedDeletionTimers";
+const LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY = "delayedAcceptanceTimers";
+const DELETION_TIMEOUT_MS = 5 * 1000; // 5 секунд
+const ACCEPTANCE_TIMEOUT_MS = 5 * 1000; // 5 секунд
 
 const BASE_URL = baseUrl;
 
@@ -97,7 +101,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     string | null
   >(null);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [deletionTimers, setDeletionTimers] = useState<Record<string, number>>(
+    {}
+  ); // reviewId -> remaining time in ms
+  const [acceptanceTimers, setAcceptanceTimers] = useState<Record<string, number>>(
+    {}
+  ); // reviewId -> remaining time in ms
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
+  const timerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров удаления
+  const acceptanceTimerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров принятия
 
   // Функция для выполнения всех отложенных запросов (useCallback для стабильной ссылки)
   const executePendingRequests = useCallback(async () => {
@@ -295,7 +307,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   };
 
   const handleDeleteReview = useCallback((reviewId: string) => {
-    // Просто помечаем в localStorage
+    // Помечаем в localStorage
     const updatedDeletions = JSON.parse(
       localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
     );
@@ -305,6 +317,22 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       JSON.stringify(updatedDeletions)
     );
 
+    // Устанавливаем таймер для этого отзыва
+    setDeletionTimers((prev) => ({
+      ...prev,
+      [reviewId]: DELETION_TIMEOUT_MS,
+    }));
+
+    // Сохраняем время в localStorage для восстановления при перезагрузке
+    const storedTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+    );
+    storedTimers[reviewId] = Date.now() + DELETION_TIMEOUT_MS;
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_TIMERS_KEY,
+      JSON.stringify(storedTimers)
+    );
+
     // Обновляем UI
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
@@ -312,7 +340,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет удален при переходе или перезагрузке",
+                message: "Отзыв будет удален",
                 type: "success" as const,
               },
               delayedRemoval: true,
@@ -324,7 +352,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   }, []);
 
   const handleAcceptReview = useCallback((reviewId: string) => {
-    // Просто помечаем в localStorage
+    // Помечаем в localStorage
     const updatedAcceptances = JSON.parse(
       localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
     );
@@ -334,6 +362,22 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       JSON.stringify(updatedAcceptances)
     );
 
+    // Устанавливаем таймер для этого отзыва
+    setAcceptanceTimers((prev) => ({
+      ...prev,
+      [reviewId]: ACCEPTANCE_TIMEOUT_MS,
+    }));
+
+    // Сохраняем время в localStorage для восстановления при перезагрузке
+    const storedTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) || "{}"
+    );
+    storedTimers[reviewId] = Date.now() + ACCEPTANCE_TIMEOUT_MS;
+    localStorage.setItem(
+      LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY,
+      JSON.stringify(storedTimers)
+    );
+
     // Обновляем UI
     setReviews((prevReviews) =>
       prevReviews.map((review) =>
@@ -341,7 +385,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет принят при переходе или перезагрузке",
+                message: "Отзыв будет принят",
                 type: "success" as const,
               },
               delayedRemoval: true,
@@ -367,6 +411,31 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       )
     );
 
+    // Очищаем таймер удаления
+    setDeletionTimers((prev) => {
+      const updated = { ...prev };
+      delete updated[reviewId];
+      return updated;
+    });
+
+    // Очищаем таймер принятия
+    setAcceptanceTimers((prev) => {
+      const updated = { ...prev };
+      delete updated[reviewId];
+      return updated;
+    });
+
+    // Убираем интервалы для этих таймеров
+    if (timerIntervalsRef.current[reviewId]) {
+      clearInterval(timerIntervalsRef.current[reviewId]);
+      delete timerIntervalsRef.current[reviewId];
+    }
+
+    if (acceptanceTimerIntervalsRef.current[reviewId]) {
+      clearInterval(acceptanceTimerIntervalsRef.current[reviewId]);
+      delete acceptanceTimerIntervalsRef.current[reviewId];
+    }
+
     // Удаляем из localStorage
     const storedDeletions = JSON.parse(
       localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
@@ -385,7 +454,229 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       LOCAL_STORAGE_ACCEPTANCE_KEY,
       JSON.stringify(storedAcceptances)
     );
+
+    const storedDeletionTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+    );
+    delete storedDeletionTimers[reviewId];
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_TIMERS_KEY,
+      JSON.stringify(storedDeletionTimers)
+    );
+
+    const storedAcceptanceTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) || "{}"
+    );
+    delete storedAcceptanceTimers[reviewId];
+    localStorage.setItem(
+      LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY,
+      JSON.stringify(storedAcceptanceTimers)
+    );
   }, []);
+
+  // useEffect для управления таймерами удаления
+  useEffect(() => {
+    // Восстанавливаем таймеры из localStorage при монтировании
+    const storedTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+    );
+    const now = Date.now();
+    const restoredTimers: Record<string, number> = {};
+
+    Object.entries(storedTimers).forEach(([reviewId, endTime]: [string, any]) => {
+      const remaining = endTime - now;
+      if (remaining > 0) {
+        restoredTimers[reviewId] = remaining;
+      } else {
+        // Время вышло, удаляем из localStorage
+        delete storedTimers[reviewId];
+      }
+    });
+
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_TIMERS_KEY,
+      JSON.stringify(storedTimers)
+    );
+
+    if (Object.keys(restoredTimers).length > 0) {
+      setDeletionTimers(restoredTimers);
+    }
+  }, []);
+
+  // useEffect для управления интервалами таймеров
+  useEffect(() => {
+    Object.entries(deletionTimers).forEach(([reviewId, remaining]) => {
+      // Если таймер уже существует, не создаём новый
+      if (timerIntervalsRef.current[reviewId]) {
+        return;
+      }
+
+      // Создаём интервал для этого таймера
+      const intervalId = setInterval(() => {
+        setDeletionTimers((prev) => {
+          const updated = { ...prev };
+          const newRemaining = (updated[reviewId] || 0) - 100; // Уменьшаем на 100ms
+
+          if (newRemaining <= 0) {
+            // Время истекло, выполняем удаление
+            clearInterval(timerIntervalsRef.current[reviewId]);
+            delete timerIntervalsRef.current[reviewId];
+
+            // Автоматически выполняем удаление
+            apiService
+              .delete({ url: `/review/${reviewId}` })
+              .then(() => {
+                // Удаляем из UI и localStorage
+                setReviews((prevReviews) =>
+                  prevReviews.filter((r) => r.reviewId !== reviewId)
+                );
+
+                const storedDeletions = JSON.parse(
+                  localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+                );
+                delete storedDeletions[reviewId];
+                localStorage.setItem(
+                  LOCAL_STORAGE_DELETION_KEY,
+                  JSON.stringify(storedDeletions)
+                );
+
+                const storedTimers = JSON.parse(
+                  localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+                );
+                delete storedTimers[reviewId];
+                localStorage.setItem(
+                  LOCAL_STORAGE_DELETION_TIMERS_KEY,
+                  JSON.stringify(storedTimers)
+                );
+              })
+              .catch((error) => {
+                console.error(`Ошибка удаления отзыва ${reviewId}:`, error);
+              });
+
+            delete updated[reviewId];
+            return updated;
+          }
+
+          updated[reviewId] = newRemaining;
+          return updated;
+        });
+      }, 100); // Обновляем каждые 100ms для плавного прогресса
+
+      timerIntervalsRef.current[reviewId] = intervalId;
+    });
+
+    // Cleanup: очищаем интервалы для удалённых таймеров
+    return () => {
+      Object.keys(timerIntervalsRef.current).forEach((reviewId) => {
+        if (!deletionTimers[reviewId]) {
+          clearInterval(timerIntervalsRef.current[reviewId]);
+          delete timerIntervalsRef.current[reviewId];
+        }
+      });
+    };
+  }, [deletionTimers]);
+
+  // useEffect для управления таймерами принятия
+  useEffect(() => {
+    // Восстанавливаем таймеры из localStorage при монтировании
+    const storedTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) || "{}"
+    );
+    const now = Date.now();
+    const restoredTimers: Record<string, number> = {};
+
+    Object.entries(storedTimers).forEach(([reviewId, endTime]: [string, any]) => {
+      const remaining = endTime - now;
+      if (remaining > 0) {
+        restoredTimers[reviewId] = remaining;
+      } else {
+        // Время вышло, удаляем из localStorage
+        delete storedTimers[reviewId];
+      }
+    });
+
+    localStorage.setItem(
+      LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY,
+      JSON.stringify(storedTimers)
+    );
+
+    if (Object.keys(restoredTimers).length > 0) {
+      setAcceptanceTimers(restoredTimers);
+    }
+  }, []);
+
+  // useEffect для управления интервалами таймеров принятия
+  useEffect(() => {
+    Object.entries(acceptanceTimers).forEach(([reviewId, remaining]) => {
+      // Если таймер уже существует, не создаём новый
+      if (acceptanceTimerIntervalsRef.current[reviewId]) {
+        return;
+      }
+
+      // Создаём интервал для этого таймера
+      const intervalId = setInterval(() => {
+        setAcceptanceTimers((prev) => {
+          const updated = { ...prev };
+          const newRemaining = (updated[reviewId] || 0) - 100; // Уменьшаем на 100ms
+
+          if (newRemaining <= 0) {
+            // Время истекло, выполняем принятие
+            clearInterval(acceptanceTimerIntervalsRef.current[reviewId]);
+            delete acceptanceTimerIntervalsRef.current[reviewId];
+
+            // Автоматически выполняем принятие
+            apiService
+              .patch({ url: `/admin/check-review/${reviewId}`, dto: {} })
+              .then(() => {
+                // Удаляем из UI и localStorage
+                setReviews((prevReviews) =>
+                  prevReviews.filter((r) => r.reviewId !== reviewId)
+                );
+
+                const storedAcceptances = JSON.parse(
+                  localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_KEY) || "{}"
+                );
+                delete storedAcceptances[reviewId];
+                localStorage.setItem(
+                  LOCAL_STORAGE_ACCEPTANCE_KEY,
+                  JSON.stringify(storedAcceptances)
+                );
+
+                const storedTimers = JSON.parse(
+                  localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) || "{}"
+                );
+                delete storedTimers[reviewId];
+                localStorage.setItem(
+                  LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY,
+                  JSON.stringify(storedTimers)
+                );
+              })
+              .catch((error) => {
+                console.error(`Ошибка принятия отзыва ${reviewId}:`, error);
+              });
+
+            delete updated[reviewId];
+            return updated;
+          }
+
+          updated[reviewId] = newRemaining;
+          return updated;
+        });
+      }, 100); // Обновляем каждые 100ms для плавного прогресса
+
+      acceptanceTimerIntervalsRef.current[reviewId] = intervalId;
+    });
+
+    // Cleanup: очищаем интервалы для удалённых таймеров
+    return () => {
+      Object.keys(acceptanceTimerIntervalsRef.current).forEach((reviewId) => {
+        if (!acceptanceTimers[reviewId]) {
+          clearInterval(acceptanceTimerIntervalsRef.current[reviewId]);
+          delete acceptanceTimerIntervalsRef.current[reviewId];
+        }
+      });
+    };
+  }, [acceptanceTimers]);
 
   const fetchOrgInfo = async (orgId: string) => {
     try {
@@ -547,27 +838,97 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 >
                   {review.status ? (
                     <div
-                      className={`col-span-3 flex items-center justify-between rounded-[16px] px-4 py-2 ${
+                      className={`col-span-3 flex flex-col rounded-[16px] px-4 py-3 ${
                         review.status === "deleted"
                           ? "bg-[#FF5959]"
                           : "bg-[#59C183]"
                       }`}
                     >
-                      <div className="p-2 text-white rounded">
-                        {review.status === "deleted"
-                          ? "Комментарий удален"
-                          : "Комментарий оставлен"}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="p-2 text-white rounded">
+                          {review.status === "deleted"
+                            ? "Отзыв удаляется"
+                            : "Отзыв принимается"}
+                        </div>
+                        <button
+                          onClick={() => handleCancelHint(review.reviewId)}
+                          className={`p-2 text-white rounded bg-inherit hover:opacity-80 transition ${
+                            review.status === "deleted"
+                              ? "bg-[#FF5959]"
+                              : "bg-[#59C183]"
+                          }`}
+                        >
+                          Отменить
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleCancelHint(review.reviewId)}
-                        className={`p-2 text-white rounded bg-inherit ${
-                          review.status === "deleted"
-                            ? "bg-[#FF5959]"
-                            : "bg-[#59C183]"
-                        }`}
-                      >
-                        Отменить
-                      </button>
+
+                      {review.status === "deleted" && deletionTimers[review.reviewId] && (
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white text-xs font-medium">
+                              {Math.ceil(
+                                deletionTimers[review.reviewId] / 1000
+                              )}{" "}
+                              сек
+                            </span>
+                            <span className="text-white text-xs font-medium">
+                              {Math.round(
+                                (deletionTimers[review.reviewId] /
+                                  DELETION_TIMEOUT_MS) *
+                                  100
+                              )}
+                              %
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-white h-full rounded-full transition-all duration-100"
+                              style={{
+                                width: `${Math.max(
+                                  0,
+                                  (deletionTimers[review.reviewId] /
+                                    DELETION_TIMEOUT_MS) *
+                                    100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {review.status === "accepted" && acceptanceTimers[review.reviewId] && (
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white text-xs font-medium">
+                              {Math.ceil(
+                                acceptanceTimers[review.reviewId] / 1000
+                              )}{" "}
+                              сек
+                            </span>
+                            <span className="text-white text-xs font-medium">
+                              {Math.round(
+                                (acceptanceTimers[review.reviewId] /
+                                  ACCEPTANCE_TIMEOUT_MS) *
+                                  100
+                              )}
+                              %
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-white h-full rounded-full transition-all duration-100"
+                              style={{
+                                width: `${Math.max(
+                                  0,
+                                  (acceptanceTimers[review.reviewId] /
+                                    ACCEPTANCE_TIMEOUT_MS) *
+                                    100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div
