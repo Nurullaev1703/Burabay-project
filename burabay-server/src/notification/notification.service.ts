@@ -23,7 +23,7 @@ export class NotificationService {
     private readonly emailService: EmailService,
   ) {}
 
-  //Создание для пользователя
+  /** Создание уведомления для пользователя */
   @CatchErrors()
   async createForUser(createNotificationDto: CreateNotificationDto) {
     const { email, ...of } = createNotificationDto;
@@ -38,12 +38,24 @@ export class NotificationService {
       users: [user],
     });
     await this.notificationRepository.save(newNotification);
-    // Отправка push-уведомления
+    
+    // Отправка push и email уведомлений в фоне (не ждём завершения)
+    this.#sendNotificationsInBackground(user, of.title, of.message).catch(err => {
+      console.error('Error sending notifications:', err);
+    });
+
+    return JSON.stringify(HttpStatus.CREATED);
+  }
+
+  /** Вспомогательный метод для отправки уведомлений в фоне */
+  async #sendNotificationsInBackground(user: User, title: string, message: string) {
+    const promises: Promise<any>[] = [];
+    
     if (user.pushToken) {
       const payload = {
         data: {
-          title: of.title,
-          body: of.message,
+          title: title,
+          body: message,
           icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
           click_action: 'https://burabay-damu.kz',
         },
@@ -52,19 +64,21 @@ export class NotificationService {
             urgency: 'high',
           },
           notification: {
-            requireInteraction: true, // Уведомление останется на экране
+            requireInteraction: true,
           },
         },
       };
-      await this.firebaseAdminService.sendNotification(user.pushToken, payload);
+      promises.push(this.firebaseAdminService.sendNotification(user.pushToken, payload));
     }
-    // Отправка email-уведомления
-    if (user.email) await this.emailService.sendNotificationMessage(user.email, of.message, of.title);
-
-    return JSON.stringify(HttpStatus.CREATED);
+    
+    if (user.email) {
+      promises.push(this.emailService.sendNotificationMessage(user.email, message, title));
+    }
+    
+    await Promise.all(promises);
   }
 
-  //Создание пуша для пользователя
+  /** Создание пуш-токена для пользователя */
   @CatchErrors()
   async createPushToken(createPushTokenDto: CreatePushTokenDto, tokenData: TokenData) {
     const { pushToken } = createPushTokenDto;
@@ -79,6 +93,7 @@ export class NotificationService {
     return JSON.stringify(HttpStatus.CREATED);
   }
 
+  /** Проверка наличия непрочитанных уведомлений у пользователя */
   @CatchErrors()
   async checkNotifications(tokenData: TokenData) {
     const notifications = await this.notificationRepository.count({
@@ -88,51 +103,34 @@ export class NotificationService {
     else return false;
   }
 
-  //Создание для уведов для всех
+  /** Создание уведомления для всех пользователей */
   @CatchErrors()
   async createForAll(createAllNotificationDto: CreateAllNotificationDto) {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
 
-    // Отправка push- и email-уведомлений всем пользователям
     const users = await this.userRepository.find();
-    for (const user of users) {
-      // Создаём уведомление для каждого пользователя
-      const newNotification = this.notificationRepository.create({
+    
+    // Создаём все уведомления одним bulk запросом
+    const notifications = users.map(user => 
+      this.notificationRepository.create({
         ...of,
         createdAt,
         title: 'Burabay администратор',
         users: [user],
-      });
-      await this.notificationRepository.save(newNotification);
-
-      if (user.pushToken) {
-        const payload = {
-          data: {
-            title: 'Burabay администратор',
-            body: of.message,
-            icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
-            click_action: 'https://burabay-damu.kz',
-          },
-          webpush: {
-            headers: {
-              urgency: 'high',
-            },
-            notification: {
-              requireInteraction: true, // Уведомление останется на экране
-            },
-          },
-        };
-        await this.firebaseAdminService.sendNotification(user.pushToken, payload);
-      }
-      if (user.email) {
-        await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
-      }
-    }
+      })
+    );
+    await this.notificationRepository.save(notifications);
+    
+    // Отправка push и email в фоне
+    this.#sendBulkNotifications(users, 'Burabay администратор', of.message).catch(err => {
+      console.error('Error sending bulk notifications:', err);
+    });
 
     return JSON.stringify(HttpStatus.CREATED);
   }
 
+  /** Получение всех уведомлений, созданных для всех пользователей */
   @CatchErrors()
   async findForAll() {
     const notifications = await this.notificationRepository.find({
@@ -142,6 +140,7 @@ export class NotificationService {
     return notifications.filter((notification) => !notification.users || notification.users.length === 0);
   }
 
+  /** Получение всех уведомлений, созданных для пользователя */
   @CatchErrors()
   async findForUser(tokenData: TokenData) {
     const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
@@ -164,6 +163,7 @@ export class NotificationService {
     return mapNotifications;
   }
 
+  /** Обновление уведомления */
   @CatchErrors()
   async update(id: string, updateNotificationDto: UpdateNotificationDto) {
     try {
@@ -178,17 +178,24 @@ export class NotificationService {
     }
   }
 
+  /** Пометить все уведомления пользователя как прочитанные */
   @CatchErrors()
   async markAllAsRead(tokenData: TokenData) {
     const notifications = await this.notificationRepository.find({
       where: { users: { id: tokenData.id }, isRead: false },
     });
-    for (const notification of notifications) {
+    
+    // Обновляем все уведомления одним запросом
+    notifications.forEach(notification => {
       notification.isRead = true;
-      await this.notificationRepository.save(notification);
+    });
+    
+    if (notifications.length > 0) {
+      await this.notificationRepository.save(notifications);
     }
   }
 
+  /** Удаление уведомления */
   @CatchErrors()
   async remove(id: string) {
     const notification = await this.notificationRepository.findOne({ where: { id: id } });
@@ -203,44 +210,25 @@ export class NotificationService {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
 
-    // Получить всех туристов.
     const tourists = await this.userRepository.find({
       where: { role: ROLE_TYPE.TOURIST },
     });
 
-    // Отправить уведомление всем туристам.
-    for (const tourist of tourists) {
-      // Создаём уведомление для каждого туриста
-      const newNotification = this.notificationRepository.create({
+    // Создаём все уведомления одним bulk запросом
+    const notifications = tourists.map(tourist => 
+      this.notificationRepository.create({
         ...of,
         createdAt,
         title: 'Burabay администратор',
         users: [tourist],
-      });
-      await this.notificationRepository.save(newNotification);
-
-      if (tourist.pushToken) {
-        const payload = {
-          data: {
-            title: 'Burabay администратор',
-            body: of.message,
-            icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
-            click_action: 'https://burabay-damu.kz',
-          },
-          webpush: {
-            headers: {
-              urgency: 'high',
-            },
-            notification: {
-              requireInteraction: true,
-            },
-          },
-        };
-        await this.firebaseAdminService.sendNotification(tourist.pushToken, payload);
-      }
-      if (tourist.email)
-        await this.emailService.sendNotificationMessage(tourist.email, of.message, 'Burabay администратор');
-    }
+      })
+    );
+    await this.notificationRepository.save(notifications);
+    
+    // Отправка push и email в фоне
+    this.#sendBulkNotifications(tourists, 'Burabay администратор', of.message).catch(err => {
+      console.error('Error sending tourist notifications:', err);
+    });
 
     return JSON.stringify(HttpStatus.CREATED);
   }
@@ -251,44 +239,25 @@ export class NotificationService {
     const { ...of } = createAllNotificationDto;
     const createdAt = new Date();
 
-    // Получить все организации.
     const organizations = await this.userRepository.find({
       where: { role: ROLE_TYPE.BUSINESS },
     });
 
-    // Отправить всем пользователям организациям уведомления.
-    for (const organization of organizations) {
-      // Создаём уведомление для каждой организации
-      const newNotification = this.notificationRepository.create({
+    // Создаём все уведомления одним bulk запросом
+    const notifications = organizations.map(organization => 
+      this.notificationRepository.create({
         ...of,
         createdAt,
         title: 'Burabay администратор',
         users: [organization],
-      });
-      await this.notificationRepository.save(newNotification);
-
-      if (organization.pushToken) {
-        const payload = {
-          data: {
-            title: 'Burabay администратор',
-            body: of.message,
-            icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
-            click_action: 'https://burabay-damu.kz',
-          },
-          webpush: {
-            headers: {
-              urgency: 'high',
-            },
-            notification: {
-              requireInteraction: true,
-            },
-          },
-        };
-        await this.firebaseAdminService.sendNotification(organization.pushToken, payload);
-      }
-      if (organization.email)
-        await this.emailService.sendNotificationMessage(organization.email, of.message, 'Burabay администратор');
-    }
+      })
+    );
+    await this.notificationRepository.save(notifications);
+    
+    // Отправка push и email в фоне
+    this.#sendBulkNotifications(organizations, 'Burabay администратор', of.message).catch(err => {
+      console.error('Error sending organization notifications:', err);
+    });
 
     return JSON.stringify(HttpStatus.CREATED);
   }
@@ -299,7 +268,6 @@ export class NotificationService {
     const { categoryIds, ...of } = dto;
     const createdAt = new Date();
 
-    // Get all users who have any of these categories in favorites using QueryBuilder
     const users = await this.userRepository
       .createQueryBuilder('user')
       .innerJoin('user.categoriesFavorited', 'category', 'category.id IN (:...categoryIds)', {
@@ -308,29 +276,40 @@ export class NotificationService {
       .where('user.role = :role', { role: ROLE_TYPE.TOURIST })
       .getMany();
 
-    // Используем Set для отслеживания уже обработанных пользователей
-    const processedUserIds = new Set<string>();
+    // Убираем дубликаты пользователей
+    const uniqueUsers = Array.from(
+      new Map(users.map(user => [user.id, user])).values()
+    );
 
-    // Send notifications to users with these categories in favorites
-    for (const user of users) {
-      // Пропускаем, если пользователь уже получил уведомление
-      if (processedUserIds.has(user.id)) continue;
-
-      // Создаём уведомление для пользователя
-      const newNotification = this.notificationRepository.create({
+    // Создаём все уведомления одним bulk запросом
+    const notifications = uniqueUsers.map(user => 
+      this.notificationRepository.create({
         ...of,
         title: 'Burabay администратор',
         createdAt: createdAt,
         users: [user],
-      });
-      await this.notificationRepository.save(newNotification);
+      })
+    );
+    await this.notificationRepository.save(notifications);
+    
+    // Отправка push и email в фоне
+    this.#sendBulkNotifications(uniqueUsers, 'Burabay администратор', of.message).catch(err => {
+      console.error('Error sending category notifications:', err);
+    });
 
-      // Отправляем push-уведомление только если есть токен
+    return JSON.stringify(HttpStatus.CREATED);
+  }
+
+  /** Вспомогательный метод для массовой отправки уведомлений в фоне */
+  async #sendBulkNotifications(users: User[], title: string, message: string) {
+    const promises: Promise<any>[] = [];
+    
+    for (const user of users) {
       if (user.pushToken) {
         const payload = {
           data: {
-            title: 'Burabay администратор',
-            body: of.message,
+            title: title,
+            body: message,
             icon: 'https://burabay-damu.kz/assets/burabay-logo-By3u97Na.svg',
             click_action: 'https://burabay-damu.kz',
           },
@@ -343,14 +322,22 @@ export class NotificationService {
             },
           },
         };
-        await this.firebaseAdminService.sendNotification(user.pushToken, payload);
+        promises.push(
+          this.firebaseAdminService.sendNotification(user.pushToken, payload).catch(err => {
+            console.error(`Failed to send push to ${user.email}:`, err);
+          })
+        );
       }
-      if (user.email) await this.emailService.sendNotificationMessage(user.email, of.message, 'Burabay администратор');
-
-      // Помечаем пользователя как обработанного
-      processedUserIds.add(user.id);
+      
+      if (user.email) {
+        promises.push(
+          this.emailService.sendNotificationMessage(user.email, message, title).catch(err => {
+            console.error(`Failed to send email to ${user.email}:`, err);
+          })
+        );
+      }
     }
-
-    return JSON.stringify(HttpStatus.CREATED);
+    
+    await Promise.all(promises);
   }
 }
