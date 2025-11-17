@@ -428,19 +428,21 @@ export class AdminPanelService {
   @CatchErrors()
   async banOrg(orgId: string, value: boolean, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
+    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true, ad: true } } } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
-    for (const b of org.ads.flatMap((ad) => ad.bookings)) {
-      b.status = BookingStatus.CANCELED;
-      await this.bookingRepository.save(b);
-      const notificationData = NotificationsMessages.getCancelBookingByBlockOrgMessage(b.user.language, b.ad.title);
-      await this.notificationService.createForUser({
-        email: b.user.email,
-        title: notificationData.title,
-        message: notificationData.text,
-        type: NotificationType.POSITIVE,
-      });
+    for (const ad of org.ads) {
+      for (const b of ad.bookings) {
+        b.status = BookingStatus.CANCELED;
+        await this.bookingRepository.save(b);
+        const notificationData = NotificationsMessages.getCancelBookingByBlockOrgMessage(b.user.language, ad.title);
+        await this.notificationService.createForUser({
+          email: b.user.email,
+          title: notificationData.title,
+          message: notificationData.text,
+          type: NotificationType.POSITIVE,
+        });
+      }
     }
     await this.organizationRepository.save(org);
     return JSON.stringify(HttpStatus.OK);
