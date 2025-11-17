@@ -179,6 +179,17 @@ export class NotificationService {
   }
 
   @CatchErrors()
+  async markAllAsRead(tokenData: TokenData) {
+    const notifications = await this.notificationRepository.find({
+      where: { users: { id: tokenData.id }, isRead: false },
+    });
+    for (const notification of notifications) {
+      notification.isRead = true;
+      await this.notificationRepository.save(notification);
+    }
+  }
+
+  @CatchErrors()
   async remove(id: string) {
     const notification = await this.notificationRepository.findOne({ where: { id: id } });
     Utils.checkEntity(notification, 'Уведомление не найдено');
