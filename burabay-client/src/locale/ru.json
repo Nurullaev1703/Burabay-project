@@ -798,5 +798,7 @@
   "videoSizeExceeded": "Размер видео превышает {{size}}",
   "videoDurationExceeded": "Длительность видео превышает {{duration}} минуты",
   "fileSizeExceeded": "Размер файла превышает допустимый лимит",
-  "fileTooLarge": "Файл слишком большой"
+  "fileTooLarge": "Файл слишком большой",
+  "clickToCopy": "Нажмите, чтобы скопировать ссылку",
+  "copiedToClipboard": "Ссылка скопирована!"
 }

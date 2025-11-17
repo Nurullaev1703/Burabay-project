@@ -792,5 +792,7 @@
   "videoSizeExceeded": "Video size exceeds {{size}}",
   "videoDurationExceeded": "Video duration exceeds {{duration}} minutes",
   "fileSizeExceeded": "File size exceeds the permitted limit",
-  "fileTooLarge": "File is too large"
+  "fileTooLarge": "File is too large",
+  "clickToCopy": "Click to copy the link",
+  "copiedToClipboard": "Link copied!"
 }
