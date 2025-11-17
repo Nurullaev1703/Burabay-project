@@ -367,6 +367,7 @@
   "deleteAccountData": "All account data will be lost. Are you sure you want to delete the account?",
   "changeEmailWarning": "If you want to delete your account to change the email, you can do it below or in the 'Security' section under 'Change email'",
   "deleteProfile": "Delete account",
+  "cannotDeleteAccountWithBookings": "Cannot delete account with active bookings",
   "changeEmailAddress": "Change email address",
   "successDelete": "Account deleted",
   "areYouSure": "Are you sure you want to log out?",
@@ -792,5 +793,7 @@
   "videoSizeExceeded": "Video size exceeds {{size}}",
   "videoDurationExceeded": "Video duration exceeds {{duration}} minutes",
   "fileSizeExceeded": "File size exceeds the permitted limit",
-  "fileTooLarge": "File is too large"
+  "fileTooLarge": "File is too large",
+  "clickToCopy": "Click to copy the link",
+  "copiedToClipboard": "Link copied!"
 }

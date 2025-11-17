@@ -128,13 +128,15 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         {userRole === "турист" ? (
           announcement.organization?.isBanned ? (
             <div className="flex items-center pb-4">
-              <img
-                src={imageSrc}
-                onError={() => setImageSrc(DefaultIcon)}
-                alt={announcement.title}
-                className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-              />
-              <span className="max-w-[266px] truncate">
+              <div className="flex-shrink-0">
+                <img
+                  src={imageSrc}
+                  onError={() => setImageSrc(DefaultIcon)}
+                  alt={announcement.title}
+                  className="w-[52px] h-[52px] object-cover rounded-lg"
+                />
+              </div>
+              <span className="max-w-[266px] truncate ml-2">
                 {announcement.title}
               </span>
             </div>
@@ -145,13 +147,15 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
               params={{ announcementId: announcement.id }}
             >
               <div className="flex items-center">
-                <img
-                  src={imageSrc}
-                  onError={() => setImageSrc(DefaultIcon)}
-                  alt={announcement.title}
-                  className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                />
-                <span className="max-w-[266px] truncate">
+                <div className="flex-shrink-0">
+                  <img
+                    src={imageSrc}
+                    onError={() => setImageSrc(DefaultIcon)}
+                    alt={announcement.title}
+                    className="w-[52px] h-[52px] object-cover rounded-lg"
+                  />
+                </div>
+                <span className="max-w-[266px] truncate ml-2">
                   {announcement.title}
                 </span>
               </div>
@@ -243,13 +247,15 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                     className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
                   >
                     <div className="flex items-center py-3 border-t border-[#E4E9EA] min-w-0">
-                      <img
-                        src={imageSrc}
-                        onError={() => setImageSrc(DefaultIcon)}
-                        alt={b.name}
-                        className="w-[52px] h-[52px] object-cover rounded-full mr-4 flex-shrink-0"
-                      />
-                      <span className="truncate">{b.name}</span>
+                      <div className="flex-shrink-0">
+                        <img
+                          src={imageSrc}
+                          onError={() => setImageSrc(DefaultIcon)}
+                          alt={b.name}
+                          className="w-[52px] h-[52px] object-cover rounded-full"
+                        />
+                      </div>
+                      <span className="truncate ml-4">{b.name}</span>
                     </div>
 
                     <ul className="mb-8">

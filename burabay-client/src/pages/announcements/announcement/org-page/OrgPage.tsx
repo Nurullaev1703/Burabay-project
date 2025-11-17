@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { AdCard } from "../../../main/ui/AdCard";
 import { CoveredImage } from "../../../../shared/ui/CoveredImage";
 import { baseUrl } from "../../../../services/api/ServerData";
@@ -22,27 +22,21 @@ interface Props {
 export const OrgPage: FC<Props> = function OrgPage({ org }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [copiedSiteUrl, setCopiedSiteUrl] = useState(false);
 
-  // Функция для правильной обработки URL
-  const formatSiteUrl = (url: string | undefined): string | undefined => {
-    if (!url) return undefined;
-
-    // Убираем все пробелы
-    let cleanUrl = url.replace(/\s+/g, "");
-
-    // Если URL уже начинается с http:// или https://, возвращаем как есть
-    if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
-      return cleanUrl;
+  const handleCopySiteUrl = async () => {
+    if (org.siteUrl) {
+      try {
+        await navigator.clipboard.writeText(org.siteUrl);
+        setCopiedSiteUrl(true);
+        setTimeout(() => setCopiedSiteUrl(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy site URL:", err);
+      }
     }
-
-    // Если URL начинается с //, добавляем https:
-    if (cleanUrl.startsWith("//")) {
-      return `https:${cleanUrl}`;
-    }
-
-    // В остальных случаях добавляем https://
-    return `https://${cleanUrl}`;
   };
+
+  // Функция для копирования сайта организации
 
   return (
     <div className="bg-background min-h-screen md:bg-gray-50">
@@ -91,17 +85,18 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
             </p>
             <div className="mt-4 pb-4 mb-2">
               <div className="w-full md:w-auto h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                <div className="flex flex-col items-start select-text">
-                  <a
-                    href={formatSiteUrl(org.siteUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[16px] leading-[20px] tracking-[0.4px] text-black select-text"
+                <div className="flex flex-col items-start flex-1">
+                  <div
+                    onClick={handleCopySiteUrl}
+                    className={`text-[16px] leading-[20px] tracking-[0.4px] text-black cursor-pointer hover:opacity-70 transition-opacity select-none ${
+                      org.siteUrl ? "cursor-pointer" : "cursor-default"
+                    }`}
+                    title={org.siteUrl ? t("clickToCopy") : ""}
                   >
                     {org.siteUrl || t("notSpecified")}
-                  </a>
+                  </div>
                   <strong className="text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    {t("site")}
+                    {copiedSiteUrl ? t("copiedToClipboard") : t("site")}
                   </strong>
                 </div>
               </div>

@@ -27,32 +27,38 @@ export const DeleteProfile: FC = function DeleteProfile() {
         url: "/users/delete-account",
       });
 
-      if (response.status === 200) {
+      // Проверяем статус из response.data
+      const status = response.data?.status || response.status;
+      const message = response.data?.message;
+
+      if (status === 200) {
+        // Успешное удаление
         navigate({
           to: "/profile/security/success-delete",
         });
-      } else if (response.status === 400 || response.data?.status === 400) {
-        // Ошибка из-за активных бронирований
-        setErrorMessage(
-          response.data?.message || t("cannotDeleteAccountWithBookings")
-        );
+      } else if (status === 400) {
+        // Ошибка - активные брони или другая ошибка
+        setErrorMessage(message || t("cannotDeleteAccountWithBookings"));
         setIsError(true);
         setTimeout(() => {
           setIsError(false);
         }, 5000);
       } else {
-        setErrorMessage(t("defaultError"));
+        // Неизвестная ошибка
+        setErrorMessage(message || t("defaultError"));
         setIsError(true);
         setTimeout(() => {
           setIsError(false);
         }, 3000);
       }
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || t("defaultError"));
+      // Обработка ошибок сети или других исключений
+      const errorMessage = error.response?.data?.message || error.message || t("defaultError");
+      setErrorMessage(errorMessage);
       setIsError(true);
       setTimeout(() => {
         setIsError(false);
-      }, 3000);
+      }, 5000);
     }
   };
 

@@ -412,17 +412,19 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
                               className="flex justify-between mt-6 overflow-hidden"
                             >
                               <div className="flex w-full min-w-0 flex-1">
-                                <img
-                                  src={imageSrc}
-                                  onError={() =>
-                                    setImagesSrc((prev) => ({
-                                      ...prev,
-                                      [ad.ad_id]: DefaultIcon,
-                                    }))
-                                  }
-                                  className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                                />
-                                <div className="flex flex-col w-full min-w-0">
+                                <div className="flex-shrink-0">
+                                  <img
+                                    src={imageSrc}
+                                    onError={() =>
+                                      setImagesSrc((prev) => ({
+                                        ...prev,
+                                        [ad.ad_id]: DefaultIcon,
+                                      }))
+                                    }
+                                    className="w-[52px] h-[52px] object-cover rounded-lg"
+                                  />
+                                </div>
+                                <div className="flex flex-col w-full min-w-0 ml-2">
                                   <span className="block truncate max-w-[250px]">
                                     {ad.title}
                                   </span>
