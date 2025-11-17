@@ -431,21 +431,35 @@ export class AdminPanelService {
     const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
+    
+    // Собираем все бронирования и уведомления
+    const allBookings: Booking[] = [];
+    const notificationPromises: Promise<any>[] = [];
+    
     for (const ad of org.ads) {
       if (!ad.bookings || ad.bookings.length === 0) continue;
       for (const b of ad.bookings) {
         b.status = BookingStatus.CANCELED;
-        await this.bookingRepository.save(b);
+        allBookings.push(b);
         const notificationData = NotificationsMessages.getCancelBookingByBlockOrgMessage(b.user.language, ad.title);
-        await this.notificationService.createForUser({
-          email: b.user.email,
-          title: notificationData.title,
-          message: notificationData.text,
-          type: NotificationType.POSITIVE,
-        });
+        notificationPromises.push(
+          this.notificationService.createForUser({
+            email: b.user.email,
+            title: notificationData.title,
+            message: notificationData.text,
+            type: NotificationType.POSITIVE,
+          })
+        );
       }
     }
-    await this.organizationRepository.save(org);
+    
+    // Сохраняем все бронирования одним запросом и отправляем уведомления параллельно
+    await Promise.all([
+      allBookings.length > 0 ? this.bookingRepository.save(allBookings) : Promise.resolve(),
+      this.organizationRepository.save(org),
+      ...notificationPromises
+    ]);
+    
     return JSON.stringify(HttpStatus.OK);
   }
 
