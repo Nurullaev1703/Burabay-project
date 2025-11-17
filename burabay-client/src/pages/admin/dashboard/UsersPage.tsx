@@ -81,6 +81,8 @@ export default function UsersList({ filters }: Props) {
     string | null
   >(null);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -288,6 +290,8 @@ export default function UsersList({ filters }: Props) {
   };
 
   const handleBlockUser = async (orgId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(orgId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${orgId}`,
@@ -295,13 +299,22 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        closeUserDetailsModal();
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          organization: { ...prev.organization, isBanned: true },
+        }));
       } else {
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${userId}`,
@@ -309,13 +322,22 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        closeUserDetailsModal();
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          organization: { ...prev.organization, isBanned: false },
+        }));
       } else {
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -323,12 +345,22 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        closeUserDetailsModal();
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          isBanned: true,
+        }));
       } else {
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
+
   const handleUnblockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -336,10 +368,17 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        closeUserDetailsModal();
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          isBanned: false,
+        }));
       } else {
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
 
   return (
@@ -975,23 +1014,39 @@ export default function UsersList({ filters }: Props) {
                   {selectedUser.isBanned ? (
                     <div>
                       <button
-                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                         onClick={() => {
                           handleUnblockTourist(selectedUser.id);
                         }}
+                        disabled={isBlockingLoading && blockingUserId === selectedUser.id}
                       >
-                        Разблокировать
+                        {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Разблокировать"
+                        )}
                       </button>
                     </div>
                   ) : (
                     <div>
                       <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                         onClick={() => {
                           handleBlockTourist(selectedUser.id);
                         }}
+                        disabled={isBlockingLoading && blockingUserId === selectedUser.id}
                       >
-                        Заблокировать пользователя
+                        {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Заблокировать пользователя"
+                        )}
                       </button>
                     </div>
                   )}
@@ -1066,23 +1121,39 @@ export default function UsersList({ filters }: Props) {
                   {selectedUser.organization?.isBanned ? (
                     <div>
                       <button
-                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                         onClick={() => {
                           handleUnblockUser(selectedUser.organization.id);
                         }}
+                        disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
                       >
-                        Разблокировать
+                        {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Разблокировать"
+                        )}
                       </button>
                     </div>
                   ) : (
                     <div>
                       <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                         onClick={() => {
                           handleBlockUser(selectedUser.organization.id);
                         }}
+                        disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
                       >
-                        Заблокировать пользователя
+                        {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Заблокировать пользователя"
+                        )}
                       </button>
                     </div>
                   )}
