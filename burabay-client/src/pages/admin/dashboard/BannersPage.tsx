@@ -507,8 +507,8 @@ const BannersPage: React.FC = () => {
       </div>
       {modalOpen && modalBanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-[16px] max-h-[90vh] w-[600px] overflow-y-auto admin-scrollbar flex flex-col p-4">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-[16px] max-h-[90vh] w-[600px] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
                 Баннер
               </h2>
@@ -523,21 +523,23 @@ const BannersPage: React.FC = () => {
                 <img src={Close} alt="Закрыть" className="w-full h-full" />
               </button>
             </div>
-            <div className="w-full">
-              <img
-                src={`${baseUrl}${modalBanner.imagePath}`}
-                alt={modalBanner.text}
-                className="w-full max-h-[70vh] object-contain mb-4 rounded-lg cursor-pointer"
-                onClick={() =>
-                  window.open(`${baseUrl}${modalBanner.imagePath}`, "_blank")
-                }
-              />
-              <h3 className="text-xl text-black font-semibold mb-2 break-words">
-                {modalBanner.title}
-              </h3>
-              <p className="text-black whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                {modalBanner.text}
-              </p>
+            <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+              <div className="w-full p-4">
+                <img
+                  src={`${baseUrl}${modalBanner.imagePath}`}
+                  alt={modalBanner.text}
+                  className="w-full max-h-[70vh] object-contain mb-4 rounded-lg cursor-pointer"
+                  onClick={() =>
+                    window.open(`${baseUrl}${modalBanner.imagePath}`, "_blank")
+                  }
+                />
+                <h3 className="text-xl text-black font-semibold mb-2 break-words">
+                  {modalBanner.title}
+                </h3>
+                <p className="text-black whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                  {modalBanner.text}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -546,8 +548,8 @@ const BannersPage: React.FC = () => {
       {/* Модалка подтверждения удаления */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-[16px] w-[600px] max-h-[90vh] overflow-y-auto admin-scrollbar flex flex-col p-4 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-[16px] max-w-sm w-full mx-4 flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between p-4 z-10">
               <h2 className="font-roboto font-medium text-[#0A7D9E] text-[18px] flex-grow text-center">
                 Удалить баннер?
               </h2>
@@ -561,17 +563,18 @@ const BannersPage: React.FC = () => {
                 <img src={Close} alt="Закрыть" className="w-full h-full" />
               </button>
             </div>
-            <p className="font-medium mb-2" style={{ color: "#000000" }}>
-              Вы уверены, что хотите удалить этот баннер?
-            </p>
-            <p
-              className="font-semibold text-base mb-8"
-              style={{ color: "#DC2626" }}
-            >
-              Это действие нельзя отменить!
-            </p>
-
-            <div className="flex gap-3 justify-center">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <p className="font-medium mb-2" style={{ color: "#000000" }}>
+                Вы уверены, что хотите удалить этот баннер?
+              </p>
+              <p
+                className="font-semibold text-base"
+                style={{ color: "#DC2626" }}
+              >
+                Это действие нельзя отменить!
+              </p>
+            </div>
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex gap-3 justify-end px-6 py-4 z-10">
               <button
                 onClick={() => {
                   setDeleteModalOpen(false);
@@ -606,8 +609,8 @@ const BannersPage: React.FC = () => {
       {/* Модалка добавления баннера */}
       {addModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-[16px] w-[90%] sm:w-[600px] max-h-[90vh] overflow-y-auto p-8 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-white rounded-[16px] w-[90%] sm:w-[600px] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex justify-between items-center p-4 z-10">
               <h2 className="text-2xl text-[#0A7D9E] font-semibold">
                 Добавить баннер
               </h2>
@@ -630,9 +633,8 @@ const BannersPage: React.FC = () => {
               </button>
             </div>
 
-            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="overflow-y-auto admin-scrollbar flex-1">
+              <form onSubmit={handleSubmit} className="space-y-4 p-8">
               <div>
                 <label
                   htmlFor="title"
@@ -726,14 +728,23 @@ const BannersPage: React.FC = () => {
                 </p>
               </div>
 
+              {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+            </form>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] p-4 z-10">
               <button
                 type="submit"
-                className="bg-[#0A7D9E] hover:bg-[#096b85] transition-colors font-medium rounded-lg text-white px-4 py-3 w-full mt-6"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('form')?.dispatchEvent(new Event('submit', { bubbles: true }));
+                }}
+                className="bg-[#0A7D9E] hover:bg-[#096b85] transition-colors font-medium rounded-lg text-white px-4 py-3 w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading}
               >
                 {loading ? "Загрузка..." : "Добавить баннер"}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

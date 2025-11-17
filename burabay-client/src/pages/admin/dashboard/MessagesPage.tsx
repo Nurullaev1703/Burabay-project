@@ -44,6 +44,12 @@ const MessagesPage: FC<Props> = ({ categories }) => {
     fetchNotifications();
   }, []);
 
+  useEffect(() => {
+    if (Object.keys(messages).length > 0 && !loading) {
+      scrollToBottom();
+    }
+  }, [messages, loading]);
+
   const fetchNotifications = async () => {
     try {
       const response = await apiService.get<Notification[]>({
@@ -74,7 +80,6 @@ const MessagesPage: FC<Props> = ({ categories }) => {
     } catch (error) {
     } finally {
       setLoading(false);
-      setTimeout(() => scrollToBottom(), 300);
     }
   };
 
@@ -140,7 +145,7 @@ const MessagesPage: FC<Props> = ({ categories }) => {
       });
 
       setNewMessage("");
-      setTimeout(() => scrollToBottom(), 100);
+      scrollToBottom();
     } catch (error) {
       console.error("Ошибка при отправке уведомления:", error);
       alert("Не удалось отправить уведомление. Попробуйте снова.");
@@ -150,13 +155,13 @@ const MessagesPage: FC<Props> = ({ categories }) => {
   };
 
   const scrollToBottom = () => {
-    setTimeout(() => {
-      const scrollContainer = document.getElementById("messages-container");
-      if (scrollContainer) {
-        scrollContainer.style.scrollBehavior = "smooth";
+    const scrollContainer = document.getElementById("messages-container");
+    if (scrollContainer) {
+      // Используем requestAnimationFrame для более надёжного скролла
+      requestAnimationFrame(() => {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
-    }, 100);
+      });
+    }
   };
 
   const groupMessagesByDate = (messages: Message[]) =>

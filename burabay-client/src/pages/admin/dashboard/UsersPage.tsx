@@ -966,8 +966,8 @@ export default function UsersList({ filters }: Props) {
       {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
-            <div className="flex items-center justify-between w-full">
+          <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={closeUserDetailsModal}
@@ -990,14 +990,15 @@ export default function UsersList({ filters }: Props) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div>
-              <div className="flex justify-center space-x-4">
-                <img
-                  className="w-[128px] h-[128px] rounded-full object-cover"
-                  src={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
-                  onError={(e) => (e.currentTarget.src = defaultImage)}
-                />
-              </div>
+            <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+              <div className="p-4">
+                <div className="flex justify-center space-x-4">
+                  <img
+                    className="w-[128px] h-[128px] rounded-full object-cover"
+                    src={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
+                    onError={(e) => (e.currentTarget.src = defaultImage)}
+                  />
+                </div>
               <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
                 {selectedUser.fullName ||
                   selectedUser.organization?.name ||
@@ -1021,51 +1022,10 @@ export default function UsersList({ filters }: Props) {
                     {selectedUser.phoneNumber || "Не указан"}
                   </Typography>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-4">
-                  {selectedUser.isBanned ? (
-                    <div>
-                      <button
-                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleUnblockTourist(selectedUser.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedUser.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedUser.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Разблокировать"
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleBlockTourist(selectedUser.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedUser.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedUser.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Заблокировать пользователя"
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             ) : selectedUser.role === "бизнес" ? (
-              <div>
-                <div className="mt-4">
+              <div className="flex-1 flex flex-col">
+                <div className="px-4 pt-4">
                   <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
                     <div className="flex flex-col items-start min-w-0 flex-1">
                       <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
@@ -1097,7 +1057,7 @@ export default function UsersList({ filters }: Props) {
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 flex-1 px-4">
                   {announcementsLoading ? (
                     <Loader />
                   ) : announcementsError ? (
@@ -1127,52 +1087,86 @@ export default function UsersList({ filters }: Props) {
                     </Typography>
                   )}
                 </div>
-
-                <div className="flex flex-col items-center gap-4 mt-4">
-                  {selectedUser.organization?.isBanned ? (
-                    <div>
-                      <button
-                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleUnblockUser(selectedUser.organization.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Разблокировать"
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <button
-                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                        onClick={() => {
-                          handleBlockUser(selectedUser.organization.id);
-                        }}
-                        disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
-                      >
-                        {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
-                          <>
-                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
-                            Обработка...
-                          </>
-                        ) : (
-                          "Заблокировать пользователя"
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             ) : (
               <div></div>
             )}
+            </div>
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
+              {selectedUser && (selectedUser.role === "турист" ? (
+                selectedUser.isBanned ? (
+                  <button
+                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleUnblockTourist(selectedUser.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Разблокировать"
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleBlockTourist(selectedUser.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Заблокировать пользователя"
+                    )}
+                  </button>
+                )
+              ) : selectedUser.role === "бизнес" ? (
+                selectedUser.organization?.isBanned ? (
+                  <button
+                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleUnblockUser(selectedUser.organization.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Разблокировать"
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleBlockUser(selectedUser.organization.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Заблокировать пользователя"
+                    )}
+                  </button>
+                )
+              ) : null)}
+            </div>
           </div>
         </div>
       )}

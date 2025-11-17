@@ -111,6 +111,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   ); // reviewId -> remaining time in ms
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
   const timerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров удаления
   const acceptanceTimerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров принятия
@@ -752,6 +754,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   };
 
   const handleBlockUser = async (orgId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(orgId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${orgId}`,
@@ -764,10 +768,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       }
     } catch (error) {
       showToast("Ошибка при блокировке организации", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${userId}`,
@@ -780,10 +789,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       }
     } catch (error) {
       showToast("Ошибка при разблокировке организации", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -796,10 +810,15 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       }
     } catch (error) {
       showToast("Ошибка при блокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleUnblockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -812,6 +831,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       }
     } catch (error) {
       showToast("Ошибка при разблокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
@@ -1135,8 +1157,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       </div>
       {isModalOpen && selectedOrg && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
-            <div className="flex items-center justify-between w-full">
+          <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsModalOpen(false)}
@@ -1153,102 +1175,118 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div className="flex justify-center space-x-4">
-              <CoveredImage
-                width="w-[128px]"
-                height="h-[128px]"
-                borderRadius="rounded-full"
-                imageSrc={`${BASE_URL}${selectedOrg.imgUrl}`}
-                errorImage={defaultImage}
-              />
-            </div>
-            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
-              {selectedOrg.name || "Не указано"}
-            </h2>
-            <div className="mt-4">
-              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
-                    {selectedOrg.website || "Не указано"}
-                  </p>
-                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Сайт
-                  </strong>
+            <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+              <div className="p-4">
+                <div className="flex justify-center space-x-4">
+                  <CoveredImage
+                    width="w-[128px]"
+                    height="h-[128px]"
+                    borderRadius="rounded-full"
+                    imageSrc={`${BASE_URL}${selectedOrg.imgUrl}`}
+                    errorImage={defaultImage}
+                  />
+                </div>
+                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
+                  {selectedOrg.name || "Не указано"}
+                </h2>
+              </div>
+              <div className="px-4">
+                <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
+                      {selectedOrg.website || "Не указано"}
+                    </p>
+                    <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                      Сайт
+                    </strong>
+                  </div>
+                </div>
+                <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
+                      {selectedOrg.phone || "Не указано"}
+                    </p>
+                    <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                      Телефон
+                    </strong>
+                  </div>
+                </div>
+                <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
+                      {selectedOrg.user?.email || "Не указан"}
+                    </p>
+                    <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                      Email
+                    </strong>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
-                    {selectedOrg.phone || "Не указано"}
-                  </p>
-                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Телефон
-                  </strong>
-                </div>
-              </div>
-              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
-                    {selectedOrg.user?.email || "Не указан"}
-                  </p>
-                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Email
-                  </strong>
-                </div>
+              <div className="px-4 py-4">
+                {announcementsLoading ? (
+                  <Loader />
+                ) : announcementsError ? (
+                  <p className="text-red-500">{announcementsError}</p>
+                ) : organizationAnnouncements.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {organizationAnnouncements.map((ad: any) => (
+                      <div
+                        key={ad.id}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedAnnouncementId(ad.id);
+                          setIsAnnouncementModalOpen(true);
+                        }}
+                      >
+                        <AdCard
+                          ad={ad}
+                          isOrganization={true}
+                          disableLink={true}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Нет объявлений</p>
+                )}
               </div>
             </div>
-            <div className="mt-4">
-              {announcementsLoading ? (
-                <Loader />
-              ) : announcementsError ? (
-                <p className="text-red-500">{announcementsError}</p>
-              ) : organizationAnnouncements.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {organizationAnnouncements.map((ad: any) => (
-                    <div
-                      key={ad.id}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSelectedAnnouncementId(ad.id);
-                        setIsAnnouncementModalOpen(true);
-                      }}
-                    >
-                      <AdCard
-                        ad={ad}
-                        isOrganization={true}
-                        disableLink={true}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500">Нет объявлений</p>
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-4 mt-4">
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
               {!selectedTourist?.isBanned && (
-                <div>
-                  <button
-                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                    onClick={() => {
-                      handleBlockUser(selectedOrg.id);
-                    }}
-                  >
-                    Заблокировать пользователя
-                  </button>
-                </div>
+                <button
+                  className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                  onClick={() => {
+                    handleBlockUser(selectedOrg.id);
+                  }}
+                  disabled={isBlockingLoading && blockingUserId === selectedOrg.id}
+                >
+                  {isBlockingLoading && blockingUserId === selectedOrg.id ? (
+                    <>
+                      <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                      Обработка...
+                    </>
+                  ) : (
+                    "Заблокировать пользователя"
+                  )}
+                </button>
               )}
               {selectedTourist?.isBanned && (
-                <div>
-                  <button
-                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                    onClick={() => {
-                      handleUnblockUser(selectedOrg.id);
-                    }}
-                  >
-                    Разблокировать
-                  </button>
-                </div>
+                <button
+                  className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                  onClick={() => {
+                    handleUnblockUser(selectedOrg.id);
+                  }}
+                  disabled={isBlockingLoading && blockingUserId === selectedOrg.id}
+                >
+                  {isBlockingLoading && blockingUserId === selectedOrg.id ? (
+                    <>
+                      <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Обработка...
+                    </>
+                  ) : (
+                    "Разблокировать"
+                  )}
+                </button>
               )}
             </div>
           </div>
@@ -1256,8 +1294,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       )}
       {isTouristModalOpen && selectedTourist && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-[16px] max-h-[90vh] shadow-lg overflow-y-auto admin-scrollbar w-[600px] flex flex-col">
-            <div className="flex items-center justify-between w-full">
+          <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={() => setIsTouristModalOpen(false)}
@@ -1274,63 +1312,79 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div className="flex justify-center space-x-4">
-              <CoveredImage
-                width="w-[128px]"
-                height="h-[128px]"
-                borderRadius="rounded-full"
-                imageSrc={`${BASE_URL}${selectedTourist.picture}`}
-                errorImage={defaultImage}
-              />
-            </div>
-            <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
-              {selectedTourist.fullName || "Не указано"}
-            </h2>
-            <div className="mt-4">
-              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
-                    {selectedTourist.phoneNumber || "Не указан"}
-                  </p>
-                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Телефон
-                  </strong>
+            <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+              <div className="p-4">
+                <div className="flex justify-center space-x-4">
+                  <CoveredImage
+                    width="w-[128px]"
+                    height="h-[128px]"
+                    borderRadius="rounded-full"
+                    imageSrc={`${BASE_URL}${selectedTourist.picture}`}
+                    errorImage={defaultImage}
+                  />
+                </div>
+                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
+                  {selectedTourist.fullName || "Не указано"}
+                </h2>
+              </div>
+              <div className="px-4">
+                <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
+                      {selectedTourist.phoneNumber || "Не указан"}
+                    </p>
+                    <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                      Телефон
+                    </strong>
+                  </div>
+                </div>
+                <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
+                      {selectedTourist.email || "Не указан"}
+                    </p>
+                    <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
+                      Email
+                    </strong>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
-                <div className="flex flex-col items-start min-w-0 flex-1">
-                  <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
-                    {selectedTourist.email || "Не указан"}
-                  </p>
-                  <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                    Email
-                  </strong>
-                </div>
-              </div>
             </div>
-            <div className="flex flex-col items-center gap-4 mt-4">
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
               {selectedTourist.isBanned ? (
-                <div>
-                  <button
-                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                    onClick={() => {
-                      handleUnblockTourist(selectedTourist.id);
-                    }}
-                  >
-                    Разблокировать
-                  </button>
-                </div>
+                <button
+                  className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                  onClick={() => {
+                    handleUnblockTourist(selectedTourist.id);
+                  }}
+                  disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                >
+                  {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                    <>
+                      <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Обработка...
+                    </>
+                  ) : (
+                    "Разблокировать"
+                  )}
+                </button>
               ) : (
-                <div>
-                  <button
-                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                    onClick={() => {
-                      handleBlockTourist(selectedTourist.id);
-                    }}
-                  >
-                    Заблокировать пользователя
-                  </button>
-                </div>
+                <button
+                  className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                  onClick={() => {
+                    handleBlockTourist(selectedTourist.id);
+                  }}
+                  disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                >
+                  {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                    <>
+                      <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                      Обработка...
+                    </>
+                  ) : (
+                    "Заблокировать пользователя"
+                  )}
+                </button>
               )}
             </div>
           </div>

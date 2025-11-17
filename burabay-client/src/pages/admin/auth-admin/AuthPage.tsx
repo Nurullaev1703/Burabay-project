@@ -10,6 +10,7 @@ import CloseEyeIcon from "../../../app/icons/close-eye.svg";
 import { TextField } from "@mui/material";
 import { useAuth } from "../../../features/auth";
 import { baseUrl } from "../../../services/api/ServerData";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 interface AuthFormData {
   email: string;
@@ -19,6 +20,7 @@ interface AuthFormData {
 const AuthPage: React.FC = () => {
   const { t } = useTranslation();
   const { setToken } = useAuth();
+  const { showToast, toasts, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
@@ -57,7 +59,11 @@ const AuthPage: React.FC = () => {
 
           // Если это число (HTTP статус код)
           if (typeof parsedData === "number") {
-            if (parsedData === 409) {
+            if (parsedData === 404) {
+              // NOT FOUND - неверный логин или пароль
+              showToast("Неверный логин или пароль", "error");
+              return;
+            } else if (parsedData === 409) {
               // CONFLICT - неверный пароль
               setErrorMessage(t("adminWrongPassword"));
               return;
@@ -176,6 +182,7 @@ const AuthPage: React.FC = () => {
           </button>
         </form>
       </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 };
