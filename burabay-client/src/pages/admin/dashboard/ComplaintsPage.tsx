@@ -13,6 +13,7 @@ import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
 import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
 import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import Back from "/Back.svg?url";
 import Close from "/Close.png?url";
@@ -74,6 +75,7 @@ export interface User {
 }
 
 export const ComplaintsPage: FC = function ComplaintsPage({}) {
+  const { toasts, showToast, removeToast } = useToast();
   const [reviews, setReviews] = useState<
     (Review & {
       hint: { message: string; type: "success" | "error" } | null;
@@ -739,10 +741,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: true },
       });
       if (response.status === 200) {
+        const orgName = selectedOrg?.name || "Организация";
+        showToast(`Организация "${orgName}" успешно заблокирована`, "success");
         setIsModalOpen(false);
-      } else {
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при блокировке организации", "error");
+    }
   };
 
   const handleUnblockUser = async (userId: string) => {
@@ -752,10 +757,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: false },
       });
       if (response.status === 200) {
+        const orgName = selectedOrg?.name || "Организация";
+        showToast(`Организация "${orgName}" успешно разблокирована`, "success");
         setIsModalOpen(false);
-      } else {
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при разблокировке организации", "error");
+    }
   };
 
   const handleBlockTourist = async (userId: string) => {
@@ -765,10 +773,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: true },
       });
       if (response.status === 200) {
+        const touristName = selectedTourist?.fullName || "Турист";
+        showToast(`Пользователь "${touristName}" успешно заблокирован`, "success");
         setIsTouristModalOpen(false);
-      } else {
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при блокировке пользователя", "error");
+    }
   };
 
   const handleUnblockTourist = async (userId: string) => {
@@ -778,14 +789,18 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
         dto: { value: false },
       });
       if (response.status === 200) {
+        const touristName = selectedTourist?.fullName || "Турист";
+        showToast(`Пользователь "${touristName}" успешно разблокирован`, "success");
         setIsTouristModalOpen(false);
-      } else {
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при разблокировке пользователя", "error");
+    }
   };
 
   return (
     <div className="relative w-full min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
         className="absolute inset-0 bg-cover bg-center opacity-25 z-[-1]"

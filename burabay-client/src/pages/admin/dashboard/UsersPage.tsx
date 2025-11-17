@@ -18,6 +18,7 @@ import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
 import { Button } from "../../../shared/ui/Button";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import document from "/document.svg?url";
 import confirmed from "/confirmed.svg?url";
@@ -38,6 +39,7 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
 
   // Локальное состояние для поискового запроса
   const [searchInput, setSearchInput] = useState(filters.searchQuery ?? "");
@@ -299,13 +301,15 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        const orgName = selectedUser?.organization?.name || "Организация";
         setSelectedUser((prev: any) => ({
           ...prev,
           organization: { ...prev.organization, isBanned: true },
         }));
-      } else {
+        showToast(`Организация "${orgName}" успешно заблокирована`, "success");
       }
     } catch (error) {
+      showToast("Ошибка при блокировке организации", "error");
     } finally {
       setIsBlockingLoading(false);
       setBlockingUserId(null);
@@ -322,13 +326,15 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        const orgName = selectedUser?.organization?.name || "Организация";
         setSelectedUser((prev: any) => ({
           ...prev,
           organization: { ...prev.organization, isBanned: false },
         }));
-      } else {
+        showToast(`Организация "${orgName}" успешно разблокирована`, "success");
       }
     } catch (error) {
+      showToast("Ошибка при разблокировке организации", "error");
     } finally {
       setIsBlockingLoading(false);
       setBlockingUserId(null);
@@ -345,13 +351,15 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        const userName = selectedUser?.fullName || "Турист";
         setSelectedUser((prev: any) => ({
           ...prev,
           isBanned: true,
         }));
-      } else {
+        showToast(`Пользователь "${userName}" успешно заблокирован`, "success");
       }
     } catch (error) {
+      showToast("Ошибка при блокировке пользователя", "error");
     } finally {
       setIsBlockingLoading(false);
       setBlockingUserId(null);
@@ -368,13 +376,15 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        const userName = selectedUser?.fullName || "Турист";
         setSelectedUser((prev: any) => ({
           ...prev,
           isBanned: false,
         }));
-      } else {
+        showToast(`Пользователь "${userName}" успешно разблокирован`, "success");
       }
     } catch (error) {
+      showToast("Ошибка при разблокировке пользователя", "error");
     } finally {
       setIsBlockingLoading(false);
       setBlockingUserId(null);
@@ -383,6 +393,7 @@ export default function UsersList({ filters }: Props) {
 
   return (
     <div className="relative min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>
       <div
         className="fixed inset-0 bg-cover bg-center opacity-25"

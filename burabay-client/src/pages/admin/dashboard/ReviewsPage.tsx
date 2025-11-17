@@ -12,6 +12,7 @@ import SideNav from "../../../components/admin/SideNav";
 import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
 import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import Back from "/Back.svg?url";
 import Close from "/Close.png?url";
@@ -25,6 +26,7 @@ interface Review {
   text: string;
   stars: number;
   isCheked: boolean;
+  isBanned?: boolean;
   date: string;
   picture: string;
   email: string;
@@ -64,7 +66,10 @@ const ReviewsPage: FC = () => {
   >(null);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
   const take = 9;
 
   const {
@@ -89,29 +94,49 @@ const ReviewsPage: FC = () => {
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
-        url: `/admin/ban-org/${userId}`,
+        url: `/admin/ban-tourist/${userId}`,
         dto: { value: false },
       });
       if (response.status === 200) {
-        setIsModalOpen(false);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: false } : null
+        );
+        showToast(`Пользователь "${userName}" успешно разблокирован`, "success");
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при разблокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
         dto: { value: true },
       });
       if (response.status === 200) {
-        setIsTouristModalOpen(null);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: true } : null
+        );
+        showToast(`Пользователь "${userName}" успешно заблокирован`, "success");
       }
-    } catch (error) {}
+    } catch (error) {
+      showToast("Ошибка при блокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
+    }
   };
   const fetchTouristInfo = async (userId: string) => {
     try {
@@ -133,6 +158,7 @@ const ReviewsPage: FC = () => {
 
   return (
     <div className="relative w-full min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="fixed inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
         className="fixed inset-0 bg-cover bg-center opacity-25 z-[-1]"
@@ -449,24 +475,45 @@ const ReviewsPage: FC = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-center gap-4 mt-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => handleBlockTourist(selectedTourist.id)}
-                    >
-                      Заблокировать пользователя
-                    </button>
+                  {selectedTourist?.isBanned ? (
                     <div>
                       <button
-                        className="bg-[#39B56B] mt-4 text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
+                        className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                         onClick={() => {
                           handleUnblockUser(selectedTourist.id);
                         }}
+                        disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
                       >
-                        Разблокировать пользователя
+                        {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Разблокировать"
+                        )}
                       </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <button
+                        className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                        onClick={() => {
+                          handleBlockTourist(selectedTourist.id);
+                        }}
+                        disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                      >
+                        {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                          <>
+                            <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                            Обработка...
+                          </>
+                        ) : (
+                          "Заблокировать пользователя"
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
