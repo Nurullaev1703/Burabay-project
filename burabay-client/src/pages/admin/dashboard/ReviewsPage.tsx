@@ -81,6 +81,8 @@ const ReviewsPage: FC = () => {
     handleDeleteReview,
     handleCancelHint,
     reviewHints,
+    isDeleteLoading,
+    deleteLoadingId,
   } = useGetReviews({ take });
 
   const reviews = data?.pages.flat() || [];
@@ -540,7 +542,8 @@ const ReviewsPage: FC = () => {
           <div className="bg-white p-6 rounded-[16px] shadow-lg max-w-sm w-full mx-4 flex flex-col gap-4 relative">
             <button
               onClick={() => setDeleteConfirm(null)}
-              className="absolute top-4 right-4 h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute top-4 right-4 h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isDeleteLoading}
             >
               <img src={Close} alt="Закрыть" className="w-6 h-6" />
             </button>
@@ -554,18 +557,32 @@ const ReviewsPage: FC = () => {
             <div className="flex gap-3 justify-end pt-4">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors"
+                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleteLoading}
               >
                 Отменить
               </button>
               <button
-                onClick={() => {
-                  handleDeleteReview(deleteConfirm);
+                onClick={async () => {
+                  const result = await handleDeleteReview(deleteConfirm);
+                  if (result?.success) {
+                    showToast("Отзыв успешно удален", "success");
+                  } else {
+                    showToast(result?.message || "Ошибка при удалении отзыва", "error");
+                  }
                   setDeleteConfirm(null);
                 }}
-                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity"
+                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                disabled={isDeleteLoading}
               >
-                Удалить
+                {isDeleteLoading ? (
+                  <>
+                    <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    Обработка...
+                  </>
+                ) : (
+                  "Удалить"
+                )}
               </button>
             </div>
           </div>

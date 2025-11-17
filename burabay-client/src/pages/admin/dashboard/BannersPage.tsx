@@ -13,6 +13,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./datepicker-custom.css";
 import { baseUrl } from "../../../services/api/ServerData";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import Close from "/Close.png?url";
 
@@ -26,6 +27,7 @@ interface Banner {
 }
 
 const BannersPage: React.FC = () => {
+  const { toasts, showToast, removeToast } = useToast();
   const [banner, setBanner] = useState<Banner>({
     title: "",
     text: "",
@@ -49,6 +51,7 @@ const BannersPage: React.FC = () => {
   const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const formatDate = (d?: string) => {
     if (!d) return "-";
@@ -191,14 +194,20 @@ const BannersPage: React.FC = () => {
 
   const handleDelete = async (bannerId?: string) => {
     if (!bannerId) return;
+    setIsDeleteLoading(true);
     try {
-      await apiService.delete({ url: `/admin/banner/${bannerId}` });
-      // refresh list from server after deletion
-      await fetchBannersList();
-      setDeleteModalOpen(false);
-      setBannerToDelete(null);
+      const response = await apiService.delete({ url: `/admin/banner/${bannerId}` });
+      if (response.status === 200) {
+        // refresh list from server after deletion
+        await fetchBannersList();
+        setDeleteModalOpen(false);
+        setBannerToDelete(null);
+        showToast("Баннер успешно удален", "success");
+      }
     } catch (e) {
-      alert("Не удалось удалить баннер");
+      showToast("Ошибка при удалении баннера", "error");
+    } finally {
+      setIsDeleteLoading(false);
     }
   };
 
@@ -232,6 +241,7 @@ const BannersPage: React.FC = () => {
 
   return (
     <div className="flex h-screen relative">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       {/* Фоновое изображение */}
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35 z-0"></div>
       <div
@@ -567,17 +577,26 @@ const BannersPage: React.FC = () => {
                   setDeleteModalOpen(false);
                   setBannerToDelete(null);
                 }}
-                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-[#096b85] transition-colors"
+                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-[#096b85] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#0A7D9E" }}
+                disabled={isDeleteLoading}
               >
                 Отмена
               </button>
               <button
                 onClick={() => handleDelete(bannerToDelete || undefined)}
-                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-red-700 transition-colors"
+                className="px-8 py-3 rounded-lg text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
                 style={{ backgroundColor: "#DC2626" }}
+                disabled={isDeleteLoading}
               >
-                Удалить
+                {isDeleteLoading ? (
+                  <>
+                    <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    Обработка...
+                  </>
+                ) : (
+                  "Удалить"
+                )}
               </button>
             </div>
           </div>

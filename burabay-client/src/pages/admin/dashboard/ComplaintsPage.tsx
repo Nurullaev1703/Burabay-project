@@ -109,6 +109,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [acceptanceTimers, setAcceptanceTimers] = useState<Record<string, number>>(
     {}
   ); // reviewId -> remaining time in ms
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
   const timerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров удаления
   const acceptanceTimerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров принятия
@@ -308,50 +310,65 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     });
   };
 
-  const handleDeleteReview = useCallback((reviewId: string) => {
-    // Помечаем в localStorage
-    const updatedDeletions = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
-    );
-    updatedDeletions[reviewId] = true;
-    localStorage.setItem(
-      LOCAL_STORAGE_DELETION_KEY,
-      JSON.stringify(updatedDeletions)
-    );
+  const handleDeleteReview = async (reviewId: string) => {
+    setIsDeleteLoading(true);
+    setDeleteLoadingId(reviewId);
+    try {
+      const response = await apiService.delete({
+        url: `/admin/review/${reviewId}`,
+      });
+      if (response.status === 200) {
+        // Помечаем в localStorage
+        const updatedDeletions = JSON.parse(
+          localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+        );
+        updatedDeletions[reviewId] = true;
+        localStorage.setItem(
+          LOCAL_STORAGE_DELETION_KEY,
+          JSON.stringify(updatedDeletions)
+        );
 
-    // Устанавливаем таймер для этого отзыва
-    setDeletionTimers((prev) => ({
-      ...prev,
-      [reviewId]: DELETION_TIMEOUT_MS,
-    }));
+        // Устанавливаем таймер для этого отзыва
+        setDeletionTimers((prev) => ({
+          ...prev,
+          [reviewId]: DELETION_TIMEOUT_MS,
+        }));
 
-    // Сохраняем время в localStorage для восстановления при перезагрузке
-    const storedTimers = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
-    );
-    storedTimers[reviewId] = Date.now() + DELETION_TIMEOUT_MS;
-    localStorage.setItem(
-      LOCAL_STORAGE_DELETION_TIMERS_KEY,
-      JSON.stringify(storedTimers)
-    );
+        // Сохраняем время в localStorage для восстановления при перезагрузке
+        const storedTimers = JSON.parse(
+          localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+        );
+        storedTimers[reviewId] = Date.now() + DELETION_TIMEOUT_MS;
+        localStorage.setItem(
+          LOCAL_STORAGE_DELETION_TIMERS_KEY,
+          JSON.stringify(storedTimers)
+        );
 
-    // Обновляем UI
-    setReviews((prevReviews) =>
-      prevReviews.map((review) =>
-        review.reviewId === reviewId
-          ? {
-              ...review,
-              hint: {
-                message: "Отзыв будет удален",
-                type: "success" as const,
-              },
-              delayedRemoval: true,
-              status: "deleted" as const,
-            }
-          : review
-      )
-    );
-  }, []);
+        // Обновляем UI
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.reviewId === reviewId
+              ? {
+                  ...review,
+                  hint: {
+                    message: "Отзыв будет удален",
+                    type: "success" as const,
+                  },
+                  delayedRemoval: true,
+                  status: "deleted" as const,
+                }
+              : review
+          )
+        );
+        showToast("Отзыв успешно удален", "success");
+      }
+    } catch (error) {
+      showToast("Ошибка при удалении отзыва", "error");
+    } finally {
+      setIsDeleteLoading(false);
+      setDeleteLoadingId(null);
+    }
+  };
 
   const handleAcceptReview = useCallback((reviewId: string) => {
     // Помечаем в localStorage
@@ -1073,9 +1090,17 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                         </button>
                         <button
                           onClick={() => handleDeleteReview(review.reviewId)}
-                          className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                          className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                          disabled={isDeleteLoading && deleteLoadingId === review.reviewId}
                         >
-                          Удалить отзыв
+                          {isDeleteLoading && deleteLoadingId === review.reviewId ? (
+                            <>
+                              <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                              Обработка...
+                            </>
+                          ) : (
+                            "Удалить отзыв"
+                          )}
                         </button>
                       </div>
                     </>

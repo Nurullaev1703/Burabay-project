@@ -19,6 +19,8 @@ export function useGetReviews(filters: ReviewsFilter) {
   const [reviewHints, setReviewHints] = useState<
     Record<string, { message: string; type: string; status?: string }>
   >({});
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   const saveTimerToLocalStorage = (reviewId: string, expiryTime: number) => {
     const storedTimers = JSON.parse(
@@ -78,27 +80,44 @@ export function useGetReviews(filters: ReviewsFilter) {
     }
   };
 
-  const handleDeleteReview = (reviewId: string) => {
-    setReviewHints((prev) => ({
-      ...prev,
-      [reviewId]: {
-        message: "Отзыв будет удален через 10 секунд",
-        type: "success",
-        status: "pending",
-      },
-    }));
-
-    const expiryTime = Date.now() + DELETION_TIMEOUT;
-    saveTimerToLocalStorage(reviewId, expiryTime);
-
-    if (timers.current[reviewId]) {
-      clearTimeout(timers.current[reviewId]);
+  const handleDeleteReview = async (reviewId: string) => {
+    setIsDeleteLoading(true);
+    setDeleteLoadingId(reviewId);
+    try {
+      const response = await apiService.delete({
+        url: `/review/${reviewId}`,
+      });
+      if (response.status === 200) {
+        queryClient.setQueryData(["admin-reviews", filters], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any[]) =>
+              page.filter((review: any) => review.id !== reviewId)
+            ),
+          };
+        });
+        setReviewHints((prev) => {
+          const copy = { ...prev };
+          delete copy[reviewId];
+          return copy;
+        });
+        removeTimerFromLocalStorage(reviewId);
+        return { success: true, message: "Отзыв успешно удален" };
+      }
+    } catch (error) {
+      setReviewHints((prev) => {
+        const copy = { ...prev };
+        delete copy[reviewId];
+        return copy;
+      });
+      removeTimerFromLocalStorage(reviewId);
+      return { success: false, message: "Ошибка при удалении отзыва" };
+    } finally {
+      setIsDeleteLoading(false);
+      setDeleteLoadingId(null);
+      delete timers.current[reviewId];
     }
-
-    timers.current[reviewId] = setTimeout(
-      () => handleDeleteReviewInternal(reviewId),
-      DELETION_TIMEOUT
-    );
   };
 
   const handleCancelHint = (reviewId: string) => {
@@ -170,5 +189,7 @@ export function useGetReviews(filters: ReviewsFilter) {
     handleDeleteReview,
     handleCancelHint,
     reviewHints,
+    isDeleteLoading,
+    deleteLoadingId,
   };
 }
