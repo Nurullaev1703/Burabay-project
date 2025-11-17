@@ -7,6 +7,7 @@ import { Organization } from './entities/organization.entity';
 import { UpdateDocsDto } from './dto/update-docs.dto';
 import { ROLE_TYPE } from './types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { BookingStatus } from 'src/booking/types/booking.types';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Category } from 'src/category/entities/category.entity';
 
@@ -39,13 +40,14 @@ export class UserService {
 
       // Если организация, то удалить ее объявления.
       if (user.role === ROLE_TYPE.BUSINESS) {
-        // Проверить на наличие активных броней (где дата еще не прошла).
+        // Проверить на наличие активных броней (где дата еще не прошла И статус не завершен).
         const activeBooking = await manager
           .createQueryBuilder(Booking, 'booking')
           .innerJoin('booking.ad', 'ad')
           .innerJoin('ad.organization', 'organization')
           .where('organization.id = :orgId', { orgId: user.organization.id })
           .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
+          .andWhere('booking.status NOT IN (:...statuses)', { statuses: [BookingStatus.DONE, BookingStatus.CANCELED] })
           .getOne();
 
         if (activeBooking) {
@@ -69,11 +71,12 @@ export class UserService {
       }
       // Если турист.
       else if (user.role === ROLE_TYPE.TOURIST) {
-        // Проверить на наличие активных броней (где дата еще не прошла).
+        // Проверить на наличие активных броней (где дата еще не прошла И статус не завершен).
         const activeBooking = await manager
           .createQueryBuilder(Booking, 'booking')
           .where('booking.user.id = :userId', { userId: user.id })
           .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
+          .andWhere('booking.status NOT IN (:...statuses)', { statuses: [BookingStatus.DONE, BookingStatus.CANCELED] })
           .getOne();
 
         // Если есть активные брони, то отменить удаление.
@@ -84,11 +87,12 @@ export class UserService {
           };
         }
         // Если активных броней нет, то удалить аккаунт.
-        else {
-          await manager.remove(user);
-        }
+        await manager.remove(user);
       }
-      return JSON.stringify(HttpStatus.OK);
+      return {
+        status: HttpStatus.OK,
+        message: 'Аккаунт успешно удален',
+      };
     });
   }
 
