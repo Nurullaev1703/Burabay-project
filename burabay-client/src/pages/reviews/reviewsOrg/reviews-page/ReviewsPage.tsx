@@ -16,6 +16,19 @@ interface Props {
 
 export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
   const { t } = useTranslation();
+  const [imageSources, setImageSources] = useState<{ [key: string]: string }>(
+    reviews.reduce((acc, review) => {
+      acc[review.adId] = baseUrl + review.adImage;
+      return acc;
+    }, {} as { [key: string]: string })
+  );
+
+  const handleImageError = (adId: string) => {
+    setImageSources((prev) => ({
+      ...prev,
+      [adId]: DefaultIcon,
+    }));
+  };
 
   return (
     <section>
@@ -26,9 +39,6 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
       </div>
       <ul className="p-4">
         {reviews.map((review, index) => {
-          const [imageSrc, setImageSrc] = useState<string>(
-            baseUrl + review.adImage
-          );
           return (
             <li key={index} className="py-3 border-b">
               <Link
@@ -38,8 +48,8 @@ export const ReviewsPage: FC<Props> = function ReviewsPage({ reviews }) {
               >
                 <div className="flex flex-1 min-w-0">
                   <img
-                    src={imageSrc}
-                    onError={() => setImageSrc(DefaultIcon)}
+                    src={imageSources[review.adId]}
+                    onError={() => handleImageError(review.adId)}
                     alt={review.adTitle}
                     className="w-[52px] h-[52px] object-cover rounded-lg mr-2 flex-shrink-0"
                   />
