@@ -549,7 +549,7 @@ export class BookingService {
         throw new HttpException('У вас нет прав на подтверждение этого бронирования', HttpStatus.FORBIDDEN);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
-      const notificationData = NotificationsMessages.acceptBookingForOrg(booking.user.language, booking.ad.title);
+      const notificationData = NotificationsMessages.acceptBooking(booking.user.language, booking.ad.title, booking.ad.organization.user.phoneNumber);
       const notificationDto = {
         email: booking.user.email,
         title: notificationData.title,

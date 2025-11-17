@@ -1,3 +1,5 @@
+import { Organization } from "./users/entities/organization.entity";
+
 export class NotificationsMessages {
     // admin-panel.service.ts
     public static getAccountBlockedMessage(language: string): NotificationContent {
@@ -86,38 +88,38 @@ export class NotificationsMessages {
             case 'kz': return { title: `Брондау жойылды`, text: `${adTitle} хабарландыруы үшін брондау жойылды` };
         }
     }
-    public static acceptBookingForOrg(language: string, adTitle: string): NotificationContent {
+    public static acceptBooking(language: string, adTitle: string, phone: string): NotificationContent {
         switch (language) {
             case 'ru': return {
                 title: `Бронирование подтверждено организацией`,
-                text: `Ваша бронь на объявление "${adTitle}" подтверждена организацией.`
+                text: `Ваша бронь на объявление "${adTitle}" подтверждена организацией. ${phone ? `Номер телефона: ${phone}` : ''}`
             };
             case 'en': return {
                 title: `Booking accepted by organization`,
-                text: `Your booking for ad "${adTitle}" has been accepted by the organization.`
+                text: `Your booking for ad "${adTitle}" has been accepted by the organization. ${phone ? `Phone number: ${phone}` : ''}`
             };
             case 'kz': return {
                 title: `Ұйым брондауды растады`,
-                text: `Сіздің "${adTitle}" хабарландыруыңызға арналған брондауыңыз ұйым тарапынан расталды.`
+                text: `Сіздің "${adTitle}" хабарландыруыңызға арналған брондауыңыз ұйым тарапынан расталды. ${phone ? `Телефон нөмірі: ${phone}` : ''}`
             };
         }
     }
-    public static acceptBookingForTourist(language: string, adTitle: string): NotificationContent {
-        switch (language) {
-            case 'ru': return {
-                title: `Турист подтвердил бронирование`,
-                text: `Турист подтвердил бронирование на объявление "${adTitle}".`
-            };
-            case 'en': return {
-                title: `Tourist accepted booking`,
-                text: `Tourist has accepted the booking for ad "${adTitle}".`
-            };
-            case 'kz': return {
-                title: `Турист брондауды растады`,
-                text: `Турист "${adTitle}" хабарландыруы үшін брондауды растады.`
-            };
-        }
-    }
+    // public static acceptBookingForTourist(language: string, adTitle: string): NotificationContent {
+    //     switch (language) {
+    //         case 'ru': return {
+    //             title: `Турист подтвердил бронирование`,
+    //             text: `Турист подтвердил бронирование на объявление "${adTitle}".`
+    //         };
+    //         case 'en': return {
+    //             title: `Tourist accepted booking`,
+    //             text: `Tourist has accepted the booking for ad "${adTitle}".`
+    //         };
+    //         case 'kz': return {
+    //             title: `Турист брондауды растады`,
+    //             text: `Турист "${adTitle}" хабарландыруы үшін брондауды растады.`
+    //         };
+    //     }
+    // }
     public static payBooking(language: string, adTitle: string): NotificationContent {
         switch (language) {
             case 'ru': return {
