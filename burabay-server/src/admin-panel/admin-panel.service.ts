@@ -428,10 +428,11 @@ export class AdminPanelService {
   @CatchErrors()
   async banOrg(orgId: string, value: boolean, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true, ad: true } } } });
+    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
     for (const ad of org.ads) {
+      if (!ad.bookings || ad.bookings.length === 0) continue;
       for (const b of ad.bookings) {
         b.status = BookingStatus.CANCELED;
         await this.bookingRepository.save(b);
@@ -458,21 +459,23 @@ export class AdminPanelService {
           schedule: true,
           bookingBanDate: true,
           breaks: true,
-          bookings: true,
+          bookings: { user: true },
           organization: { user: true },
         },
       });
       Utils.checkEntity(ad, 'Объявление не найдено');
 
       // Уведомления по бронированиям
-      for (const b of ad.bookings) {
-        const notificationData = NotificationsMessages.getDeleteBookingByDeleteAdMessage(b.user.language, b.ad.title);
-        await this.notificationService.createForUser({
-          title: `Ваша бронь на объявление ${b.ad.title} удалена`,
-          message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
-          email: b.user.email,
-          type: NotificationType.POSITIVE
-        });
+      if (ad.bookings && ad.bookings.length > 0) {
+        for (const b of ad.bookings) {
+          const notificationData = NotificationsMessages.getDeleteBookingByDeleteAdMessage(b.user.language, ad.title);
+          await this.notificationService.createForUser({
+            title: `Ваша бронь на объявление ${ad.title} удалена`,
+            message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
+            email: b.user.email,
+            type: NotificationType.POSITIVE
+          });
+        }
       }
 
       // Удаление связанных сущностей
