@@ -43,7 +43,7 @@ export class AdminPanelService {
     private readonly bannerRepository: Repository<Banner>,
     private readonly notificationService: NotificationService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
@@ -203,12 +203,18 @@ export class AdminPanelService {
     // Помечаем отзыв как проверенный
     review.isCheked = true;
 
-    // Удаляем жалобу на отзыв, если она существует
-    if (review.report) {
-      await this.reviewReportRepository.delete(review.report.id);
+    // Сохраняем ID жалобы для удаления
+    const reportId = review.report?.id;
+
+    // Сначала убираем связь
+    review.report = null;
+    await this.reviewRepository.save(review);
+
+    // Затем удаляем жалобу, если она существовала
+    if (reportId) {
+      await this.reviewReportRepository.delete(reportId);
     }
 
-    await this.reviewRepository.save(review);
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -410,16 +416,16 @@ export class AdminPanelService {
     user.isBanned = value;
     let notificationData: NotificationContent;
     if (value) {
-      notificationData = NotificationsMessages.getAccountBlockedMessage(user.language)
+      notificationData = NotificationsMessages.getAccountBlockedMessage(user.language);
     } else {
-      notificationData = NotificationsMessages.getAccountUnblockedMessage(user.language)
+      notificationData = NotificationsMessages.getAccountUnblockedMessage(user.language);
     }
     await this.notificationService.createForUser({
       email: user.email,
       title: notificationData.title,
       message: notificationData.text,
       type: NotificationType.POSITIVE,
-    })
+    });
     await this.userRepository.save(user);
     return JSON.stringify(HttpStatus.OK);
   }
@@ -428,14 +434,17 @@ export class AdminPanelService {
   @CatchErrors()
   async banOrg(orgId: string, value: boolean, adminId: string) {
     await this.#checkAdminRole(adminId);
-    const org = await this.organizationRepository.findOne({ where: { id: orgId }, relations: { ads: { bookings: { user: true } } } });
+    const org = await this.organizationRepository.findOne({
+      where: { id: orgId },
+      relations: { ads: { bookings: { user: true } } },
+    });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
-    
+
     // Собираем все бронирования и уведомления
     const allBookings: Booking[] = [];
     const notificationPromises: Promise<any>[] = [];
-    
+
     for (const ad of org.ads) {
       if (!ad.bookings || ad.bookings.length === 0) continue;
       for (const b of ad.bookings) {
@@ -448,18 +457,18 @@ export class AdminPanelService {
             title: notificationData.title,
             message: notificationData.text,
             type: NotificationType.POSITIVE,
-          })
+          }),
         );
       }
     }
-    
+
     // Сохраняем все бронирования одним запросом и отправляем уведомления параллельно
     await Promise.all([
       allBookings.length > 0 ? this.bookingRepository.save(allBookings) : Promise.resolve(),
       this.organizationRepository.save(org),
-      ...notificationPromises
+      ...notificationPromises,
     ]);
-    
+
     return JSON.stringify(HttpStatus.OK);
   }
 
@@ -487,7 +496,7 @@ export class AdminPanelService {
             title: `Ваша бронь на объявление ${ad.title} удалена`,
             message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
             email: b.user.email,
-            type: NotificationType.POSITIVE
+            type: NotificationType.POSITIVE,
           });
         }
       }
@@ -503,7 +512,7 @@ export class AdminPanelService {
           ad.reviews.map(async (review) => {
             if (review.answer) await manager.remove(review.answer);
             if (review.report) await manager.remove(review.report);
-          })
+          }),
         );
         await manager.remove(ad.reviews);
       }
