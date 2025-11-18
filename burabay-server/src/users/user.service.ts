@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Organization } from './entities/organization.entity';
@@ -71,11 +71,10 @@ export class UserService {
       }
       // Если турист.
       else if (user.role === ROLE_TYPE.TOURIST) {
-        // Проверить на наличие активных броней (где дата еще не прошла И статус не завершен).
+        // Проверить на наличие активных броней (где статус не DONE и не CANCELED).
         const activeBooking = await manager
           .createQueryBuilder(Booking, 'booking')
           .where('booking.user.id = :userId', { userId: user.id })
-          .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
           .andWhere('booking.status NOT IN (:...statuses)', { statuses: [BookingStatus.DONE, BookingStatus.CANCELED] })
           .getOne();
 
@@ -86,6 +85,15 @@ export class UserService {
             message: 'Нельзя удалить аккаунт с активными бронированиями',
           };
         }
+        
+        // Удалить все бронирования пользователя (архивные: DONE и CANCELED)
+        const bookings = await manager.find(Booking, {
+          where: { user: { id: user.id } },
+        });
+        if (bookings.length > 0) {
+          await manager.remove(bookings);
+        }
+        
         // Если активных броней нет, то удалить аккаунт.
         await manager.remove(user);
       }
