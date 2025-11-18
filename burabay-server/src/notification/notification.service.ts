@@ -133,11 +133,25 @@ export class NotificationService {
   /** Получение всех уведомлений, созданных для всех пользователей */
   @CatchErrors()
   async findForAll() {
-    const notifications = await this.notificationRepository.find({
-      relations: ['users'],
-    });
+    // Находим уведомления с заголовком "Burabay администратор" (массовые рассылки)
+    const notifications = await this.notificationRepository
+      .createQueryBuilder('notification')
+      .leftJoinAndSelect('notification.users', 'users')
+      .where('notification.title = :title', { title: 'Burabay администратор' })
+      .orderBy('notification.createdAt', 'DESC')
+      .getMany();
 
-    return notifications.filter((notification) => !notification.users || notification.users.length === 0);
+    // Группируем по уникальному сообщению и дате для избежания дубликатов
+    const uniqueNotifications = new Map();
+    
+    for (const notification of notifications) {
+      const key = `${notification.message}_${notification.createdAt.getTime()}`;
+      if (!uniqueNotifications.has(key)) {
+        uniqueNotifications.set(key, notification);
+      }
+    }
+
+    return Array.from(uniqueNotifications.values());
   }
 
   /** Получение всех уведомлений, созданных для пользователя */
