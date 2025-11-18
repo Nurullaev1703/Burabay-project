@@ -393,7 +393,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет принят",
+                message: "Отзыв принят",
                 type: "success" as const,
               },
               delayedRemoval: true,
