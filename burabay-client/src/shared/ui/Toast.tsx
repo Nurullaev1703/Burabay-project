@@ -30,18 +30,17 @@ export const Toast: FC<ToastProps> = ({
 
   const iconColor = type === "success" ? "text-[#39B56B]" : "text-[#FF4545]";
   const textColor = type === "success" ? "text-[#39B56B]" : "text-[#FF4545]";
-  const icon =
-    type === "success"
-      ? "✓"
-      : "✕";
+  const icon = type === "success" ? "✓" : "✕";
 
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] animate-fade-in">
+    <div className="fixed top-8 right-8 z-[9999] animate-fade-in">
       <div
         className={`bg-white border-2 ${type === "success" ? "border-[#39B56B]" : "border-[#FF4545]"} px-6 py-4 rounded-[16px] shadow-lg flex items-center gap-3 max-w-[400px]`}
       >
-        <span className={`text-2xl font-bold flex-shrink-0 ${iconColor}`}>{icon}</span>
-        <span className={`font-roboto text-[14px] leading-[20px] ${textColor}`}>
+        <span className={`text-2xl font-bold flex-shrink-0 ${iconColor}`}>
+          {icon}
+        </span>
+        <span className={`font-roboto text-[14px] leading-[20px] ${textColor} line-clamp-3`}>
           {message}
         </span>
       </div>
@@ -50,22 +49,22 @@ export const Toast: FC<ToastProps> = ({
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translate(-50%, 20px);
+            transform: translateY(-20px);
           }
           to {
             opacity: 1;
-            transform: translate(-50%, 0);
+            transform: translateY(0);
           }
         }
 
         @keyframes fadeOut {
           from {
             opacity: 1;
-            transform: translate(-50%, 0);
+            transform: translateY(0);
           }
           to {
             opacity: 0;
-            transform: translate(-50%, 20px);
+            transform: translateY(-20px);
           }
         }
 
@@ -107,7 +106,10 @@ interface ToastContainerProps {
   onRemove: (id: string) => void;
 }
 
-export const ToastContainer: FC<ToastContainerProps> = ({ toasts, onRemove }) => {
+export const ToastContainer: FC<ToastContainerProps> = ({
+  toasts,
+  onRemove,
+}) => {
   return (
     <>
       {toasts.map((toast) => (

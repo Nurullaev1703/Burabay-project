@@ -403,7 +403,7 @@ export default function UsersList({ filters }: Props) {
         <SideNav />
       </div>
       <div className="relative z-10 flex flex-col w-full ml-[94px] h-screen pt-4">
-        <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
+        <div className="fixed top-0 left-[92px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
           <div className="relative flex-1">
             <input
               type="text"
@@ -556,7 +556,7 @@ export default function UsersList({ filters }: Props) {
                     className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                   >
                     <div
-                      className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2"
+                      className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2 overflow-hidden"
                       onClick={() => openUserDetailsModal(user)}
                       style={{ cursor: "pointer" }}
                     >
