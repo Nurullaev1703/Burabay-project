@@ -106,16 +106,18 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
   const [deletionTimers, setDeletionTimers] = useState<Record<string, number>>(
     {}
   ); // reviewId -> remaining time in ms
-  const [acceptanceTimers, setAcceptanceTimers] = useState<Record<string, number>>(
-    {}
-  ); // reviewId -> remaining time in ms
+  const [acceptanceTimers, setAcceptanceTimers] = useState<
+    Record<string, number>
+  >({}); // reviewId -> remaining time in ms
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
   const [isBlockingLoading, setIsBlockingLoading] = useState(false);
   const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
   const isExecutingRef = useRef(false); // Флаг для предотвращения повторного выполнения
   const timerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров удаления
-  const acceptanceTimerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({}); // Храним интервалы таймеров принятия
+  const acceptanceTimerIntervalsRef = useRef<Record<string, NodeJS.Timeout>>(
+    {}
+  ); // Храним интервалы таймеров принятия
 
   // Функция для выполнения всех отложенных запросов (useCallback для стабильной ссылки)
   const executePendingRequests = useCallback(async () => {
@@ -312,65 +314,50 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     });
   };
 
-  const handleDeleteReview = async (reviewId: string) => {
-    setIsDeleteLoading(true);
-    setDeleteLoadingId(reviewId);
-    try {
-      const response = await apiService.delete({
-        url: `/review/${reviewId}`,
-      });
-      if (response.status === 200) {
-        // Помечаем в localStorage
-        const updatedDeletions = JSON.parse(
-          localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
-        );
-        updatedDeletions[reviewId] = true;
-        localStorage.setItem(
-          LOCAL_STORAGE_DELETION_KEY,
-          JSON.stringify(updatedDeletions)
-        );
+  const handleDeleteReview = useCallback((reviewId: string) => {
+    // Помечаем в localStorage
+    const updatedDeletions = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_KEY) || "{}"
+    );
+    updatedDeletions[reviewId] = true;
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_KEY,
+      JSON.stringify(updatedDeletions)
+    );
 
-        // Устанавливаем таймер для этого отзыва
-        setDeletionTimers((prev) => ({
-          ...prev,
-          [reviewId]: DELETION_TIMEOUT_MS,
-        }));
+    // Устанавливаем таймер для этого отзыва
+    setDeletionTimers((prev) => ({
+      ...prev,
+      [reviewId]: DELETION_TIMEOUT_MS,
+    }));
 
-        // Сохраняем время в localStorage для восстановления при перезагрузке
-        const storedTimers = JSON.parse(
-          localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
-        );
-        storedTimers[reviewId] = Date.now() + DELETION_TIMEOUT_MS;
-        localStorage.setItem(
-          LOCAL_STORAGE_DELETION_TIMERS_KEY,
-          JSON.stringify(storedTimers)
-        );
+    // Сохраняем время в localStorage для восстановления при перезагрузке
+    const storedTimers = JSON.parse(
+      localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+    );
+    storedTimers[reviewId] = Date.now() + DELETION_TIMEOUT_MS;
+    localStorage.setItem(
+      LOCAL_STORAGE_DELETION_TIMERS_KEY,
+      JSON.stringify(storedTimers)
+    );
 
-        // Обновляем UI
-        setReviews((prevReviews) =>
-          prevReviews.map((review) =>
-            review.reviewId === reviewId
-              ? {
-                  ...review,
-                  hint: {
-                    message: "Отзыв будет удален",
-                    type: "success" as const,
-                  },
-                  delayedRemoval: true,
-                  status: "deleted" as const,
-                }
-              : review
-          )
-        );
-        showToast("Отзыв успешно удален", "success");
-      }
-    } catch (error) {
-      showToast("Ошибка при удалении отзыва", "error");
-    } finally {
-      setIsDeleteLoading(false);
-      setDeleteLoadingId(null);
-    }
-  };
+    // Обновляем UI
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.reviewId === reviewId
+          ? {
+              ...review,
+              hint: {
+                message: "Отзыв будет удален",
+                type: "success" as const,
+              },
+              delayedRemoval: true,
+              status: "deleted" as const,
+            }
+          : review
+      )
+    );
+  }, []);
 
   const handleAcceptReview = useCallback((reviewId: string) => {
     // Помечаем в localStorage
@@ -406,7 +393,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           ? {
               ...review,
               hint: {
-                message: "Отзыв будет принят",
+                message: "Отзыв принят",
                 type: "success" as const,
               },
               delayedRemoval: true,
@@ -504,15 +491,17 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     const now = Date.now();
     const restoredTimers: Record<string, number> = {};
 
-    Object.entries(storedTimers).forEach(([reviewId, endTime]: [string, any]) => {
-      const remaining = endTime - now;
-      if (remaining > 0) {
-        restoredTimers[reviewId] = remaining;
-      } else {
-        // Время вышло, удаляем из localStorage
-        delete storedTimers[reviewId];
+    Object.entries(storedTimers).forEach(
+      ([reviewId, endTime]: [string, any]) => {
+        const remaining = endTime - now;
+        if (remaining > 0) {
+          restoredTimers[reviewId] = remaining;
+        } else {
+          // Время вышло, удаляем из localStorage
+          delete storedTimers[reviewId];
+        }
       }
-    });
+    );
 
     localStorage.setItem(
       LOCAL_STORAGE_DELETION_TIMERS_KEY,
@@ -562,7 +551,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 );
 
                 const storedTimers = JSON.parse(
-                  localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) || "{}"
+                  localStorage.getItem(LOCAL_STORAGE_DELETION_TIMERS_KEY) ||
+                    "{}"
                 );
                 delete storedTimers[reviewId];
                 localStorage.setItem(
@@ -606,15 +596,17 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     const now = Date.now();
     const restoredTimers: Record<string, number> = {};
 
-    Object.entries(storedTimers).forEach(([reviewId, endTime]: [string, any]) => {
-      const remaining = endTime - now;
-      if (remaining > 0) {
-        restoredTimers[reviewId] = remaining;
-      } else {
-        // Время вышло, удаляем из localStorage
-        delete storedTimers[reviewId];
+    Object.entries(storedTimers).forEach(
+      ([reviewId, endTime]: [string, any]) => {
+        const remaining = endTime - now;
+        if (remaining > 0) {
+          restoredTimers[reviewId] = remaining;
+        } else {
+          // Время вышло, удаляем из localStorage
+          delete storedTimers[reviewId];
+        }
       }
-    });
+    );
 
     localStorage.setItem(
       LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY,
@@ -664,7 +656,8 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                 );
 
                 const storedTimers = JSON.parse(
-                  localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) || "{}"
+                  localStorage.getItem(LOCAL_STORAGE_ACCEPTANCE_TIMERS_KEY) ||
+                    "{}"
                 );
                 delete storedTimers[reviewId];
                 localStorage.setItem(
@@ -805,7 +798,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       });
       if (response.status === 200) {
         const touristName = selectedTourist?.fullName || "Турист";
-        showToast(`Пользователь "${touristName}" успешно заблокирован`, "success");
+        showToast(
+          `Пользователь "${touristName}" успешно заблокирован`,
+          "success"
+        );
         setIsTouristModalOpen(false);
       }
     } catch (error) {
@@ -826,7 +822,10 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
       });
       if (response.status === 200) {
         const touristName = selectedTourist?.fullName || "Турист";
-        showToast(`Пользователь "${touristName}" успешно разблокирован`, "success");
+        showToast(
+          `Пользователь "${touristName}" успешно разблокирован`,
+          "success"
+        );
         setIsTouristModalOpen(false);
       }
     } catch (error) {
@@ -905,8 +904,12 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                             : "Отзыв принимается"}
                         </div>
                         <button
-                          onClick={() => handleCancelHint(review.reviewId)}
-                          className={`p-2 text-white rounded bg-inherit hover:opacity-80 transition ${
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCancelHint(review.reviewId);
+                          }}
+                          className={`p-2 text-white rounded hover:opacity-80 transition ${
                             review.status === "deleted"
                               ? "bg-[#FF5959]"
                               : "bg-[#59C183]"
@@ -916,73 +919,75 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                         </button>
                       </div>
 
-                      {review.status === "deleted" && deletionTimers[review.reviewId] && (
-                        <div className="w-full">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-white text-xs font-medium">
-                              {Math.ceil(
-                                deletionTimers[review.reviewId] / 1000
-                              )}{" "}
-                              сек
-                            </span>
-                            <span className="text-white text-xs font-medium">
-                              {Math.round(
-                                (deletionTimers[review.reviewId] /
-                                  DELETION_TIMEOUT_MS) *
-                                  100
-                              )}
-                              %
-                            </span>
-                          </div>
-                          <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-white h-full rounded-full transition-all duration-100"
-                              style={{
-                                width: `${Math.max(
-                                  0,
+                      {review.status === "deleted" &&
+                        deletionTimers[review.reviewId] && (
+                          <div className="w-full">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-white text-xs font-medium">
+                                {Math.ceil(
+                                  deletionTimers[review.reviewId] / 1000
+                                )}{" "}
+                                сек
+                              </span>
+                              <span className="text-white text-xs font-medium">
+                                {Math.round(
                                   (deletionTimers[review.reviewId] /
                                     DELETION_TIMEOUT_MS) *
                                     100
-                                )}%`,
-                              }}
-                            />
+                                )}
+                                %
+                              </span>
+                            </div>
+                            <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-white h-full rounded-full transition-all duration-100"
+                                style={{
+                                  width: `${Math.max(
+                                    0,
+                                    (deletionTimers[review.reviewId] /
+                                      DELETION_TIMEOUT_MS) *
+                                      100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {review.status === "accepted" && acceptanceTimers[review.reviewId] && (
-                        <div className="w-full">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-white text-xs font-medium">
-                              {Math.ceil(
-                                acceptanceTimers[review.reviewId] / 1000
-                              )}{" "}
-                              сек
-                            </span>
-                            <span className="text-white text-xs font-medium">
-                              {Math.round(
-                                (acceptanceTimers[review.reviewId] /
-                                  ACCEPTANCE_TIMEOUT_MS) *
-                                  100
-                              )}
-                              %
-                            </span>
-                          </div>
-                          <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-white h-full rounded-full transition-all duration-100"
-                              style={{
-                                width: `${Math.max(
-                                  0,
+                      {review.status === "accepted" &&
+                        acceptanceTimers[review.reviewId] && (
+                          <div className="w-full">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-white text-xs font-medium">
+                                {Math.ceil(
+                                  acceptanceTimers[review.reviewId] / 1000
+                                )}{" "}
+                                сек
+                              </span>
+                              <span className="text-white text-xs font-medium">
+                                {Math.round(
                                   (acceptanceTimers[review.reviewId] /
                                     ACCEPTANCE_TIMEOUT_MS) *
                                     100
-                                )}%`,
-                              }}
-                            />
+                                )}
+                                %
+                              </span>
+                            </div>
+                            <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-white h-full rounded-full transition-all duration-100"
+                                style={{
+                                  width: `${Math.max(
+                                    0,
+                                    (acceptanceTimers[review.reviewId] /
+                                      ACCEPTANCE_TIMEOUT_MS) *
+                                      100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   ) : (
                     <div
@@ -1113,9 +1118,13 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                         <button
                           onClick={() => handleDeleteReview(review.reviewId)}
                           className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
-                          disabled={isDeleteLoading && deleteLoadingId === review.reviewId}
+                          disabled={
+                            isDeleteLoading &&
+                            deleteLoadingId === review.reviewId
+                          }
                         >
-                          {isDeleteLoading && deleteLoadingId === review.reviewId ? (
+                          {isDeleteLoading &&
+                          deleteLoadingId === review.reviewId ? (
                             <>
                               <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
                               Обработка...
@@ -1258,7 +1267,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   onClick={() => {
                     handleBlockUser(selectedOrg.id);
                   }}
-                  disabled={isBlockingLoading && blockingUserId === selectedOrg.id}
+                  disabled={
+                    isBlockingLoading && blockingUserId === selectedOrg.id
+                  }
                 >
                   {isBlockingLoading && blockingUserId === selectedOrg.id ? (
                     <>
@@ -1276,7 +1287,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   onClick={() => {
                     handleUnblockUser(selectedOrg.id);
                   }}
-                  disabled={isBlockingLoading && blockingUserId === selectedOrg.id}
+                  disabled={
+                    isBlockingLoading && blockingUserId === selectedOrg.id
+                  }
                 >
                   {isBlockingLoading && blockingUserId === selectedOrg.id ? (
                     <>
@@ -1357,9 +1370,12 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   onClick={() => {
                     handleUnblockTourist(selectedTourist.id);
                   }}
-                  disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                  disabled={
+                    isBlockingLoading && blockingUserId === selectedTourist.id
+                  }
                 >
-                  {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                  {isBlockingLoading &&
+                  blockingUserId === selectedTourist.id ? (
                     <>
                       <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
                       Обработка...
@@ -1374,9 +1390,12 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
                   onClick={() => {
                     handleBlockTourist(selectedTourist.id);
                   }}
-                  disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                  disabled={
+                    isBlockingLoading && blockingUserId === selectedTourist.id
+                  }
                 >
-                  {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                  {isBlockingLoading &&
+                  blockingUserId === selectedTourist.id ? (
                     <>
                       <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
                       Обработка...

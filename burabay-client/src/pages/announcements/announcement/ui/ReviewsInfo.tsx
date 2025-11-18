@@ -241,7 +241,7 @@ export const ReviewsInfo: FC<Props> = function ReviewsInfo({
       )}
       {!isAdmin && (
         <>
-          {(ad.reviewCount || 0) > 3 ? (
+          {role == ROLE_TYPE.BUSINESS || (ad.reviewCount || 0) > 3 ? (
             <Button
               mode="transparent"
               className="mb-4"
