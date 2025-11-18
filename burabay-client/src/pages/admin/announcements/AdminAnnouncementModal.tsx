@@ -16,6 +16,7 @@ import { CostInfoList } from "../../announcements/announcement/ui/CostInfoList";
 import { AdminReviewsInfo } from "./ui/AdminReviewsInfo";
 import { Button } from "../../../shared/ui/Button";
 import { ModalDelete } from "../../announcements/announcement/ui/ModalDelete";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 import Close from "/Close.png?url";
 import Back from "/Back.svg?url";
@@ -33,6 +34,7 @@ export const formatPrice = (value: number) => {
 export const AdminAnnouncementModal: FC<Props> =
   function AdminAnnouncementModal({ announcement, open, onClose }) {
     const { t } = useTranslation();
+    const { toasts, showToast, removeToast } = useToast();
     const [carouselImages] = useState<CarouselItem[]>(
       announcement.images.map((image, index) => {
         return {
@@ -139,8 +141,17 @@ export const AdminAnnouncementModal: FC<Props> =
               open={showDeleteModal}
               onClose={() => setShowDeleteModal(false)}
               adId={announcement.id}
+              onAfterDelete={() => {
+                showToast(t("deleteAdSuccess"), "success");
+                onClose();
+              }}
+              onError={(msg) => {
+                showToast(msg || t("deleteAdError"), "error");
+              }}
             />
           )}
+
+          <ToastContainer toasts={toasts} onRemove={removeToast} />
         </div>
       </div>
     );

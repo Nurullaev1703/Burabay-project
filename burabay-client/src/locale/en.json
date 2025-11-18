@@ -597,6 +597,8 @@
   "notificationDescription": "Push notifications help you stay informed about important events: new bookings, messages, status updates, and other important notifications.",
   "notificationEnableError": "Error Enabling Notifications",
   "notificationTokenSaveError": "Failed to Save Token on Server",
+  "deleteAdSuccess": "Ad Successfully Deleted",
+  "deleteAdError": "Error Deleting Ad",
   "confirmStatus": "Confirmed",
   "doneStatus": "Done",
   "confirmDelete": "The ad is not fully filled please select an action",
