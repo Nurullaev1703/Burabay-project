@@ -12,7 +12,7 @@ interface ToastProps {
 export const Toast: FC<ToastProps> = ({
   message,
   type,
-  duration = 3000,
+  duration = 5000,
   onClose,
 }) => {
   const [isVisible, setIsVisible] = useState(true);

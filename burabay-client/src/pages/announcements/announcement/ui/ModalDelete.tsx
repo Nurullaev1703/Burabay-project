@@ -57,6 +57,9 @@ export const ModalDelete: FC<Props> = function ModalDelete({
 
       // Проверяем успешное удаление по статусу
       if (response.status === 200) {
+        // Закрываем модалку сразу
+        onClose();
+        
         // Если передан callback — вызываем его (позволяет родителю сам управлять редиректом)
         if (onAfterDelete) {
           try {

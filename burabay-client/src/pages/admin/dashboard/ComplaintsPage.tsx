@@ -1416,6 +1416,9 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
           onClose={() => {
             setIsAnnouncementModalOpen(false);
             setSelectedAnnouncementId(null);
+            // Также закрываем модалку организации при удалении объявления
+            setIsModalOpen(false);
+            setSelectedOrg(null);
           }}
           onBack={() => {
             setIsAnnouncementModalOpen(false);

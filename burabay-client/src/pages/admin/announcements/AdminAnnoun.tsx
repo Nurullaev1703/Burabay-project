@@ -34,6 +34,7 @@ import { CostInfoList } from "../../announcements/announcement/ui/CostInfoList";
 import { ReviewsInfo } from "../../announcements/announcement/ui/ReviewsInfo";
 import { ModalDelete } from "../../announcements/announcement/ui/ModalDelete";
 import { Button } from "../../../shared/ui/Button";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
 interface Props {
   announcement: AnnouncementType;
@@ -44,6 +45,7 @@ export const formatPrice = (value: number) => {
 };
 export const AdminAnnoun: FC<Props> = function Announcement({ announcement }) {
   const { t } = useTranslation();
+  const { toasts, showToast, removeToast } = useToast();
   const [isFavouriteModal, setIsFavouriteModal] = useState<boolean>(false);
   const [carouselImages, _] = useState<CarouselItem[]>(
     announcement.images.map((image, index) => {
@@ -208,9 +210,19 @@ export const AdminAnnoun: FC<Props> = function Announcement({ announcement }) {
             open={showModal}
             onClose={() => setShowModal(false)}
             adId={announcement.id}
+            onAfterDelete={() => {
+              showToast(t("deleteAdSuccess"), "success");
+              setTimeout(() => {
+                history.back();
+              }, 2000);
+            }}
+            onError={(msg) => {
+              showToast(msg || t("deleteAdError"), "error");
+            }}
           />
         )}
         {isFavouriteModal && <FavouriteHint />}
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
         <div className="bg-white p-4 sticky left-0 flex justify-center items-center bottom-0 md:relative md:rounded-lg  md:mt-2">
           <Button
             mode="red"

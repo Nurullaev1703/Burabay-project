@@ -143,7 +143,9 @@ export const AdminAnnouncementModal: FC<Props> =
               adId={announcement.id}
               onAfterDelete={() => {
                 showToast(t("deleteAdSuccess"), "success");
-                onClose();
+                setTimeout(() => {
+                  onClose();
+                }, 2000);
               }}
               onError={(msg) => {
                 showToast(msg || t("deleteAdError"), "error");
