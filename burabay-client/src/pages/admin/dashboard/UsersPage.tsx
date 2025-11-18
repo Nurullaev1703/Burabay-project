@@ -1177,6 +1177,8 @@ export default function UsersList({ filters }: Props) {
           onClose={() => {
             setIsAnnouncementModalOpen(false);
             setSelectedAnnouncementId(null);
+            // Также закрываем модалку организации при удалении объявления
+            closeConfirmModal();
           }}
           onBack={() => {
             setIsAnnouncementModalOpen(false);
