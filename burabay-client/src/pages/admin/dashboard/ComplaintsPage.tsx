@@ -317,7 +317,7 @@ export const ComplaintsPage: FC = function ComplaintsPage({}) {
     setDeleteLoadingId(reviewId);
     try {
       const response = await apiService.delete({
-        url: `/admin/review/${reviewId}`,
+        url: `/review/${reviewId}`,
       });
       if (response.status === 200) {
         // Помечаем в localStorage
