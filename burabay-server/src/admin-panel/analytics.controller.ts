@@ -5,7 +5,6 @@ import { Public } from 'src/constants';
 
 @ApiTags('Админ Панель')
 @ApiBearerAuth()
-@Public() // TODO Удалить после тестирования.
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
