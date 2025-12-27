@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { mkdir, writeFile } from 'fs/promises';
 import { promises } from 'fs';
-import { DeleteImageDto } from './dto/delete-image.dto';
+import { DeleteFileDto } from './dto/delete-image.dto';
 import { CatchErrors, Utils } from 'src/utilities';
 import * as sharp from 'sharp';
 import { error } from 'console';
@@ -86,7 +86,7 @@ export class ImagesService {
     return JSON.stringify(filepathForFront);
   }
 
-  /* Сохранить три документа для организации. */
+  /** Сохранить три документа для организации. */
   @CatchErrors()
   async saveOrgDocs(
     files: {
@@ -180,7 +180,52 @@ export class ImagesService {
     }
   }
 
-  async deleteImage(deleteImageDto: DeleteImageDto) {
+  async saveVideo(file: Express.Multer.File): Promise<string> {
+    try {
+      const allowedMimes = [
+        'video/mp4',
+        'video/quicktime', // .mov
+        'video/x-msvideo', // .avi
+        'video/x-matroska', // .mkv
+        'video/webm',
+      ];
+      const allowedExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+      const fileExt = extname(file.originalname).toLowerCase();
+
+      if (!allowedMimes.includes(file.mimetype) || !allowedExts.includes(fileExt)) {
+        throw new HttpException(
+          'Формат видео должен быть MP4, MOV, AVI, MKV или WEBM',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const filename = `${uuidv4()}${fileExt}`;
+      const dirpath = `./public/videos/ads`;
+      const filepath = `${dirpath}/${filename}`;
+
+      await mkdir(dirpath, { recursive: true });
+      await writeFile(filepath, file.buffer);
+
+      const filepathForFront = filepath.replace(/^\.\/public/, '');
+      return JSON.stringify(filepathForFront);
+    } catch (error) {
+      Utils.errorHandler(error);
+    }
+  }
+
+  async deleteVideo(dto: DeleteFileDto) {
+    try {
+      await promises.unlink('public' + dto.filepath); // Удаляем файл
+      return JSON.stringify(`Видео ${dto.filepath} успешно удалено`);
+    } catch (error) {
+      throw new HttpException(
+        `Не удалось удалить видео ${dto.filepath}, ${error.message}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
+  async deleteImage(deleteImageDto: DeleteFileDto) {
     try {
       await promises.unlink('public/' + deleteImageDto.filepath); // Удаляем файл
       return JSON.stringify(`Файл ${deleteImageDto.filepath} успешно удален`);
@@ -192,7 +237,7 @@ export class ImagesService {
     }
   }
 
-  /* Проверка документа на формат PDF, DOC, DOCX. */
+  /** Проверка документа на формат PDF, DOC, DOCX. */
   private checkDocsExt(file: Express.Multer.File) {
     if (!file || !file.originalname) {
       throw new HttpException('Файл не найден или повреждён', HttpStatus.BAD_REQUEST);
@@ -215,6 +260,7 @@ export class ImagesService {
     }
   }
 
+  /** Получить расширение файла. */
   private getExt(file: Express.Multer.File): string {
     if (!file || !file.originalname) {
       throw new Error('Файл не найден или повреждён');
@@ -222,52 +268,52 @@ export class ImagesService {
     return extname(file.originalname).toLowerCase();
   }
 
-  private transliterate(text) {
-    const map = {
-      'а': 'a',
-      'б': 'b',
-      'в': 'v',
-      'г': 'g',
-      'д': 'd',
-      'е': 'e',
-      'ё': 'yo',
-      'ж': 'zh',
-      'з': 'z',
-      'и': 'i',
-      'й': 'y',
-      'к': 'k',
-      'л': 'l',
-      'м': 'm',
-      'н': 'n',
-      'о': 'o',
-      'п': 'p',
-      'р': 'r',
-      'с': 's',
-      'т': 't',
-      'у': 'u',
-      'ф': 'f',
-      'х': 'kh',
-      'ц': 'ts',
-      'ч': 'ch',
-      'ш': 'sh',
-      'щ': 'sch',
-      'ъ': '',
-      'ы': 'y',
-      'ь': '',
-      'э': 'e',
-      'ю': 'yu',
-      'я': 'ya',
-    };
+  // private transliterate(text) {
+  //   const map = {
+  //     'а': 'a',
+  //     'б': 'b',
+  //     'в': 'v',
+  //     'г': 'g',
+  //     'д': 'd',
+  //     'е': 'e',
+  //     'ё': 'yo',
+  //     'ж': 'zh',
+  //     'з': 'z',
+  //     'и': 'i',
+  //     'й': 'y',
+  //     'к': 'k',
+  //     'л': 'l',
+  //     'м': 'm',
+  //     'н': 'n',
+  //     'о': 'o',
+  //     'п': 'p',
+  //     'р': 'r',
+  //     'с': 's',
+  //     'т': 't',
+  //     'у': 'u',
+  //     'ф': 'f',
+  //     'х': 'kh',
+  //     'ц': 'ts',
+  //     'ч': 'ch',
+  //     'ш': 'sh',
+  //     'щ': 'sch',
+  //     'ъ': '',
+  //     'ы': 'y',
+  //     'ь': '',
+  //     'э': 'e',
+  //     'ю': 'yu',
+  //     'я': 'ya',
+  //   };
 
-    return text
-      .split('')
-      .map((char) => map[char.toLowerCase()] || char)
-      .join('');
-  }
-  private sanitizeOrgName(orgName) {
-    const transliterated = this.transliterate(orgName); // Транслитерация кириллицы
-    return transliterated
-      .replace(/\s+/g, '_') // Заменяем пробелы на _
-      .replace(/[^a-zA-Z0-9_-]/g, ''); // Удаляем всё лишнее
-  }
+  //   return text
+  //     .split('')
+  //     .map((char) => map[char.toLowerCase()] || char)
+  //     .join('');
+  // }
+  // private sanitizeOrgName(orgName) {
+  //   const transliterated = this.transliterate(orgName); // Транслитерация кириллицы
+  //   return transliterated
+  //     .replace(/\s+/g, '_') // Заменяем пробелы на _
+  //     .replace(/[^a-zA-Z0-9_-]/g, ''); // Удаляем всё лишнее
+  // }
 }

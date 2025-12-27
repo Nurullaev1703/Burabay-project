@@ -31,15 +31,36 @@ export function useGetMainPageAnnouncements(filters?:MainPageFilter) {
   });
 }
 
+export function useGetRecommendedAds(filters?: MainPageFilter) {
+  return useInfiniteQuery({
+    queryKey: ["recommended-ads", filters],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiService.get<Announcement[]>({
+        url: `/category/favorite/ads?offset=${pageParam}`,
+      });
+      return response.data;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 10 ? allPages.length * 10 : undefined;
+    },
+  });
+}
 
 export function useGetMainPageCategories() {
   return useQuery({
     queryKey: ["main-page-categories"],
     queryFn: async () => {
-      const response = await apiService.get<Category[]>({
+      const categories = await apiService.get<Category[]>({
         url: `/main-pages/categories`,
       });
-      return response.data;
+      const favouriteCategories = await apiService.get<Category[]>({
+        url: `/category/favorite/list`,
+      });
+      return {
+        categories: categories.data,
+        favouriteCategories: favouriteCategories.data
+      };
     },
   });
 }

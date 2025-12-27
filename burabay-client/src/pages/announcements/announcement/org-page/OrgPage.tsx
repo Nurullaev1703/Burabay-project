@@ -66,10 +66,10 @@ export const OrgPage: FC<Props> = function OrgPage({ org }) {
         </p>
         <div className="mt-4 pb-4 mb-2">
           <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-            <div className="flex flex-col items-start">
-              <p className="  text-[16px] leading-[20px] tracking-[0.4px] text-black">
+            <div className="flex flex-col items-start select-text">
+              <a href={org.siteUrl} target="_blank" className=" text-[16px] leading-[20px] tracking-[0.4px] text-black select-text">
                 {org.siteUrl || t("notSpecified")}
-              </p>
+              </a>
               <strong className="text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
                 {t("site")}
               </strong>

@@ -16,7 +16,7 @@ import {
 } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
 import { Public } from 'src/constants';
-import { DeleteImageDto } from './dto/delete-image.dto';
+import { DeleteFileDto as DeleteFileDto } from './dto/delete-image.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiBearerAuth()
@@ -55,6 +55,19 @@ export class ImagesController {
     return await this.imageService.saveDocument(file, filename, req.user);
   }
 
+  @Public()
+  @Post('video')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    return await this.imageService.saveVideo(file);
+  }
+
+  @Public()
+  @Delete('video')
+  async deleteVideo(@Body() dto: DeleteFileDto) {
+    return await this.imageService.deleteVideo(dto);
+  }
+
   @Post('full-docs')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -80,7 +93,7 @@ export class ImagesController {
 
   @Public()
   @Delete('image')
-  async deleteImage(@Body() deleteImageDto: DeleteImageDto) {
+  async deleteImage(@Body() deleteImageDto: DeleteFileDto) {
     return await this.imageService.deleteImage(deleteImageDto);
   }
 }

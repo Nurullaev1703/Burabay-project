@@ -176,7 +176,6 @@ const ReviewsPage: FC = () => {
                       }`}
                     style={{
                       width: "100%",
-                      minHeight: "400px",
                       maxWidth: "600px",
                     }}
                   >
@@ -294,7 +293,7 @@ const ReviewsPage: FC = () => {
                           )}
                         </div>
                         {!review.status && (
-                          <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
+                          <div className="flex flex-col items-center space-y-3 w-full pb-8">
                             <button
                               onClick={() => handleDeleteReview(review.id)}
                               className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"

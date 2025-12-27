@@ -8,12 +8,15 @@ import { UpdateDocsDto } from './dto/update-docs.dto';
 import { ROLE_TYPE } from './types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRep: Repository<User>,
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Organization)
     private readonly organizationRep: Repository<Organization>,
     private readonly dataSource: DataSource,
@@ -84,7 +87,7 @@ export class UserService {
   /* Метод для удаления Пользователей у которых не задан пароль. Метод испольузется в TasksService. */
   async deleteEmptyPasswordUsers() {
     try {
-      const deleteUsers = await this.userRep
+      const deleteUsers = await this.userRepository
         .createQueryBuilder()
         .delete()
         .where('password IS NULL OR password = :password', { password: '' })
@@ -96,9 +99,8 @@ export class UserService {
     }
   }
 
-  /*
-   *  Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
-   * Метод испольузется в TasksService.
+  /** Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
+   *  Метод испольузется в TasksService.
    */
   async deleteOrganizationsAndUsers() {
     await this.dataSource.transaction(async (manager) => {
@@ -132,7 +134,7 @@ export class UserService {
     });
   }
 
-  /* Обновление полей с путями документов Организации. */
+  /** Обновление полей с путями документов Организации. */
   @CatchErrors()
   async updateOrgDocumentsPath(dto: UpdateDocsDto, tokenData: TokenData) {
     const { regCouponPath, ibanDocPath, orgRulePath, iin, phoneNumber } = dto;

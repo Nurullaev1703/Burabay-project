@@ -13,7 +13,7 @@ function RouteComponent() {
   if(user?.organization?.id){
     const {data, isLoading} = UseGetOrganizationAnnouncementsTwo(user?.organization?.id)
     if(data){
-      return <MapAnnoun announcements={data}/>
+      return <MapAnnoun announcements={data} />
     }
     if(isLoading){
       return <Loader />

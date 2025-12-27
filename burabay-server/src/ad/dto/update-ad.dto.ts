@@ -26,6 +26,10 @@ export class UpdateAdDto {
   @IsOptional()
   images: string[];
 
+  @IsString()
+  @IsOptional()
+  video: string;
+
   @IsPhoneNumber()
   @IsOptional()
   phoneNumber: string;

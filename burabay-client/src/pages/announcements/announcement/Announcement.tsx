@@ -50,12 +50,20 @@ export const Announcement: FC<Props> = function Announcement({
   const navigate = useNavigate();
   const [isFavouriteModal, setIsFavouriteModal] = useState<boolean>(false);
   const [carouselImages, _] = useState<CarouselItem[]>(
-    announcement.images.map((image, index) => {
-      return {
+    [
+      // Если есть видео, добавляем его первым
+      ...(announcement.video ? [{
+        index: 0,
+        imgUrl: baseUrl + announcement.video,
+        type: 'video' as const
+      }] : []),
+      // Добавляем изображения
+      ...announcement.images.map((image, index) => ({
         imgUrl: baseUrl + image,
-        index,
-      };
-    })
+        index: announcement.video ? index + 1 : index,
+        type: 'image' as const
+      }))
+    ]
   );
   const role = roleService.getValue();
   const [isFavourite, setIsFavourite] = useState<boolean>(
@@ -92,8 +100,8 @@ export const Announcement: FC<Props> = function Announcement({
             align="start"
             action={() =>
               role === "бизнес"
-                ? navigate({ to: `/announcements` })
-                : navigate({ to: `/main` })
+                ? history.back()
+                : history.back()
             }
           >
             <img src={BackIcon} alt="" />
