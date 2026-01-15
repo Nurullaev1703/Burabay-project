@@ -18,6 +18,8 @@ import { ROLE_TYPE } from "../pages/auth/model/auth-model";
 import { useEffect } from "react";
 import OfflineScreen from "../components/OfflineScreen";
 import { useNetworkStatus } from "../shared/hooks/useNetworkStatus";
+import { baseUrl } from "../services/api/ServerData";
+import { useServerStatus } from "../shared/hooks/useServerStatus";
 
 export const AUTH_PATH = [
   "/auth",
@@ -100,7 +102,8 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     ) {
       return <NotFound />;
     }
-    const isOnline = useNetworkStatus();
+  const isOnline = useNetworkStatus();
+  const isServerUp = useServerStatus({ pingUrl: `${baseUrl}/ping`, interval: 15000, timeout: 5000 });
     return (
       <>
         <div
@@ -109,7 +112,9 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
           <Outlet />
           {!notificationService.hasValue() && token && <NotificationModal />}
         </div>
-        {!isOnline && <OfflineScreen onRetry={() => window.location.reload()} />}
+        {(!isOnline || !isServerUp) && (
+          <OfflineScreen onRetry={() => window.location.reload()} />
+        )}
       </>
     );
   },
