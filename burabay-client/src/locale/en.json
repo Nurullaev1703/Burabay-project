@@ -1,8 +1,8 @@
 {
   "signin": "Sign in",
   "welcome": "Welcome!",
-  "offline.title": "Couldn't open the app",
-  "offline.description": "The app couldn't be loaded due to no internet connection. Please check your connection and try again later.",
+  "offline.title": "Service unavailable",
+  "offline.description": "The service is temporarily unavailable, or there is no internet connection.",
   "offline.buttonRefresh": "Refresh",
   "mail": "Email",
   "inputMail": "Enter email address",
