@@ -1,6 +1,9 @@
 {
   "signin": "Sign in",
   "welcome": "Welcome!",
+  "offline.title": "Couldn't open the app",
+  "offline.description": "The app couldn't be loaded due to no internet connection. Please check your connection and try again later.",
+  "offline.buttonRefresh": "Refresh",
   "mail": "Email",
   "inputMail": "Enter email address",
   "signinWith": "Or sign in with",

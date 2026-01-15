@@ -16,6 +16,8 @@ import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 import { NotFound } from "../pages/not-found/NotFound";
 import { ROLE_TYPE } from "../pages/auth/model/auth-model";
 import { useEffect } from "react";
+import OfflineScreen from "../components/OfflineScreen";
+import { useNetworkStatus } from "../shared/hooks/useNetworkStatus";
 
 export const AUTH_PATH = [
   "/auth",
@@ -27,7 +29,6 @@ export const AUTH_PATH = [
 ];
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
-  // notFoundComponent: () => <NotFound />,
   component: () => {
     const { token, isAuthenticated } = useAuth();
 
@@ -99,6 +100,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
     ) {
       return <NotFound />;
     }
+    const isOnline = useNetworkStatus();
     return (
       <>
         <div
@@ -107,6 +109,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
           <Outlet />
           {!notificationService.hasValue() && token && <NotificationModal />}
         </div>
+        {!isOnline && <OfflineScreen onRetry={() => window.location.reload()} />}
       </>
     );
   },
