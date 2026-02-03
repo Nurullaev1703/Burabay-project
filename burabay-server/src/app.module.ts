@@ -27,10 +27,10 @@ import { NotificationModule } from './notification/notification.module';
 import { ReviewAnswersModule } from './review-answers/review-answers.module';
 import { ReviewReportModule } from './review-report/review-report.module';
 import { AppController } from './app.controller';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JobScheduleModule } from './schedule/schedule.module';
+// import { CacheModule } from '@nestjs/cache-manager';
+// import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -62,13 +62,13 @@ import { JobScheduleModule } from './schedule/schedule.module';
     //     limit: 100, // 100 запросов в минуту
     //   },
     // ]),
-    CacheModule.register({
-      isGlobal: true,
-      store: redisStore,
-      host: 'localhost',
-      port: 6379,
-      ttl: 60 * 60,
-    }),
+    // CacheModule.register({
+    //   isGlobal: true,
+    //   store: redisStore,
+    //   host: 'localhost',
+    //   port: 6379,
+    //   ttl: 60 * 60,
+    // }),
     DatabaseModule,
     UsersModule,
     AuthenticationModule,
@@ -101,4 +101,4 @@ import { JobScheduleModule } from './schedule/schedule.module';
     // },
   ],
 })
-export class AppModule {}
+export class AppModule { }
