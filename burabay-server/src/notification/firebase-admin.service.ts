@@ -25,7 +25,6 @@ export class FirebaseAdminService {
         ...payload,
       });
     } catch (error) {
-      console.error('Error sending notification:', error);
     }
   }
 }

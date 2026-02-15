@@ -23,11 +23,23 @@ import ImageCard from "./ui/ImageCard";
 import { imageService } from "../../services/api/ImageService";
 import { baseUrl } from "../../services/api/ServerData";
 import { ImageViewModal } from "./reviews/ui/ImageViewModal";
+import VideoUploadImg from "../../app/icons/profile/confirm/file.svg";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ImageData {
   file: File | null; // Файл для выгрузки
   preview: string; // Превью для отображения
-  serverPreview: string; // ссылка с сервера на изображение
+  serverPreview: string;
+  // ссылка с сервера на изображение
+}
+
+interface VideoData {
+  file: File | null;
+  preview: string;
+  duration: number;
+  size: number;
+  serverPath: string; // Добавляем поле для хранения пути на сервере
+  isDeleted?: boolean; // Флаг для отслеживания удаления
 }
 
 interface Props {
@@ -47,8 +59,10 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   subcategory,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [isPhoneValid, setIsPhoneValid] = useState<boolean>(true);
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     (announcement?.details as Record<string, boolean>) || {}
   );
@@ -186,15 +200,16 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       reader.readAsDataURL(file);
     });
   };
-  const deleteImageFromServer = async (imageUrl: string) => {
+  const deleteImageFromServer = async (imageUrl: string): Promise<boolean> => {
     try {
       await apiService.delete({
         url: "/image",
         dto: { filepath: imageUrl.replace(baseUrl, "") },
       });
-      console.log(`Изображение ${imageUrl} удалено с сервера`);
+      return true;
     } catch (error) {
-      console.error(error);
+      console.error("Ошибка при удалении изображения:", error);
+      return false;
     }
   };
 
@@ -216,7 +231,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       const updatedImages = [...prevImages];
 
       // Очищаем старый preview, если заменяем фото
-      if (updatedImages[index]?.preview) {
+      if (
+        updatedImages[index]?.preview &&
+        !updatedImages[index]?.serverPreview
+      ) {
+        // Очищаем blob только если это не URL с сервера
         URL.revokeObjectURL(updatedImages[index].preview);
       }
 
@@ -278,10 +297,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
         url: "/images/ads",
         dto: { images: uploadedImages },
       });
-      console.log("🗑️ Удалены неиспользованные фото:", uploadedImages);
-    } catch (error) {
-      console.error("❌ Ошибка при удалении изображений:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -293,9 +309,25 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   const [description, setDescription] = useState<string>(
     announcement?.description || ""
   );
-  const [youtubeLink, setYoutubeLink] = useState<string>(
+  const [youtubeLink, _setYoutubeLink] = useState<string>(
     announcement?.youtubeLink || ""
   );
+  const [video, setVideo] = useState<VideoData | null>(() => {
+    if (announcement?.video) {
+      return {
+        preview: baseUrl + announcement.video,
+        file: null,
+        duration: 0,
+        size: 0,
+        serverPath: baseUrl + announcement.video, // Используем baseUrl как в images
+      };
+    }
+    return null;
+  });
+  const [videoError, setVideoError] = useState<string>("");
+  const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB в байтах
+  const MAX_VIDEO_DURATION = 90; // 1.5 минуты в секундах
+
   const {
     control,
     handleSubmit,
@@ -321,30 +353,164 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
   useEffect(() => {
     setDescription(watchedDescription);
   }, [watchedDescription]);
+
+  const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setVideoError("");
+
+    if (!file) return;
+
+    if (file.size > MAX_VIDEO_SIZE) {
+      setVideoError(
+        t("videoSizeExceeded", { size: "200МБ" }) ||
+          "Размер видео превышает 200МБ"
+      );
+      return;
+    }
+
+    const videoElement = document.createElement("video");
+    videoElement.preload = "metadata";
+
+    videoElement.onloadedmetadata = () => {
+      URL.revokeObjectURL(videoElement.src);
+
+      if (videoElement.duration > MAX_VIDEO_DURATION) {
+        setVideoError(
+          t("videoDurationExceeded", { duration: "1.5" }) ||
+            "Длительность видео превышает 1.5 минуты"
+        );
+        return;
+      }
+
+      setVideo((prev) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        duration: videoElement.duration,
+        size: file.size,
+        serverPath: prev?.serverPath || "", // Сохраняем существующий путь
+      }));
+    };
+
+    videoElement.onerror = () => {
+      setVideoError(t("invalidVideoFormat") || "Неверный формат видео");
+    };
+
+    videoElement.src = URL.createObjectURL(file);
+  };
+
+  const uploadVideo = async (): Promise<string | null> => {
+    // Если видео было удалено пользователем
+    if (video?.isDeleted && video?.serverPath) {
+      try {
+        await apiService.delete({
+          url: "/video",
+          dto: { filepath: video.serverPath.replace(baseUrl, "") },
+        });
+      } catch (error) {
+        console.error("Ошибка при удалении видео:", error);
+      }
+      return null;
+    }
+
+    // Если нет нового файла, возвращаем существующий путь
+    if (!video?.file) {
+      return video?.serverPath ? video.serverPath.replace(baseUrl, "") : null;
+    }
+
+    const formData = new FormData();
+    formData.append("file", video.file);
+
+    try {
+      const response = await imageService.post<string>({
+        url: "/video",
+        dto: formData,
+      });
+
+      // Обновляем состояние с новым серверным путем, добавляя baseUrl
+      setVideo((prev) =>
+        prev
+          ? {
+              ...prev,
+              serverPath: baseUrl + response.data,
+            }
+          : null
+      );
+
+      return response.data; // Возвращаем путь без baseUrl для API
+    } catch (error) {
+      console.error("Ошибка при загрузке видео:", error);
+      return null;
+    }
+  };
+
   const handleConfirmPublish = async () => {
     setIsLoading(true);
     const newImages = await handleUpload();
+    const video = await uploadVideo();
 
     try {
-      const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "") ? {
-        phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
-      } : null
-      const response = await apiService.post<string>({
-        url: "/ad",
-        dto: {
-          title,
-          description,
-          youtubeLink,
-          organizationId: user?.organization?.id,
-          subcategoryId: subcategory.id,
-          images: newImages,
-          details: toggles,
-          ...phoneNumberDto
-        },
-      });
+      const phoneNumberDto = mask.current?.value
+        ? {
+            phoneNumber: formatPhoneNumber(mask.current.value),
+          }
+        : null;
 
-      if (response.data) {
+      // Фильтруем toggles - оставляем только включенные (true)
+      const filteredDetails = Object.fromEntries(
+        Object.entries(toggles).filter(([_, value]) => value === true)
+      );
+
+      if (announcement) {
+        // If editing an existing announcement, send a PATCH and merge existing images with newly uploaded ones
+        await apiService.patch<string>({
+          url: `/ad/${announcement.id}`,
+          dto: {
+            title,
+            description,
+            youtubeLink,
+            video,
+            organizationId: user?.organization?.id,
+            subcategoryId: subcategory.id,
+            images: [
+              ...images
+                .map((item) => {
+                  if (item.serverPreview.replace(baseUrl, "").length) {
+                    return item.serverPreview.replace(baseUrl, "");
+                  }
+                })
+                .filter((item) => item != null),
+              ...(newImages as string[]),
+            ],
+            details: filteredDetails,
+            ...phoneNumberDto,
+          },
+        });
+
+        // Инвалидируем кэш для конкретного объявления
+        await queryClient.invalidateQueries({
+          queryKey: [`/ad/${announcement.id}`, announcement.id],
+        });
+
         navigate({ to: "/announcements" });
+      } else {
+        const response = await apiService.post<string>({
+          url: "/ad",
+          dto: {
+            title,
+            description,
+            youtubeLink,
+            video,
+            organizationId: user?.organization?.id,
+            subcategoryId: subcategory.id,
+            images: newImages,
+            details: filteredDetails,
+            ...phoneNumberDto,
+          },
+        });
+
+        if (response.data) {
+          navigate({ to: "/announcements" });
+        }
       }
     } catch (error) {
     } finally {
@@ -365,6 +531,18 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
       }
     }
     return true;
+  };
+
+  // Унифицированная функция для форматирования номера телефона
+  const formatPhoneNumber = (value: string): string => {
+    if (!value) return "";
+    // Удаляем всё кроме цифр и + в начале
+    const cleaned = value.replace(/[^\d+]/g, "");
+    // Если нет +7, добавляем его
+    if (!cleaned.startsWith("+7")) {
+      return "+" + cleaned.replace(/^\+?/, "");
+    }
+    return cleaned;
   };
   return (
     <section className="min-h-screen bg-[#F1F2F6]">
@@ -395,7 +573,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement ? t("changeAd") : t("newAnnouncemet")}
+              {announcement?.schedule ? t("changeAd") : t("adThirdStepTitle")}
             </Typography>
             <Typography
               size={14}
@@ -406,13 +584,24 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               {t("placeAd")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={3} totalSteps={9}></ProgressSteps>
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -435,13 +624,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               <Button
                 mode="red"
                 className="border-2 border-red"
-                onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${announcement?.id}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                onClick={() => {
+                  // При создании нового объявления просто возвращаемся назад
+                  navigate({ to: "/announcements" });
                 }}
               >
                 {t("delete")}
@@ -455,10 +640,17 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
           onSubmit={handleSubmit(async (form) => {
             setIsLoading(true);
             const newImages = await handleUpload();
+            const videoPath = await uploadVideo();
+
+            // Фильтруем toggles - оставляем только включенные (true)
+            const filteredDetails = Object.fromEntries(
+              Object.entries(toggles).filter(([_, value]) => value === true)
+            );
+
             if (announcement) {
-              const phoneNumberDto = mask.current?.value.replace(/\D/g, "").replace("7", "")
+              const phoneNumberDto = mask.current?.value
                 ? {
-                  phoneNumber: "+"+mask.current?.value.replace(/\D/g, "")
+                    phoneNumber: formatPhoneNumber(mask.current.value),
                   }
                 : null;
               await apiService.patch<string>({
@@ -467,6 +659,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
+                  video: videoPath,
+                  organizationId: user?.organization?.id,
+                  subcategoryId: subcategory.id,
                   images: [
                     ...images
                       .map((item) => {
@@ -477,10 +672,16 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                       .filter((item) => item != null),
                     ...(newImages as string[]),
                   ],
-                  details: toggles,
-                  ...phoneNumberDto
+                  details: filteredDetails,
+                  ...phoneNumberDto,
                 },
               });
+
+              // Инвалидируем кэш для конкретного объявления
+              await queryClient.invalidateQueries({
+                queryKey: [`/ad/${announcement.id}`, announcement.id],
+              });
+
               navigate({
                 to: `/map/$adId`,
                 params: {
@@ -488,9 +689,9 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               });
             } else {
-              const phoneNumberDto = mask.current?.value.replace(/[ -]/g, "")
+              const phoneNumberDto = mask.current?.value
                 ? {
-                    phoneNumber: mask.current?.value.replace(/[ -]/g, ""),
+                    phoneNumber: formatPhoneNumber(mask.current.value),
                   }
                 : null;
               const response = await apiService.post<string>({
@@ -499,10 +700,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   title: form.title,
                   description: form.description,
                   youtubeLink: form.youtubeLink,
+                  video: videoPath,
                   organizationId: user?.organization?.id,
                   subcategoryId: subcategory.id,
                   images: newImages,
-                  details: toggles,
+                  details: filteredDetails,
                   ...phoneNumberDto,
                 },
               });
@@ -531,13 +733,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
+                <div className="mb-2 relative">
                   <TextField
                     {...field}
                     error={Boolean(error?.message)}
                     helperText={error?.message || errorMessage}
                     fullWidth={true}
                     type={"text"}
+                    multiline
                     variant="outlined"
                     label={t("title")}
                     inputProps={{ maxLength: 40 }}
@@ -552,7 +755,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     size={12}
                     weight={400}
                     color={COLORS_TEXT.gray100}
-                    className="absolute top-[110px] right-5"
+                    className="absolute top-2 right-2"
                   >
                     {field.value?.length || 0}/40
                   </Typography>
@@ -570,13 +773,14 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
+                <div className="mb-2 relative">
                   <TextField
                     {...field}
                     error={Boolean(error?.message)}
                     helperText={error?.message || errorMessage}
                     fullWidth={true}
                     type={"text"}
+                    multiline
                     variant="outlined"
                     label={t("description")}
                     inputProps={{ maxLength: 300 }}
@@ -590,7 +794,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                     size={12}
                     weight={400}
                     color={COLORS_TEXT.gray100}
-                    className="absolute top-[192px] right-5"
+                    className="absolute top-2 right-2"
                   >
                     {field.value?.length || 0}/300
                   </Typography>
@@ -652,9 +856,11 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                   open={imageModal}
                   onClose={() => setImageModal(false)}
                   firstItem={imageIndex}
-                  onDelete={() => {
+                  onDelete={async () => {
                     if (images[imageIndex].serverPreview) {
-                      deleteImageFromServer(images[imageIndex].serverPreview);
+                      await deleteImageFromServer(
+                        images[imageIndex].serverPreview
+                      );
                     }
                     setImages((prevImages) =>
                       update(prevImages, {
@@ -674,30 +880,116 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
                 {t("addPicture")}
               </Typography>
             </div>
-            <Controller
-              name="youtubeLink"
-              control={control}
-              rules={{}}
-              render={({ field, fieldState: { error } }) => (
-                <div className="mb-2">
-                  <TextField
-                    {...field}
-                    error={Boolean(error?.message)}
-                    helperText={error?.message || errorMessage}
-                    fullWidth={true}
-                    type={"text"}
-                    variant="outlined"
-                    label={t("youtubeVideo")}
-                    inputProps={{ maxLength: 300 }}
-                    placeholder={t("inputLink")}
-                    value={youtubeLink}
-                    onChange={(e) => {
-                      setYoutubeLink(e.target.value);
-                    }}
-                  />
-                </div>
-              )}
-            />
+            <div className="bg-white rounded-lg p-4 mb-2">
+              <Typography
+                className="mb-2"
+                size={12}
+                weight={400}
+                color={COLORS_TEXT.gray100}
+              >
+                {t("uploadVideo")}
+              </Typography>
+
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  id="video-upload"
+                />
+                <label
+                  htmlFor="video-upload"
+                  className="flex items-center  rounded-lg cursor-pointer"
+                >
+                  <div className="flex gap-4 items-center">
+                    <img src={VideoUploadImg} alt="" />
+                    <Typography
+                      size={14}
+                      weight={400}
+                      color={COLORS_TEXT.gray100}
+                    >
+                      {video ? t("changeVideo") : t("selectVideo")}
+                    </Typography>
+                  </div>
+                </label>
+
+                {videoError && (
+                  <Typography size={14} weight={400} color={COLORS_TEXT.red}>
+                    {videoError}
+                  </Typography>
+                )}
+
+                {video && (
+                  <div className="relative">
+                    <video
+                      src={video.preview || announcement?.video}
+                      controls
+                      className="w-full rounded-lg"
+                      style={{ maxHeight: "200px" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        // Удаляем видео с сервера если оно было загружено
+                        if (video?.serverPath) {
+                          const serverPath = video.serverPath.replace(
+                            baseUrl,
+                            ""
+                          );
+                          try {
+                            await apiService.delete({
+                              url: "/video",
+                              dto: { filepath: serverPath },
+                            });
+                          } catch (error) {
+                            console.error("Ошибка при удалении видео:", error);
+                          }
+                        }
+                        // Очищаем blob ссылку если это локальный файл
+                        if (video?.preview && video?.file) {
+                          URL.revokeObjectURL(video.preview);
+                        }
+                        // Помечаем видео как удаленное или полностью удаляем
+                        setVideo(null);
+                      }}
+                      className="absolute top-2 right-2 bg-white rounded-full p-1"
+                    >
+                      <img src={XIcon} className="w-[15px]" alt="" />
+                    </button>
+                    <div className="flex justify-between mt-1">
+                      {video.duration > 0 && (
+                        <>
+                          <Typography
+                            size={12}
+                            weight={400}
+                            color={COLORS_TEXT.gray100}
+                          >
+                            {(t("duration") || "Длительность") +
+                              ": " +
+                              Math.floor(video.duration / 60) +
+                              ":" +
+                              Math.floor(video.duration % 60)
+                                .toString()
+                                .padStart(2, "0")}
+                          </Typography>
+                          <Typography
+                            size={12}
+                            weight={400}
+                            color={COLORS_TEXT.gray100}
+                          >
+                            {t("size") +
+                              ": " +
+                              (video.size / (1024 * 1024)).toFixed(2) +
+                              " МБ"}
+                          </Typography>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             <Controller
               name="phoneNumber"
               control={control}
@@ -761,7 +1053,7 @@ export const ChoiseDetails: FC<Props> = function ChoiseDetails({
               loading={isLoading || isSubmitting}
               mode="default"
             >
-              {t("continue")}
+              {announcement ? t("saveBtn") : t("continue")}
             </Button>
           </div>
         </DefaultForm>

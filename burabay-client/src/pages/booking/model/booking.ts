@@ -4,13 +4,17 @@ interface BookingAd {
   title: string;
   ad_id: string;
   img: string;
+  status: "в процессе" | "отменено" | "оплачено" | "исполнено" | "подтверждено";
   times: string[];
+  createdAt: string;
 }
 interface TouristBookingAd {
   title: string;
   ad_id: string;
   img: string;
   times: TouristBookingTime[];
+  createdAt: string;
+  isBanned?: boolean;
 }
 
 interface TouristBookingTime {
@@ -18,6 +22,7 @@ interface TouristBookingTime {
   status: "в процессе" | "отменено" | "оплачено" | "исполнено" | "подтверждено";
   price: number;
   isPaid: boolean;
+
   paymentType: "online" | "cash";
 }
 

@@ -1,4 +1,4 @@
-import { FC, useRef, useCallback, useState } from "react";
+import { FC, useRef, useCallback, useState, useEffect } from "react";
 import { Typography } from "../../shared/ui/Typography";
 import { NavMenuOrg } from "../../shared/ui/NavMenuOrg";
 import { Button } from "../../shared/ui/Button";
@@ -16,6 +16,7 @@ import { RotatingLines } from "react-loader-spinner";
 import { COLORS } from "../../shared/ui/colors";
 import AddAnnouncementIcon from "../../app/icons/Intersect.png";
 import { Loader } from "../../components/Loader";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 interface Props {
   orgId: string;
@@ -26,6 +27,113 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState<string>(filters?.adName || "");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
+
+  useEffect(() => {
+    navigate({
+      to: "/announcements",
+      search: {
+        ...filters,
+        adName: debouncedSearchValue,
+      },
+    });
+  }, [debouncedSearchValue]);
+
+  // Восстанавливаем скролл при монтировании
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("announcementsPageScroll");
+    if (savedScroll) {
+      const scrollPosition = parseInt(savedScroll, 10);
+
+      const scrollableElement = document.querySelector(
+        ".ios-scrollable-content"
+      ) as HTMLElement;
+      const targetElement = scrollableElement || window;
+
+      let isRestoring = true;
+      const timeouts: NodeJS.Timeout[] = [];
+
+      const setScroll = (pos: number) => {
+        if (scrollableElement) {
+          scrollableElement.scrollTop = pos;
+        } else {
+          window.scrollTo(0, pos);
+        }
+      };
+
+      const protectScroll = () => {
+        if (isRestoring) {
+          const currentScroll = scrollableElement
+            ? scrollableElement.scrollTop
+            : window.scrollY;
+          if (currentScroll < scrollPosition - 10) {
+            setScroll(scrollPosition);
+          }
+        }
+      };
+
+      if (scrollableElement) {
+        scrollableElement.addEventListener("scroll", protectScroll, {
+          passive: true,
+        });
+      } else {
+        window.addEventListener("scroll", protectScroll, { passive: true });
+      }
+
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 0));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 50));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 150));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 300));
+      timeouts.push(
+        setTimeout(() => {
+          setScroll(scrollPosition);
+          isRestoring = false;
+          if (scrollableElement) {
+            scrollableElement.removeEventListener("scroll", protectScroll);
+          } else {
+            window.removeEventListener("scroll", protectScroll);
+          }
+        }, 500)
+      );
+
+      return () => {
+        isRestoring = false;
+        if (scrollableElement) {
+          scrollableElement.removeEventListener("scroll", protectScroll);
+        } else {
+          window.removeEventListener("scroll", protectScroll);
+        }
+        timeouts.forEach((t) => clearTimeout(t));
+      };
+    }
+  }, []);
+
+  // Сохраняем позицию скролла при каждом скролле
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+
+    const handleScroll = () => {
+      const scrollY = scrollableElement
+        ? scrollableElement.scrollTop
+        : window.scrollY;
+      sessionStorage.setItem("announcementsPageScroll", scrollY.toString());
+    };
+
+    if (scrollableElement) {
+      scrollableElement.addEventListener("scroll", handleScroll);
+      return () => {
+        scrollableElement.removeEventListener("scroll", handleScroll);
+      };
+    } else {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, []);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault(); // Предотвращаем стандартное поведение (если нужно)
@@ -72,22 +180,44 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
           <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
             <img src={SearchIcon} alt="" />
             <input
-              type="search"
-              placeholder="Поиск"
+              type="text"
+              placeholder={t("adSearch")}
               className="flex-grow bg-transparent outline-none text-gray-700"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={() => {
-                navigate({
-                  to: "/announcements",
-                  search: {
-                    ...filters,
-                    adName: searchValue,
-                  },
-                });
-              }}
             />
+            {searchValue && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchValue("");
+                  navigate({
+                    to: "/announcements",
+                    search: {
+                      ...filters,
+                      adName: "",
+                    },
+                  });
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <IconContainer align="end">
             <img
@@ -130,10 +260,18 @@ export const Announcements: FC<Props> = ({ orgId, filters }) => {
                     isOrganization
                     ref={lastElementRef}
                     width={adList.length == 1 ? "w-[50%]" : ""}
+                    fromAnnouncementsPage={true}
                   />
                 );
               }
-              return <AdCard ad={item} key={item.id} isOrganization />;
+              return (
+                <AdCard
+                  ad={item}
+                  key={item.id}
+                  isOrganization
+                  fromAnnouncementsPage={true}
+                />
+              );
             })}
             {/* Индикатор загрузки новых данных */}
             {isFetchingNextPage && (

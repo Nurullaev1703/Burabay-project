@@ -1,9 +1,10 @@
 import { baseUrl } from "./ServerData";
+import { tokenService, roleService } from "../storage/Factory";
 
 // Данные необходимые для запроса
 interface RequestOptions {
   url: string;
-  dto?: any;
+  dto?: unknown;
   headers?: HeadersInit;
 }
 // Данные, которые приходят в результате запроса
@@ -48,6 +49,44 @@ class ApiService {
       },
     }).then(async (response) => {
       const data = await response.json();
+
+      // Если сервер вернул ошибку JWT (например "jwt malformed"), очищаем токен/роль и
+      // перенаправляем пользователя на страницу входа, чтобы не показывать необработанное
+      // техническое сообщение пользователю и не пытаться дальше делать запросы с некорректным токеном.
+      const message = data?.message || "";
+      if (response.status === 401 && typeof message === "string") {
+        const lower = message.toLowerCase();
+        if (lower.includes("jwt malformed") || lower.includes("invalid token") || lower.includes("jwt expired")) {
+          try {
+            this.deleteBearerToken();
+          } catch (e) {}
+          try {
+            tokenService.deleteValue();
+          } catch (e) {}
+          try {
+            roleService.deleteValue();
+          } catch (e) {}
+          // Навигация через assign — безопаснее внутри async хуков/сервисов
+          window.location.assign("/auth");
+        }
+      }
+
+      // Проверка на ошибки блокировки
+      if (response.status === 401 && data.message) {
+        const message = data.message;
+        if (
+          message === "Ваш аккаунт заблокирован" ||
+          message === "Ваша организация заблокирована"
+        ) {
+          // Удаляем токен
+          this.deleteBearerToken();
+          // Очищаем localStorage
+          localStorage.clear();
+          // Редирект на страницу авторизации
+          window.location.href = "/auth";
+        }
+      }
+
       return {
         status: response.status,
         data,
@@ -56,16 +95,16 @@ class ApiService {
   }
 
   // методы для получения данных
-  async get<T extends unknown>(options: RequestOptions) {
+  async get<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "GET");
   }
-  async post<T extends unknown>(options: RequestOptions) {
+  async post<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "POST");
   }
-  async patch<T extends unknown>(options: RequestOptions) {
+  async patch<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "PATCH");
   }
-  async delete<T extends unknown>(options: RequestOptions) {
+  async delete<T>(options: RequestOptions) {
     return this._serverRequest<T>(options, "DELETE");
   }
 

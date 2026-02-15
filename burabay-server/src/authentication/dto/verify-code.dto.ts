@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber } from "class-validator";
+import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class VerifyCodeDto {
   @IsEmail()

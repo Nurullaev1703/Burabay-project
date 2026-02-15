@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request, Req } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AdFilter } from './types/ad-filter.type';
-import { Throttle } from '@nestjs/throttler';
+// import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Объявления')
 @ApiBearerAuth()
@@ -14,8 +14,8 @@ export class AdController {
 
   @Post()
   @ApiBody({ schema: { example: AdController.adExample } })
-  create(@Body() createAdDto: CreateAdDto) {
-    return this.adService.create(createAdDto);
+  create(@Body() createAdDto: CreateAdDto, @Request() req: AuthRequest) {
+    return this.adService.create(createAdDto, req.user);
   }
 
   @Get()
@@ -40,9 +40,14 @@ export class AdController {
   }
 
   @Get('check-dates/:adId')
-  @Throttle({ default: { limit: 24, ttl: 1800000 } })
+  // @Throttle({ default: { limit: 24, ttl: 1800000 } })
   checkDates(@Param('adId') adId: string) {
     return this.adService.checkDates(adId);
+  }
+
+  @Get('has-active-bookings/:adId')
+  hasActiveBookings(@Param('adId') adId: string) {
+    return this.adService.hasActiveBookings(adId);
   }
 
   @Get('favorite/list')
@@ -56,13 +61,13 @@ export class AdController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto) {
-    return this.adService.update(id, updateAdDto);
+  update(@Param('id') id: string, @Body() updateAdDto: UpdateAdDto, @Request() req: AuthRequest) {
+    return this.adService.update(id, updateAdDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.adService.remove(id, req.user);
   }
 
   private static adExample = {

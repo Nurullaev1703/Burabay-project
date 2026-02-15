@@ -1,7 +1,7 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useMemo, useState, useEffect } from "react";
 import { NavMenuOrg } from "../../../shared/ui/NavMenuOrg";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import SearchIcon from "../../../app/icons/search-icon.svg";
 import FilterIcon from "../../../app/icons/main/filter.svg";
 import ActiveFilterIcon from "../../../app/icons/active-filter.svg";
@@ -10,6 +10,10 @@ import { BookingList } from "../model/booking";
 import { baseUrl } from "../../../services/api/ServerData";
 import { COLORS_TEXT } from "../../../shared/ui/colors";
 import DefaultIcon from "../../../app/icons/abstract-bg.svg";
+import { TabMenu, TabMenuItem } from "../../../shared/ui/TabMenu";
+import BookingWaitingIcon from "../../../app/icons/booking-waiting.svg";
+import { Typography } from "../../../shared/ui/Typography";
+
 interface Props {
   ads: BookingList[];
 }
@@ -17,17 +21,188 @@ interface Props {
 export const BookingPage: FC<Props> = function BookingPage({ ads }) {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
+  const formatDateHeader = (dateStr: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Парсим дату из строки DD.MM.YYYY
+    const parts = dateStr.split(".");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year =
+        parts[2].length === 2
+          ? 2000 + parseInt(parts[2], 10)
+          : parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 0) return t("today");
+      if (diffDays === 1) return t("tomorrow");
+    }
+
+    return dateStr;
+  };
 
   /* @ts-ignore */
   const queryParams = new URLSearchParams(location.search);
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
   const isFilterActive = onlinePayment || onSidePayment || canceled;
 
-  const [adsList, _] = useState<BookingList[]>(ads || []);
+  // Индекс активного таба: 0 - Активные, 1 - Архив
+  const activeIndex = status === "ACTIVE" ? 0 : 1;
+
+  // Мемоизируем данные для вкладок
+  const TABS_DATA: TabMenuItem[] = useMemo(
+    () => [
+      {
+        index: 0,
+        title: t("active"),
+      },
+      {
+        index: 1,
+        title: t("archive"),
+      },
+    ],
+    [t]
+  );
+
+  // Обработчик смены вкладки
+  const handleTabChange = useCallback(
+    (index: number) => {
+      const newStatus = index === 0 ? "ACTIVE" : "DONE";
+      navigate({
+        to: "/booking/business",
+        search: {
+          status: newStatus,
+          ...(onlinePayment && { onlinePayment: true }),
+          ...(onSidePayment && { onSidePayment: true }),
+          // Убираем фильтр "отменено" при переходе на таб "Активные"
+          ...(canceled && index !== 0 && { canceled: true }),
+        },
+      });
+    },
+    [navigate, onlinePayment, onSidePayment, canceled]
+  );
+
+  const [imagesSrc, setImagesSrc] = useState<Record<string, string>>(() => {
+    const initial = {};
+    if (Array.isArray(ads)) {
+      ads.forEach((ad) => {
+        if (ad.ads && ad.ads[0]) {
+          (initial as Record<string, string>)[ad.ads[0].ad_id] =
+            baseUrl + ad.ads[0].img;
+        }
+      });
+    }
+    return initial;
+  });
+  const [adsList, _] = useState<BookingList[]>(Array.isArray(ads) ? ads : []);
   const [searchValue, setSearchValue] = useState<string>("");
 
+  // Восстанавливаем скролл при монтировании
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("bookingListScroll");
+    if (savedScroll) {
+      const scrollPosition = parseInt(savedScroll, 10);
+
+      const scrollableElement = document.querySelector(
+        ".ios-scrollable-content"
+      ) as HTMLElement;
+
+      let isRestoring = true;
+      const timeouts: NodeJS.Timeout[] = [];
+
+      const setScroll = (pos: number) => {
+        if (scrollableElement) {
+          scrollableElement.scrollTop = pos;
+        } else {
+          window.scrollTo(0, pos);
+        }
+      };
+
+      const protectScroll = () => {
+        if (isRestoring) {
+          const currentScroll = scrollableElement
+            ? scrollableElement.scrollTop
+            : window.scrollY;
+          if (currentScroll < scrollPosition - 10) {
+            setScroll(scrollPosition);
+          }
+        }
+      };
+
+      if (scrollableElement) {
+        scrollableElement.addEventListener("scroll", protectScroll, {
+          passive: true,
+        });
+      } else {
+        window.addEventListener("scroll", protectScroll, { passive: true });
+      }
+
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 0));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 50));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 150));
+      timeouts.push(setTimeout(() => setScroll(scrollPosition), 300));
+      timeouts.push(
+        setTimeout(() => {
+          setScroll(scrollPosition);
+          isRestoring = false;
+          if (scrollableElement) {
+            scrollableElement.removeEventListener("scroll", protectScroll);
+          } else {
+            window.removeEventListener("scroll", protectScroll);
+          }
+        }, 500)
+      );
+
+      return () => {
+        isRestoring = false;
+        if (scrollableElement) {
+          scrollableElement.removeEventListener("scroll", protectScroll);
+        } else {
+          window.removeEventListener("scroll", protectScroll);
+        }
+        timeouts.forEach((t) => clearTimeout(t));
+      };
+    }
+  }, []);
+
+  // Сохраняем позицию скролла при каждом скролле
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+
+    const handleScroll = () => {
+      const scrollY = scrollableElement
+        ? scrollableElement.scrollTop
+        : window.scrollY;
+      sessionStorage.setItem("bookingListScroll", scrollY.toString());
+    };
+
+    if (scrollableElement) {
+      scrollableElement.addEventListener("scroll", handleScroll);
+      return () => {
+        scrollableElement.removeEventListener("scroll", handleScroll);
+      };
+    } else {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, []);
   const filteredAds = adsList
     .map((category) => ({
       ...category,
@@ -39,104 +214,191 @@ export const BookingPage: FC<Props> = function BookingPage({ ads }) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Предотвращаем стандартное поведение
+      event.preventDefault();
     }
+    navigate({
+      to: "/booking/business",
+      search: {
+        adName: searchValue,
+        status,
+      },
+    });
   };
 
   return (
-    <section>
-      <div className="flex justify-between items-center text-center gap-3 px-4 bg-white">
-        <div className="w-full flex mt-4 items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
-          <img src={SearchIcon} alt="Поиск" />
-          <input
-            type="search"
-            placeholder={t("search")}
-            className="flex-grow bg-transparent outline-none text-gray-700"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
+    <section className="bg-almostWhite min-h-screen">
+      {/* Фиксированный хедер с табами и поиском */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        {/* Табы */}
+        <div className="py-4 px-4 bg-white">
+          <TabMenu
+            data={TABS_DATA}
+            activeIndex={activeIndex}
+            onChangeIndex={handleTabChange}
           />
         </div>
-        <Link
-          to={`/booking/filter?onlinePayment=${onlinePayment}&onSidePayment=${onSidePayment}&canceled=${canceled}`}
-        >
-          <img
-            src={isFilterActive ? ActiveFilterIcon : FilterIcon}
-            className="mt-4"
-            alt="Фильтр"
-          />
-        </Link>
+
+        <div className="flex justify-between items-center text-center gap-3 px-4 bg-white pb-4">
+          <div className="w-full flex items-center gap-2 bg-gray-100 rounded-full px-2 py-2 shadow-sm">
+            <img src={SearchIcon} alt="Поиск" />
+            <input
+              type="text"
+              placeholder={t("search")}
+              className="flex-grow bg-transparent outline-none text-gray-700"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            {searchValue && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchValue("");
+                }}
+                className="flex-shrink-0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+          <Link
+            to="/booking/filter"
+            search={{
+              onlinePayment,
+              onSidePayment,
+              canceled,
+              status,
+            }}
+          >
+            <img
+              src={isFilterActive ? ActiveFilterIcon : FilterIcon}
+              alt="Фильтр"
+            />
+          </Link>
+        </div>
       </div>
 
-      <ul className="px-4 mt-4 mb-32">
-        {filteredAds.map((category, index) => (
-          <li key={index} className="flex flex-col mb-8">
-            <span
-              className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
-            >
-              {t(category.header)}
-            </span>
-            <ul>
-              {category.ads.map((ad) => {
-                const [imageSrc, setImageSrc] = useState<string>(
-                  baseUrl + ad.img
-                );
-                return (
-                  <li className="py-3 border-b border-[#E4E9EA]">
-                    <Link
-                      className="flex justify-between"
-                      to={`/booking/${ad.ad_id}/${category.header}`}
-                    >
-                      <div className="flex">
-                        <img
-                          src={imageSrc}
-                          onError={() => setImageSrc(DefaultIcon)}
-                          alt={ad.title}
-                          className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-                        />
-                        <div>
-                          <span>{ad.title}</span>
-                          <div className="max-w-[300px] truncate">
-                            {ad.times.slice(0, 5).map((time, index) => {
-                              if (!time) return null; // Пропускаем null значения
+      {/* Отступ для фиксированного хедера */}
+      <div className="h-[128px]"></div>
 
-                              const hasUnderscore = time.includes("_");
-                              const formattedTime = time.replace("_", "");
-                              // Убираем год из дат формата "дд.мм.гггг"
-                              const updatedTime = formattedTime.replace(
-                                /(\d{2}\.\d{2})\.\d{4}/g,
-                                "$1"
-                              );
-
-                              return (
-                                <span
-                                  key={index}
-                                  className={
-                                    hasUnderscore
-                                      ? COLORS_TEXT.red
-                                      : COLORS_TEXT.blue200
-                                  }
-                                >
-                                  {updatedTime}
-                                  {index < Math.min(5, ad.times.length) - 1 &&
-                                    ", "}
+      {searchValue && filteredAds.length === 0 ? (
+        <div className="flex justify-center flex-col items-center flex-grow min-h-[calc(100vh-140px)] mb-32">
+          <img src={BookingWaitingIcon} className="w-40 h-40 mb-8" alt="" />
+          <div className="flex flex-col justify-center items-center gap-2">
+            <Typography size={18} weight={500}>
+              {t("noSearchResults")}
+            </Typography>
+          </div>
+        </div>
+      ) : (
+        <ul className="px-4 mb-32 bg-white pt-4">
+          {filteredAds.map((category, index) => (
+            <li key={index} className="flex flex-col mb-8">
+              <span
+                className={`${COLORS_TEXT.gray100} w-full text-center mb-2 text-sm`}
+              >
+                {formatDateHeader(category.header)}
+              </span>
+              <ul>
+                {category.ads
+                  .slice()
+                  .sort((a, b) => {
+                    const aDate = new Date(a.createdAt || 0).getTime();
+                    const bDate = new Date(b.createdAt || 0).getTime();
+                    return bDate - aDate;
+                  })
+                  .map((ad) => {
+                    const imageSrc = imagesSrc[ad.ad_id] || DefaultIcon;
+                    return (
+                      <div key={`${ad.ad_id}`}>
+                        <li className="py-3 border-b border-[#E4E9EA]">
+                          <Link
+                            className="flex justify-between items-center overflow-hidden"
+                            to={`/booking/$bookingId/$category`}
+                            params={{
+                              bookingId: ad.ad_id,
+                              category: category.header,
+                            }}
+                            search={{ status, fromBookingList: true }}
+                          >
+                            <div className="flex min-w-0 flex-1">
+                              <img
+                                src={imageSrc}
+                                onError={() =>
+                                  setImagesSrc((prev) => ({
+                                    ...prev,
+                                    [ad.ad_id]: DefaultIcon,
+                                  }))
+                                }
+                                alt={ad.title}
+                                className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="block truncate max-w-[250px]">
+                                  {ad.title}
                                 </span>
-                              );
-                            })}
-                            {ad.times.length > 5 && " ..."}
-                          </div>
-                        </div>
-                      </div>
+                                <div className="max-w-[300px] truncate">
+                                  {ad.times.slice(0, 5).map((time, index) => {
+                                    if (!time) return null;
+                                    const [timeStr] = time.split("_");
+                                    const updatedTime = timeStr.replace(
+                                      /(\d{2}\.\d{2})\.\d{4}/g,
+                                      "$1"
+                                    );
 
-                      <img src={ArrowRightIcon} alt="Подробнее" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </li>
-        ))}
-      </ul>
+                                    return (
+                                      <span
+                                        key={index}
+                                        className={COLORS_TEXT.blue200}
+                                      >
+                                        {updatedTime}
+                                        {index <
+                                          Math.min(5, ad.times.length) - 1 &&
+                                          ", "}
+                                      </span>
+                                    );
+                                  })}
+                                  {ad.times.length > 5 && " ..."}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span
+                                className={`capitalize text-sm ${ad.status === "в процессе" ? COLORS_TEXT.red : ad.status === "отменено" ? COLORS_TEXT.red : ad.status === "подтверждено" ? COLORS_TEXT.access : COLORS_TEXT.blue200}`}
+                              >
+                                {ad.status === "в процессе"
+                                  ? t("waiting")
+                                  : ad.status === "отменено"
+                                    ? t("cancelStatus")
+                                    : ad.status === "подтверждено"
+                                      ? t("confirmStatus")
+                                      : ""}
+                              </span>
+                              <img src={ArrowRightIcon} alt="Подробнее" />
+                            </div>
+                          </Link>
+                        </li>
+                      </div>
+                    );
+                  })}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <NavMenuOrg />
     </section>

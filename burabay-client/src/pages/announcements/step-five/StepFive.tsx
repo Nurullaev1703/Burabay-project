@@ -16,6 +16,7 @@ import { Announcement, Breaks, Schedule } from "../model/announcements";
 import { apiService } from "../../../services/api/ApiService";
 import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   id: string;
@@ -28,24 +29,24 @@ interface FormType {
   breaks: Breaks[];
 }
 
-
-
 export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
-   const validateTime = (value: string) => {
+  const queryClient = useQueryClient();
+  const validateTime = (value: string) => {
     const isValidFormat = /^\d{2}:\d{2}$/.test(value);
     if (!isValidFormat) return t("invalidTimeFormat");
-    
+
     const [hours, minutes] = value.split(":");
     const hoursNumber = parseInt(hours, 10);
     const minutesNumber = parseInt(minutes, 10);
-  
+
     if (hoursNumber > 23 || minutesNumber > 59) {
       return t("invalidTimeRange");
     }
-  
-    return true; 
+
+    return true;
   };
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   // Проверка на наличие данных schedule перед форматированием времени
@@ -55,7 +56,13 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     return `${hours}:${minutes}`;
   };
 
-  const { handleSubmit, control, setValue, watch } = useForm<FormType>({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormType>({
     defaultValues: {
       isRoundTheClock: announcement?.isRoundTheClock || false,
       workingDays: {
@@ -85,6 +92,28 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   const [error, setError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
 
+  // helper: get first nested error message from react-hook-form errors
+  const getFirstErrorMessage = (errObj: any): string | null => {
+    if (!errObj) return null;
+    if (errObj.message) return String(errObj.message);
+    if (Array.isArray(errObj)) {
+      for (const item of errObj) {
+        const m = getFirstErrorMessage(item);
+        if (m) return m;
+      }
+    }
+    if (typeof errObj === "object") {
+      for (const k of Object.keys(errObj)) {
+        const m = getFirstErrorMessage(errObj[k]);
+        if (m) return m;
+      }
+    }
+    return null;
+  };
+
+  const firstFormError =
+    getFirstErrorMessage(errors) || (error ? errorText : null);
+
   // -------------- Дни недели
 
   const daysOfWeek = ["mon", "tue", "wen", "thu", "fri", "sat", "sun"] as const;
@@ -98,7 +127,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
   };
 
   const addBreak = () => {
-    if (breaks.length < 2) {
+    if (breaks.length < 5) {
       // Добавляем новый объект с пустыми значениями времени
       const newBreak = { adId: id, start: "", end: "" };
       setBreaks([...breaks, newBreak]);
@@ -113,9 +142,51 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
     field: keyof Breaks,
     value: string
   ) => {
+    // Очищаем ошибку при изменении
+    if (
+      error &&
+      (errorText === t("duplicateBreakTime") ||
+        errorText === t("invalidBreakTime"))
+    ) {
+      setError(false);
+      setErrorText("");
+    }
+
     // Update the break in the state
     const updatedBreaks = [...breaks];
     updatedBreaks[index] = { ...updatedBreaks[index], [field]: value };
+
+    // Проверка на корректность времени (время окончания должно быть больше времени начала)
+    const currentBreak = updatedBreaks[index];
+    if (currentBreak.start && currentBreak.end) {
+      const [startHours, startMinutes] = currentBreak.start
+        .split(":")
+        .map(Number);
+      const [endHours, endMinutes] = currentBreak.end.split(":").map(Number);
+
+      const startTimeInMinutes = startHours * 60 + startMinutes;
+      const endTimeInMinutes = endHours * 60 + endMinutes;
+
+      if (endTimeInMinutes <= startTimeInMinutes) {
+        handleError(t("invalidBreakTime"));
+        return;
+      }
+
+      // Проверка на дубликаты перерывов
+      const isDuplicate = updatedBreaks.some((breakItem, i) => {
+        return (
+          i !== index &&
+          breakItem.start === currentBreak.start &&
+          breakItem.end === currentBreak.end
+        );
+      });
+
+      if (isDuplicate) {
+        handleError(t("duplicateBreakTime"));
+        return;
+      }
+    }
+
     setBreaks(updatedBreaks);
 
     // Update the value in the form through setValue
@@ -199,6 +270,11 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
         (responseBreaks.data === parseInt(HTTP_STATUS.CREATED) ||
           responseBreaks.data === parseInt(HTTP_STATUS.OK))
       ) {
+        // Инвалидируем кэш для конкретного объявления
+        await queryClient.invalidateQueries({
+          queryKey: [`/ad/${id}`],
+        });
+
         navigate({
           to: `/announcements/addAnnouncements/step-six/${id}`,
           params: {
@@ -221,13 +297,12 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
 
       setIsLoading(false);
     } catch (e) {
-      console.error("Ошибка при сохранении графика:", e);
       setIsLoading(false);
     }
   };
 
   return (
-    <section className="min-h-screen bg-background pb-2">
+    <section className="min-h-screen bg-background pb-8">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer
@@ -250,7 +325,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement?.schedule ? t("changeAd") : t("newAnnouncemet")}
+              {announcement?.schedule ? t("changeAd") : t("workingDays")}
             </Typography>
             <Typography
               size={14}
@@ -258,16 +333,27 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("workingDays")}
+              {t("workingDaysNew")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={5} totalSteps={9}></ProgressSteps>
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -302,15 +388,22 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                 mode="red"
                 className="border-2 border-red"
                 onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${id}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                  setIsDeleting(true);
+                  try {
+                    await apiService.delete({
+                      url: `/ad/${id}`,
+                    });
+                    navigate({
+                      to: "/announcements",
+                    });
+                  } catch (error) {
+                    console.error("Ошибка при удалении объявления:", error);
+                    setIsDeleting(false);
+                  }
                 }}
+                disabled={isDeleting}
               >
-                {t("delete")}
+                {isDeleting ? t("deleting") : t("delete")}
               </Button>
             </div>
           </div>
@@ -378,7 +471,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
 
                   {isDayActive(day) && (
                     <div className="mb-2.5 items-center flex">
-                      <span className="mr-4">{"с"}</span>
+                      <span className="mr-4">{t("from")}</span>
                       <Controller
                         name={`workingDays.${day}Start`}
                         control={control}
@@ -402,12 +495,14 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
                               variant="standard"
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginRight: "16px" }}
                             />
                           );
                         }}
                       />
-                      <span className="mr-4">{"до"}</span>
+                      <span className="mr-4">{t("to")}</span>
                       <Controller
                         name={`workingDays.${day}End`}
                         control={control}
@@ -431,6 +526,8 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                               inputRef={timeMask}
                               error={Boolean(error?.message)}
                               variant="standard"
+                              type="tel"
+                              inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                               style={{ width: "80px", marginLeft: "16px" }}
                             />
                           );
@@ -457,7 +554,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           {breaks.map((_, index) => (
             <li key={index} className="mt-4 flex items-center justify-between">
               <div className="flex items-center">
-                <span className="mr-4">{"с"}</span>
+                <span className="mr-4">{t("from")}</span>
                 <Controller
                   name={`breaks.${index}.start`}
                   control={control}
@@ -485,12 +582,14 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                           handleBreakChange(index, "start", e.target.value)
                         }
                         variant="standard"
+                        type="tel"
+                        inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                         style={{ width: "80px", marginRight: "16px" }}
                       />
                     );
                   }}
                 />
-                <span className="mr-4">{"до"}</span>
+                <span className="mr-4">{t("to")}</span>
                 <Controller
                   name={`breaks.${index}.end`}
                   control={control}
@@ -518,6 +617,8 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
                         onChange={(e) =>
                           handleBreakChange(index, "end", e.target.value)
                         }
+                        type="tel"
+                        inputProps={{ inputMode: "tel", pattern: "\\d*" }}
                         style={{ width: "80px", marginLeft: "16px" }}
                       />
                     );
@@ -533,7 +634,7 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           ))}
         </ul>
 
-        {breaks.length < 2 && (
+        {breaks.length < 5 && (
           <div
             onClick={addBreak}
             className={`mt-2 h-11 w-fit items-center flex cursor-pointer ${COLORS_TEXT.blue200} font-semibold`}
@@ -542,23 +643,28 @@ export const StepFive: FC<Props> = function StepFive({ id, announcement }) {
           </div>
         )}
       </div>
-      {!error ? (
-        <Button
-          className="fixed bottom-4 left-4 w-header z-10"
-          onClick={(e) => {
-            e.preventDefault();
-            handleSubmit(saveSchedule)();
-          }}
-          loading={isLoading}
-          disabled={!isButtonValid()}
-        >
-          {t("continue")}
-        </Button>
-      ) : (
-        <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
-          {errorText}
-        </Button>
-      )}
+      {/* reserve fixed bottom area: show either error text or continue button inside fixed container */}
+      <div className="fixed bottom-4 left-4 w-header z-10">
+        {firstFormError ? (
+          <div
+            className={`w-full text-center py-4 font-semibold ${COLORS_TEXT.red} bg-transparent`}
+          >
+            {firstFormError}
+          </div>
+        ) : (
+          <Button
+            className="w-full"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(saveSchedule)();
+            }}
+            loading={isLoading}
+            disabled={!isButtonValid()}
+          >
+            {announcement ? t("saveBtn") : t("continue")}
+          </Button>
+        )}
+      </div>
     </section>
   );
 };

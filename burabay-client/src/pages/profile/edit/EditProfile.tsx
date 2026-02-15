@@ -16,23 +16,25 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 
 interface FormType {
   organization: Organization;
-  email: string;
 }
 
 export const EditProfile: FC = function EditProfile() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate()
-  const {history} = useRouter();
+  const navigate = useNavigate();
+  const { history } = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleSubmit, control, formState:{isValid} } = useForm<FormType>({
+  const {
+    handleSubmit,
+    control,
+    formState: { isValid },
+  } = useForm<FormType>({
     defaultValues: {
       organization: {
         name: user?.organization?.name || "",
         description: user?.organization?.description || "",
         siteUrl: user?.organization?.siteUrl || "",
       },
-      email: user?.email || "",
     },
     mode: "onChange",
   });
@@ -48,21 +50,25 @@ export const EditProfile: FC = function EditProfile() {
   const saveUser = async (form: FormType) => {
     try {
       setIsLoading(true);
+      setError(false);
+      setErrorText("");
+
       const response = await apiService.patch<Profile>({
         url: "/profile",
         dto: form,
       });
 
       if (response.data) {
-        setUser(response.data)
-        navigate({to:"/profile"})
+        setUser(response.data);
+        navigate({ to: "/profile" });
       } else {
         handleError(t("invalidCode"));
       }
 
       setIsLoading(false);
-    } catch (error) {
-      console.error("Ошибка при сохранении пользователя:", error);
+    } catch (err: any) {
+      handleError(t("defaultError"));
+      setIsLoading(false);
     }
   };
 
@@ -105,6 +111,7 @@ export const EditProfile: FC = function EditProfile() {
             render={({ field, fieldState: { error } }) => (
               <div className="relative w-full">
                 <TextField
+                  multiline
                   {...field}
                   error={Boolean(error?.message)}
                   helperText={error?.message}
@@ -152,40 +159,30 @@ export const EditProfile: FC = function EditProfile() {
           />
 
           <Controller
-            name="email"
+            name="organization.siteUrl"
             control={control}
             rules={{
-              required: t("requiredField"),
-              pattern: {
-                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                message: t("invalidEmail"),
+              maxLength: {
+                value: 500,
+                message: t("maxLengthExceeded", { count: 500 }),
               },
             }}
             render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                label={t("email")}
-                fullWidth={true}
-                variant="outlined"
-              />
-            )}
-          />
-
-          <Controller
-            name="organization.siteUrl"
-            control={control}
-            render={({ field, fieldState: { error } }) => (
-              <TextField
-                {...field}
-                error={Boolean(error?.message)}
-                helperText={error?.message}
-                label={t("site")}
-                fullWidth={true}
-                variant="outlined"
-                placeholder="burabay.kz"
-              />
+              <div className="relative w-full">
+                <TextField
+                  {...field}
+                  error={Boolean(error?.message)}
+                  helperText={error?.message}
+                  label={t("site")}
+                  fullWidth={true}
+                  variant="outlined"
+                  inputProps={{ maxLength: 500 }}
+                  placeholder="burabay.kz"
+                />
+                <span className="absolute top-2 right-2 text-gray-400 text-sm">
+                  {field.value?.length || 0}/500
+                </span>
+              </div>
             )}
           />
 
@@ -199,7 +196,10 @@ export const EditProfile: FC = function EditProfile() {
               {t("save")}
             </Button>
           ) : (
-            <Button mode="red" className="fixed bottom-4 left-3 w-header mt-8 z-10">
+            <Button
+              mode="red"
+              className="fixed bottom-4 left-3 w-header mt-8 z-10"
+            >
               {errorText}
             </Button>
           )}

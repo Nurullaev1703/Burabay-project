@@ -66,7 +66,7 @@ export const Button: FC<Props> = function Button(props) {
       disabled={loading || props.disabled}
     >
       {loading ? (
-        <RotatingLines strokeColor={COLORS.white} width="24px"/>
+        <RotatingLines strokeColor={mode == "red" ? COLORS.red : COLORS.white} width="24px"/>
       ) : (
         <>
           {mode == "fingerprint" && <img src={fingerprint} alt="" />}

@@ -55,7 +55,7 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
             <img src={BackIcon} alt="" />
           </IconContainer>
           <Typography size={28} weight={700} color={COLORS_TEXT.white}>
-            {"Business"}
+            {t("business")}
           </Typography>
           <LanguageButton />
         </div>
@@ -97,7 +97,6 @@ export const BusinessInfo: FC<Props> = function BusinessInfo({ email }) {
                 to: "/profile",
               });
             } else {
-              console.error("Ошибка при регистрации");
             }
           }
           setIsLoading(false);

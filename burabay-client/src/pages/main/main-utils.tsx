@@ -3,24 +3,24 @@ import { apiService } from "../../services/api/ApiService";
 import { Announcement, Category } from "../announcements/model/announcements";
 import { MainPageFilter } from "./model/mainpage-types";
 
-export interface MainDataType{
-    ads: Announcement[],
-    categories: Category[]
+export interface MainDataType {
+  ads: Announcement[];
+  categories: Category[];
 }
 
-export function useGetMainPageAnnouncements(filters?:MainPageFilter) {
+export function useGetMainPageAnnouncements(filters?: MainPageFilter) {
   const categoryFilter = filters?.category || "";
   const adNameFilter = filters?.adName || "";
   const subcategoryFilter = filters?.subcategories?.join(",") || "";
   const minPrice = filters?.minPrice || "";
   const maxPrice = filters?.maxPrice || "";
   const rating = filters?.isHighRating || "";
-  const detailsFilter = filters?.details?.join(",") || ""
+  const detailsFilter = filters?.details?.join(",") || "";
   return useInfiniteQuery({
     queryKey: ["main-page-announcements", filters],
     queryFn: async ({ pageParam = 0 }) => {
       const response = await apiService.get<Announcement[]>({
-        url: `/main-pages/ad?category=${categoryFilter}&name=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating ? "4.5" : ""}&subcategories=${subcategoryFilter}&details=${detailsFilter}&offset=${pageParam}&limit=10`,
+        url: `/main-pages/ad?category=${categoryFilter}&name=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&isHighRating=${rating ? "true" : ""}&subcategories=${subcategoryFilter}&details=${detailsFilter}&offset=${pageParam}&limit=10`,
       });
       return response.data;
     },
@@ -31,15 +31,41 @@ export function useGetMainPageAnnouncements(filters?:MainPageFilter) {
   });
 }
 
+export function useGetRecommendedAds(filters?: MainPageFilter) {
+  const adNameFilter = filters?.adName || "";
+  const minPrice = filters?.minPrice || "";
+  const maxPrice = filters?.maxPrice || "";
+  const rating = filters?.isHighRating || "";
+
+  return useInfiniteQuery({
+    queryKey: ["recommended-ads", filters],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiService.get<Announcement[]>({
+        url: `/category/favorite/ads?name=${adNameFilter}&minPrice=${minPrice}&maxPrice=${maxPrice}&isHighRating=${rating ? "true" : ""}&offset=${pageParam}&limit=10`,
+      });
+      return response.data;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 10 ? allPages.length * 10 : undefined;
+    },
+  });
+}
 
 export function useGetMainPageCategories() {
   return useQuery({
     queryKey: ["main-page-categories"],
     queryFn: async () => {
-      const response = await apiService.get<Category[]>({
+      const categories = await apiService.get<Category[]>({
         url: `/main-pages/categories`,
       });
-      return response.data;
+      const favouriteCategories = await apiService.get<Category[]>({
+        url: `/category/favorite/list`,
+      });
+      return {
+        categories: categories.data,
+        favouriteCategories: favouriteCategories.data,
+      };
     },
   });
 }
@@ -51,6 +77,30 @@ export function useGetMainPageCategory(categoryId: string) {
         url: `/category/${categoryId}`,
       });
       return response.data;
+    },
+  });
+}
+
+export interface Banner {
+  id: string;
+  imagePath: string;
+  title: string;
+  text: string;
+  deleteDate: string;
+}
+
+export function useGetMainPageBanners() {
+  return useQuery({
+    queryKey: ["main-page-banners"],
+    queryFn: async () => {
+      const response = await apiService.get<{
+        data: Banner[];
+        total: number;
+        hasMore: boolean;
+      }>({
+        url: "/main-pages/banners",
+      });
+      return response.data?.data || [];
     },
   });
 }

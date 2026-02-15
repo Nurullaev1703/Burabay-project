@@ -1,12 +1,11 @@
 import { ROLE_TYPE } from '../../users/types/user-types';
 
 export interface UsersFilter {
-  name?: string;
+  searchQuery?: string; // Универсальный поиск по email, phone, name организации
   role?: ROLE_TYPE;
   status?: UsersFilterStatus;
-  // skip?: number;
-  // take?: number;
   page?: number;
+  take?: number; // Количество записей на странице (10, 25, 50, 100)
 }
 
 export enum UsersFilterStatus {

@@ -15,21 +15,23 @@ function RouteComponent() {
   const onlinePayment = queryParams.get("onlinePayment") === "true";
   const onSidePayment = queryParams.get("onSidePayment") === "true";
   const canceled = queryParams.get("canceled") === "true";
+  const status = queryParams.get("status") || "ACTIVE";
 
   const { data = [], isLoading } = useGetBookings(
     onlinePayment,
     onSidePayment,
-    canceled
+    canceled,
+    status
   );
 
   if (isLoading) {
     return <Loader />;
   }
 
-  const hasParams = onlinePayment || onSidePayment || canceled;
-
-  if (data.length === 0 && !hasParams) {
+  // Если нет данных, показываем пустую страницу без поиска и фильтра
+  if (data.length === 0) {
     return <BookingBusiness />;
   }
+  
   return <BookingPage ads={data} />;
 }

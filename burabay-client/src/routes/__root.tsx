@@ -9,10 +9,17 @@ import { useAuth } from "../features/auth";
 import { InitPage } from "../pages/init/InitPage";
 import {
   notificationService,
+  roleService,
   tokenService,
 } from "../services/storage/Factory";
 import { NotificationModal } from "../pages/notifications/notificationOrg/push";
 import { NotFound } from "../pages/not-found/NotFound";
+import { ROLE_TYPE } from "../pages/auth/model/auth-model";
+import { useEffect } from "react";
+import OfflineScreen from "../components/OfflineScreen";
+import { useNetworkStatus } from "../shared/hooks/useNetworkStatus";
+import { baseUrl } from "../services/api/ServerData";
+import { useServerStatus } from "../shared/hooks/useServerStatus";
 
 export const AUTH_PATH = [
   "/auth",
@@ -24,30 +31,90 @@ export const AUTH_PATH = [
 ];
 
 export const Route = createRootRouteWithContext<RootRouteContext>()({
-  // notFoundComponent: () => <NotFound />,
   component: () => {
     const { token, isAuthenticated } = useAuth();
+
+    // Блокируем только выделение текста, не трогая остальные события
+    useEffect(() => {
+      const preventSelection = (e: Event) => {
+        const target = e.target as HTMLElement;
+        const tagName = target.tagName.toLowerCase();
+        
+        // Разрешаем выделение только в input, textarea и contenteditable
+        if (
+          tagName !== 'input' && 
+          tagName !== 'textarea' && 
+          target.contentEditable !== 'true'
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      // Добавляем только обработчик selectstart для блокировки выделения
+      document.addEventListener('selectstart', preventSelection);
+
+      return () => {
+        document.removeEventListener('selectstart', preventSelection);
+      };
+    }, []);
 
     // при отсутствии авторизации идет попытка получения профиля
     if (token && !isAuthenticated) {
       return <InitPage />;
     }
-      // запрещаем переходы на Десктоп кроме админа
+
+    // Проверяем роль пользователя
+    let userRole: string | null = null;
+    try {
+      if (roleService.hasValue()) {
+        userRole = roleService.getValue();
+      }
+    } catch (e) {
+      // Если значение в storage повреждено — удаляем токен/роль и редиректим на авторизацию
+      try {
+        tokenService.deleteValue();
+      } catch (err) {}
+      try {
+        roleService.deleteValue();
+      } catch (err) {}
+      // Обходим рендер и сразу отправляем на страницу авторизации
+      window.location.assign("/auth");
+      return null;
+    }
+
+    const isAdmin = userRole === ROLE_TYPE.ADMIN;
+
+    // Разрешаем доступ к announcements для админов на десктопе
+    const isAnnouncementPath = location.pathname.includes("/announcements");
+
+    // Блокируем доступ к административным путям со смартфонов и планшетов
+    const isAdminPath = location.pathname.includes("/admin");
+    if (isAdminPath && device.type !== "desktop") {
+      return <NotFound />;
+    }
+
+    // запрещаем переходы на Десктоп кроме админа и путей announcements для админа
     if (
       device.type == "desktop" &&
-      !location.pathname.includes("/admin")
-
+      !location.pathname.includes("/admin") &&
+      !(isAdmin && isAnnouncementPath)
     ) {
       return <NotFound />;
     }
+  const isOnline = useNetworkStatus();
+  const isServerUp = useServerStatus({ pingUrl: `${baseUrl}/ping`, interval: 15000, timeout: 5000 });
     return (
       <>
         <div
-          className={`overflow-y-auto mx-auto ${device.type == "desktop" ? "" : "container max-w-fullWidth"} relative overflow-x-hidden`}
+          className={`ios-scrollable-content overflow-y-auto mx-auto ${device.type == "desktop" ? "" : "container max-w-fullWidth"} relative overflow-x-hidden`}
         >
           <Outlet />
           {!notificationService.hasValue() && token && <NotificationModal />}
         </div>
+        {(!isOnline || !isServerUp) && (
+          <OfflineScreen onRetry={() => window.location.reload()} />
+        )}
       </>
     );
   },

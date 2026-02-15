@@ -20,21 +20,25 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import ArrowBottomIcon from "../../../../app/icons/profile/settings/arrow-bottom.svg";
 import DefaultIcon from "../../../../app/icons/abstract-bg.svg";
 import { apiService } from "../../../../services/api/ApiService";
+import ArrowRightIcon from "../../../../app/icons/arrow-right.svg";
+import { queryClient } from "../../../../ini/InitializeApp";
 
 interface Props {
   announcement: Announcement;
   booking: TSelectedBooking;
+  fromBookingList?: boolean;
 }
 
 export const SelectedBooking: FC<Props> = function SelectedBooking({
   booking,
   announcement,
+  fromBookingList = false,
 }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [bookings, _] = useState<SelectedBookingList[]>(booking.bookings || []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isCancel, setIsCancel] = useState<boolean>(false);
-  const userRole = roleService.getValue();
+  const userRole = roleService.hasValue() ? roleService.getValue() : null;
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + announcement.images[0]
   );
@@ -51,6 +55,36 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
     user_number: "",
   });
   const { t } = useTranslation();
+
+  // Функция для форматирования даты с учётом "Сегодня" и "Завтра"
+    const formatDateHeader = (dateStr: string | undefined): string => {
+    if (!dateStr) return ""; // Если даты нет, возвращаем пустую строку
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const parts = dateStr.split(".");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year =
+        parts[2].length === 2
+          ? 2000 + parseInt(parts[2], 10)
+          : parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 0) return t("today");
+      if (diffDays === 1) return t("tomorrow");
+    }
+
+    return dateStr;
+  };
+
   const getDaySuffix = (days: number | undefined = 0) => {
     if (days % 10 === 1 && days % 100 !== 11) return t("daysV2"); // "день"
     if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
@@ -80,7 +114,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t(booking.date)}
+              {formatDateHeader(booking.date)}
             </Typography>
           </div>
           <IconContainer
@@ -90,25 +124,44 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
         </div>
       </Header>
 
-      <div className="px-4 flex flex-col">
+      <div className="p-4 flex flex-col">
         {userRole === "турист" ? (
-          <Link
-            className="flex items-center justify-between py-3"
-            to={`/announcements/${announcement.id}`}
-          >
-            <div className="flex items-center">
-              <img
-                src={imageSrc}
-                onError={() => setImageSrc(DefaultIcon)}
-                alt={announcement.title}
-                className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
-              />
-              <span className="max-w-[266px] truncate">
+          announcement.organization?.isBanned ? (
+            <div className="flex items-center pb-4">
+              <div className="flex-shrink-0">
+                <img
+                  src={imageSrc}
+                  onError={() => setImageSrc(DefaultIcon)}
+                  alt={announcement.title}
+                  className="w-[52px] h-[52px] object-cover rounded-lg"
+                />
+              </div>
+              <span className="max-w-[266px] truncate ml-2">
                 {announcement.title}
               </span>
             </div>
-            <img src={ArrowBottomIcon} alt="Перейти" />
-          </Link>
+          ) : (
+            <Link
+              className="flex items-center justify-between pb-4"
+              to={`/announcements/$announcementId`}
+              params={{ announcementId: announcement.id }}
+            >
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <img
+                    src={imageSrc}
+                    onError={() => setImageSrc(DefaultIcon)}
+                    alt={announcement.title}
+                    className="w-[52px] h-[52px] object-cover rounded-lg"
+                  />
+                </div>
+                <span className="max-w-[266px] truncate ml-2">
+                  {announcement.title}
+                </span>
+              </div>
+              <img src={ArrowBottomIcon} alt="Перейти" />
+            </Link>
+          )
         ) : (
           <div className="flex items-center">
             <img
@@ -162,10 +215,14 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                         </span>
                       )}
                     </div>
-                    <span className={`${COLORS_TEXT.blue200}`}>
+                    <span
+                      className={` flex justify-center items-center gap-4 ${COLORS_TEXT.blue200}`}
+                    >
                       {formatPrice(booking.price)}
+                      <img src={ArrowRightIcon} alt="" />
                     </span>
                   </div>
+                  <div></div>
                 </li>
               ))}
             </ul>
@@ -174,7 +231,13 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           {booking.type === "Аренда" && (
             <div className="px-4 mt-4">
               {booking.bookings.map((b, index) => {
-                  const [isConfirmed, setIsConfirmed] = useState<boolean>(b.status == "подтверждено");
+                const [isConfirmed, setIsConfirmed] = useState<boolean>(
+                  b.status == "подтверждено" ||
+                    b.status == "завершено" ||
+                    b.status == "отменено"
+                    ? true
+                    : false
+                );
                 const [imageSrc, setImageSrc] = useState<string>(
                   baseUrl + b.avatar
                 );
@@ -183,14 +246,16 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                     key={b.bookingId}
                     className={`mb-4 ${index === booking.bookings.length - 1 ? "" : "border-b border-[#E4E9EA]"}`}
                   >
-                    <div className="flex items-center py-3 border-t border-[#E4E9EA]">
-                      <img
-                        src={imageSrc}
-                        onError={() => setImageSrc(DefaultIcon)}
-                        alt={b.name}
-                        className="w-[52px] h-[52px] object-cover rounded-full mr-4"
-                      />
-                      <span>{b.name}</span>
+                    <div className="flex items-center py-3 border-t border-[#E4E9EA] min-w-0">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={imageSrc}
+                          onError={() => setImageSrc(DefaultIcon)}
+                          alt={b.name}
+                          className="w-[52px] h-[52px] object-cover rounded-full"
+                        />
+                      </div>
+                      <span className="truncate ml-4">{b.name}</span>
                     </div>
 
                     <ul className="mb-8">
@@ -240,20 +305,28 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                       </li>
                     </ul>
                     {!isConfirmed && (
-                    <Button
-                    className={isConfirmed ? "hidden" : ""}
-                    onClick={async() => {
-                       await apiService.patch({
-                        url: `/booking/${booking.bookings[0].bookingId}/confirm`
-                        
-                      })
-                      setIsConfirmed(true);
-                      navigate({
-                        to: "/booking/business"
-                      })
-                    }}>
-                      {t("accept")}
-                    </Button>
+                      <Button
+                        className={isConfirmed ? "hidden" : ""}
+                        onClick={async () => {
+                          await apiService.patch({
+                            url: `/booking/${booking.bookings[0].bookingId}/confirm`,
+                          });
+                          setIsConfirmed(true);
+                          // Инвалидируем кэш после подтверждения
+                          await queryClient.invalidateQueries({
+                            queryKey: [`/booking/org`],
+                          });
+                          await queryClient.invalidateQueries({
+                            queryKey: [`/booking/by-ad`],
+                            refetchType: "all",
+                          });
+                          navigate({
+                            to: "/booking/business",
+                          });
+                        }}
+                      >
+                        {t("accept")}
+                      </Button>
                     )}
                     {b.status !== "отменено" && (
                       <Button
@@ -269,11 +342,11 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
                       onClose={() => setIsCancel(false)}
                       bookingId={b.bookingId}
                     />
-                  </div>    
-                );            
-              })}      
-          </div>
-          )}        
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
       {/* РОЛЬ ТУРИСТА */}
@@ -286,7 +359,7 @@ export const SelectedBooking: FC<Props> = function SelectedBooking({
           open={showModal}
           onClose={() => setShowModal(false)}
           booking={selectedBooking}
-        />     
+        />
       )}
     </section>
   );

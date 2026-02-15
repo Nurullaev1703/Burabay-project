@@ -10,13 +10,16 @@ import { BookingBanDateModule } from 'src/booking-ban-date/booking-ban-date.modu
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { FirebaseAdminService } from 'src/notification/firebase-admin.service';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Booking, Ad, Notification, BookingBanDate]),
     BookingBanDateModule,
+    NotificationModule
   ],
   controllers: [BookingController],
-  providers: [BookingService, NotificationService, FirebaseAdminService],
+  providers: [BookingService, FirebaseAdminService],
+  exports: [BookingService],
 })
 export class BookingModule {}

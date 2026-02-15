@@ -25,7 +25,6 @@ export class Utils {
 
   /* Метод для обработки HTTP ошибок. */
   static errorHandler(error) {
-    console.error(error);
     throw new HttpException(
       error.message,
       error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,

@@ -29,8 +29,8 @@ interface FormType {
 export const Login: FC = function Login() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [emailError, _setEmailError] = useState<boolean>(false);
-  const [errorMessage, _setErrorMessage] = useState<string>("");
+  const [emailError, setEmailError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
     roleService.deleteValue();
@@ -150,6 +150,40 @@ export const Login: FC = function Login() {
             url: "/auth",
             dto: form,
           });
+
+          // Некоторые ответы от бэка могут приходить с телом, содержащим статусCode и message
+          let respData: any = response.data;
+          // backend sometimes returns JSON-stringified payload (e.g. "{\"message\":...}")
+          if (typeof respData === "string") {
+            try {
+              const parsed = JSON.parse(respData);
+              // if parsed is primitive (e.g. "403"), keep original
+              if (typeof parsed === "object" && parsed !== null) {
+                respData = parsed;
+              }
+            } catch (e) {
+              // leave respData as string
+            }
+          }
+
+          const respMsg = respData?.message || "";
+          // Normalize code to number when possible
+          const rawCode = respData?.statusCode || respData?.code || response.status;
+          const respCode = rawCode ? Number(rawCode) : undefined;
+
+          // Если в теле пришло сообщение о том, что аккаунт/организация заблокированы — показываем hint и блокируем дальнейшие шаги
+          if ((respCode === 401 || respCode === 403) && /заблок/i.test(String(respMsg))) {
+            setErrorMessage(t("you_were_banned"));
+            setEmailError(true);
+            setIsLoading(false);
+            return;
+          }
+
+          // Backwards-compatible check: если API возвращает строковый код FORBIDDEN в response.data
+          if (response.data == HTTP_STATUS.FORBIDDEN) {
+            setErrorMessage(t("you_were_banned"));
+            setEmailError(true);
+          }
           if (response.data == HTTP_STATUS.CREATED) {
             navigate({
               to: "/auth/accept/$email",

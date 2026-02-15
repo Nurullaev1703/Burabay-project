@@ -3,7 +3,7 @@ import { NotificationService } from './notification.service';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { CreateAllNotificationDto } from './dto/create-all-notifications.dto';
+import { CreateAllNotificationDto, CreateCategoryNotificationDto } from './dto/create-all-notifications.dto';
 import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 
 @ApiBearerAuth()
@@ -11,6 +11,11 @@ import { CreatePushTokenDto } from './dto/create-pushToken.dto';
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+
+  @Get('/check-notifications')
+  checkNotifications(@Request() req: AuthRequest) {
+    return this.notificationService.checkNotifications(req.user);
+  }
 
   @Post('/user')
   createForUser(@Body() createNotificationDto: CreateNotificationDto) {
@@ -27,9 +32,24 @@ export class NotificationController {
     return this.notificationService.createForAll(createAllNotificationDto);
   }
 
+  @Post('/tourists')
+  createForTourists(@Body() dto: CreateAllNotificationDto) {
+    return this.notificationService.createForTourists(dto);
+  }
+
+  @Post('/organizations')
+  createForOrganizations(@Body() dto: CreateAllNotificationDto) {
+    return this.notificationService.createForOrganizations(dto);
+  }
+
+  @Post('/category')
+  createForCategory(@Body() dto: CreateCategoryNotificationDto) {
+    return this.notificationService.createForCategory(dto);
+  }
+
   @Get('/all')
-  findForAll(@Request() req: AuthRequest) {
-    return this.notificationService.findForAll(req.user);
+  findForAll() {
+    return this.notificationService.findForAll();
   }
 
   @Get('/user')
@@ -40,6 +60,11 @@ export class NotificationController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateNotificationDto: UpdateNotificationDto) {
     return this.notificationService.update(id, updateNotificationDto);
+  }
+
+  @Patch('read-all')
+  markAllAsRead(@Request() req: AuthRequest) {
+    return this.notificationService.markAllAsRead(req.user);
   }
 
   @Delete(':id')

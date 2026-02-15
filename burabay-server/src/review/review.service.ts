@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { CatchErrors, Utils } from 'src/utilities';
@@ -10,6 +10,8 @@ import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { NotificationType } from 'src/notification/types/notification.type';
 import { NotificationService } from 'src/notification/notification.service';
 import { AllReviewParams } from './types/all-review.params';
+import { ROLE_TYPE } from 'src/users/types/user-types';
+import { NotificationsMessages } from 'src/notifications';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -21,7 +23,7 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
     private dataSource: DataSource,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) { }
 
   @CatchErrors()
   async create(createReviewDto: CreateReviewDto, tokenData: TokenData) {
@@ -29,10 +31,8 @@ export class ReviewService {
       const { adId, ...oF } = createReviewDto;
       const user = await manager.findOne(User, { where: { id: tokenData.id } });
       Utils.checkEntity(user, 'Пользователь не найден');
-      const ad = await manager.findOne(Ad, {
-        where: { id: adId },
-        relations: { reviews: true, organization: { user: true } },
-      });
+      if (user.role !== ROLE_TYPE.TOURIST) throw new HttpException('Только туристы могут оставлять отзывы', HttpStatus.FORBIDDEN);
+      const ad = await manager.findOne(Ad, { where: { id: adId }, relations: { reviews: true, organization: { user: true } } });
       Utils.checkEntity(ad, 'Объявление не найдено');
       const newReview = manager.create(Review, {
         user: user,
@@ -45,15 +45,17 @@ export class ReviewService {
       ad.reviewCount = length;
       await manager.save(ad);
       await manager.save(newReview);
+      const notificationData = NotificationsMessages.newReviewForOrg(ad.organization.user.language, ad.title);
       const notificationDto = {
         email: ad.organization.user.email, // Используем email пользователя
-        title: '',
-        message: `Новый отзыв на объявление "${ad.title}"`,
+        title: notificationData.title,
+        message: notificationData.text,
         type: NotificationType.POSITIVE,
       };
-
+      
       await this.notificationService.createForUser(notificationDto);
-
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
@@ -82,7 +84,6 @@ export class ReviewService {
 
   @CatchErrors()
   async findAllReviews(params: AllReviewParams) {
-    console.log(params.take, params.skip);
     return await this.reviewRepository.find({
       relations: { ad: { subcategory: { category: true } }, user: true },
       select: {
@@ -148,14 +149,22 @@ export class ReviewService {
     }
   }
 
-  async update(id: string, updateReviewDto: UpdateReviewDto) {
+  async update(id: string, updateReviewDto: UpdateReviewDto, tokenData: TokenData) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const { adId, ...oF } = updateReviewDto;
-      const review = await this.reviewRepository.findOne({ where: { id: id } });
+
+      const review = await this.reviewRepository.findOne({ where: { id: id }, relations: { user: true } });
       Utils.checkEntity(review, 'Отзыв не найден');
+
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      if (review.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('Нет прав для изменения отзыва', HttpStatus.FORBIDDEN);
       Object.assign(review, oF);
       await this.reviewRepository.save(review);
+
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       Utils.errorHandler(error);
@@ -163,14 +172,19 @@ export class ReviewService {
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
+      const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
       const review = await manager.findOne(Review, {
         where: { id: id },
         relations: { answer: true, report: true, ad: { reviews: true }, user: true },
       });
       Utils.checkEntity(review, 'Отзыв не найден');
 
+      if (review.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('Нет прав для удаления отзыва', HttpStatus.FORBIDDEN);
       if (review.answer) await manager.remove(review.answer);
       if (review.report) await manager.remove(review.report);
 
@@ -182,14 +196,16 @@ export class ReviewService {
       await manager.save(ad);
 
       await manager.remove(review);
-
+      const notificationData = NotificationsMessages.deleteReviewForTourist(user.language, ad.title);
       const notificationDto = {
         email: review.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `Ваш отзыв на объявление "${review.ad.title}" был удалён`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
+      // Чистим кэш объявлений, чтобы при следующем запросе получить актуальные данные.
+      // await this.cacheManager.del(`ads`);
       return JSON.stringify(HttpStatus.OK);
     });
   }

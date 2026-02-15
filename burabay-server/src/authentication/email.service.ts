@@ -1,10 +1,11 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Catch, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { getAcceptMessage } from './mail-visual/mail.example';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { getResetMessage } from './mail-visual/reset.example';
+import { CatchErrors } from 'src/utilities';
 
 @Injectable()
 export class EmailService {
@@ -15,13 +16,11 @@ export class EmailService {
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private _generateCode() {
     let code = '';
     for (let i = 0; i < 4; i++) {
-      code += String(Math.floor(Math.random() * 9));
+      code += String(Math.floor(Math.random() * 10));
     }
     return code;
   }
@@ -37,11 +36,30 @@ export class EmailService {
     };
     try {
       await this.transporter.sendMail(data);
+      console.log('Email sent successfully');
+      return JSON.stringify(HttpStatus.OK);
+    } catch (error) {
+      console.error(error);
+      return JSON.stringify(HttpStatus.FAILED_DEPENDENCY);
+    }
+  }
+
+  @CatchErrors()
+  async sendNotificationMessage(email: string, message: string, title?: string) {
+    const data = {
+      to: email,
+      from: 'Burabay Travel',
+      subject: title || 'Burabay Notification',
+      html: `<div style="font-family:sans-serif"><h3>${title || 'Burabay Notification'}</h3><p>${message}</p></div>`
+    };
+    try {
+      await this.transporter.sendMail(data);
       return JSON.stringify(HttpStatus.OK);
     } catch (error) {
       return JSON.stringify(HttpStatus.FAILED_DEPENDENCY);
     }
   }
+
   async resetPasswordMessage(email: string) {
     const code = this._generateCode();
     // Устанавливаем время жизни кода - 60 минут (время в миллисекундах)
@@ -60,15 +78,14 @@ export class EmailService {
     }
   }
   async verifyCode(verifyCodeDto: VerifyCodeDto) {
-    try{
+    try {
       const storedCode = await this.cacheManager.get(verifyCodeDto.email);
       if (storedCode !== verifyCodeDto.code) {
         return JSON.stringify(HttpStatus.CONFLICT);
       }
       return JSON.stringify(HttpStatus.OK);
-    }
-    catch{
-      return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR)
+    } catch {
+      return JSON.stringify(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

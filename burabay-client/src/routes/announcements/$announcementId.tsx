@@ -1,22 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UseGetAnnouncement, UseGetReviews } from "../../pages/announcements/announcement/announcement-util";
+import { UseGetAnnouncement } from "../../pages/announcements/announcement/announcement-util";
 import { Loader } from "../../components/Loader";
 import { Announcement } from "../../pages/announcements/announcement/Announcement";
 
 export const Route = createFileRoute("/announcements/$announcementId")({
   component: RouteComponent,
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { fromMap?: boolean; fromBusinessMap?: boolean; fromAnnouncementsPage?: boolean } => {
+    return {
+      fromMap: search.fromMap === true || search.fromMap === "true",
+      fromBusinessMap:
+        search.fromBusinessMap === true || search.fromBusinessMap === "true",
+      fromAnnouncementsPage:
+        search.fromAnnouncementsPage === true || search.fromAnnouncementsPage === "true",
+    };
+  },
 });
 
 function RouteComponent() {
   const { announcementId } = Route.useParams();
-  const { data: reviewData, isLoading: reviewIsLoading } = UseGetReviews(announcementId);
+  const { fromMap, fromBusinessMap, fromAnnouncementsPage } = Route.useSearch();
   const { data, isLoading } = UseGetAnnouncement(announcementId);
 
-  if (isLoading && reviewIsLoading) {
+  if (isLoading) {
     return <Loader />;
   }
 
-  if (data && reviewData) {
-    return <Announcement announcement={data} review={reviewData}/>;
+  if (data) {
+    return (
+      <Announcement
+        announcement={data}
+        fromMap={fromMap}
+        fromBusinessMap={fromBusinessMap}
+        fromAnnouncementsPage={fromAnnouncementsPage}
+      />
+    );
   }
 }

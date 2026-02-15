@@ -19,7 +19,7 @@ export class AnalyticsService {
 
   async getStatistic() {
     // Задаем даты для сбора статистики.
-    const startDate = '2025-02-01'; // TODO Изменить на дату релиза проекта.
+    const startDate = '2025-02-01';
     const endDate = new Intl.DateTimeFormat('en-CA').format(new Date());
     const requestBody = {
       dateRanges: [{ startDate, endDate }],

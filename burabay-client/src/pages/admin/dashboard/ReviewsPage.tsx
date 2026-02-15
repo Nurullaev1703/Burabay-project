@@ -7,11 +7,14 @@ import defaultImage from "../../../app/icons/abstract-bg.svg";
 import { Loader } from "../../../components/Loader";
 import noComp from "../../../app/icons/noComp.svg?url";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import SideNav from "../../../components/admin/SideNav";
-import { CoveredImage } from "../../../shared/ui/CoveredImage";
+import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
+import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
-import Back from "../../../../public/Back.svg";
-import Close from "../../../../public/Close.png";
+import Back from "/Back.svg?url";
+import Close from "/Close.png?url";
 import { useGetReviews } from "./model/useGetReviews";
 
 const BASE_URL = baseUrl;
@@ -22,6 +25,7 @@ interface Review {
   text: string;
   stars: number;
   isCheked: boolean;
+  isBanned?: boolean;
   date: string;
   picture: string;
   email: string;
@@ -56,8 +60,16 @@ const ReviewsPage: FC = () => {
     null
   );
   const [selectedTourist, setSelectedTourist] = useState<Review | null>(null);
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+    string | null
+  >(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const take = 8;
+  const { toasts, showToast, removeToast } = useToast();
+  const take = 9;
 
   const {
     data,
@@ -68,47 +80,63 @@ const ReviewsPage: FC = () => {
     handleDeleteReview,
     handleCancelHint,
     reviewHints,
+    isDeleteLoading,
+    deleteLoadingId,
   } = useGetReviews({ take });
 
-  const reviews = (data?.pages.flat() || [])
-    .slice()
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const reviews = data?.pages.flat() || [];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
       year: "numeric",
-      month: "long",
-      day: "numeric",
     });
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
-        url: `/admin/ban-org/${userId}`,
+        url: `/admin/ban-tourist/${userId}`,
         dto: { value: false },
       });
       if (response.status === 200) {
-        setIsModalOpen(false);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: false } : null
+        );
+        showToast(`Пользователь "${userName}" успешно разблокирован`, "success");
       }
     } catch (error) {
-      console.error("Ошибка разблокировки пользователя:", error);
+      showToast("Ошибка при разблокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
         dto: { value: true },
       });
       if (response.status === 200) {
-        setIsTouristModalOpen(null);
-      } else {
+        const userName = selectedTourist?.fullName || "Турист";
+        setSelectedTourist((prev) =>
+          prev ? { ...prev, isBanned: true } : null
+        );
+        showToast(`Пользователь "${userName}" успешно заблокирован`, "success");
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
+      showToast("Ошибка при блокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
   const fetchTouristInfo = async (userId: string) => {
@@ -118,15 +146,12 @@ const ReviewsPage: FC = () => {
       });
 
       if (response.status === 200) {
-        console.log("Информация о туристе:", response.data);
-
         setSelectedTourist(response.data);
         setIsTouristModalOpen(response.data);
       }
-    } catch (error) {
-      console.error("Ошибка загрузки данных туриста:", error);
-    }
+    } catch (error) {}
   };
+  const { t } = useTranslation();
 
   const loadMoreReviews = () => {
     fetchNextPage();
@@ -134,6 +159,7 @@ const ReviewsPage: FC = () => {
 
   return (
     <div className="relative w-full min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="fixed inset-0 bg-[#0A7D9E] opacity-35 z-[-1]"></div>
       <div
         className="fixed inset-0 bg-cover bg-center opacity-25 z-[-1]"
@@ -145,201 +171,256 @@ const ReviewsPage: FC = () => {
       >
         <SideNav />
       </div>
-      <div className="flex-1 flex flex-col items-center px-2 transition-all duration-300 ease-linear ml-[94px]">
-        <div className="max-w-[1200px] w-full mx-auto">
+      <div className="flex-1 flex flex-col items-center transition-all duration-300 ease-linear ml-[94px] h-screen">
+        <div className="w-full mx-auto h-full flex flex-col px-4">
           {reviews.length > 0 && (
-            <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px]">
+            <div className="h-[68px] grid grid-cols-[1fr_332px] w-full border-[2px] border-[#E4E9EA] bg-white font-roboto rounded-b-[16px] flex-shrink-0">
               <div className="pl-[32px] h-full flex items-center">
-                <div className="text-left text-[24px] font-normal flex items-center ">
+                <div className="text-left text-[24px] font-normal flex items-center">
                   Отзывы
                 </div>
               </div>
             </div>
           )}
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 py-[10px]">
-            {isLoading ? (
-              <Loader />
-            ) : reviews.length > 0 ? (
-              <>
-                {reviews.slice(0, visibleReviewsCount).map((review) => (
-                  <div
-                    key={review.id}
-                    className={`rounded-[16px] bg-white shadow-md flex flex-col justify-between min-w-[300px] max-w-[600px] w-full mx-auto
+          <div className="flex-1 overflow-y-auto admin-scrollbar px-2">
+            <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-6 py-[10px]">
+              {isLoading ? (
+                <Loader />
+              ) : reviews.length > 0 ? (
+                <>
+                  {reviews.slice(0, visibleReviewsCount).map((review) => (
+                    <div
+                      key={review.id}
+                      className={`rounded-[16px] shadow-md flex flex-col justify-between min-w-[300px] max-w-[400px] w-full mx-auto transition-all duration-300 ease-in-out transform
                       ${
                         reviewHints[review.id]?.status
                           ? reviewHints[review.id].status === "pending"
-                            ? "bg-[#FF5959]"
+                            ? "bg-gradient-to-br from-red-400 to-red-600 scale-95 opacity-90"
                             : reviewHints[review.id].status === "deleted"
-                              ? "bg-[#FF5959]"
-                              : "bg-[#59C183]"
-                          : "bg-white"
+                              ? "bg-gradient-to-br from-red-500 to-red-700 scale-90 opacity-75"
+                              : "bg-gradient-to-br from-green-400 to-green-600 scale-100 opacity-100"
+                          : "bg-white scale-100 opacity-100"
                       }`}
-                    style={{
-                      width: "100%",
-                      minHeight: "400px",
-                      maxWidth: "600px",
-                    }}
-                  >
-                    {reviewHints[review.id]?.status ? (
-                      <div
-                        className={`col-span-2 flex items-center justify-between rounded-[16px] px-4 py-2 ${
-                          reviewHints[review.id].status === "pending"
-                            ? "bg-[#FF5959]"
-                            : reviewHints[review.id].status === "deleted"
-                              ? "bg-[#FF5959]"
-                              : "bg-[#59C183]"
-                        }`}
-                      >
-                        <div className="p-2 text-white rounded">
-                          {reviewHints[review.id].status === "pending"
-                            ? "Удаление..."
-                            : reviewHints[review.id].status === "deleted"
-                              ? "Комментарий удален"
-                              : "Комментарий оставлен"}
-                        </div>
-                        <button
-                          onClick={() => handleCancelHint(review.id)}
-                          className={`p-2 text-white rounded bg-inherit ${
+                      style={{
+                        width: "100%",
+                        maxWidth: "600px",
+                      }}
+                    >
+                      {reviewHints[review.id]?.status ? (
+                        <div
+                          className={`flex flex-col items-center justify-center p-8 text-center h-full min-h-[200px] rounded-[16px]
+                          ${
                             reviewHints[review.id].status === "pending"
-                              ? "bg-[#FF5959] text-black"
+                              ? "bg-red-600 border-2 border-red-700"
                               : reviewHints[review.id].status === "deleted"
-                                ? "bg-[#FF5959]"
-                                : "bg-[#59C183]"
+                                ? "bg-red-700 border-2 border-red-800"
+                                : "bg-gradient-to-br from-green-400 to-green-600"
                           }`}
                         >
-                          Отменить
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          key={review.id}
-                          className="h-full p-[32px] pr-[32px] flex flex-col border-r"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p
-                                className={`text-sm font-semibold text-gray-700 ${
-                                  !isLoading
-                                    ? "cursor-pointer text-blue-500"
-                                    : "text-gray-500 cursor-default"
-                                }`}
+                          {reviewHints[review.id].status === "pending" ? (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                              <div className="text-white font-bold text-lg">
+                                УДАЛЕНИЕ ОТЗЫВА
+                              </div>
+                              <div className="text-white text-sm font-medium">
+                                Операция выполняется...
+                              </div>
+                            </div>
+                          ) : reviewHints[review.id].status === "deleted" ? (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                <svg
+                                  className="w-6 h-6 text-red-700"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="text-white font-bold text-lg">
+                                ОТЗЫВ УДАЛЕН
+                              </div>
+                              <div className="text-white text-sm font-medium">
+                                Операция выполнена
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-6 h-6 text-green-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="text-white font-medium text-lg">
+                                Операция выполнена
+                              </div>
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => handleCancelHint(review.id)}
+                            className={`mt-6 px-6 py-2 font-bold rounded-lg transition-all duration-200 border-2 shadow-lg
+                              ${
+                                reviewHints[review.id].status === "pending" ||
+                                reviewHints[review.id].status === "deleted"
+                                  ? "bg-white text-red-700 border-white hover:bg-red-50 hover:text-red-800"
+                                  : "bg-white text-green-700 border-white hover:bg-green-50 hover:text-green-800"
+                              }`}
+                          >
+                            Отменить
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            key={review.id}
+                            className="h-full p-5 flex flex-col"
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-shrink min-w-0">
+                                <p
+                                  className={`text-sm font-semibold text-gray-700 truncate max-w-[150px] ${
+                                    !isLoading
+                                      ? "cursor-pointer text-blue-500"
+                                      : "text-gray-500 cursor-default"
+                                  }`}
+                                  onClick={() => {
+                                    if (
+                                      !isLoading &&
+                                      review &&
+                                      review.user.id
+                                    ) {
+                                      fetchTouristInfo(review.user.id);
+                                    } else if (isLoading) {
+                                    } else {
+                                    }
+                                  }}
+                                  title={review.user.fullName || "Не указано"}
+                                >
+                                  {review.user.fullName || "Не указано"}
+                                </p>
+                                <p className="text-gray-500 text-sm ">
+                                  {formatDate(review.date)}
+                                </p>
+                                <RatingStars rating={review.stars} />
+                              </div>
+                              <div
+                                key={review.ad.id}
+                                className="flex items-center gap-2 flex-shrink-0 cursor-pointer"
                                 onClick={() => {
-                                  if (!isLoading && review && review.user.id) {
-                                    fetchTouristInfo(review.user.id);
-                                  } else if (isLoading) {
-                                    console.warn("Данные еще загружаются.");
-                                  } else {
-                                    console.log("review:", review);
-                                    console.warn(
-                                      "Не удалось получить ID пользователя для данного отзыва."
-                                    );
-                                  }
+                                  setSelectedAnnouncementId(review.ad.id);
+                                  setIsAnnouncementModalOpen(true);
                                 }}
                               >
-                                {review.user.fullName || "Не указано"}
-                              </p>
-                              <p className="text-gray-500 text-sm">
-                                {formatDate(review.date)}
-                              </p>
-                              <RatingStars rating={review.stars} />
-                            </div>
-                            <div
-                              key={review.ad.id}
-                              className="flex items-center"
-                              onClick={() =>
-                                navigate({
-                                  to: `/admin/announcements/${review.ad.id}`,
-                                })
-                              }
-                            >
-                              <img
-                                src={`${BASE_URL}${review.ad.images[0]}`}
-                                alt="Фото курорта"
-                                className="w-[52px] h-[52px] rounded-md object-cover"
-                                onError={(e) =>
-                                  (e.currentTarget.src = defaultImage)
-                                }
-                              />
-                              <div className="text-right">
-                                <p className="text-sm font-semibold text-gray-700">
-                                  {review.ad.title || "Без названия"}
-                                </p>
-                                <div className="text-[16px] text-black flex items-center">
-                                  ⭐ {review.stars}
+                                <img
+                                  src={`${BASE_URL}${review.ad.images[0]}`}
+                                  alt="Фото курорта"
+                                  className="w-[52px] h-[52px] rounded-md object-cover flex-shrink-0"
+                                  onError={(e) =>
+                                    (e.currentTarget.src = defaultImage)
+                                  }
+                                />
+                                <div className="text-right min-w-0">
+                                  <p
+                                    className="text-sm font-semibold text-gray-700 truncate max-w-[100px]"
+                                    title={review.ad.title || "Без названия"}
+                                  >
+                                    {review.ad.title || "Без названия"}
+                                  </p>
+                                  <div className="text-[16px] text-black flex items-center justify-end">
+                                    ⭐ {review.stars}
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
+                              {review.text}
+                            </p>
+                            {review.images && (
+                              <div className="flex gap-2 mt-2">
+                                {review.images.map(
+                                  (img: string, idx: number) => (
+                                    <img
+                                      key={idx}
+                                      src={`${BASE_URL}${img}`}
+                                      alt="Фото орагнизации"
+                                      className="w-[80px] h-[80px] rounded-md object-cover"
+                                      onError={(
+                                        e: React.SyntheticEvent<
+                                          HTMLImageElement,
+                                          Event
+                                        >
+                                      ) => (e.currentTarget.src = defaultImage)}
+                                    />
+                                  )
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-sm text-[#000000] mt-2 break-words whitespace-pre-wrap overflow-wrap break-word word-break break-all">
-                            {review.text}
-                          </p>
-                          {review.images && (
-                            <div className="flex gap-2 mt-2">
-                              {review.images.map((img: string, idx: number) => (
-                                <img
-                                  key={idx}
-                                  src={`${BASE_URL}${img}`}
-                                  alt="Фото орагнизации"
-                                  className="w-[80px] h-[80px] rounded-md object-cover"
-                                  onError={(
-                                    e: React.SyntheticEvent<
-                                      HTMLImageElement,
-                                      Event
-                                    >
-                                  ) => (e.currentTarget.src = defaultImage)}
-                                />
-                              ))}
+                          {!review.status && (
+                            <div className="flex flex-col items-center space-y-3 w-full pb-8">
+                              <button
+                                onClick={() => setDeleteConfirm(review.id)}
+                                className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
+                              >
+                                Удалить отзыв
+                              </button>
                             </div>
                           )}
-                        </div>
-                        {!review.status && (
-                          <div className="flex flex-col items-center space-y-3 w-full p-[32px]">
-                            <button
-                              onClick={() => handleDeleteReview(review.id)}
-                              className="bg-[#FF5959] max-w-[400px] w-[268px] h-[54px] rounded-[32px] text-white px-4 py-2 text-sm md:text-base hover:opacity-80 cursor-pointer"
-                            >
-                              Удалить отзыв
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
+                  <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
+                    <img
+                      src={noComp}
+                      alt="Нет отзывов"
+                      className="w-[150px] h-[150px] mb-4"
+                    />
+                    <p className="text-center text-black text-lg">
+                      {t("reviewsNav")}
+                    </p>
                   </div>
-                ))}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full w-full absolute inset-0 pointer-events-none">
-                <div className="flex flex-col items-center bg-white/75 blur-10 justify-center h-[278px] w-[358px] rounded-lg pointer-events-auto">
-                  <img
-                    src={noComp}
-                    alt="Нет отзывов"
-                    className="w-[150px] h-[150px] mb-4"
-                  />
-                  <p className="text-center text-black text-lg">
-                    Отзывов пока нет
-                  </p>
                 </div>
+              )}
+            </div>
+            {hasNextPage && (
+              <div className="flex justify-center mt-8 mb-8 w-full">
+                <button
+                  onClick={loadMoreReviews}
+                  className="bg-[#0A7D9E] text-white w-[400px] h-[54px] rounded-[32px] px-4 py-2 mx-auto"
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Загрузка..." : "Загрузить ещё"}
+                </button>
               </div>
             )}
           </div>
 
-          {hasNextPage && (
-            <div className="flex justify-center mt-8 mb-8 w-full">
-              <button
-                onClick={loadMoreReviews}
-                className="bg-[#0A7D9E] text-white w-[400px] h-[54px] rounded-[32px] px-4 py-2"
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? "Загрузка..." : "Загрузить ещё"}
-              </button>
-            </div>
-          )}
-
           {isTouristModalOpen && selectedTourist && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg max-h-[900px] w-[772px] overflow-y-auto relative">
-                <div className="flex items-center justify-between w-full absolute top-0 left-0 right-0 p-4 gap-4">
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+                <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
                   <button
                     className="h-[44px] w-[44px]"
                     onClick={() => setIsTouristModalOpen(null)}
@@ -356,71 +437,189 @@ const ReviewsPage: FC = () => {
                     <img src={Close} alt="Выход" className="w-full h-full" />
                   </button>
                 </div>
-                <div className="flex justify-center mt-[68px]">
-                  <CoveredImage
-                    width="w-[128px]"
-                    height="h-[128px]"
-                    borderRadius="rounded-full"
-                    imageSrc={
-                      selectedTourist.picture
-                        ? `${BASE_URL}${selectedTourist.picture}`
-                        : defaultImage
-                    }
-                    errorImage={defaultImage}
-                  />
-                </div>
-                <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
-                  {selectedTourist.fullName}
-                </h2>
-                <div className="mt-4">
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+                  <div className="p-4">
+                    <div className="flex justify-center space-x-4">
+                      <img
+                        className="w-[128px] h-[128px] rounded-full object-cover"
+                        src={
+                          selectedTourist.picture
+                            ? `${BASE_URL}${selectedTourist.picture}`
+                            : defaultImage
+                        }
+                        onError={(e) => (e.currentTarget.src = defaultImage)}
+                      />
+                    </div>
+                    <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
+                      {selectedTourist.fullName}
+                    </h2>
+                  </div>
+                  <div className="px-4">
+                    <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                      <p className="text-[#999999] text-[12px] flex">Телефон</p>
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
                         {selectedTourist.phoneNumber || "Не указан"}
                       </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Телефон
-                      </strong>
                     </div>
-                  </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                    <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
+                      <p className="text-[#999999] text-[12px] flex">Email</p>
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate">
                         {selectedTourist.email || "Не указан"}
                       </p>
-                      <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
-                        Email
-                      </strong>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-4">
-                  <div>
+                <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
+                  {selectedTourist?.isBanned ? (
                     <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => handleBlockTourist(selectedTourist.id)}
+                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleUnblockUser(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
                     >
-                      Заблокировать пользователя
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Разблокировать"
+                      )}
                     </button>
-                    <div>
-                      <button
-                        className="bg-[#39B56B] mt-4 text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                        onClick={() => {
-                          handleUnblockUser(selectedTourist.id);
-                        }}
-                      >
-                        Разблокировать пользователя
-                      </button>
-                    </div>
-                  </div>
+                  ) : (
+                    <button
+                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                      onClick={() => {
+                        handleBlockTourist(selectedTourist.id);
+                      }}
+                      disabled={isBlockingLoading && blockingUserId === selectedTourist.id}
+                    >
+                      {isBlockingLoading && blockingUserId === selectedTourist.id ? (
+                        <>
+                          <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                          Обработка...
+                        </>
+                      ) : (
+                        "Заблокировать пользователя"
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+      {selectedAnnouncementId && (
+        <AnnouncementModalWrapper
+          announcementId={selectedAnnouncementId}
+          open={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+          onBack={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+        />
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-[16px] shadow-lg max-w-sm w-full mx-4 flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between p-4 z-10">
+              <h2 className="text-lg font-semibold text-black flex-grow">
+                Подтверждение удаления
+              </h2>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="h-[32px] w-[32px] flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleteLoading}
+              >
+                <img src={Close} alt="Закрыть" className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <p className="text-gray-600">
+                Вы уверены, что хотите удалить этот отзыв? Это действие невозможно
+                отменить.
+              </p>
+            </div>
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex gap-3 justify-end px-6 py-4 z-10">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="bg-gray-200 text-black px-6 py-2 rounded-[32px] font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleteLoading}
+              >
+                Отменить
+              </button>
+              <button
+                onClick={async () => {
+                  const result = await handleDeleteReview(deleteConfirm);
+                  if (result?.success) {
+                    showToast("Отзыв успешно удален", "success");
+                  } else {
+                    showToast(result?.message || "Ошибка при удалении отзыва", "error");
+                  }
+                  setDeleteConfirm(null);
+                }}
+                className="bg-[#FF5959] text-white px-6 py-2 rounded-[32px] font-medium hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                disabled={isDeleteLoading}
+              >
+                {isDeleteLoading ? (
+                  <>
+                    <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    Обработка...
+                  </>
+                ) : (
+                  "Удалить"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Компонент-обертка для загрузки объявления
+function AnnouncementModalWrapper({
+  announcementId,
+  open,
+  onClose,
+  onBack,
+}: {
+  announcementId: string;
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
+  const { data, isLoading } = UseGetAnnouncement(announcementId);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-4">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <AdminAnnouncementModal
+      announcement={data}
+      open={open}
+      onClose={onBack || onClose}
+    />
+  );
+}
 
 export default ReviewsPage;

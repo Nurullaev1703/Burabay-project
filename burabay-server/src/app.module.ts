@@ -14,7 +14,6 @@ import { SeederModule } from './seeder/seeder.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/user.module';
-import { ScheduleModule } from './schedule/schedule.module';
 import { BreaksModule } from './breaks/breaks.module';
 import { AddressModule } from './address/address.module';
 import { BookingBanDateModule } from './booking-ban-date/booking-ban-date.module';
@@ -28,8 +27,10 @@ import { NotificationModule } from './notification/notification.module';
 import { ReviewAnswersModule } from './review-answers/review-answers.module';
 import { ReviewReportModule } from './review-report/review-report.module';
 import { AppController } from './app.controller';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JobScheduleModule } from './schedule/schedule.module';
+// import { CacheModule } from '@nestjs/cache-manager';
+// import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -48,21 +49,26 @@ import { redisStore } from 'cache-manager-redis-store';
       rootPath: join(__dirname, '..', 'public', 'icons'),
       serveRoot: '/icons',
     }),
+    ServeStaticModule.forRoot({
+      serveStaticOptions: { maxAge: '1d' },
+      rootPath: join(__dirname, '..', 'public', 'videos'),
+      serveRoot: '/videos',
+    }),
     MainPageModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 1000,
-        limit: 20,
-      },
-    ]),
-    CacheModule.register({
-      isGlobal: true,
-      store: redisStore,
-      host: 'localhost',
-      port: 6379,
-      ttl: 60 * 60,
-    }),
+    // ThrottlerModule.forRoot([
+    //   {
+    //     ttl: 60000, // 60 секунд (1 минута)
+    //     limit: 100, // 100 запросов в минуту
+    //   },
+    // ]),
+    // CacheModule.register({
+    //   isGlobal: true,
+    //   store: redisStore,
+    //   host: 'localhost',
+    //   port: 6379,
+    //   ttl: 60 * 60,
+    // }),
     DatabaseModule,
     UsersModule,
     AuthenticationModule,
@@ -74,7 +80,8 @@ import { redisStore } from 'cache-manager-redis-store';
     SubcategoryModule,
     TasksModule,
     SeederModule,
-    ScheduleModule,
+    ScheduleModule.forRoot(),
+    JobScheduleModule,
     BreaksModule,
     AddressModule,
     BookingBanDateModule,
@@ -88,10 +95,10 @@ import { redisStore } from 'cache-manager-redis-store';
   ],
   controllers: [AppController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
   ],
 })
-export class AppModule {}
+export class AppModule { }

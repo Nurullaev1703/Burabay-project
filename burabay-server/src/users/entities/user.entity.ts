@@ -7,6 +7,7 @@ import { Feedback } from '../../feedback/entities/feedback.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Booking } from '../../booking/entities/booking.entity';
 import { Notification } from '../../notification/entities/notification.entity';
+import { Category } from 'src/category/entities/category.entity';
 @Entity()
 export class User extends AbstractEntity<User> {
   @Column({ name: 'full_name' })
@@ -26,6 +27,9 @@ export class User extends AbstractEntity<User> {
 
   @Column({ nullable: true })
   password: string;
+
+  @Column({ default: 'ru' })
+  language: string;
 
   @Column()
   isEmailConfirmed: boolean;
@@ -57,4 +61,9 @@ export class User extends AbstractEntity<User> {
 
   @Column({ nullable: true })
   pushToken: string;
+
+  // Список избранных категорий.
+  @ManyToMany(() => Category, (category) => category.usersFavorited)
+  @JoinTable({ name: 'user_categories_favorited' })
+  categoriesFavorited: Category[];
 }

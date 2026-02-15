@@ -81,15 +81,18 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                     {formatPrice(b.price)}
                   </span>
                 </li>
-                <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link
-                    className="flex justify-between"
-                    to={`/mapNav?adId=${announcement.id}`}
-                  >
-                    <span>{t("locationOnMap")}</span>
-                    <img src={ArrowBottomIcon} alt="Перейти" />
-                  </Link>
-                </li>
+                {!announcement.organization?.isBanned && (
+                  <li className="py-3.5 border-b border-[#E4E9EA]">
+                    <Link
+                      className="flex justify-between"
+                      to="/mapNav"
+                      search={{ adId: announcement.id }}
+                    >
+                      <span>{t("locationOnMap")}</span>
+                      <img src={ArrowBottomIcon} alt="Перейти" />
+                    </Link>
+                  </li>
+                )}
               </ul>
               {b.status !== "отменено" && (
                 <Button
@@ -155,15 +158,18 @@ export const TouristBookingInfo: FC<Props> = function TouristBookingInfo({
                     {b.rate === "Взрослый" ? t("adults") : t("child")}
                   </span>
                 </li>
-                <li className="py-3.5 border-b border-[#E4E9EA]">
-                  <Link
-                    className="flex justify-between"
-                    to={`/mapNav?adId=${announcement.id}`}
-                  >
-                    <span>{t("locationOnMap")}</span>
-                    <img src={ArrowBottomIcon} alt="Перейти" />
-                  </Link>
-                </li>
+                {!announcement.organization?.isBanned && (
+                  <li className="py-3.5 border-b border-[#E4E9EA]">
+                    <Link
+                      className="flex justify-between"
+                      to="/mapNav"
+                      search={{ adId: announcement.id }}
+                    >
+                      <span>{t("locationOnMap")}</span>
+                      <img src={ArrowBottomIcon} alt="Перейти" />
+                    </Link>
+                  </li>
+                )}
               </ul>
               {b.status !== "отменено" && (
                 <Button

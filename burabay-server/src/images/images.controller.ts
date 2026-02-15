@@ -2,12 +2,15 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Request,
+  Res,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   AnyFilesInterceptor,
@@ -16,8 +19,11 @@ import {
 } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
 import { Public } from 'src/constants';
-import { DeleteImageDto } from './dto/delete-image.dto';
+import { DeleteFileDto as DeleteFileDto } from './dto/delete-image.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 @ApiBearerAuth()
 @ApiTags('Images')
@@ -55,6 +61,19 @@ export class ImagesController {
     return await this.imageService.saveDocument(file, filename, req.user);
   }
 
+  @Public()
+  @Post('video')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    return await this.imageService.saveVideo(file);
+  }
+
+  @Public()
+  @Delete('video')
+  async deleteVideo(@Body() dto: DeleteFileDto) {
+    return await this.imageService.deleteVideo(dto);
+  }
+
   @Post('full-docs')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -80,7 +99,25 @@ export class ImagesController {
 
   @Public()
   @Delete('image')
-  async deleteImage(@Body() deleteImageDto: DeleteImageDto) {
+  async deleteImage(@Body() deleteImageDto: DeleteFileDto) {
     return await this.imageService.deleteImage(deleteImageDto);
+  }
+
+  @Public()
+  @Get('download/docs/:orgId/:filename')
+  async downloadDocument(
+    @Param('orgId') orgId: string,
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    const filePath = join(__dirname, '..', '..', 'public', 'docs', orgId, filename);
+
+    // Проверяем существование файла
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`Файл не найден: ${filename}`);
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    return res.sendFile(filePath);
   }
 }

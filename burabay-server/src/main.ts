@@ -3,10 +3,16 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { winstonLoggerOptions } from './logger'; // путь к logger.ts
+import { WinstonModule } from 'nest-winston';
 
 async function bootstrap() {
+  // Создаём Winston-логгер отдельно
+  const winstonLogger = WinstonModule.createLogger(winstonLoggerOptions);
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: true,
+    logger: winstonLogger,
   });
 
   const config = new DocumentBuilder()

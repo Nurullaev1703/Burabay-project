@@ -71,6 +71,7 @@ interface AnnouncementOrganization {
   isConfirmed: boolean;
   description: string;
   siteUrl: string;
+  isBanned?: boolean;
 }
 export interface Announcement {
   subcategory: Subcategory;
@@ -81,6 +82,7 @@ export interface Announcement {
   images: string[];
   phoneNumber: string;
   details: AnnouncementDetails;
+  video: string;
   youtubeLink: string;
   isRoundTheClock: boolean;
   isFullDay: boolean;
@@ -103,12 +105,13 @@ export interface Announcement {
   createdAt: Date;
   organization: AnnouncementOrganization;
   breaks: Breaks[];
-  schedule: Schedule;
+  schedule: Schedule | null;
   views: number;
   favCount: number;
   avgRating: number;
   reviewCount: number;
   bookingBanDate: BookingBanDate[];
+  reviews: Review[];
 }
 
 export interface location {
@@ -151,6 +154,7 @@ export interface Booking {
   date: string;
   allDay: boolean;
   times: string[];
+  isByBooking: boolean;
 }
 
 export interface ReviewAnnouncement {

@@ -10,38 +10,73 @@ import WarningIcon from "../../../app/icons/delete-account.svg";
 import { Button } from "../../../shared/ui/Button";
 import { Hint } from "../../../shared/ui/Hint";
 import { apiService } from "../../../services/api/ApiService";
-import { HTTP_STATUS } from "../../../services/api/ServerData";
 import { useNavigate } from "@tanstack/react-router";
 
 export const DeleteProfile: FC = function DeleteProfile() {
   const { t } = useTranslation();
-  const [isErorr, setIsError] = useState<boolean>(false);
-  const navigate = useNavigate()
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const navigate = useNavigate();
+
   const handleDeleteUser = async () => {
-    const response = await apiService.delete({
-      url: "/users/delete-account",
-    });
-    if(response.data == HTTP_STATUS.OK){
+    try {
+      const response = await apiService.delete<{
+        message?: string;
+        status?: number;
+      }>({
+        url: "/users/delete-account",
+      });
+
+      // Проверяем статус из response.data
+      const status = response.data?.status || response.status;
+      const message = response.data?.message;
+
+      if (status === 200) {
+        // Успешное удаление
         navigate({
-            to:'/profile/security/success-delete'
-        })
-    }
-    else{
-        setIsError(true)
-        setTimeout(() =>{
-            setIsError(false)
-        },3000)
+          to: "/profile/security/success-delete",
+        });
+      } else if (status === 400) {
+        // Ошибка - активные брони или другая ошибка
+        setErrorMessage(message || t("cannotDeleteAccountWithBookings"));
+        setIsError(true);
+        setTimeout(() => {
+          setIsError(false);
+        }, 5000);
+      } else {
+        // Неизвестная ошибка
+        setErrorMessage(message || t("defaultError"));
+        setIsError(true);
+        setTimeout(() => {
+          setIsError(false);
+        }, 3000);
+      }
+    } catch (error: any) {
+      // Обработка ошибок сети или других исключений
+      const errorMessage = error.response?.data?.message || error.message || t("defaultError");
+      setErrorMessage(errorMessage);
+      setIsError(true);
+      setTimeout(() => {
+        setIsError(false);
+      }, 5000);
     }
   };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen flex flex-col">
       <Header>
-        <div className="flex justify-between items-center">
-          <IconContainer align="start" action={() => history.back()}>
-            <img src={BackIcon} alt="" />
+        <div className="flex items-center justify-between gap-4">
+          <IconContainer
+            align="start"
+            action={() => history.back()}
+          >
+            <img src={BackIcon} alt="back" />
           </IconContainer>
-          <IconContainer align="end" action={() => history.back()}>
-            <img src={CrossIcon} alt="Подтвердить" />
+          <IconContainer
+            align="end"
+            action={() => navigate({ to: "/profile" })}
+          >
+            <img src={CrossIcon} alt="close" />
           </IconContainer>
         </div>
       </Header>
@@ -56,10 +91,10 @@ export const DeleteProfile: FC = function DeleteProfile() {
           <Typography>{t("deleteAccountData")}</Typography>
           <Typography>{t("changeEmailWarning")}</Typography>
         </div>
-        {isErorr && (
+        {isError && (
           <div className="mt-8">
             <Hint
-              title={t("defaultError")}
+              title={errorMessage || t("defaultError")}
               mode="error"
               className="flex items-center justify-center"
             />
@@ -69,9 +104,16 @@ export const DeleteProfile: FC = function DeleteProfile() {
           <Button mode="red" className="mb-2" onClick={handleDeleteUser}>
             {t("deleteProfile")}
           </Button>
-          <Button mode="border" onClick={() => navigate({
-            to:"/profile/security/change-email"
-          })}>{t("changeEmailAddress")}</Button>
+          <Button
+            mode="border"
+            onClick={() =>
+              navigate({
+                to: "/profile/security/change-email",
+              })
+            }
+          >
+            {t("changeEmailAddress")}
+          </Button>
         </div>
       </section>
     </div>

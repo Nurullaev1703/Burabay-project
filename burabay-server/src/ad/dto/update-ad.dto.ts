@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
-  IsPhoneNumber,
   IsBoolean,
 } from 'class-validator';
 import { AdDetailsType } from '../types/ad.details.type';
@@ -26,7 +25,10 @@ export class UpdateAdDto {
   @IsOptional()
   images: string[];
 
-  @IsPhoneNumber()
+  @IsString()
+  @IsOptional()
+  video: string;
+
   @IsOptional()
   phoneNumber: string;
 

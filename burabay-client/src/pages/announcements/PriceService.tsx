@@ -15,6 +15,7 @@ import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../services/api/ApiService";
 import { Announcement } from "./model/announcements";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   adId: string;
@@ -30,11 +31,26 @@ export const PriceService: FC<Props> = function PriceService({
   adId,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const symbolRef = useRef<HTMLDivElement>(null);
-  const [inputValue, setInputValue] = useState<string>("0");
-  const [inputValueChild, setInputValueChild] = useState<string>("0");
+
+  // Функция для форматирования числа с пробелами
+  const formatNumberWithSpaces = (value: string | number): string => {
+    const sanitizedValue = String(value).replace(/\D/g, ""); // Удаляем всё, кроме цифр
+    return sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, " "); // Добавляем пробелы
+  };
+
+  const [inputValue, setInputValue] = useState<string>(
+    announcement?.price ? formatNumberWithSpaces(announcement.price) : "0"
+  );
+  const [inputValueChild, setInputValueChild] = useState<string>(
+    announcement?.priceForChild
+      ? formatNumberWithSpaces(announcement.priceForChild)
+      : "0"
+  );
   const navigate = useNavigate();
   const [booking, setBooking] = useState(announcement?.isBookable || false);
   const [onSitePayment, setOnSitePayment] = useState(
@@ -61,10 +77,6 @@ export const PriceService: FC<Props> = function PriceService({
     return width;
   };
 
-  const formatNumberWithSpaces = (value: string): string => {
-    const sanitizedValue = value.replace(/\D/g, ""); // Удаляем всё, кроме цифр
-    return sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, " "); // Добавляем пробелы
-  };
   const updateTengePosition = (
     inputRef: React.RefObject<HTMLInputElement>,
     symbolRef: React.RefObject<HTMLDivElement>,
@@ -139,7 +151,7 @@ export const PriceService: FC<Props> = function PriceService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {checkPriceService() ? t("changeAd") : t("newService")}
+              {checkPriceService() ? t("changeAd") : t("priceService")}
             </Typography>
             <Typography
               size={14}
@@ -147,41 +159,79 @@ export const PriceService: FC<Props> = function PriceService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {t("priceService")}
+              {t("priceServiceNew")}
             </Typography>
           </div>
           <IconContainer
             align="end"
-            action={() => setShowModal(true)}
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
           >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={9} totalSteps={9} />
       </Header>
-      {showModal && (
-        <Modal className="flex w-full h-full justify-center items-center p-4" open={showModal} onClose={() => setShowModal(false)}>
+      {showModal && !announcement && (
+        <Modal
+          className="flex w-full h-full justify-center items-center p-4"
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        >
           <div className="relative w-full flex flex-col bg-white p-4 rounded-lg">
-          <Typography size={16} weight={400} className="text-center w-4/5 mx-auto">
-            {t("confirmDelete")}
-          </Typography>
-          <div onClick={() => setShowModal(false)} className="absolute right-[-2px] top-[-2px] p-4">
-          <img src={XIcon} className="w-[15px]" alt="" />
-          </div>
-          <div className="flex flex-col w-full px-4 justify-center mt-4">
-            <Button className="mb-2" onClick={() => navigate({
-              to: "/announcements"
-            })}>{t("publish")}</Button>
-              <Button mode="red" className="border-2 border-red" onClick={ async () =>{
-              await apiService.delete({
-                url: `/ad/${adId}`
-              })
-              navigate({
-                to: "/announcements"
-              })
-            }
-            }>{t("delete")}</Button>
-          </div>
+            <Typography
+              size={16}
+              weight={400}
+              className="text-center w-4/5 mx-auto"
+            >
+              {t("confirmDelete")}
+            </Typography>
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute right-[-2px] top-[-2px] p-4"
+            >
+              <img src={XIcon} className="w-[15px]" alt="" />
+            </div>
+            <div className="flex flex-col w-full px-4 justify-center mt-4">
+              <Button
+                className="mb-2"
+                onClick={() =>
+                  navigate({
+                    to: "/announcements",
+                  })
+                }
+              >
+                {t("publish")}
+              </Button>
+              <Button
+                mode="red"
+                className="border-2 border-red"
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    await apiService.delete({
+                      url: `/ad/${adId}`,
+                    });
+                    navigate({
+                      to: "/announcements",
+                    });
+                  } catch (error) {
+                    console.error("Ошибка при удалении объявления:", error);
+                    setIsDeleting(false);
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? t("deleting") : t("delete")}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
@@ -235,6 +285,11 @@ export const PriceService: FC<Props> = function PriceService({
               },
             });
             if (response.data) {
+              // Инвалидируем кэш для конкретного объявления
+              await queryClient.invalidateQueries({
+                queryKey: [`/ad/${adId}`],
+              });
+
               navigate({
                 to: "/announcements",
               });
@@ -262,7 +317,6 @@ export const PriceService: FC<Props> = function PriceService({
                 </label>
                 <input
                   {...field}
-                  defaultValue={0}
                   ref={inputRef}
                   id="amount"
                   type="text"
@@ -329,7 +383,7 @@ export const PriceService: FC<Props> = function PriceService({
           />
           <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
             <Button className="" type="submit" mode="default">
-              {t("continueBtn")}
+              {announcement ? t("saveBtn") : t("continueBtn")}
             </Button>
           </div>
         </DefaultForm>
@@ -377,22 +431,29 @@ export const PriceService: FC<Props> = function PriceService({
           className="sr-only"
         />
       </div>
-      <div className="px-4 mt-2 mb-32">
-        <Typography size={12} weight={700} color={COLORS_TEXT.red}>
-          {t("accessAcount")}{" "}
-          <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>
+      <div className="px-4 mt-2">
+        <Typography size={12} weight={400} color={COLORS_TEXT.red}>
+          {t("onlinePaymentNotAvailable")}
         </Typography>
-        <Button
-          onClick={() =>
-            navigate({
-              to: `/profile`,
-            })
-          }
-          mode="transparent"
-        >
-          {t("accessAccountBtn")}
-        </Button>
       </div>
+      {!announcement?.organization?.isConfirmed && (
+        <div className="px-4 mt-2 mb-32">
+          <Typography size={12} weight={700} color={COLORS_TEXT.red}>
+            {t("accessAcount")}{" "}
+            <span style={{ fontWeight: 400 }}>{t("accountOnlinePay")}</span>
+          </Typography>
+          <Button
+            onClick={() =>
+              navigate({
+                to: `/profile`,
+              })
+            }
+            mode="transparent"
+          >
+            {t("accessAccountBtn")}
+          </Button>
+        </div>
+      )}
     </main>
   );
 };

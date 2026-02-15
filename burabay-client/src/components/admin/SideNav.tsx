@@ -64,7 +64,7 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
   };
 
   const confirmLogout = () => {
-    navigate({ to: "/main" }); // Выполняем выход
+    navigate({ to: "/admin/auth" }); // Выполняем выход
     setIsModalOpen(false); // Закрываем модальное окно
   };
 
@@ -74,8 +74,8 @@ const SideNav: React.FC<SideNavProps> = ({ className }) => {
 
   return (
     <div
-      className={`side-nav ${className} overflow-hidden fixed top-0 left-0 h-full bg-[#0A7D9E]  px-4 py-8
-      transition-all duration-300 ease-linear
+      className={`side-nav ${className} overflow-hidden fixed top-0 left-0 h-screen bg-[#0A7D9E]  px-4 py-8
+      transition-all duration-300 ease-linear z-50 rounded-tr-2xl rounded-br-2xl
       ${isExpanded ? "w-[312px]" : "w-[94px] "} 
       `}
       onMouseEnter={() => setIsExpanded(true)}

@@ -1,26 +1,42 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { UseGetAnnouncement } from '../../../pages/announcements/announcement/announcement-util'
-import { UseGetServiceSchedule } from '../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util'
-import { Loader } from '../../../components/Loader'
-import { BookingTime } from '../../../pages/announcements/booking-time/BookingTime'
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  UseGetAnnouncement,
+  UseGetBannedDates,
+} from "../../../pages/announcements/announcement/announcement-util";
+import { UseGetServiceSchedule } from "../../../pages/announcements/announcement/serviceSchedule/serviceSchedule-util";
+import { Loader } from "../../../components/Loader";
+import { BookingSelection } from "../../../pages/announcements/booking-time/BookingSelection";
 
 export const Route = createFileRoute(
-  '/announcements/booking-time/$announcementId',
+  "/announcements/booking-time/$announcementId"
 )({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  const { announcementId } = Route.useParams()
+  const { announcementId } = Route.useParams();
   const { data: announcementData, isLoading: announcementIsLoading } =
-    UseGetAnnouncement(announcementId)
-  const { data, isLoading } = UseGetServiceSchedule(announcementId)
-  if (isLoading && announcementIsLoading) {
-    return <Loader />
+    UseGetAnnouncement(announcementId);
+  const { data: bannedDatesData, isLoading: bannedDatesIsLoading } =
+    UseGetBannedDates(announcementId);
+  const { data: serviceScheduleData, isLoading: serviceScheduleIsLoading } =
+    UseGetServiceSchedule(announcementId);
+
+  if (
+    announcementIsLoading ||
+    bannedDatesIsLoading ||
+    serviceScheduleIsLoading
+  ) {
+    return <Loader />;
   }
-  if (data && announcementData) {
+
+  if (announcementData) {
     return (
-      <BookingTime serviceSchedule={data} announcement={announcementData} />
-    )
+      <BookingSelection
+        announcement={announcementData}
+        bannedDates={bannedDatesData}
+        serviceSchedule={serviceScheduleData}
+      />
+    );
   }
 }

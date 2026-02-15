@@ -27,6 +27,7 @@ export const UserInfoList: FC<Props> = function UserInfoList({
   const { user } = useAuth();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [copiedSiteUrl, setCopiedSiteUrl] = useState(false);
   const [params, _setParams] = useState<string[]>(
     user?.role === "бизнес" ? paramsOrganizator : paramsTourist
   );
@@ -40,32 +41,59 @@ export const UserInfoList: FC<Props> = function UserInfoList({
     name: user?.fullName,
   };
 
+  const handleCopySiteUrl = async () => {
+    if (userInfo.site) {
+      try {
+        await navigator.clipboard.writeText(userInfo.site);
+        setCopiedSiteUrl(true);
+        setTimeout(() => setCopiedSiteUrl(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy site URL:", err);
+      }
+    }
+  };
+
   return (
     <div>
       <ul>
         {params.map((param, index) => (
           <li key={index} className="border-b border-[#999999] py-3 mb-2">
-            <Link
-              to={"/profile/edit"}
-              className={`${param === "organizationAbout" || accountStatus === "done" ? "flex justify-between" : ""}`}
-            >
-              <div>
-                <p>
-                  {userInfo[`${param}`] && userInfo[`${param}`].length > 50
-                    ? `${userInfo[`${param}`].slice(0, 50)}...`
-                    : userInfo[`${param}`] || t("notFiled")}
-                </p>
-                <span className={`text-xs text-[#999999]`}>{t(param)}</span>
+            {param === "site" ? (
+              // Для сайта используем div с копированием
+              <div
+                onClick={handleCopySiteUrl}
+                className={`flex justify-between items-start cursor-pointer hover:opacity-70 transition-opacity select-none ${!userInfo[param] ? 'cursor-default hover:opacity-100' : ''}`}
+                title={userInfo[param] ? t("clickToCopy") : ""}
+              >
+                <div className="flex-1 pr-2 min-w-0">
+                  <p className="break-words whitespace-normal overflow-wrap-anywhere">
+                    {userInfo[param] || t("notFiled")}
+                  </p>
+                  <span className={`text-xs text-[#999999]`}>{copiedSiteUrl ? t("copiedToClipboard") : t(param)}</span>
+                </div>
               </div>
-              {param === "organizationAbout" && (
-                <img src={ArrowRight} alt="Стрелка" />
-              )}
-
-              {accountStatus === "done" &&
-                param === "organizationName" && (
-                  <img src={ConfirmedIcon} alt="Галочка" />
+            ) : (
+              // Для остальных полей используем Link
+              <Link
+                to={"/profile/edit"}
+                className={`flex justify-between items-start ${param === "organizationAbout" || accountStatus === "done" ? "" : ""}`}
+              >
+                <div className="flex-1 pr-2 min-w-0">
+                  <p className="break-words whitespace-normal overflow-wrap-anywhere">
+                    {userInfo[`${param}`] || t("notFiled")}
+                  </p>
+                  <span className={`text-xs text-[#999999]`}>{t(param)}</span>
+                </div>
+                {param === "organizationAbout" && (
+                  <img src={ArrowRight} alt="Стрелка" className="flex-shrink-0" />
                 )}
-            </Link>
+
+                {accountStatus === "done" &&
+                  param === "organizationName" && (
+                    <img src={ConfirmedIcon} alt="Галочка" className="flex-shrink-0" />
+                  )}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

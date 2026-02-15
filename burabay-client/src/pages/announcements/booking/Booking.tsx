@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { BookingState } from "../booking-time/BookingTime";
+import { BookingState } from "../booking-time/BookingSelection";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
@@ -36,7 +36,7 @@ export const Booking: FC = function Booking() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { time, date, announcement, dateStart, dateEnd } =
-    location.state as BookingState;
+    location.state as unknown as BookingState;
   const { t } = useTranslation();
   const { user } = useAuth();
   const formatPrice = (value: number) => {
@@ -95,11 +95,9 @@ export const Booking: FC = function Booking() {
       if (parseInt(response.data) === parseInt(HTTP_STATUS.CREATED)) {
         navigate({ to: `/booking/tourist` });
       } else {
-        console.error(response.data);
       }
       setIsLoading(false);
     } catch (e) {
-      console.error(e);
     } finally {
       setIsLoading(false);
     }
@@ -130,15 +128,15 @@ export const Booking: FC = function Booking() {
       </Header>
 
       <div className="mb-4 px-4">
-        <div className="flex">
+        <div className="flex min-w-0 mt-4">
           <img
             src={imageSrc}
             onError={() => setImageSrc(DefaultIcon)}
             alt={announcement.title}
             className="w-[52px] h-[52px] object-cover rounded-lg mr-2"
           />
-          <div>
-            <span>{announcement.title}</span>
+          <div className="flex-1 min-w-0">
+            <span className="block font-normal truncate max-w-full">{announcement.title}</span>
             <div className="flex items-center">
               <div className="flex items-center mr-2">
                 <img src={StarIcon} className="w-[16px] mr-1 mb-1" />
@@ -245,7 +243,9 @@ export const Booking: FC = function Booking() {
                   helperText={error?.message}
                   label={t("name")}
                   fullWidth={true}
+                  multiline
                   variant="outlined"
+                  inputProps={{ maxLength: 40 }}
                 />
                 <span className="absolute top-2 right-2 text-gray-400 text-sm">
                   {field.value?.length || 0}/40
@@ -317,7 +317,7 @@ export const Booking: FC = function Booking() {
               " — " +
               (announcement.adultsNumber
                 ? announcement.adultsNumber
-                : "без ограничений")}
+                : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxAdults")}
@@ -329,7 +329,7 @@ export const Booking: FC = function Booking() {
               " — " +
               (announcement.kidsNumber
                 ? announcement.kidsNumber
-                : "без ограничений")}
+                : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxKids")}

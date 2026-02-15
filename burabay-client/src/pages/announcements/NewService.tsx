@@ -9,6 +9,7 @@ import XIcon from "../../app/icons/announcements/blueKrestik.svg";
 import { Modal, Switch } from "@mui/material";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiService } from "../../services/api/ApiService";
 import { useTranslation } from "react-i18next";
 import { Announcement } from "./model/announcements";
@@ -22,7 +23,9 @@ export const NewService: FC<Props> = function NewService({
   adId,
   announcement,
 }) {
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [unlimitedClients, setUnlimitedClients] = useState(
     announcement?.unlimitedClients || false
   );
@@ -33,7 +36,10 @@ export const NewService: FC<Props> = function NewService({
   const [childrenCount, setChildrenCount] = useState(
     announcement?.kidsNumber || 0
   );
-  const [ageLimit, setAgeLimit] = useState(announcement?.kidsMinAge || 0);
+  // limit age to max 17 so users can't enter a higher value
+  const [ageLimit, setAgeLimit] = useState(
+    Math.min(announcement?.kidsMinAge || 0, 17)
+  );
   const [petsAllowed, setPetsAllowed] = useState(
     announcement?.petsAllowed || false
   );
@@ -51,6 +57,11 @@ export const NewService: FC<Props> = function NewService({
       },
     });
     if (response.data) {
+      // Инвалидируем кэш для конкретного объявления
+      await queryClient.invalidateQueries({
+        queryKey: [`/ad/${adId}`],
+      });
+
       navigate({
         to: "/announcements/priceService/$adId",
         params: {
@@ -85,16 +96,36 @@ export const NewService: FC<Props> = function NewService({
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {checkPeople() ? t("changeAd") : t("newService")}
+              {checkPeople() ? t("changeAd") : t("newServiceNew")}
+            </Typography>
+              <Typography
+              size={14}
+              weight={400}
+              color={COLORS_TEXT.blue200}
+              align="center"
+            >
+              {t("newServiceNewTwo")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+
+          <IconContainer
+            align="end"
+            action={() => {
+              if (announcement) {
+                // Если редактируем - просто возвращаемся назад
+                navigate({ to: "/announcements" });
+              } else {
+                // Если создаём - показываем модалку
+                setShowModal(true);
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
         <ProgressSteps currentStep={8} totalSteps={9} />
       </Header>
-      {showModal && (
+      {showModal && !announcement && (
         <Modal
           className="flex w-full h-full justify-center items-center p-4"
           open={showModal}
@@ -129,15 +160,22 @@ export const NewService: FC<Props> = function NewService({
                 mode="red"
                 className="border-2 border-red"
                 onClick={async () => {
-                  await apiService.delete({
-                    url: `/ad/${adId}`,
-                  });
-                  navigate({
-                    to: "/announcements",
-                  });
+                  setIsDeleting(true);
+                  try {
+                    await apiService.delete({
+                      url: `/ad/${adId}`,
+                    });
+                    navigate({
+                      to: "/announcements",
+                    });
+                  } catch (error) {
+                    console.error("Ошибка при удалении объявления:", error);
+                    setIsDeleting(false);
+                  }
                 }}
+                disabled={isDeleting}
               >
-                {t("delete")}
+                {isDeleting ? t("deleting") : t("delete")}
               </Button>
             </div>
           </div>
@@ -198,13 +236,18 @@ export const NewService: FC<Props> = function NewService({
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {adultsCount}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={adultsCount}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) setAdultsCount(num);
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
                   onClick={() => setAdultsCount((prev) => prev + 1)}
@@ -243,13 +286,18 @@ export const NewService: FC<Props> = function NewService({
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {childrenCount}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={childrenCount}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) setChildrenCount(num);
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
                   onClick={() => setChildrenCount((prev) => prev + 1)}
@@ -265,20 +313,30 @@ export const NewService: FC<Props> = function NewService({
               <div className="flex items-center gap-2">
                 <div
                   className="w-11 h-11 items-center flex justify-center"
-                  onClick={() => setAgeLimit((prev) => Math.max(1, prev - 1))}
+                  onClick={() => setAgeLimit((prev) => Math.max(0, prev - 1))}
                 >
                   <button className="text-2xl">—</button>
                 </div>
-                <Typography
-                  size={16}
-                  weight={400}
-                  className="border-b w-[72px] text-center"
-                >
-                  {ageLimit}
-                </Typography>
+                <input
+                  inputMode="tel"
+                  type="tel"
+                  pattern="\d*"
+                  value={ageLimit}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    const num = digits === "" ? 0 : parseInt(digits, 10);
+                    if (!Number.isNaN(num)) {
+                      // enforce maximum allowed age = 17
+                      const capped = Math.min(num, 17);
+                      setAgeLimit(capped);
+                    }
+                  }}
+                  className="border-b w-[72px] text-center text-[16px] py-1 outline-none"
+                  maxLength={2}
+                />
                 <div
                   className="w-11 h-11 items-center flex justify-center"
-                  onClick={() => setAgeLimit((prev) => prev + 1)}
+                  onClick={() => setAgeLimit((prev) => Math.min(17, prev + 1))}
                 >
                   <button className="text-2xl">+</button>
                 </div>
@@ -315,7 +373,7 @@ export const NewService: FC<Props> = function NewService({
           mode="default"
           disabled={isButtonDisabled}
         >
-          {t("continueBtn")}
+          {announcement ? t("saveBtn") : t("continueBtn")}
         </Button>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useContext } from "react";
 import { Header } from "../../../components/Header";
 import { IconContainer } from "../../../shared/ui/IconContainer";
 import { Typography } from "../../../shared/ui/Typography";
@@ -15,16 +15,17 @@ import { useNavigate } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { Profile } from "../model/profile";
 import { formatToDisplayPhoneNumber } from "../../../shared/ui/format-phone";
+import { LanguageContext } from "../../../shared/context/LanguageProvider";
 
 interface FormType {
   fullName: string;
-  email: string;
   phoneNumber: string;
 }
 
 export const EditProfileUser: FC = function EditProfileUser() {
   const { user, setUser } = useAuth();
   const { t } = useTranslation();
+  const languageContext = useContext(LanguageContext);
   const mask = useMask({
     mask: "+7 ___ ___-__-__",
     replacement: { _: /\d/ },
@@ -37,19 +38,19 @@ export const EditProfileUser: FC = function EditProfileUser() {
   } = useForm<FormType>({
     defaultValues: {
       fullName: user?.fullName || "",
-      email: user?.email || "",
       phoneNumber: formatToDisplayPhoneNumber(user?.phoneNumber || "+7"),
     },
     mode: "onChange",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { setError } = useForm<FormType>();
   const navigate = useNavigate();
-  const [error, setError] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
 
   const handleError = (errorText: string) => {
     setErrorText(errorText);
-    setError(true);
+    setHasError(true);
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -60,28 +61,83 @@ export const EditProfileUser: FC = function EditProfileUser() {
   const saveUser = async (form: FormType) => {
     try {
       setIsLoading(true);
+      setHasError(false);
+      setErrorText("");
+
+      // Дополнительная фронт-валидация номера телефона перед отправкой
+      // 1) Если есть плейсхолдеры маски (например '_' от input mask) — значит номер введён не полностью
+      if (form.phoneNumber.includes("_")) {
+        setIsLoading(false);
+        handleError(t("invalidNumber"));
+        return;
+      }
+
+      // 2) Проверяем только, что номер начинается с +7 (маска остаётся)
+      if (!form.phoneNumber.startsWith("+7")) {
+        setIsLoading(false);
+        handleError(t("invalidNumber"));
+        return;
+      }
 
       const updatedForm = {
         ...form,
         phoneNumber: formatPhoneNumber(form.phoneNumber),
+        language: languageContext?.language || "ru",
       };
 
-      const response = await apiService.patch<Profile>({
-        url: "/profile",
-        dto: updatedForm,
-      });
+      try {
+        const response = await apiService.patch<Profile>({
+          url: "/profile",
+          dto: updatedForm,
+        });
 
+        if (response.data) {
+          setUser(response.data);
+          navigate({ to: "/profile" });
+        } else {
+          handleError(t("invalidCode"));
+        }
+      } catch (err: any) {
+        // Проверяем тело ответа на стандартное сообщение валидации
+        const serverMessage =
+          err?.response?.data?.message || err?.data?.message || err?.message;
+        
+        // serverMessage может быть массивом
+        if (Array.isArray(serverMessage)) {
+          // Проверка на ошибку телефона
+          if (
+            serverMessage.some((m: string) =>
+              String(m).toLowerCase().includes("phonenumber must be a valid phone number")
+            )
+          ) {
+            setError("phoneNumber", {
+              type: "server",
+              message: t("invalidNumber"),
+            });
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          const msgStr = String(serverMessage).toLowerCase();
+          // Проверка на ошибку телефона
+          if (msgStr.includes("phonenumber must be a valid phone number")) {
+            setError("phoneNumber", {
+              type: "server",
+              message: t("invalidNumber"),
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
 
-      if (response.data) {
-        setUser(response.data);
-        navigate({to:"/profile"});
-      } else {
-        handleError(t("invalidCode"))
+        handleError(t("defaultError"));
       }
 
       setIsLoading(false);
-    } catch {
-      handleError(t('defaultError'))
+    } catch (e) {
+      // на всякий случай оставляем общий обработчик
+      handleError(t("defaultError"));
+      setIsLoading(false);
     }
   };
 
@@ -140,28 +196,6 @@ export const EditProfileUser: FC = function EditProfileUser() {
           />
 
           <Controller
-            name="email"
-            control={control}
-            rules={{
-              required: t("requiredField"),
-              pattern: {
-                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                message: t("invalidEmail"),
-              },
-            }}
-            render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  error={Boolean(error?.message)}
-                  helperText={error?.message}
-                  label={t("email")}
-                  fullWidth={true}
-                  variant="outlined"
-                />
-            )}
-          />
-
-          <Controller
             name="phoneNumber"
             control={control}
             rules={{
@@ -187,7 +221,7 @@ export const EditProfileUser: FC = function EditProfileUser() {
             )}
           />
 
-          {!error ? (
+          {!hasError ? (
             <Button
               className="fixed bottom-4 left-3 w-header z-10"
               type="submit"

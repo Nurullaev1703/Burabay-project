@@ -60,7 +60,11 @@ export const LEForm: FC = function LEForm() {
       if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
       if (form.charterFile) formData.append("charterFile", form.charterFile);
 
-      const responseDocs = await imageService.post<string>({
+      const responseDocs = await imageService.post<{
+        registerFile: string | null;
+        IBANFile: string | null;
+        charterFile: string | null;
+      }>({
         url: `/full-docs`,
         dto: formData,
       });
@@ -70,9 +74,9 @@ export const LEForm: FC = function LEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
-          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
-          orgRulePath: `charterFile.${form.charterFile?.name.split('.').pop()}`,
+          regCouponPath: responseDocs.data.registerFile,
+          ibanDocPath: responseDocs.data.IBANFile,
+          orgRulePath: responseDocs.data.charterFile,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
@@ -89,9 +93,7 @@ export const LEForm: FC = function LEForm() {
       if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -134,9 +136,17 @@ export const LEForm: FC = function LEForm() {
           control={control}
           rules={{
             required: t("requiredField"),
+            minLength: {
+              value: 12,
+              message: t("minLengthRequired", { count: 12 }),
+            },
             maxLength: {
-              value: 40,
-              message: t("maxLengthExceeded", { count: 40 }),
+              value: 12,
+              message: t("maxLengthExceeded", { count: 12 }),
+            },
+            validate: (value: string) => {
+              const iinRegex = /^\d{12}$/;
+              return iinRegex.test(value) || t("invalidIIN");
             },
           }}
           render={({ field, fieldState: { error } }) => (
@@ -145,6 +155,15 @@ export const LEForm: FC = function LEForm() {
               error={Boolean(error?.message)}
               helperText={error?.message}
               label={t("IIN")}
+              inputProps={{
+                inputMode: "numeric",
+                maxLength: 12,
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLInputElement;
+                const value = target.value.replace(/\D/g, "");
+                target.value = value.slice(0, 12);
+              }}
               fullWidth={true}
               variant="outlined"
               placeholder={t("EnterIIN")}
@@ -190,6 +209,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="register-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -217,10 +237,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -237,6 +264,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="iban-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -264,10 +292,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -283,6 +318,7 @@ export const LEForm: FC = function LEForm() {
                 type="file"
                 id="charter-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -310,10 +346,17 @@ export const LEForm: FC = function LEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />

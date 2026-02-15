@@ -18,6 +18,7 @@ export interface Organization {
   bin: string;
   email: string;
   isBanned: boolean;
+  phoneNumber: string
 }
 
 export interface Profile {

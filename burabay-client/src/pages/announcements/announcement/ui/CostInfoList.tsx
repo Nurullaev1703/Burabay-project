@@ -6,14 +6,11 @@ import ArrowRight from "../../../../app/icons/arrow-right.svg";
 import { Announcement } from "../../model/announcements";
 
 interface Props {
-  ad: Announcement
-  isAdmin?: boolean
+  ad: Announcement;
+  isAdmin?: boolean;
 }
 
-export const CostInfoList: FC<Props> = function CostInfoList({
-  ad,
-  isAdmin
-}) {
+export const CostInfoList: FC<Props> = function CostInfoList({ ad, isAdmin }) {
   const { t } = useTranslation();
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("ru-RU").format(value) + " ₸";
@@ -22,7 +19,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
     window.scrollTo(0, 0);
   }, []);
   return (
-    <div className="bg-white p-4 mb-2">
+    <div className="bg-white p-4 lg:p-0 mb-2">
       <h2 className="font-medium text-lg mb-2">{t("cost")}</h2>
       <ul className="flex mb-4">
         <li className="flex flex-col w-44">
@@ -54,7 +51,7 @@ export const CostInfoList: FC<Props> = function CostInfoList({
           <span>
             {t("adults") +
               " — " +
-              (ad.adultsNumber ? ad.adultsNumber : "без ограничений")}
+              (ad.adultsNumber ? ad.adultsNumber : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxAdults")}
@@ -62,7 +59,9 @@ export const CostInfoList: FC<Props> = function CostInfoList({
         </li>
         <li className="mb-4">
           <span>
-            {t("kids") + " — " + (ad.kidsNumber ? ad.kidsNumber : "без ограничений")}
+            {t("kids") +
+              " — " +
+              (ad.kidsNumber ? ad.kidsNumber : t("noLimit"))}
           </span>
           <p className={`${COLORS_TEXT.gray100} leading-4 text-sm`}>
             {t("maxKids")}
@@ -74,17 +73,18 @@ export const CostInfoList: FC<Props> = function CostInfoList({
             <span>{t("permissionWithAnimals")}</span>
           </li>
         )}
-        {!isAdmin &&
-        <li>
-          <Link
-            to={`/announcements/service-schedule/${ad.id}`}
-            className="flex justify-between"
-          >
-            <span>{t("serviceSchedule")}</span>
-            <img src={ArrowRight} alt="Стрелка" />
-          </Link>
-        </li>
-        }
+        {!isAdmin && ad.startTime && ad.startTime.length > 0 && (
+          <li>
+            <Link
+              to="/announcements/service-schedule/$announcementId"
+              params={{ announcementId: ad.id }}
+              className="flex justify-between"
+            >
+              <span>{t("serviceSchedule")}</span>
+              <img src={ArrowRight} alt="Стрелка" />
+            </Link>
+          </li>
+        )}
       </ul>
     </div>
   );

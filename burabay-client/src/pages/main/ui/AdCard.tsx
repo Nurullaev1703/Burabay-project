@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useTransition } from "react";
 import { Announcement } from "../../announcements/model/announcements";
 import { Carousel } from "../../../components/Carousel";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -11,11 +11,14 @@ import FavouriteActiveIcon from "../../../app/icons/favourite-active.svg";
 import { Link } from "@tanstack/react-router";
 import { apiService } from "../../../services/api/ApiService";
 import { queryClient } from "../../../ini/InitializeApp";
+import { useTranslation } from "react-i18next";
 interface Props {
   ad: Announcement;
   isOrganization?: boolean;
   width?: string;
   ref?: (node: HTMLLIElement | null) => void;
+  disableLink?: boolean;
+  fromAnnouncementsPage?: boolean;
 }
 
 export const AdCard: FC<Props> = function AdCard({
@@ -23,6 +26,8 @@ export const AdCard: FC<Props> = function AdCard({
   isOrganization,
   width,
   ref,
+  disableLink,
+  fromAnnouncementsPage = false,
 }) {
   const [isFavourite, setIsFavourite] = useState<boolean>(
     ad.isFavourite || false
@@ -35,6 +40,7 @@ export const AdCard: FC<Props> = function AdCard({
       };
     })
   );
+  const { t } = useTranslation();
   const addToFavourite = async () => {
     await apiService.get({
       url: `/ad/favorite/${ad.id}`,
@@ -48,12 +54,17 @@ export const AdCard: FC<Props> = function AdCard({
       className={`rounded-2xl relative overflow-hidden min-w-[140px] max-w-[266px] ${width}`}
       ref={ref}
     >
-      <Link
-        to="/announcements/$announcementId"
-        params={{ announcementId: ad.id }}
-      >
+      {disableLink ? (
         <Carousel items={carouselItems} />
-      </Link>
+      ) : (
+        <Link
+          to="/announcements/$announcementId"
+          params={{ announcementId: ad.id }}
+          search={fromAnnouncementsPage ? { fromAnnouncementsPage: true } : {}}
+        >
+          <Carousel items={carouselItems} />
+        </Link>
+      )}
       <div
         className={`absolute top-2 right-2 ${categoryBgColors[ad?.subcategory?.category?.name] || "bg-white"} rounded-full p-1 z-20`}
       >
@@ -68,18 +79,27 @@ export const AdCard: FC<Props> = function AdCard({
           <Typography
             size={18}
             weight={700}
-            color={COLORS_TEXT.blue200}
-            className="uppercase"
+            color={COLORS_TEXT.blue300}
+            className="capitalize"
           >
             {ad.price
               ? (ad.price || 0).toLocaleString("ru-RU") + " ₸"
-              : "Бесплатно"}
+              : t("free")}
           </Typography>
           {!isOrganization && (
             <img
               src={isFavourite ? FavouriteActiveIcon : FavouriteIcon}
               alt=""
-              onClick={addToFavourite}
+              onClick={(e) => {
+                // предотвратить переход по ссылке на мобильных (всплытие)
+                e.stopPropagation();
+                e.preventDefault();
+                addToFavourite();
+              }}
+              onTouchStart={(e) => {
+                // на iOS иногда сначала идет touch, остановим всплытие
+                e.stopPropagation();
+              }}
             />
           )}
         </div>

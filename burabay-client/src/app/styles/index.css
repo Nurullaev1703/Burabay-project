@@ -2,25 +2,62 @@
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
 
-*:not(body)::-webkit-scrollbar{
+/* Отключение выделения текста во всем приложении */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none !important; /* Safari */
+  -moz-user-select: none !important; /* Firefox */
+  -ms-user-select: none !important; /* IE 10+ */
+  user-select: none !important; /* Standard */
+  -webkit-touch-callout: none !important; /* iOS Safari */
+  -webkit-tap-highlight-color: transparent !important; /* iOS tap highlight */
+}
+
+html,
+body,
+div,
+span,
+p,
+a,
+button,
+h1, h2, h3, h4, h5, h6 {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Разрешаем выделение только в input и textarea */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+*:not(body)::-webkit-scrollbar {
   display: none;
 }
 
 /* Скрытие стрелок в инпут с type = number */
 .hide-number-input-arrows::-webkit-outer-spin-button,
 .hide-number-input-arrows::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .hide-number-input-arrows {
-    appearance: textfield;
+  appearance: textfield;
 }
 
-
 .slick-dots li {
-    width: fit-content;
-    margin: 0 3px;
+  width: fit-content;
+  margin: 0 3px;
 }
 
 @tailwind base;
@@ -28,7 +65,7 @@
 @tailwind utilities;
 
 .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.MuiTelInput-IconButton.css-104c99h-MuiButtonBase-root-MuiIconButton-root {
-    display: none;
+  display: none;
 }
 /* Chrome, Safari, Edge */
 input[type="number"]::-webkit-outer-spin-button,
@@ -41,22 +78,18 @@ input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
-  -webkit-appearance:none
+  -webkit-appearance: none;
 }
 /* Firefox */
 input[type="number"] {
   appearance: textfield;
 }
-input[type="number"]::placeholder
-{
+input[type="number"]::placeholder {
   vertical-align: middle;
 }
-input[type="number"]:placeholder-shown
-{
+input[type="number"]:placeholder-shown {
   vertical-align: middle;
 }
-
-
 
 @keyframes shake {
   0% {
@@ -80,7 +113,7 @@ input[type="number"]:placeholder-shown
   animation: shake 0.5s;
 }
 
-li{
+li {
   list-style: none;
 }
 /* Для горизонтальной полосы прокрутки */
@@ -90,21 +123,46 @@ li{
 }
 
 .scrollbar-blue::-webkit-scrollbar-thumb {
-  background-color: #0A7D9E; /* Синий цвет */
+  background-color: #0a7d9e; /* Синий цвет */
   border-radius: 4px; /* Округлённые углы */
 }
 
 .scrollbar-blue::-webkit-scrollbar-track {
-  background-color: #E4E9EA; /* Цвет фона полосы */
+  background-color: #e4e9ea; /* Цвет фона полосы */
   border-radius: 4px; /* Округлённые углы */
-
 }
-input::-webkit-file-upload-button{
+
+/* Административные скроллбары - всегда видимые */
+.admin-scrollbar::-webkit-scrollbar {
+  display: block !important;
+  width: 8px; /* Ширина вертикального скроллбара */
+  height: 8px; /* Высота горизонтального скроллбара */
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #0a7d9e; /* Синий цвет как в основной теме */
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #085a72; /* Темнее при наведении */
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background-color: #f3f4f6; /* Светло-серый фон */
+  border-radius: 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-corner {
+  background-color: #f3f4f6;
+}
+
+input::-webkit-file-upload-button {
   height: 100%;
 }
 
-#morph{
+#morph {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(14px);
 }
-

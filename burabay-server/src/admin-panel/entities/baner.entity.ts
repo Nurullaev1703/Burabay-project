@@ -7,6 +7,9 @@ export class Banner extends AbstractEntity<Banner> {
   imagePath: string;
 
   @Column()
+  title: string;
+
+  @Column()
   text: string;
 
   @Column({ name: 'delete_date' })

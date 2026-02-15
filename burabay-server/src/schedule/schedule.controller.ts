@@ -1,9 +1,8 @@
-import { Controller, Post, Body, Patch, Param, Delete, Get } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, Get, Request } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import CreateScheduleDto from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/constants';
 
 @Controller('schedule')
 @ApiBearerAuth()
@@ -12,8 +11,8 @@ export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
   @Post()
-  create(@Body() createScheduleDto: CreateScheduleDto) {
-    return this.scheduleService.create(createScheduleDto);
+  create(@Body() createScheduleDto: CreateScheduleDto, @Request() req: AuthRequest) {
+    return this.scheduleService.create(createScheduleDto, req.user);
   }
 
   @Get(':adId')
@@ -22,12 +21,12 @@ export class ScheduleController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto) {
-    return this.scheduleService.update(id, updateScheduleDto);
+  update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto, @Request() req: AuthRequest) {
+    return this.scheduleService.update(id, updateScheduleDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.scheduleService.remove(id);
+  remove(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.scheduleService.remove(id, req.user);
   }
 }

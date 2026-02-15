@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import SideNav from "../../../components/admin/SideNav";
 import authBg from "../../../app/icons/bg_auth.png";
 import { baseUrl } from "../../../services/api/ServerData";
@@ -16,16 +16,21 @@ import defaultImage from "../../../app/icons/abstract-bg.svg?url";
 import { apiService } from "../../../services/api/ApiService";
 import { Loader } from "../../../components/Loader";
 import downloadIcon from "../../../app/icons/download.svg";
+import { useDebounce } from "../../../shared/hooks/useDebounce";
+import { Button } from "../../../shared/ui/Button";
+import { useToast, ToastContainer } from "../../../shared/ui/Toast";
 
-import document from "../../../../public/document.svg";
-import confirmed from "../../../../public/confirmed.svg";
-import Close from "../../../../public/Close.png";
-import Down from "../../../../public/down-arrow.svg";
-import Back from "../../../../public/Back.svg";
-import arrow from "../../../../public/arrow.svg";
+import document from "/document.svg?url";
+import confirmed from "/confirmed.svg?url";
+import Close from "/Close.png?url";
+import Down from "/down-arrow.svg?url";
+import Back from "/Back.svg?url";
+import arrow from "/arrow.svg?url";
 import { AdCard } from "../../main/ui/AdCard";
 import { Announcement } from "../../announcements/model/announcements";
 import { useQueryClient } from "@tanstack/react-query";
+import { AdminAnnouncementModal } from "../announcements/AdminAnnouncementModal";
+import { UseGetAnnouncement } from "../../announcements/announcement/announcement-util";
 
 interface Props {
   filters: UsersFilter;
@@ -34,46 +39,21 @@ interface Props {
 
 export default function UsersList({ filters }: Props) {
   const navigate = useNavigate();
-  // const [users, setUsers] = useState<Profile[]>([]);
-  // const [skip, setSkip] = useState(0);
-  // const take = 10;
+  const { toasts, showToast, removeToast } = useToast();
 
-  useEffect(() => {}, [filters.name, filters.role, filters.status]);
+  // Локальное состояние для поискового запроса
+  const [searchInput, setSearchInput] = useState(filters.searchQuery ?? "");
+  const debouncedSearchInput = useDebounce(searchInput, 500);
 
-  // Получаем пользователей с учетом skip/take
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetUsers({
-      ...filters,
-    });
+  // Получаем пользователей с учетом пагинации
+  const { data, isLoading } = useGetUsers({
+    ...filters,
+  });
 
-  const users = data?.pages.flat() || [];
-
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  // Callback для последнего элемента списка
-  const lastElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
-
-  // useEffect(() => {
-  //   if (skip === 0) {
-  //     setUsers(fetchedUsers);
-  //   } else if (fetchedUsers.length > 0) {
-  //     setUsers((prev) => [...prev, ...fetchedUsers]);
-  //   }
-  // }, [fetchedUsers, skip]);
+  const users = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 0;
+  const currentPage = data?.page ?? 1;
+  const total = data?.total ?? 0;
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
@@ -99,16 +79,64 @@ export default function UsersList({ filters }: Props) {
   const [announcementsError, setAnnouncementsError] = useState<string | null>(
     null
   );
+  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+    string | null
+  >(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [isBlockingLoading, setIsBlockingLoading] = useState(false);
+  const [blockingUserId, setBlockingUserId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  // Обновляем фильтры и сбрасываем skip
+  // Дебаунс для поискового запроса
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchInput !== filters.searchQuery) {
+        updateFilters({ searchQuery: searchInput });
+      }
+    }, 500); // 500ms задержка
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
+
+  // Синхронизация локального состояния с фильтрами при изменении извне
+  useEffect(() => {
+    if (filters.searchQuery !== searchInput) {
+      setSearchInput(filters.searchQuery ?? "");
+    }
+  }, [filters.searchQuery]);
+
+  // Обновляем фильтры и сбрасываем на первую страницу
   const updateFilters = (newFilters: Partial<UsersFilter>) => {
     navigate({
       to: "/admin/dashboard/users",
       search: {
         ...filters,
         ...newFilters,
+        page: 1, // Сбрасываем на первую страницу при изменении фильтров
+      },
+    });
+  };
+
+  // Метод для смены страницы
+  const changePage = (newPage: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        page: newPage,
+      },
+    });
+  };
+
+  // Метод для смены количества записей на странице
+  const changePageSize = (newTake: number) => {
+    navigate({
+      to: "/admin/dashboard/users",
+      search: {
+        ...filters,
+        take: newTake,
+        page: 1, // Сбрасываем на первую страницу
       },
     });
   };
@@ -182,19 +210,49 @@ export default function UsersList({ filters }: Props) {
       setIsConfirmActionModalOpen(false);
       setSelectedOrganization(null);
       setIsConfirmModalOpen(false);
-    } catch (error) {
-      console.error("Ошибка при выполнении действия:", error);
+    } catch (error) {}
+  };
+
+  // Простая пагинация - показываем только текущую страницу
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+
+    // Если страниц мало (до 7), показываем все
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
     }
+
+    // Всегда показываем первую страницу
+    pages.push(1);
+
+    // Логика для отображения средних страниц
+    if (currentPage <= 3) {
+      // Если в начале: 1 2 3 4 ... последняя
+      pages.push(2, 3, 4);
+      pages.push("...");
+    } else if (currentPage >= totalPages - 2) {
+      // Если в конце: 1 ... предпоследние 3 страницы
+      pages.push("...");
+      pages.push(totalPages - 3, totalPages - 2, totalPages - 1);
+    } else {
+      // Если в середине: 1 ... текущая-1 текущая текущая+1 ... последняя
+      pages.push("...");
+      pages.push(currentPage - 1, currentPage, currentPage + 1);
+      pages.push("...");
+    }
+
+    // Всегда показываем последнюю страницу
+    pages.push(totalPages);
+
+    return pages;
   };
 
   function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
-
-  // Загрузка следующей порции пользователей
-  const loadMoreUsers = () => {
-    fetchNextPage();
-  };
 
   const closeUserDetailsModal = () => {
     setSelectedUser(null);
@@ -216,7 +274,6 @@ export default function UsersList({ filters }: Props) {
         });
         if (response.status === 200) {
           setOrganizationAnnouncements(response.data);
-          console.log("Полученные объявления:", response.data);
         } else {
           setAnnouncementsError(
             `Ошибка при загрузке объявлений: ${response.status}`
@@ -235,6 +292,8 @@ export default function UsersList({ filters }: Props) {
   };
 
   const handleBlockUser = async (orgId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(orgId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${orgId}`,
@@ -242,15 +301,24 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsModalOpen(false);
-      } else {
+        const orgName = selectedUser?.organization?.name || "Организация";
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          organization: { ...prev.organization, isBanned: true },
+        }));
+        showToast(`Организация "${orgName}" успешно заблокирована`, "success");
       }
     } catch (error) {
-      console.error("Ошибка блокировки пользователя:", error);
+      showToast("Ошибка при блокировке организации", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleUnblockUser = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-org/${userId}`,
@@ -258,15 +326,24 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsModalOpen(false);
-      } else {
+        const orgName = selectedUser?.organization?.name || "Организация";
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          organization: { ...prev.organization, isBanned: false },
+        }));
+        showToast(`Организация "${orgName}" успешно разблокирована`, "success");
       }
     } catch (error) {
-      console.error("Ошибка разблокировки пользователя:", error);
+      showToast("Ошибка при разблокировке организации", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   const handleBlockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -274,14 +351,24 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsTouristModalOpen(false);
-      } else {
+        const userName = selectedUser?.fullName || "Турист";
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          isBanned: true,
+        }));
+        showToast(`Пользователь "${userName}" успешно заблокирован`, "success");
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
+      showToast("Ошибка при блокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
+
   const handleUnblockTourist = async (userId: string) => {
+    setIsBlockingLoading(true);
+    setBlockingUserId(userId);
     try {
       const response = await apiService.patch({
         url: `/admin/ban-tourist/${userId}`,
@@ -289,16 +376,24 @@ export default function UsersList({ filters }: Props) {
       });
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-        setIsTouristModalOpen(false);
-      } else {
+        const userName = selectedUser?.fullName || "Турист";
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          isBanned: false,
+        }));
+        showToast(`Пользователь "${userName}" успешно разблокирован`, "success");
       }
     } catch (error) {
-      console.error("Ошибка блокировки туриста:", error);
+      showToast("Ошибка при разблокировке пользователя", "error");
+    } finally {
+      setIsBlockingLoading(false);
+      setBlockingUserId(null);
     }
   };
 
   return (
     <div className="relative min-h-screen flex">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="absolute inset-0 bg-[#0A7D9E] opacity-35"></div>
       <div
         className="fixed inset-0 bg-cover bg-center opacity-25"
@@ -307,15 +402,42 @@ export default function UsersList({ filters }: Props) {
       <div className="relative z-50">
         <SideNav />
       </div>
-      <div className="relative z-10 flex flex-col w-full p-4 mt-4 ml-[94px]">
-        <div className="fixed top-0 left-[94px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
-          <input
-            type="text"
-            placeholder="Поиск"
-            className="p-2 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
-            value={filters.name ?? ""}
-            onChange={(e) => updateFilters({ name: e.target.value })}
-          />
+      <div className="relative z-10 flex flex-col w-full ml-[94px] h-screen pt-4">
+        <div className="fixed top-0 left-[92px] right-0 border-[2px] border-[#E4E9EA] bg-white rounded-b-[16px] p-4 z-20 flex space-x-4 mx-[16px] items-center">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Поиск по email, телефону или названию"
+              className="p-2 pr-10 border rounded-[8px] bg-[#FAF9F7] border-[#EDECEA] h-[52px] w-full"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            {searchInput && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSearchInput("");
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="#0a7d9e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
 
           <div className="relative" ref={roleFilterRef}>
             <button
@@ -370,10 +492,10 @@ export default function UsersList({ filters }: Props) {
               )}
           </div>
 
-          <div className="relative" ref={statusFilterRef}>
+          <div className="relative min-w-fit" ref={statusFilterRef}>
             <button
               type="button"
-              className="w-[264.5px] flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
+              className="w-[264.5px] min-w-fit flex items-center justify-center text-[#0A7D9E] pt-[12px] pr-[32px] pb-[12px] pl-[32px] border-[1px] rounded-[8px] border-[#0A7D9E] bg-white"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
               {filters.status
@@ -422,146 +544,217 @@ export default function UsersList({ filters }: Props) {
           </div>
         </div>
 
-        <div className="mt-16">
-          {isLoading && users.length === 0 ? (
+        <div className="flex-1 overflow-y-auto admin-scrollbar p-4 pt-24">
+          {isLoading ? (
             <Loader />
           ) : (
-            <div className="grid gap-4">
-              {users.map((user) => (
-                <div
-                  ref={lastElementRef}
-                  key={user.id}
-                  className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
-                >
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4">
+                {users.map((user) => (
                   <div
-                    className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px]"
-                    onClick={() => openUserDetailsModal(user)}
-                    style={{ cursor: "pointer" }}
+                    key={user.id}
+                    className="rounded-[16px] flex flex-wrap items-center bg-white md:flex-nowrap"
                   >
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={
-                          user.picture
-                            ? `${BASE_URL}${user.picture}`
-                            : `${BASE_URL}${user.organization?.imgUrl}`
-                        }
-                        alt={user.fullName}
-                        className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
-                        onError={(e) => (e.currentTarget.src = defaultImage)}
-                      />
+                    <div
+                      className="flex justify-between items-center h-[84px] pl-[32px] pt-[16px] pb-[16px] flex-1 min-w-[150px] gap-2 overflow-hidden"
+                      onClick={() => openUserDetailsModal(user)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="flex items-center space-x-4 flex-1">
+                        <img
+                          src={
+                            user.picture
+                              ? `${BASE_URL}${user.picture}`
+                              : `${BASE_URL}${user.organization?.imgUrl}`
+                          }
+                          alt={user.fullName}
+                          className="w-[52px] h-[52px] rounded-full object-cover bg-gray-200"
+                          onError={(e) => (e.currentTarget.src = defaultImage)}
+                        />
 
-                      <div className="h-[58px] flex flex-col justify-center">
-                        {user.role === "бизнес" && user.organization?.name ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.organization.name.length > 8
-                              ? user.organization.name.substring(0, 8) + "..."
-                              : user.organization.name}
-                          </h2>
-                        ) : user.fullName ? (
-                          <h2 className="text-[16px] font-roboto">
-                            {user.fullName.length > 6
-                              ? user.fullName.substring(0, 6) + "..."
-                              : user.fullName}
-                          </h2>
-                        ) : (
-                          <div>
-                            <p>Без названия</p>
+                        <div className="h-[58px] flex flex-col justify-center flex-1 min-w-0">
+                          {user.role === "бизнес" && user.organization?.name ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.organization.name}
+                            </h2>
+                          ) : user.fullName ? (
+                            <h2 className="text-[16px] font-roboto truncate max-w-[200px]">
+                              {user.fullName}
+                            </h2>
+                          ) : (
+                            <h2 className="text-[16px] font-roboto">
+                              Без названия
+                            </h2>
+                          )}
+
+                          {user.role === "бизнес" && (
+                            <p
+                              className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-[#FF5959]" : "text-[#39B56B]"}`}
+                            >
+                              {user.organization?.isConfirmCanceled
+                                ? "Отклонена"
+                                : user.organization?.isBanned
+                                  ? "Заблокирован"
+                                  : user.organization?.isConfirmed
+                                    ? "Подтвержден"
+                                    : ""}
+                            </p>
+                          )}
+
+                          {user.role === "турист" && (
+                            <p
+                              className={`text-sm ${
+                                user.isBanned
+                                  ? "text-red-500"
+                                  : "text-[#39B56B]"
+                              }`}
+                            >
+                              {user.isBanned ? "Заблокирован" : "Подтвержден"}
+                            </p>
+                          )}
+
+                          <span className="text-[12px] text-[#999999]">
+                            {user.role === "бизнес"
+                              ? "Организация"
+                              : user.role === "турист"
+                                ? "Турист"
+                                : user.role}
+                          </span>
+                        </div>
+                      </div>
+                      {user.role === ROLE_TYPE.BUSINESS &&
+                        !user.organization?.isBanned &&
+                        (user.organization?.isConfirmed ? (
+                          <div className="flex items-center mr-8">
+                            <span className="text-[#0A7D9E] mr-4">
+                              Подтвержден
+                            </span>
+                            <img src={confirmed} alt="confirmed" />
                           </div>
-                        )}
-
-                        {user.role === "бизнес" && (
-                          <p
-                            className={`text-sm ${user.organization?.isConfirmCanceled ? "text-[#FF5959]" : user.organization?.isBanned ? "text-red" : "text-[#39B56B]"}`}
+                        ) : (
+                          <button
+                            className="text-[#39B56B] items-center py-3 px-4 gap-2 flex border-[1px] border-[#39B56B] h-[48px] min-w-fit rounded-[16px] mr-[32px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openConfirmModal(user.organization!);
+                            }}
                           >
-                            {user.organization?.isConfirmCanceled
-                              ? "Отклонена"
-                              : user.organization?.isBanned
-                                ? "Заблокирован"
-                                : ""}
-                          </p>
-                        )}
+                            Подтверждение
+                            <img src={arrow} alt="" className="w-2"></img>
+                          </button>
+                        ))}
+                    </div>
 
-                        {user.role === "турист" && (
-                          <p
-                            className={`text-sm ${
-                              user.isBanned
-                                ? "text-red"
-                                : "text-[14px] text-[#39B56B]"
-                            }`}
-                          >
-                            {user.isBanned
-                              ? UsersFilterStatus.BAN
-                              : user.isEmailConfirmed
-                                ? "Подтвержден"
-                                : UsersFilterStatus.WAITING}
-                          </p>
-                        )}
-
-                        <span className="text-[12px] text-[#999999]">
-                          {user.role === "бизнес"
-                            ? "Организация"
-                            : user.role === "турист"
-                              ? "Турист"
-                              : user.role}
-                        </span>
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center min-w-0">
+                      <div className="pl-[32px] flex-1 min-w-0">
+                        <p className="truncate">{user.phoneNumber || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Номер телефона для связи
+                        </p>
                       </div>
                     </div>
-                    {user.role === ROLE_TYPE.BUSINESS &&
-                      (user.organization?.isConfirmed ? (
-                        <div className="flex items-center mr-8">
-                          <span className="text-[#0A7D9E] mr-4">
-                            Подтвержден
-                          </span>
-                          <img src={confirmed} alt="confirmed" />
-                        </div>
-                      ) : (
-                        <button
-                          className="text-[#39B56B] items-center pt-3 pb-3 pl-4 gap-4 flex border-[1px] border-[#39B56B] h-[48px] w-[186px] rounded-[16px] mr-[25px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConfirmModal(user.organization!);
-                          }}
-                        >
-                          Подтверждение
-                          <img
-                            src={arrow}
-                            alt=""
-                            className="h-[14px] w-2"
-                          ></img>
-                        </button>
-                      ))}
-                  </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] flex-1 flex items-center">
-                    <div className="pl-[32px] flex-1">
-                      <p>{user.phoneNumber || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Номер телефона для связи
-                      </p>
+                    <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center min-w-0">
+                      <div className="min-w-0 pr-4">
+                        <p className="truncate">{user.email || "—"}</p>
+                        <p className="text-[12px] text-[#999999]">
+                          Email адрес для связи
+                        </p>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  <div className="border-l-[2px] h-full border-[#E4E9EA] pl-[32px] flex-1 flex items-center">
-                    <div>
-                      <p>{user.email || "—"}</p>
-                      <p className="text-[12px] text-[#999999]">
-                        Email адрес для связи
-                      </p>
-                    </div>
+              {/* Пагинация */}
+              <div className="bg-white p-4 rounded-[16px]">
+                <div className="flex justify-between items-center">
+                  {/* Левая часть: информация и селектор */}
+                  <div className="flex items-center gap-3 text-[13px] text-[#666]">
+                    <span className="whitespace-nowrap">
+                      {users.length > 0
+                        ? (currentPage - 1) * (filters.take ?? 10) + 1
+                        : 0}
+                      –{Math.min(currentPage * (filters.take ?? 10), total)} из{" "}
+                      {total}
+                    </span>
+
+                    {/* Селектор количества записей */}
+                    <select
+                      value={filters.take ?? 10}
+                      onChange={(e) => changePageSize(Number(e.target.value))}
+                      className="text-[#0A7D9E] py-2 pr-6 pl-4 border-[1px] rounded-[8px] border-[#0A7D9E] bg-white cursor-pointer appearance-none bg-no-repeat bg-right outline-none"
+                      style={{
+                        backgroundImage: `url(${Down})`,
+                        backgroundPosition: "right 8px center",
+                        backgroundSize: "8px 8px",
+                      }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
                   </div>
+
+                  {/* Правая часть: компактная пагинация */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      {/* Кнопка "Назад" */}
+                      <button
+                        onClick={() => changePage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Назад"
+                      >
+                        <img src={Back} alt="←" className="w-3 h-3" />
+                      </button>
+
+                      {/* Номера страниц */}
+                      {getPageNumbers().map((pageNum, index) => {
+                        if (pageNum === "...") {
+                          return (
+                            <span
+                              key={`ellipsis-${index}`}
+                              className="w-7 h-7 flex items-center justify-center text-[12px] text-[#999]"
+                            >
+                              ···
+                            </span>
+                          );
+                        }
+
+                        const isActive = pageNum === currentPage;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => changePage(pageNum as number)}
+                            className={`
+                              w-7 h-7 flex items-center justify-center text-[12px] border rounded-[6px] transition-all
+                              ${
+                                isActive
+                                  ? "bg-[#0A7D9E] text-white border-[#0A7D9E] font-semibold"
+                                  : "bg-white text-[#333] border-[#E0E0E0] hover:bg-[#F5F5F5] hover:border-[#0A7D9E]"
+                              }
+                            `}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      {/* Кнопка "Вперед" */}
+                      <button
+                        onClick={() => changePage(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                        className="w-7 h-7 flex items-center justify-center border rounded-[6px] border-[#E0E0E0] bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F5F5F5] hover:border-[#0A7D9E] transition-all"
+                        title="Вперед"
+                      >
+                        <img src={arrow} alt="→" className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-              {hasNextPage && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={loadMoreUsers}
-                    disabled={isFetchingNextPage}
-                    className="bg-[#0A7D9E] w-[400px] h-[54px] text-white text-[16px] rounded-[32px] px-4 py-2"
-                  >
-                    {isFetchingNextPage ? "Загрузка..." : "Загрузить еще"}
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>
@@ -571,7 +764,7 @@ export default function UsersList({ filters }: Props) {
           <div className="bg-white h-[636px] p-4 rounded-lg shadow-lg w-[470px]">
             <div className="space-y-[8px]">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1">
                   <img
                     src={`${BASE_URL}${selectedOrganization.imgUrl}`}
                     alt="Лого"
@@ -605,7 +798,7 @@ export default function UsersList({ filters }: Props) {
               <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
                 <p className="text-[#999999] text-[12px] flex">БИН</p>
                 <Typography className="font-medium">
-                  {selectedOrganization.bin ? "—" : "Не указан"}
+                  {selectedOrganization.bin || "Не указан"}
                 </Typography>
               </div>
 
@@ -613,7 +806,9 @@ export default function UsersList({ filters }: Props) {
                 <p className="text-[#999999] text-[12px] flex">
                   {"Номер телефона"}
                 </p>
-                <Typography>Не указан</Typography>
+                <Typography>
+                  {selectedOrganization.phoneNumber || "Не указан"}
+                </Typography>
               </div>
 
               <div className="pt-3 pr-3 pb-[14px] pl-[12px] space-y-[32px]">
@@ -625,26 +820,29 @@ export default function UsersList({ filters }: Props) {
                         Талон о гос.регистрации ИП
                       </p>
                       {selectedOrganization.regCouponPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.regCouponPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`regFile.${selectedOrganization.regCouponPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.regCouponPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.regCouponPath
+                            .split("/")
+                            .pop() || "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.regCouponPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.regCouponPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -653,26 +851,28 @@ export default function UsersList({ filters }: Props) {
                     <div>
                       <p className="text-[12px] text-[#999999]">Справка IBAN</p>
                       {selectedOrganization.ibanDocPath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.ibanDocPath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-black"
-                          download={`ibanFile.${selectedOrganization.ibanDocPath.split(".").pop()}`}
-                        >
-                          <span>
-                            {selectedOrganization.ibanDocPath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.ibanDocPath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.ibanDocPath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.ibanDocPath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -683,26 +883,28 @@ export default function UsersList({ filters }: Props) {
                         Устав организации
                       </p>
                       {selectedOrganization.orgRulePath ? (
-                        <a
-                          href={`${BASE_URL}/public/docs/${selectedOrganization.id}/${selectedOrganization.orgRulePath.split("/").pop()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline"
-                          download="ruleFile"
-                        >
-                          <span>
-                            {selectedOrganization.orgRulePath
-                              .split("/")
-                              .pop() || "Документ"}
-                          </span>
-                        </a>
+                        <span className="text-black">
+                          {selectedOrganization.orgRulePath.split("/").pop() ||
+                            "Документ"}
+                        </span>
                       ) : (
                         <Typography className="text-red-500 text-sm">
                           Документ не загружен
                         </Typography>
                       )}
                     </div>
-                    <img src={downloadIcon} alt="" className="ml-2" />
+                    {selectedOrganization.orgRulePath && (
+                      <a
+                        href={`${BASE_URL}/download/docs${selectedOrganization.orgRulePath.replace("/public/docs", "")}`}
+                        className="ml-2"
+                      >
+                        <img
+                          src={downloadIcon}
+                          alt="Скачать"
+                          className="cursor-pointer hover:opacity-70"
+                        />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -728,49 +930,34 @@ export default function UsersList({ filters }: Props) {
       )}
       {isConfirmActionModalOpen && confirmAction && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div
-            className="bg-white rounded-[16px] w-[390px] min-w-[390px] max-w-[744px] p-4 flex flex-col gap-2"
-            style={{ height: "200px" }}
-          >
-            <Typography className="mb-4 text-[18px] text-center text-bold">
-              {confirmAction === "confirm"
-                ? "Подтвердить аккаунт?"
-                : "Отклонить аккаунт?"}
-            </Typography>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={confirmActionHandler}
-                className={`pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] ${
-                  confirmAction === "confirm"
-                    ? "bg-[#39B56B] text-white"
-                    : "bg-[#FF5959] text-white"
-                }`}
-                style={{
-                  fontFamily: "Roboto",
-                  fontWeight: 500,
-                  fontSize: "18px",
-                  lineHeight: "20px",
-                  letterSpacing: "0.4px",
-                  textAlign: "center",
-                }}
-              >
-                {confirmAction === "confirm" ? "Подтвердить" : "Отклонить"}
-              </button>
-            </div>
-            <div className="flex justify-center">
+          <div className="bg-white rounded-[16px] w-[480px] p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-2">
+              <Typography className="text-[18px] font-semibold">
+                {confirmAction === "confirm"
+                  ? "Подтвердить аккаунт?"
+                  : "Отклонить аккаунт?"}
+              </Typography>
               <button
                 onClick={closeConfirmActionModal}
-                className="pt-[18px] pr-[12px] pb-[18px] pl-[12px] rounded-[32px] border w-[358px] h-[54px] bg-[#0A7D9E] text-white"
-                style={{
-                  fontFamily: "Roboto",
-                  fontWeight: 500,
-                  fontSize: "18px",
-                  lineHeight: "20px",
-                  letterSpacing: "0.4px",
-                  textAlign: "center",
-                }}
+                className="h-[28px] w-[28px] flex-shrink-0"
+              >
+                <img src={Close} alt="Закрыть" className="w-full h-full" />
+              </button>
+            </div>
+            <div className="flex gap-3 justify-end mt-4">
+              <button
+                onClick={closeConfirmActionModal}
+                className="px-6 py-3 border border-gray-300 rounded-[32px] hover:bg-gray-50 transition-colors font-medium text-black"
               >
                 Отмена
+              </button>
+              <button
+                onClick={confirmActionHandler}
+                className={`px-6 py-3 rounded-[32px] text-white font-medium transition-opacity hover:opacity-80 ${
+                  confirmAction === "confirm" ? "bg-[#39B56B]" : "bg-[#FF5959]"
+                }`}
+              >
+                {confirmAction === "confirm" ? "Подтвердить" : "Отклонить"}
               </button>
             </div>
           </div>
@@ -779,8 +966,8 @@ export default function UsersList({ filters }: Props) {
       {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-4 rounded-lg max-h-[90vh] shadow-lg overflow-y-auto w-[772px]">
-            <div className="flex items-center justify-between w-full">
+          <div className="bg-white rounded-[16px] max-h-[90vh] shadow-lg w-[600px] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-[#E4E9EA] flex items-center justify-between w-full p-4 z-10">
               <button
                 className="h-[44px] w-[44px]"
                 onClick={closeUserDetailsModal}
@@ -803,15 +990,16 @@ export default function UsersList({ filters }: Props) {
                 <img src={Close} alt="Выход" className="w-full h-full" />
               </button>
             </div>
-            <div>
-              <div className="flex justify-center space-x-4">
-                <img
-                  className="w-[128px] h-[128px] rounded-full object-cover"
-                  src={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
-                  onError={(e) => (e.currentTarget.src = defaultImage)}
-                />
-              </div>
-              <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4">
+            <div className="overflow-y-auto admin-scrollbar flex-1 flex flex-col">
+              <div className="p-4">
+                <div className="flex justify-center space-x-4">
+                  <img
+                    className="w-[128px] h-[128px] rounded-full object-cover"
+                    src={`${BASE_URL}${selectedUser.picture || selectedUser.organization?.imgUrl}`}
+                    onError={(e) => (e.currentTarget.src = defaultImage)}
+                  />
+                </div>
+              <h2 className="font-roboto font-medium text-black text-[18px] leading-[20px] tracking-[0.4px] text-center mt-4 truncate px-4">
                 {selectedUser.fullName ||
                   selectedUser.organization?.name ||
                   "Без названия"}
@@ -820,49 +1008,27 @@ export default function UsersList({ filters }: Props) {
 
             {selectedUser.role === "турист" ? (
               <div>
-                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
                   <p className="text-[#999999] text-[12px] flex">Email</p>
-                  <Typography className="font-medium">
+                  <Typography className="font-medium truncate">
                     {selectedUser.email || "Не указан"}
                   </Typography>
                 </div>
-                <div className="pt-3 pr-3 pb-[14px] pl-[12px]">
+                <div className="pt-3 pr-3 pb-[14px] pl-[12px] min-w-0">
                   <p className="text-[#999999] text-[12px] flex">
                     Phone Number
                   </p>
-                  <Typography className="font-medium">
+                  <Typography className="font-medium truncate">
                     {selectedUser.phoneNumber || "Не указан"}
                   </Typography>
                 </div>
-                <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockTourist(selectedUser.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockTourist(selectedUser.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : selectedUser.role === "бизнес" ? (
-              <div>
-                <div className="mt-4">
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black">
+              <div className="flex-1 flex flex-col">
+                <div className="px-4 pt-4">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] text-black truncate w-full">
                         {selectedUser.website || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -870,9 +1036,9 @@ export default function UsersList({ filters }: Props) {
                       </strong>
                     </div>
                   </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                         {selectedUser.phone || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -880,9 +1046,9 @@ export default function UsersList({ filters }: Props) {
                       </strong>
                     </div>
                   </div>
-                  <div className="w-[726px] h-[62px] flex items-center border-t border-[#E4E9EA] gap-3">
-                    <div className="flex flex-col items-start">
-                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px]">
+                  <div className="flex items-center border-t border-[#E4E9EA] gap-3 py-4 px-4 min-w-0">
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <p className="font-roboto font-normal text-[16px] leading-[20px] tracking-[0.4px] truncate w-full">
                         {selectedUser.email || "Не указан"}
                       </p>
                       <strong className="font-roboto font-normal text-[12px] leading-[14px] tracking-[0.4px] text-[#999999]">
@@ -891,7 +1057,7 @@ export default function UsersList({ filters }: Props) {
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 flex-1 px-4">
                   {announcementsLoading ? (
                     <Loader />
                   ) : announcementsError ? (
@@ -901,13 +1067,17 @@ export default function UsersList({ filters }: Props) {
                       {organizationAnnouncements.map((ad: any) => (
                         <div
                           key={ad.id}
-                          onClick={() =>
-                            navigate({
-                              to: `/admin/announcements/${ad.id}`,
-                            })
-                          }
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSelectedAnnouncementId(ad.id);
+                            setIsAnnouncementModalOpen(true);
+                          }}
                         >
-                          <AdCard ad={ad} isOrganization={true} />
+                          <AdCard
+                            ad={ad}
+                            isOrganization={true}
+                            disableLink={true}
+                          />
                         </div>
                       ))}
                     </div>
@@ -917,36 +1087,142 @@ export default function UsersList({ filters }: Props) {
                     </Typography>
                   )}
                 </div>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <button
-                      className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleBlockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Заблокировать пользователя
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      className="bg-[#39B56B] text-white px-4 py-2 font-medium w-[400px] h-[54px] rounded-[32px] z-10"
-                      onClick={() => {
-                        handleUnblockUser(selectedUser.organization.id);
-                      }}
-                    >
-                      Разблокировать
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : (
               <div></div>
             )}
+            </div>
+            <div className="sticky bottom-0 bg-white border-t border-[#E4E9EA] flex flex-col items-center gap-4 px-4 py-4 z-10">
+              {selectedUser && (selectedUser.role === "турист" ? (
+                selectedUser.isBanned ? (
+                  <button
+                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleUnblockTourist(selectedUser.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Разблокировать"
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleBlockTourist(selectedUser.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Заблокировать пользователя"
+                    )}
+                  </button>
+                )
+              ) : selectedUser.role === "бизнес" ? (
+                selectedUser.organization?.isBanned ? (
+                  <button
+                    className="bg-[#39B56B] text-white px-4 py-2 font-medium w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleUnblockUser(selectedUser.organization.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Разблокировать"
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    className="bg-white text-[#FF4545] border-[3px] font-medium border-[#FF4545] px-4 py-2 w-full max-w-[500px] h-[54px] rounded-[32px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    onClick={() => {
+                      handleBlockUser(selectedUser.organization.id);
+                    }}
+                    disabled={isBlockingLoading && blockingUserId === selectedUser.organization.id}
+                  >
+                    {isBlockingLoading && blockingUserId === selectedUser.organization.id ? (
+                      <>
+                        <div className="animate-spin mr-2 w-4 h-4 border-2 border-[#FF4545] border-t-transparent rounded-full"></div>
+                        Обработка...
+                      </>
+                    ) : (
+                      "Заблокировать пользователя"
+                    )}
+                  </button>
+                )
+              ) : null)}
+            </div>
           </div>
         </div>
       )}
+      {selectedAnnouncementId && (
+        <AnnouncementModalWrapper
+          announcementId={selectedAnnouncementId}
+          open={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+            // Также закрываем модалку организации при удалении объявления
+            closeConfirmModal();
+          }}
+          onBack={() => {
+            setIsAnnouncementModalOpen(false);
+            setSelectedAnnouncementId(null);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+// Компонент-обертка для загрузки объявления
+function AnnouncementModalWrapper({
+  announcementId,
+  open,
+  onClose,
+  onBack,
+}: {
+  announcementId: string;
+  open: boolean;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
+  const { data, isLoading } = UseGetAnnouncement(announcementId);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-4">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <AdminAnnouncementModal
+      announcement={data}
+      open={open}
+      onClose={onBack || onClose}
+    />
   );
 }

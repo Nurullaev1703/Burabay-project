@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Header } from "../../components/Header";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import BackIcon from "../../app/icons/announcements/blueBackicon.svg";
+import FlagEmptyIcon from "/flaginempty.svg?url";
 import { Announcement } from "../announcements/model/announcements";
 
 interface Props {
@@ -16,7 +17,7 @@ export const Favorites: FC<Props> = function Favorites({ favoritesList }) {
   const { t } = useTranslation();
 
   return (
-    <section>
+    <section className="min-h-screen bg-almostWhite">
       <Header>
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
@@ -29,7 +30,7 @@ export const Favorites: FC<Props> = function Favorites({ favoritesList }) {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {"Сохранненое"}
+              {t("saved")}
             </Typography>
           </div>
           <IconContainer
@@ -52,9 +53,13 @@ export const Favorites: FC<Props> = function Favorites({ favoritesList }) {
           })}
         </ul>
       ) : (
-        <div>
-          <Typography color={COLORS_TEXT.white} align="center">
-            {t("noAds")}
+        <div className="flex flex-col items-center justify-center px-6 mt-[40%]">
+          <img src={FlagEmptyIcon} alt="" className="mb-6" />
+          <Typography size={24} weight={600} color={COLORS_TEXT.totalBlack} align="center" className="mb-3">
+            {t("noSavedYet")}
+          </Typography>
+          <Typography size={18} color={COLORS_TEXT.totalBlack} align="center" className="leading-relaxed">
+            {t("clickBookmarkToSave")}
           </Typography>
         </div>
       )}

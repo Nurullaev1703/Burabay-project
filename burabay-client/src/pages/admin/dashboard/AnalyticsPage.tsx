@@ -7,8 +7,8 @@ import { CoveredImage } from "../../../shared/ui/CoveredImage";
 import { baseUrl } from "../../../services/api/ServerData";
 import defaultImage from "../../../app/icons/abstract-bg.svg";
 
-import Up from "../../../../public/up.svg";
-import Down from "../../../../public/down.svg";
+import Up from "/up.svg?url";
+import Down from "/down.svg?url";
 
 interface AnalyticsData {
   tourists: number;
@@ -46,12 +46,11 @@ const AnalyticsPage = () => {
         if (response.status === 200) {
           setData(response.data);
         } else {
-          console.error("Ошибка загрузки данных", response);
         }
       })
-      .catch(console.error)
+      .catch()
       .finally(() => setLoading(false));
-  },[]);
+  }, []);
 
   const loadMoreAds = () => {
     setVisibleAdsCount((prevCount) => prevCount + 20);
@@ -94,7 +93,7 @@ const AnalyticsPage = () => {
       <SideNav className="fixed top-0 left-0 z-50" />
 
       {/* 🔹 Контейнер с аналитикой */}
-      <main className="relative flex flex-wrap h-full p-4 overflow-x-auto ml-[94px] transition-all duration-300 custom-admin:flex-nowrap custom-admin:flex-col">
+      <main className="relative flex flex-wrap h-full p-4 overflow-x-auto admin-scrollbar ml-[94px] transition-all duration-300 custom-admin:flex-nowrap custom-admin:flex-col">
         <div className="flex flex-wrap gap-4 w-full">
           {/* ✅ 1 Колонка */}
           <div className="flex flex-col gap-4 flex-1 min-w-[300px]">
@@ -193,14 +192,14 @@ const AnalyticsPage = () => {
               <div>
                 <div className="flex flex-wrap mb-6">
                   <div className="flex-grow mr-[48px] mb-2">
-                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-[#999999] text-[12px]">Логин</p>
                     <p className="text-4 text-[#000000]">
-                      Burabay_travel@gmail.com
+                      burabai.travel@gmail.com
                     </p>
                   </div>
                   <div className="flex-grow mb-2">
-                    <p className="text-[#999999] text-[12px]">Логин</p>
-                    <p className="text-4 text-[#000000]">Burabay_travel0099</p>
+                    <p className="text-[#999999] text-[12px]">Пароль</p>
+                    <p className="text-4 text-[#000000]">Qaz4321#$</p>
                   </div>
                 </div>
                 <div className="flex justify-center">
@@ -224,7 +223,7 @@ const AnalyticsPage = () => {
               className="h-full"
             >
               {data.ads.slice(0, visibleAdsCount).map((ad, index) => (
-                <div key={index} className="flex py-4 items-center">
+                <div key={index} className="flex py-4 items-center gap-2">
                   <span className="mr-2">{index + 1}</span>
                   <CoveredImage
                     width="w-[52px]"
@@ -233,8 +232,8 @@ const AnalyticsPage = () => {
                     imageSrc={`${BASE_URL}${ad.image}`}
                     errorImage={defaultImage}
                   />
-                  <div>
-                    <p className="text-4">{ad.title}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-4 truncate w-full">{ad.title}</p>
                     <div className="flex">
                       <p>⭐{ad.avgRating}</p>
                       <p className="text-[#999999] text-4 ml-1">
@@ -302,7 +301,7 @@ const ScrollableBlock: React.FC<{
   isAscending,
 }) => (
   <div
-    className={`bg-white p-6 rounded-lg shadow-md overflow-auto ${className}`}
+    className={`bg-white p-6 rounded-lg shadow-md overflow-auto admin-scrollbar ${className}`}
   >
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-lg font-semibold">{title}</h2>

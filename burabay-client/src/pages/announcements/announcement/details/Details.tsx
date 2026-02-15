@@ -1,5 +1,4 @@
-
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BackIcon from "../../../../app/icons/announcements/blueBackicon.svg";
 import { Header } from "../../../../components/Header";
@@ -18,9 +17,21 @@ export const Details: FC<Props> = function Details({ announcement }) {
   const [services, _] = useState<AnnouncementDetails>(
     announcement.details || {}
   );
+
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+    if (scrollableElement) {
+      scrollableElement.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   return (
-    <section className="bg-background min-h-screen">
-      <Header>
+    <section className="bg-background md:bg-transparent min-h-screen">
+      <Header className="md:max-w-[1200px] md:mx-auto">
         <div className="flex justify-between items-center text-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -42,18 +53,31 @@ export const Details: FC<Props> = function Details({ announcement }) {
         </div>
       </Header>
 
-      <div className="bg-white m-4 rounded-lg">
-        <ul>
-          {Object.keys(services).map((service, index) => (
-            <li
-              key={index}
-              className="flex justify-between p-3 h-16 items-center border-b border-gray-300"
+      <div className="bg-white m-4 rounded-lg md:max-w-[1200px] md:mx-auto">
+        {Object.keys(services).length > 0 ? (
+          <ul>
+            {Object.keys(services).map((service, index) => (
+              <li
+                key={index}
+                className="flex justify-between p-3 h-16 items-center border-b border-gray-300"
+              >
+                <span>{t(`${service}`)}</span>
+                <img src={CheckMarkIcon} alt={t(`${service}`)} className="w-6" />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center py-12">
+            <Typography
+              size={16}
+              weight={400}
+              color={COLORS_TEXT.gray100}
+              align="center"
             >
-              <span>{t(`${service}`)}</span>
-              <img src={CheckMarkIcon} alt={t(`${service}`)} className="w-6" />
-            </li>
-          ))}
-        </ul>
+              {t("noDetails")}
+            </Typography>
+          </div>
+        )}
       </div>
     </section>
   );

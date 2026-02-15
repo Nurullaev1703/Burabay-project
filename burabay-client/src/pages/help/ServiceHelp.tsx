@@ -1,22 +1,30 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { AlternativeHeader } from "../../components/AlternativeHeader";
 import { IconContainer } from "../../shared/ui/IconContainer";
 import { Typography } from "../../shared/ui/Typography";
-import BackIcon from "../../app/icons/back-icon-white.svg"
+import BackIcon from "../../app/icons/back-icon-white.svg";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { useTranslation } from "react-i18next";
 import { LanguageButton } from "../../shared/ui/LanguageButton";
 
-
-interface Props {
-
-}
+interface Props {}
 
 export const ServiceHelp: FC<Props> = function ServiceHelp() {
-  const {t} = useTranslation()
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const scrollableElement = document.querySelector(
+      ".ios-scrollable-content"
+    ) as HTMLElement;
+    if (scrollableElement) {
+      scrollableElement.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, []);
   return (
-  <main>
-          <AlternativeHeader isMini>
+    <main>
+      <AlternativeHeader isMini>
         <div className="flex justify-between items-center">
           <IconContainer align="start" action={() => history.back()}>
             <img src={BackIcon} alt="" />
@@ -28,30 +36,48 @@ export const ServiceHelp: FC<Props> = function ServiceHelp() {
         </div>
       </AlternativeHeader>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>1. {t("aboutServiceVosem")}</Typography>
+        <Typography size={16} weight={400}>
+          1. {t("aboutServiceVosem")}
+        </Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>1.1. {t("aboutServiceT")}</Typography>
+        <Typography size={16} weight={400}>
+          1.1. {t("aboutServiceT")}
+        </Typography>
       </div>
-        <Typography className="px-4 mt-4" size={16} weight={400}>1.2. {t("aboutServiceOne")}</Typography>
+      <Typography className="px-4 mt-4" size={16} weight={400}>
+        1.2. {t("aboutServiceOne")}
+      </Typography>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>{t("aboutServiceTwo")}</Typography>
+        <Typography size={16} weight={400}>
+          {t("aboutServiceTwo")}
+        </Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>{t("aboutServiceTri")}</Typography>
+        <Typography size={16} weight={400}>
+          {t("aboutServiceTri")}
+        </Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>{t("aboutServiceFour")}</Typography>
+        <Typography size={16} weight={400}>
+          {t("aboutServiceFour")}
+        </Typography>
       </div>
       <div className="mt-4 px-4">
-        <Typography size={16} weight={400}>{t("aboutServiceFive")}</Typography>
+        <Typography size={16} weight={400}>
+          {t("aboutServiceFive")}
+        </Typography>
       </div>
       <div className="mt-10 px-4">
-        <Typography size={16} weight={400}>1.3. {t("aboutServiceSix")}.</Typography>
+        <Typography size={16} weight={400}>
+          1.3. {t("aboutServiceSix")}.
+        </Typography>
       </div>
       <div className="mt-10 mb-2 px-4">
-        <Typography size={16} weight={400}>1.4. {t("aboutServiceSeven")}.</Typography>
+        <Typography size={16} weight={400}>
+          1.4. {t("aboutServiceSeven")}.
+        </Typography>
       </div>
-  </main>
-  )
+    </main>
+  );
 };

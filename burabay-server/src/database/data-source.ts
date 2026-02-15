@@ -9,7 +9,7 @@ export default new DataSource({
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
-  synchronize: false,
+  synchronize: true,
   dropSchema: false,
   logging: false,
   logger: 'file',

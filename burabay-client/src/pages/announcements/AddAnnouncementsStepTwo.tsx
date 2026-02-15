@@ -10,6 +10,7 @@ import { baseUrl } from "../../services/api/ServerData";
 import defaultImage from "../../app/icons/main/health.svg";
 import { Button } from "../../shared/ui/Button";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ProgressSteps } from "./ui/ProgressSteps";
 import { Radio, RadioGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -17,41 +18,51 @@ import { apiService } from "../../services/api/ApiService";
 
 interface Props {
   category: Category;
-  ad? :Announcement
+  ad?: Announcement;
 }
 
 export const AddAnnouncementsStepTwo: FC<Props> =
   function AddAnnouncementsStepTwo({ category, ad }) {
+    const queryClient = useQueryClient();
     const { t } = useTranslation();
     const [imgSource, setImgSource] = useState<string>(
       baseUrl + category.imgPath
     );
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
       string | null
-    >(category.subcategories.length > 0 ? ad?.subcategory.id || category.subcategories[0].id : null);
+    >(
+      category.subcategories.length > 0
+        ? ad?.subcategory.id || category.subcategories[0].id
+        : null
+    );
     const navigate = useNavigate();
 
     const handleRadioChange = (id: string) => {
       setSelectedSubcategoryId(id);
     };
 
-    const handleContinue = async() => {
+    const handleContinue = async () => {
       if (selectedSubcategoryId) {
         if (ad?.title) {
           await apiService.patch<string>({
             url: `/ad/${ad.id}`,
             dto: {
-              subcategoryId: selectedSubcategoryId
-            }
-          })
+              subcategoryId: selectedSubcategoryId,
+            },
+          });
+
+          // Инвалидируем кэш для конкретного объявления
+          await queryClient.invalidateQueries({
+            queryKey: [`/ad/${ad.id}`],
+          });
+
           navigate({
             to: "/announcements/edit/choiseDetails/$adId",
             params: {
-              adId: ad.id
-            }
+              adId: ad.id,
+            },
           });
-        }
-        else {   
+        } else {
           navigate({
             to: `/announcements/choiseDetails/${category.id}/${selectedSubcategoryId}`,
           });
@@ -73,7 +84,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 color={COLORS_TEXT.blue200}
                 align="center"
               >
-                {ad?.title ? t("changeAd") :t("addNewAd")}
+                {ad?.title ? t("changeAd") : t("addNewAd")}
               </Typography>
               <Typography
                 size={14}
@@ -84,11 +95,16 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                 {t("choiseSubcategory")}
               </Typography>
             </div>
-            <IconContainer align='end' action={async() =>  navigate({
-        to: "/announcements"
-      })}>
-      <img src={XIcon} alt="" />
-      </IconContainer>
+            <IconContainer
+              align="end"
+              action={async () =>
+                navigate({
+                  to: "/announcements",
+                })
+              }
+            >
+              <img src={XIcon} alt="" />
+            </IconContainer>
           </div>
           <ProgressSteps currentStep={2} totalSteps={9}></ProgressSteps>
         </Header>
@@ -129,13 +145,13 @@ export const AddAnnouncementsStepTwo: FC<Props> =
                       }}
                     />
                   </RadioGroup>
-                    <Typography
-                      size={16}
-                      weight={400}
-                      className="ml-3 text-lg text-black"
-                    >
-                      {t(subcategory.name)}
-                    </Typography>
+                  <Typography
+                    size={16}
+                    weight={400}
+                    className="ml-3 text-lg text-black"
+                  >
+                    {t(`subcategories.${subcategory.name}`)}
+                  </Typography>
                 </label>
               </li>
             ))}
@@ -143,7 +159,7 @@ export const AddAnnouncementsStepTwo: FC<Props> =
         </div>
         <div className="fixed left-0 bottom-0 mb-2 mt-2 px-2 w-full z-10">
           <Button onClick={handleContinue} mode="default">
-            {t("continueBtn")}
+            {ad ? t("saveBtn") : t("continueBtn")}
           </Button>
         </div>
       </section>

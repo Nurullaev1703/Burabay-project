@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { useAuth } from "../../../../features/auth";
 import { useTranslation } from "react-i18next";
 import { Announcement, Schedule } from "../../model/announcements";
 import { COLORS_TEXT } from "../../../../shared/ui/colors";
@@ -13,6 +14,8 @@ import ConfirmedIcon from "../../../../app/icons/profile/confirmed.svg";
 interface Props {
   ad: Announcement;
   isAdmin?: boolean;
+  fromMap?: boolean;
+  fromAnnouncementsPage?: boolean;
 }
 export const formatPhoneNumber = (number: number | string) => {
   const phoneStr = number.toString().replace(/\D/g, ""); // Убираем все нецифровые символы
@@ -21,7 +24,15 @@ export const formatPhoneNumber = (number: number | string) => {
 export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   ad,
   isAdmin,
+  fromMap = false,
+  fromAnnouncementsPage = false,
 }) {
+  const { user } = useAuth();
+  const isOwner = !!(
+    user &&
+    user.organization &&
+    user.organization.id === ad.organization.id
+  );
   const { t } = useTranslation();
   const [imageSrc, setImageSrc] = useState<string>(
     baseUrl + ad.organization.imgUrl
@@ -29,17 +40,17 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   // Обработка обьекта с расписанием работы
   const renderSchedule = () => {
     if (!ad.schedule || typeof ad.schedule === "string") {
-      return "Нет расписания";
+      return t("noSchedule");
     }
 
     const daysMap: { [key: string]: string } = {
-      mon: "Пн",
-      tue: "Вт",
-      wen: "Ср",
-      thu: "Чт",
-      fri: "Пт",
-      sat: "Сб",
-      sun: "Вс",
+      mon: "monShort",
+      tue: "tueShort",
+      wen: "wenShort",
+      thu: "thuShort",
+      fri: "friShort",
+      sat: "satShort",
+      sun: "sunShort",
     };
 
     // Фильтрация дней с рабочим временем не равным "00:00"
@@ -48,11 +59,11 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
         const startKey = `${key}Start`;
         const endKey = `${key}End`;
         return (
-          ad.schedule[startKey as keyof Schedule] !== "00:00" &&
-          ad.schedule[endKey as keyof Schedule] !== "00:00"
+          ad.schedule?.[startKey as keyof Schedule] !== "00:00" &&
+          ad.schedule?.[endKey as keyof Schedule] !== "00:00"
         );
       })
-      .map(([, value]) => value);
+      .map(([, value]) => t(value));
 
     return workingDays.length > 0
       ? workingDays.join(", ")
@@ -62,78 +73,110 @@ export const AnnouncementInfoList: FC<Props> = function AnnouncementInfoList({
   return (
     <ul>
       <li className="py-3">
-        <Link
-          to={`/announcements/org-page/${ad.organization.id}`}
-          className="flex justify-between"
-        >
-          <div className="flex items-center relative">
-            <img
-              className="rounded-full w-10 h-10 mr-2 object-cover"
-              src={imageSrc}
-              alt={ad.organization.name}
-              onError={() => setImageSrc(DefaultImage)}
-            />
-            {ad.organization.isConfirmed && (
+        {isOwner || isAdmin || fromAnnouncementsPage ? (
+          <div className="flex justify-between items-center">
+            <div className="flex items-center relative flex-1 min-w-0">
               <img
-                src={ConfirmedIcon}
-                className="absolute top-[-5px] left-6"
-                alt="Подтверждено"
+                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
+                src={imageSrc}
+                alt={ad.organization.name}
+                onError={() => setImageSrc(DefaultImage)}
               />
-            )}
-            <span>{ad.organization.name}</span>
+              {ad.organization.isConfirmed && (
+                <img
+                  src={ConfirmedIcon}
+                  className="absolute top-[-5px] left-6"
+                  alt="Подтверждено"
+                />
+              )}
+              <span className="truncate w-full">{ad.organization.name}</span>
+            </div>
           </div>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
-      {ad.phoneNumber &&
-      
-      <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
-        <div className="flex flex-col">
-          <span>{formatPhoneNumber(ad.phoneNumber)}</span>
-          <span className={`${COLORS_TEXT.gray100} text-sm`}>
-            {t("contactPhone")}
-          </span>
-        </div>
-        {roleService.getValue() === ROLE_TYPE.TOURIST && (
-          <a href={`tel:${ad.phoneNumber}`}>
-            <img src={PhoneIcon} alt="Звонить" />
-          </a>
+        ) : (
+          <Link
+            to="/announcements/org-page/$organizationId"
+            params={{ organizationId: ad.organization.id }}
+            className="flex justify-between items-center"
+          >
+            <div className="flex items-center relative flex-1 min-w-0 mr-2">
+              <img
+                className="rounded-full w-10 h-10 mr-2 object-cover flex-shrink-0"
+                src={imageSrc}
+                alt={ad.organization.name}
+                onError={() => setImageSrc(DefaultImage)}
+              />
+              {ad.organization.isConfirmed && (
+                <img
+                  src={ConfirmedIcon}
+                  className="absolute top-[-5px] left-6"
+                  alt="Подтверждено"
+                />
+              )}
+              <span className="truncate w-full">{ad.organization.name}</span>
+            </div>
+            <img src={ArrowRight} alt="Стрелка" className="flex-shrink-0" />
+          </Link>
         )}
       </li>
-      }
-      <li className="border-b border-[#E4E9EA] py-3">
-        <Link
-          to={`/announcements/schedule/${ad.id}`}
-          className="flex justify-between"
-        >
+      {ad.phoneNumber && (
+        <li className="flex border-b border-[#E4E9EA] py-3 justify-between">
           <div className="flex flex-col">
-            <span>
-              {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
-            </span>
+            <span>{formatPhoneNumber(ad.phoneNumber)}</span>
             <span className={`${COLORS_TEXT.gray100} text-sm`}>
-              {t("workingDays")}
+              {t("contactPhone")}
             </span>
           </div>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
-      {!isAdmin && ad.address && (
+          {roleService.hasValue() &&
+            roleService.getValue() === ROLE_TYPE.TOURIST && (
+              <a href={`tel:${ad.phoneNumber}`}>
+                <img src={PhoneIcon} alt="Звонить" />
+              </a>
+            )}
+        </li>
+      )}
+      {!isAdmin && (
         <li className="border-b border-[#E4E9EA] py-3">
-          <Link className="flex justify-between" to={`/mapNav?adId=${ad.id}`}>
+          <Link
+            to="/announcements/schedule/$announcementId"
+            params={{ announcementId: ad.id }}
+            className="flex justify-between"
+          >
+            <div className="flex flex-col">
+              <span>
+                {ad.isRoundTheClock ? t("aroundClockDays") : renderSchedule()}
+              </span>
+              <span className={`${COLORS_TEXT.gray100} text-sm`}>
+                {t("workingDays")}
+              </span>
+            </div>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        </li>
+      )}
+      {!isAdmin && ad.address && !fromMap && !isOwner && (
+        <li className="border-b border-[#E4E9EA] py-3">
+          <Link
+            className="flex justify-between"
+            to={isOwner ? "/announcements/mapForAnnoun" : "/mapNav"}
+            search={{ adId: ad.id }}
+          >
             <span>{t("locationOnMap")}</span>
             <img src={ArrowRight} alt="Стрелка" />
           </Link>
         </li>
       )}
-      <li className="py-3">
-        <Link
-          to={`/announcements/details/${ad.id}`}
-          className="flex justify-between"
-        >
-          <span>{t("details")}</span>
-          <img src={ArrowRight} alt="Стрелка" />
-        </Link>
-      </li>
+      {!isAdmin && Object.keys(ad.details || {}).length > 0 && (
+        <li className="py-3">
+          <Link
+            to="/announcements/details/$announcementId"
+            params={{ announcementId: ad.id }}
+            className="flex justify-between"
+          >
+            <span>{t("details")}</span>
+            <img src={ArrowRight} alt="Стрелка" />
+          </Link>
+        </li>
+      )}
     </ul>
   );
 };

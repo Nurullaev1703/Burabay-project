@@ -26,9 +26,26 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
     ...filters,
     subcategories: filters.subcategories ? [...filters.subcategories] : [],
   });
+
+  // Форматирование числа с пробелами
+  const formatNumber = (value: number | undefined): string => {
+    if (!value) return "";
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
+  // Удаление пробелов из строки
+  const parseNumber = (value: string): number | undefined => {
+    const cleaned = value.replace(/\s/g, "");
+    const num = Number(cleaned);
+    return cleaned && !isNaN(num) ? num : undefined;
+  };
+
   const applyFilters = () => {
     navigate({
-      to: "/main",
+      to: "/category/$categoryId",
+      params: {
+        categoryId: category.id,
+      },
       search: selectedFilters,
     });
   };
@@ -64,11 +81,14 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             align="end"
             action={async () =>
               navigate({
-                to: "/main",
+                to: "/category/$categoryId",
+                params: {
+                  categoryId: category.id,
+                },
                 search: {
                   adName: selectedFilters.name || "",
                   category: selectedFilters.category,
-                }
+                },
               })
             }
           >
@@ -84,37 +104,37 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
             color={COLORS_TEXT.gray100}
             className="mb-2"
           >
-            {"Цена"}
+            {t("Цена")}
           </Typography>
           <div className="flex space-x-2">
-              <input
-                type="number"
-                placeholder="От"
-              className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              value={selectedFilters.minPrice ?? ""}
-                onChange={(e) => {
-                  const value = e.target.value.slice(0, 9);
-                  setSelectedFilters((prev) => ({
-                    ...prev,
-                    minPrice: value ? Number(value) : undefined,
-                  }));
-                }}
-              />
             <input
-              type="number"
-              
-              placeholder="До"
+              type="text"
+              inputMode="numeric"
+              placeholder={t("От")}
               className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
-              value={selectedFilters.maxPrice ?? ""}
+              value={formatNumber(selectedFilters.minPrice)}
               onChange={(e) => {
-                const value = e.target.value.slice(0, 9);
-                setSelectedFilters((prev) => {
-                  const maxPrice = Number(value);
-                  return {
-                    ...prev,
-                    maxPrice: maxPrice,
-                  };
-                });
+                const value = e.target.value.replace(/[^\d\s]/g, "");
+                const numValue = parseNumber(value);
+                setSelectedFilters((prev) => ({
+                  ...prev,
+                  minPrice: numValue,
+                }));
+              }}
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder={t("До")}
+              className="border-2 border-[#0A7D9E] px-5 py-4 rounded-full w-full outline-none"
+              value={formatNumber(selectedFilters.maxPrice)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^\d\s]/g, "");
+                const numValue = parseNumber(value);
+                setSelectedFilters((prev) => ({
+                  ...prev,
+                  maxPrice: numValue,
+                }));
               }}
             />
           </div>
@@ -122,12 +142,11 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-5 flex items-center justify-between">
           <div className="flex">
-            <Typography size={16} weight={400}>{`С рейтингом выше`}</Typography>
+            <Typography size={16} weight={400}>
+              {t("С рейтингом выше")}
+            </Typography>
             <img src={StarIcon} className="w-[16px] mr-1 ml-2" />
-            <Typography
-              size={16}
-              weight={400}
-            >{`${filters.isHighRating ?? "4.5"}`}</Typography>
+            <Typography size={16} weight={400}>{`4.5`}</Typography>
           </div>
           <Switch
             checked={selectedFilters.isHighRating ?? false}
@@ -142,7 +161,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-4">
           <Typography size={18} weight={500} className=" mb-2">
-            {"Подкатегория"}
+            {t("Подкатегория")}
           </Typography>
           {category.subcategories?.map((subcategory, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
@@ -210,7 +229,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
               />
 
               <Typography size={16} weight={400}>
-                {subcategory.name}
+                {t(`subcategories.${subcategory.name}`)}
               </Typography>
             </label>
           ))}
@@ -218,7 +237,7 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
 
         <div className="mb-4">
           <Typography size={18} weight={500} className=" mb-2">
-            {"Подробности"}
+            {t("Подробности")}
           </Typography>
           {category.details?.map((detail, index) => (
             <label key={index} className="flex items-center space-x-2 mb-3">
@@ -283,14 +302,14 @@ export const MainFilter: FC<Props> = ({ filters, category }) => {
           className="w-full  text-white p-3 rounded"
           onClick={() => applyFilters()}
         >
-          {"Применить"}
+          {t("Применить")}
         </Button>
         <Button
           mode="border"
           className="w-full p-3 mt-2"
           onClick={resetFilters}
         >
-          {"Сбросить все фильтры"}
+          {t("Сбросить все фильтры")}
         </Button>
       </div>
     </div>

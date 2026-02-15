@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { Review } from 'src/review/entities/review.entity';
@@ -6,7 +6,7 @@ import { Organization } from 'src/users/entities/organization.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { CatchErrors, Utils } from 'src/utilities';
-import { IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import { DataSource, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { UsersFilter, UsersFilterStatus } from './types/admin-panel-filters.type';
 import stringSimilarity from 'string-similarity-js';
 import { AdminPanelAd } from './types/admin-panel-ads.type';
@@ -15,10 +15,16 @@ import { BookingStatus } from 'src/booking/types/booking.types';
 import { ReviewReport } from 'src/review-report/entities/review-report.entity';
 import { BannerCreateDto } from './dto/banner-create.dto';
 import { Banner } from './entities/baner.entity';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/types/notification.type';
+import { Booking } from 'src/booking/entities/booking.entity';
+import { NotificationContent, NotificationsMessages } from 'src/notifications';
+import { NotificationContext } from 'twilio/lib/rest/api/v2010/account/notification';
 
 @Injectable()
 export class AdminPanelService {
+  private readonly logger = new Logger(AdminPanelService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -28,22 +34,25 @@ export class AdminPanelService {
     private readonly adRepository: Repository<Ad>,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(ReviewReport)
     private readonly reviewReportRepository: Repository<ReviewReport>,
     private readonly analyticsService: AnalyticsService,
     @InjectRepository(Banner)
     private readonly bannerRepository: Repository<Banner>,
+    private readonly notificationService: NotificationService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /** Получить данные для экрана статистики в Админ Панели. */
   @CatchErrors()
-  async getStats() {
+  async getStats(adminId: string) {
+    await this.#checkAdminRole(adminId);
     // Получение кол-ва пользователей.
-    // const tourists = await this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } });
-    // const orgs = await this.organizationRepository.count();
     const [tourists, orgs] = await Promise.all([
       this.userRepository.count({ where: { role: ROLE_TYPE.TOURIST } }),
-      this.organizationRepository.count(),
+      this.userRepository.count({ where: { role: ROLE_TYPE.BUSINESS } }),
     ]);
     const totalUsers = tourists + orgs;
     const ga4DataPromise = this.analyticsService.getStatistic();
@@ -82,7 +91,8 @@ export class AdminPanelService {
 
   /** Получить данные для экрана жалоб в Админ Панели. */
   @CatchErrors()
-  async getReports() {
+  async getReports(adminId: string) {
+    await this.#checkAdminRole(adminId);
     const reviews = await this.reviewRepository.find({
       where: { report: { id: Not(IsNull()) }, isCheked: false },
       relations: { report: true, ad: { organization: true }, user: true },
@@ -132,7 +142,8 @@ export class AdminPanelService {
 
   /** Полные данные об Организации и ее Объявления для раскрытии карточки в Админ Панели. */
   @CatchErrors()
-  async getOrgInfo(orgId: string) {
+  async getOrgInfo(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({
       where: { id: orgId },
       relations: { ads: { address: true, subcategory: { category: true } }, user: true },
@@ -163,7 +174,8 @@ export class AdminPanelService {
 
   /** Полные данные об Пользователе для раскрытии карточки в Админ Панели. */
   @CatchErrors()
-  async getTouristInfo(userId: string) {
+  async getTouristInfo(userId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     return await this.userRepository.findOne({
       where: { id: userId },
       select: {
@@ -178,25 +190,47 @@ export class AdminPanelService {
 
   /** Логика при нажатии на "Оставить отзыв" на экране Жалоб в Админ Панели. */
   @CatchErrors()
-  async checkReview(reviewId: string) {
+  async checkReview(reviewId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const review = await this.reviewRepository.findOne({
       where: { id: reviewId },
       relations: { report: true },
     });
+
+    // Проверяем наличие отзыва
+    Utils.checkEntity(review, 'Отзыв не найден');
+
+    // Помечаем отзыв как проверенный
     review.isCheked = true;
-    await this.reviewReportRepository.remove(review.report);
+
+    // Сохраняем ID жалобы для удаления
+    const reportId = review.report?.id;
+
+    // Сначала убираем связь
+    review.report = null;
     await this.reviewRepository.save(review);
+
+    // Затем удаляем жалобу, если она существовала
+    if (reportId) {
+      await this.reviewReportRepository.delete(reportId);
+    }
+
     return JSON.stringify(HttpStatus.OK);
   }
 
   /** Получение данных с реализацией фильтрации для экрана Пользователи в Админ Панели. */
   @CatchErrors()
-  async getUsers(filter?: UsersFilter) {
-    // Если страница не указана, то 1.
-    if (!filter.page) filter.page = 1;
+  async getUsers(adminId: string, filter?: UsersFilter) {
+    await this.#checkAdminRole(adminId);
+    // Значения по умолчанию и преобразование в числа
+    const page = filter.page ? Number(filter.page) : 1;
+    const take = filter.take ? Number(filter.take) : 10;
+    const skip = (page - 1) * take;
 
     let users: User[] = [],
       orgsUsers: User[] = [];
+    let totalCount = 0;
+
     const selectOptions = {
       id: true,
       fullName: true,
@@ -227,23 +261,27 @@ export class AdminPanelService {
     // Фильтр по роли.
     // Поиск туристов.
     if (filter.role === ROLE_TYPE.TOURIST) {
-      const skipForBoth = filter.page * 15 - 15;
-      users = await this.userRepository.find({
+      // Получаем пользователей с учетом поиска
+      const allUsers = await this.userRepository.find({
         where: usersWhereOptions,
         select: selectOptions,
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди туристов.
-      if (filter.name) {
-        const { searchedUsers } = this._searchUsersOrOrgs(filter.name, users);
-        users = searchedUsers;
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        users = this.#filterUsersBySearch(allUsers, filter.searchQuery);
+      } else {
+        users = allUsers;
       }
+
+      totalCount = users.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      users = users.slice(skip, skip + take);
     }
     // Поиск организаций.
     else if (filter.role === ROLE_TYPE.BUSINESS) {
-      const skipForBoth = filter.page * 15 - 15;
-      orgsUsers = await this.userRepository.find({
+      // Получаем все организации
+      const allOrgs = await this.userRepository.find({
         where: { organization: orgWhereOptions },
         relations: { organization: true },
         select: {
@@ -265,71 +303,88 @@ export class AdminPanelService {
             isBanned: true,
           },
         },
-        take: 15,
-        skip: skipForBoth,
       });
-      // Поиск по названию среди организацей.
-      if (filter.name) {
-        const { searchedOrgs } = this._searchUsersOrOrgs(filter.name, undefined, orgsUsers);
-        orgsUsers = searchedOrgs;
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        orgsUsers = this.#filterOrgsBySearch(allOrgs, filter.searchQuery);
+      } else {
+        orgsUsers = allOrgs;
       }
+
+      totalCount = orgsUsers.length;
+      // Применяем пагинацию к отфильтрованным результатам
+      orgsUsers = orgsUsers.slice(skip, skip + take);
     }
     // Поиск всех пользователей.
     else {
-      // Если параметр both при целочисленном делении равен нулю, то не отправлять запрос для организаций.
-      const skipForOrgs = filter.page * 7 - 7;
-      const skipForUsers = filter.page * 8 - 8;
-      orgsUsers = await this.userRepository.find({
-        where: { organization: orgWhereOptions },
-        relations: {
-          organization: true,
-        },
-        select: {
-          ...selectOptions,
-          organization: {
-            id: true,
-            imgUrl: true,
-            name: true,
-            bin: true,
-            regCouponPath: true,
-            ibanDocPath: true,
-            orgRulePath: true,
-            rating: true,
-            reviewCount: true,
-            isConfirmed: true,
-            isConfirmCanceled: true,
-            description: true,
-            siteUrl: true,
-            isBanned: true,
+      // Получаем всех пользователей и организации
+      const [allOrgs, allUsers] = await Promise.all([
+        this.userRepository.find({
+          where: { organization: orgWhereOptions },
+          relations: { organization: true },
+          select: {
+            ...selectOptions,
+            organization: {
+              id: true,
+              imgUrl: true,
+              name: true,
+              bin: true,
+              regCouponPath: true,
+              ibanDocPath: true,
+              orgRulePath: true,
+              rating: true,
+              reviewCount: true,
+              isConfirmed: true,
+              isConfirmCanceled: true,
+              description: true,
+              siteUrl: true,
+              isBanned: true,
+            },
           },
-        },
-        take: 7,
-        skip: skipForOrgs,
-      });
-      users = await this.userRepository.find({
-        where: usersWhereOptions,
-        select: selectOptions,
-        take: 8,
-        skip: skipForUsers,
-      });
-      // Поиск по имени среди всех пользователей.
-      if (filter.name) {
-        const { searchedUsers, searchedOrgs } = this._searchUsersOrOrgs(
-          filter.name,
-          users,
-          orgsUsers,
-        );
-        users = searchedUsers;
-        orgsUsers = searchedOrgs;
+        }),
+        this.userRepository.find({
+          where: usersWhereOptions,
+          select: selectOptions,
+        }),
+      ]);
+
+      // Применяем поиск по имени/email/телефону если есть
+      if (filter.searchQuery) {
+        users = this.#filterUsersBySearch(allUsers, filter.searchQuery);
+        orgsUsers = this.#filterOrgsBySearch(allOrgs, filter.searchQuery);
+      } else {
+        users = allUsers;
+        orgsUsers = allOrgs;
       }
+
+      // Объединяем результаты и применяем пагинацию
+      const combined = [...orgsUsers, ...users];
+      totalCount = combined.length;
+      const paginatedCombined = combined.slice(skip, skip + take);
+
+      return {
+        data: paginatedCombined,
+        total: totalCount,
+        page,
+        take,
+        totalPages: Math.ceil(totalCount / take),
+      };
     }
 
-    return [...users, ...orgsUsers];
+    return {
+      data: [...orgsUsers, ...users],
+      total: totalCount,
+      page,
+      take,
+      totalPages: Math.ceil(totalCount / take),
+    };
   }
 
   /** Подтверждение Организации. */
   @CatchErrors()
-  async checkOrg(orgId: string) {
+  async checkOrg(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmed = true;
@@ -341,7 +396,8 @@ export class AdminPanelService {
 
   /** Отклонение подтверждения Орагнизации. */
   @CatchErrors()
-  async cancelCheckOrg(orgId: string) {
+  async cancelCheckOrg(orgId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const org = await this.organizationRepository.findOne({ where: { id: orgId } });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isConfirmCanceled = true;
@@ -353,58 +409,126 @@ export class AdminPanelService {
 
   /** Блокировка Пользователя. */
   @CatchErrors()
-  async banTourist(userId: string, value: boolean) {
+  async banTourist(userId: string, value: boolean, adminId: string) {
+    await this.#checkAdminRole(adminId);
     const user = await this.userRepository.findOne({ where: { id: userId } });
     Utils.checkEntity(user, 'Пользователь не найден');
     user.isBanned = value;
+    let notificationData: NotificationContent;
+    if (value) {
+      notificationData = NotificationsMessages.getAccountBlockedMessage(user.language);
+    } else {
+      notificationData = NotificationsMessages.getAccountUnblockedMessage(user.language);
+    }
+    await this.notificationService.createForUser({
+      email: user.email,
+      title: notificationData.title,
+      message: notificationData.text,
+      type: NotificationType.POSITIVE,
+    });
     await this.userRepository.save(user);
     return JSON.stringify(HttpStatus.OK);
   }
 
   /** Блокировка Орагнизации. */
   @CatchErrors()
-  async banOrg(orgId: string, value: boolean) {
-    const org = await this.organizationRepository.findOne({ where: { id: orgId } });
+  async banOrg(orgId: string, value: boolean, adminId: string) {
+    await this.#checkAdminRole(adminId);
+    const org = await this.organizationRepository.findOne({
+      where: { id: orgId },
+      relations: { ads: { bookings: { user: true } } },
+    });
     Utils.checkEntity(org, 'Орагнизация не найдена');
     org.isBanned = value;
-    await this.organizationRepository.save(org);
+
+    // Собираем все бронирования и уведомления
+    const allBookings: Booking[] = [];
+    const notificationPromises: Promise<any>[] = [];
+
+    for (const ad of org.ads) {
+      if (!ad.bookings || ad.bookings.length === 0) continue;
+      for (const b of ad.bookings) {
+        b.status = BookingStatus.CANCELED;
+        allBookings.push(b);
+        const notificationData = NotificationsMessages.getCancelBookingByBlockOrgMessage(b.user.language, ad.title);
+        notificationPromises.push(
+          this.notificationService.createForUser({
+            email: b.user.email,
+            title: notificationData.title,
+            message: notificationData.text,
+            type: NotificationType.POSITIVE,
+          }),
+        );
+      }
+    }
+
+    // Сохраняем все бронирования одним запросом и отправляем уведомления параллельно
+    await Promise.all([
+      allBookings.length > 0 ? this.bookingRepository.save(allBookings) : Promise.resolve(),
+      this.organizationRepository.save(org),
+      ...notificationPromises,
+    ]);
+
     return JSON.stringify(HttpStatus.OK);
   }
 
-  /** Поиск по названию среди Пользователей или Организациий.  */
-  private _searchUsersOrOrgs(
-    name: string,
-    users?: User[],
-    orgsUsers?: User[],
-  ): { searchedUsers: User[]; searchedOrgs: User[] } {
-    const searchedUsers: User[] = [],
-      searchedOrgs: User[] = [];
+  async deleteAd(adId: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
+    return await this.dataSource.transaction(async (manager) => {
+      const ad = await manager.findOne(Ad, {
+        where: { id: adId },
+        relations: {
+          reviews: { report: true, answer: true },
+          schedule: true,
+          bookingBanDate: true,
+          breaks: true,
+          bookings: { user: true },
+          organization: { user: true },
+        },
+      });
+      Utils.checkEntity(ad, 'Объявление не найдено');
 
-    if (users) {
-      for (const user of users) {
-        const simValue = stringSimilarity(user.fullName, name);
-        if (simValue > 0.2) {
-          searchedUsers.push(user);
+      // Уведомления по бронированиям
+      if (ad.bookings && ad.bookings.length > 0) {
+        for (const b of ad.bookings) {
+          const notificationData = NotificationsMessages.getDeleteBookingByDeleteAdMessage(b.user.language, ad.title);
+          await this.notificationService.createForUser({
+            title: `Ваша бронь на объявление ${ad.title} удалена`,
+            message: `Администратор удалил объявление, на которое вы сделали бронь. Ваша бронь удалена.`,
+            email: b.user.email,
+            type: NotificationType.POSITIVE,
+          });
         }
       }
-    }
 
-    if (orgsUsers) {
-      for (const org of orgsUsers) {
-        const simValue = stringSimilarity(org.organization.name, name);
-        if (simValue > 0.2) {
-          searchedOrgs.push(org);
-        }
+      // Удаление связанных сущностей
+      if (ad.schedule) await manager.remove(ad.schedule);
+      if (ad.bookingBanDate?.length) await manager.remove(ad.bookingBanDate);
+      if (ad.breaks?.length) await manager.remove(ad.breaks);
+      if (ad.bookings) await manager.remove(ad.bookings);
+
+      if (ad.reviews?.length) {
+        await Promise.all(
+          ad.reviews.map(async (review) => {
+            if (review.answer) await manager.remove(review.answer);
+            if (review.report) await manager.remove(review.report);
+          }),
+        );
+        await manager.remove(ad.reviews);
       }
-    }
 
-    return { searchedUsers, searchedOrgs };
+      // Удаление самого объявления
+      await manager.remove(ad);
+      return JSON.stringify(HttpStatus.OK);
+    });
   }
 
   @CatchErrors()
-  async createBanner(dto: BannerCreateDto) {
-    const { text, imagePath, deleteDate } = dto;
+  async createBanner(dto: BannerCreateDto, adminId: string) {
+    await this.#checkAdminRole(adminId);
+    const { title, text, imagePath, deleteDate } = dto;
     const banner = this.bannerRepository.create({
+      title: title,
       text: text,
       imagePath: imagePath,
       deleteDate: Utils.stringDateToDate(deleteDate),
@@ -414,27 +538,30 @@ export class AdminPanelService {
   }
 
   @CatchErrors()
-  async deleteBanner(id: string) {
+  async deleteBanner(id: string, adminId: string) {
+    await this.#checkAdminRole(adminId);
     await this.bannerRepository.delete(id);
     return JSON.stringify(HttpStatus.OK);
   }
 
-  @CatchErrors()
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async deleteBannersByDate() {
+  async deleteExpiredBanners() {
+    this.logger.log('Запуск задачи по удалению устаревших баннеров...');
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Обнуляем время, чтобы сравнивать только дату
+
+    this.logger.log(`Сегодняшняя дата: ${today.toISOString()}`);
 
     const banners = await this.bannerRepository.find({
       where: { deleteDate: LessThanOrEqual(today) },
     });
 
+    this.logger.log(`Найдено баннеров для удаления: ${banners.length}`);
+
     if (banners.length > 0) {
       await this.bannerRepository.remove(banners);
-      console.log(`Удалено ${banners.length} баннеров`);
-    } else {
-      console.log('Нет баннеров для удаления');
-    }
+      this.logger.log(`Удалено баннеров: ${banners.length}`);
+    } else this.logger.log('Нет устаревших баннеров для удаления');
   }
 
   /** Быстрая сортировка Объявлений по количеству бронирований. */
@@ -455,4 +582,77 @@ export class AdminPanelService {
 
     return this._quickSortAdminPanelAds(left).concat(pivot, this._quickSortAdminPanelAds(right));
   };
+
+  /** Поиск туристов по имени/email/телефону */
+  #filterUsersBySearch(users: User[], searchQuery: string): User[] {
+    const normalizedQuery = `%${searchQuery.toLowerCase()}%`;
+
+    return users.filter((user) => {
+      const fullName = user.fullName?.toLowerCase() || '';
+      const email = user.email?.toLowerCase() || '';
+      const phone = user.phoneNumber?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+
+      return fullName.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }
+
+  /** Поиск организаций по названию/email/телефону */
+  #filterOrgsBySearch(orgsUsers: User[], searchQuery: string): User[] {
+    const query = searchQuery.toLowerCase();
+
+    return orgsUsers.filter((org) => {
+      const orgName = org.organization?.name?.toLowerCase() || '';
+      const email = org.email?.toLowerCase() || '';
+      const phone = org.phoneNumber?.toLowerCase() || '';
+
+      return orgName.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }
+
+  /** Поиск по названию/email/телефону среди Пользователей или Организациий. СТАРЫЙ МЕТОД */
+  #searchUsersOrOrgs(
+    searchQuery: string,
+    users?: User[],
+    orgsUsers?: User[],
+  ): { searchedUsers: User[]; searchedOrgs: User[] } {
+    const searchedUsers: User[] = [],
+      searchedOrgs: User[] = [];
+
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
+    if (users) {
+      for (const user of users) {
+        // Поиск по имени, email и номеру телефона
+        const nameMatch = stringSimilarity(user.fullName.toLowerCase(), normalizedQuery);
+        const emailMatch = user.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = user.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (nameMatch > 0.2 || emailMatch || phoneMatch) {
+          searchedUsers.push(user);
+        }
+      }
+    }
+
+    if (orgsUsers) {
+      for (const org of orgsUsers) {
+        // Поиск по названию организации, email и номеру телефона
+        const orgNameMatch = stringSimilarity(org.organization.name.toLowerCase(), normalizedQuery);
+        const emailMatch = org.email?.toLowerCase().includes(normalizedQuery);
+        const phoneMatch = org.phoneNumber?.toLowerCase().includes(normalizedQuery);
+
+        if (orgNameMatch > 0.2 || emailMatch || phoneMatch) {
+          searchedOrgs.push(org);
+        }
+      }
+    }
+
+    return { searchedUsers, searchedOrgs };
+  }
+
+  /** Проверка роли Администратора. */
+  async #checkAdminRole(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, select: { role: true } });
+    if (!user || user.role !== ROLE_TYPE.ADMIN) throw new HttpException('Доступ запрещен', HttpStatus.FORBIDDEN);
+  }
 }

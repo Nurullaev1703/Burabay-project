@@ -58,7 +58,11 @@ export const IEForm: FC = function IEForm() {
       if (form.registerFile) formData.append("registerFile", form.registerFile);
       if (form.IBANFile) formData.append("IBANFile", form.IBANFile);
 
-      const responseDocs = await imageService.post<string>({
+      const responseDocs = await imageService.post<{
+        registerFile: string | null;
+        IBANFile: string | null;
+        charterFile: string | null;
+      }>({
         url: `/full-docs`,
         dto: formData,
       });
@@ -68,12 +72,12 @@ export const IEForm: FC = function IEForm() {
       const responseFilenames = await apiService.patch<string>({
         url: `/users/docs-path`,
         dto: {
-          regCouponPath: `registerFile.${form.registerFile?.name.split(".").pop()}`,
-          ibanDocPath: `IBANFile.${form.IBANFile?.name.split('.').pop()}`,
+          regCouponPath: responseDocs.data.registerFile,
+          ibanDocPath: responseDocs.data.IBANFile,
           iin: form.iin,
           phoneNumber: "+" + form.phoneNumber.replace(/\D/g, ""),
         },
-      }); 
+      });
       if (user) {
         setUser({
           ...user,
@@ -86,9 +90,7 @@ export const IEForm: FC = function IEForm() {
       if (parseInt(responseFilenames.data) !== parseInt(HTTP_STATUS.OK))
         throw Error("Ошибка при создании");
       navigate({ to: "/profile" });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
   };
   return (
     <section className="min-h-screen bg-background">
@@ -130,9 +132,17 @@ export const IEForm: FC = function IEForm() {
           control={control}
           rules={{
             required: t("requiredField"),
+            minLength: {
+              value: 12,
+              message: t("minLengthRequired", { count: 12 }),
+            },
             maxLength: {
-              value: 40,
-              message: t("maxLengthExceeded", { count: 40 }),
+              value: 12,
+              message: t("maxLengthExceeded", { count: 12 }),
+            },
+            validate: (value: string) => {
+              const iinRegex = /^\d{12}$/;
+              return iinRegex.test(value) || t("invalidIIN");
             },
           }}
           render={({ field, fieldState: { error } }) => (
@@ -140,6 +150,15 @@ export const IEForm: FC = function IEForm() {
               {...field}
               error={Boolean(error?.message)}
               helperText={error?.message}
+              inputProps={{
+                inputMode: "numeric",
+                maxLength: 12,
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLInputElement;
+                const value = target.value.replace(/\D/g, "");
+                target.value = value.slice(0, 12);
+              }}
               label={t("IIN")}
               fullWidth={true}
               variant="outlined"
@@ -186,6 +205,7 @@ export const IEForm: FC = function IEForm() {
                 type="file"
                 id="register-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -205,7 +225,7 @@ export const IEForm: FC = function IEForm() {
                         value ? COLORS_TEXT.totalBlack : COLORS_TEXT.gray100
                       }
                     >
-                      {value ? value.name : t("certificateIE")}
+                      {value ? value.name : t("certificateStateReg")}
                     </span>
                   </div>
                 </div>
@@ -213,10 +233,17 @@ export const IEForm: FC = function IEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />
@@ -233,6 +260,7 @@ export const IEForm: FC = function IEForm() {
                 type="file"
                 id="iban-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => onChange(e.target.files?.[0])}
               />
               <label
@@ -260,10 +288,17 @@ export const IEForm: FC = function IEForm() {
                   <img
                     src={DeleteIcon}
                     alt="Удалить"
-                    onChange={() => onChange(null)}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
                   />
                 )}
               </label>
+              <p className={`text-xs mt-1 ${COLORS_TEXT.gray100}`}>
+                {t("supportedFormats")}
+              </p>
             </div>
           )}
         />

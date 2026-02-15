@@ -1,55 +1,55 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CatchErrors, Utils } from 'src/utilities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Ad } from 'src/ad/entities/ad.entity';
 import { BookingFilter, BookingStatus, PaymentType } from './types/booking.types';
 import { NotificationType } from 'src/notification/types/notification.type';
-import { BookingBanDateService } from 'src/booking-ban-date/booking-ban-date.service';
-import { CreateBookingBanDateDto } from 'src/booking-ban-date/dto/create-booking-ban-date.dto';
 import { BookingBanDate } from 'src/booking-ban-date/entities/booking-ban-date.entity';
 import { ROLE_TYPE } from 'src/users/types/user-types';
 import { NotificationService } from 'src/notification/notification.service';
+import { NotificationsMessages } from 'src/notifications';
 
 @Injectable()
 export class BookingService {
   constructor(
     private dataSource: DataSource,
-    private bookingBanDateService: BookingBanDateService,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ad)
     private readonly adRepository: Repository<Ad>,
-    @InjectRepository(BookingBanDate)
-    private readonly bookingBanDateRepository: Repository<BookingBanDate>,
     private readonly notificationService: NotificationService,
   ) {}
 
   /* Создание Бронирования. */
   @CatchErrors()
   async create(createBookingDto: CreateBookingDto, tokenData: TokenData) {
+    // Начало транзакции для создания.
     return await this.dataSource.transaction(async () => {
       const { adId, dateStart: dateStartDto, dateEnd: dateEndDto, ...oF } = createBookingDto;
       const user = await this.userRepository.findOne({ where: { id: tokenData.id } });
+      if (user.role !== ROLE_TYPE.TOURIST)
+        throw new HttpException('Создать бронирование может только турист', HttpStatus.FORBIDDEN);
       const ad = await this.adRepository.findOne({
         where: { id: adId },
         relations: { subcategory: { category: true }, organization: { user: true } },
       });
-
+      if (ad.organization.isBanned === true)
+        throw new HttpException(
+          'Бронирование на это объявление невозможно - организация заблокированна',
+          HttpStatus.FORBIDDEN,
+        );
       // Преобразовать строковые даты из DTO в тип js даты.
-      let dateStart: Date, dateEnd: Date;
-      if (dateStartDto) {
-        dateStart = Utils.stringDateToDate(dateStartDto);
-      }
-      if (dateEndDto) {
-        dateEnd = Utils.stringDateToDate(dateEndDto);
-      }
+      let dateStart: Date;
+      if (dateStartDto) dateStart = Utils.stringDateToDate(dateStartDto);
+      let dateEnd: Date;
+      if (dateEndDto) dateEnd = Utils.stringDateToDate(dateEndDto);
 
       // Создание брони.
       const newBooking = this.bookingRepository.create({
@@ -60,71 +60,42 @@ export class BookingService {
         ...oF,
       });
 
-      // Является ли объявление арендой.
-      const isRent = ad.subcategory.category.name === 'Жилье';
+      // Является ли объявление арендой - для подсчета стоимости.
+      const isRent = ad.isFullDay;
 
-      // Вычисление общей стоимости аренды
+      // Вычисление общей стоимости аренды (с учетом детского тарифа).
       if (isRent) {
         const days = (dateEnd.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24);
-        newBooking.totalPrice =
-          days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
-      } else {
-        newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
+        newBooking.totalPrice = days * (ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0));
       }
+      // Вычиление общей стоимости услуги (с учетом детского тарифа).
+      else newBooking.totalPrice = ad.price + (createBookingDto.isChildRate ? ad.priceForChild : 0);
 
-      // Сохранение
+      // Сохранение.
       await this.bookingRepository.save(newBooking);
-
-      // Проверить наличие запрета даты бронирвоания.
-      // Если на весь день, то ничего не делать.
-      // Если не на весь день, до добавить время к запрету.
-      // Если запрета нет, то создать его на нужное время.
-      if (!isRent) {
-        const findBookingBanDate = await this.bookingBanDateRepository.findOne({
-          where: {
-            ad: { id: adId },
-            date: oF.date,
-          },
-        });
-        // Запрет есть.
-        if (findBookingBanDate) {
-          // Запрет не на весь день.
-          if (!findBookingBanDate.allDay) findBookingBanDate.times.push(oF.time);
-          await this.bookingBanDateRepository.save(findBookingBanDate);
-        } else {
-          // Запрета нет. Создать его.
-          const bookingBanDateDto: CreateBookingBanDateDto = {
-            adId: adId,
-            date: oF.date,
-            times: ad.isFullDay ? null : [oF.time],
-            allDay: ad.isFullDay,
-            isByBooking: true,
-          };
-          await this.bookingBanDateService.create([bookingBanDateDto]);
-        }
-      }
+      const notificationData = NotificationsMessages.getNewBookingForAdMessage(
+        newBooking.ad.organization.user.language,
+        newBooking.ad.title,
+      );
       const notificationDto = {
         email: ad.organization.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Новая бронь на объявление "${ad.title}"`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.CREATED);
     });
   }
 
-  /* Получение всех бронирований Пользователя. */
   @CatchErrors()
   async findAllByUserId(tokenData: TokenData, filter?: BookingFilter) {
-    const whereOptions: Record<string, any> = {
+    let whereOptions: Record<string, any> = {
       user: { id: tokenData.id },
     };
 
     // Фильтр отмененных броней.
-    if (filter?.canceled) {
-      whereOptions.status = BookingStatus.CANCELED;
-    }
+    if (filter?.canceled) whereOptions.status = BookingStatus.CANCELED;
 
     // Фильтр по типу оплаты.
     if (filter?.onSidePayment !== filter?.onlinePayment) {
@@ -132,9 +103,18 @@ export class BookingService {
       if (filter?.onlinePayment) whereOptions.paymentType = PaymentType.ONLINE;
     }
 
+    if (filter.status === 'ACTIVE')
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
       relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
+      order: { createdAt: 'DESC' },
     });
 
     // Группировка по дате.
@@ -143,7 +123,7 @@ export class BookingService {
     today.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения.
 
     for (const b of bookings) {
-      const isRent = ['Жилье'].includes(b.ad.subcategory.category.name);
+      const isRent = b.ad.isFullDay;
       let date: Date;
       let header: string;
 
@@ -151,15 +131,16 @@ export class BookingService {
         date = b.dateStart;
         header = b.dateStart.toLocaleDateString('ru-RU');
       } else {
+        // Проверка на null/undefined для поля date
+        if (!b.date) continue; // Пропускаем бронирование без даты
         const [day, month, year] = b.date.split('.').map(Number);
         date = new Date(year, month - 1, day);
         header = b.date;
       }
 
-      // Проверяем "Сегодня" и "Завтра".
-      const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-      if (diffDays === 0) header = 'Сегодня';
-      if (diffDays === 1) header = 'Завтра';
+      // Не меняем header, оставляем дату для URL
+      // const diffDays = (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+      // Дата всегда остаётся в header для использования в URL
 
       let group = groups.find((g) => g.header === header);
       if (!group) {
@@ -174,6 +155,7 @@ export class BookingService {
           ad_id: b.ad.id,
           img: b.ad.images[0],
           times: [],
+          createdAt: b.createdAt,
         };
         group.ads.push(adGroup);
       }
@@ -201,80 +183,54 @@ export class BookingService {
   /* Получить все бронирования Организации. */
   @CatchErrors()
   async findAllByOrgId(tokenData: TokenData, filter?: BookingFilter) {
-    let whereOptions: object = {
-      ad: { organization: { user: { id: tokenData.id } } },
-    };
+    let whereOptions: object = { ad: { organization: { user: { id: tokenData.id } } } };
 
     // Фильтр по отмененным броням.
-    if (filter.canceled) {
-      whereOptions = {
-        ...whereOptions,
-        status: BookingStatus.CANCELED,
-      };
-    }
+    if (filter.canceled) whereOptions = { ...whereOptions, status: BookingStatus.CANCELED };
+
     // Фильтр по типу оплаты.
     if (filter.onSidePayment !== filter.onlinePayment) {
-      if (filter.onSidePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.CASH,
-        };
-      }
-      if (filter.onlinePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.ONLINE,
-        };
-      }
+      if (filter.onSidePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.CASH };
+      if (filter.onlinePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.ONLINE };
     }
+
+    if (filter.status === 'ACTIVE')
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
 
     const bookings = await this.bookingRepository.find({
       where: whereOptions,
       relations: { user: true, ad: { organization: true, subcategory: { category: true } } },
+      order: { createdAt: 'DESC' },
     });
 
     const groups = [];
 
     for (const b of bookings) {
-      const isRent = b.ad.subcategory.category.name === 'Жилье';
+      const isRent = b.ad.isFullDay;
 
       const today = new Date();
       let date: Date;
       let header: string;
 
       if (isRent) {
-        // const day = b.dateStart.getDay();
-        // const month = b.dateStart.getMonth();
-        // const year = b.dateStart.getFullYear();
         date = b.dateStart;
-        // date = new Date(`${year}-${month}-${day}`); // Тип даты на основе даты брони.
-        // header = `${day}.${month + 1}.${year}`;
         header = b.dateStart.toLocaleDateString('ru-RU', {
           day: '2-digit',
           month: '2-digit',
           year: '2-digit',
         });
       } else {
+        if (!b.date) continue; // Пропускаем бронирование без даты
         const [day, month, year] = b.date.split('.');
         date = new Date(`${year}-${month}-${day}`);
         header = b.date;
       }
-
-      if (
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-      ) {
-        header = 'Сегодня';
-      }
-
-      if (date.getDate() === today.getDate() + 1) {
-        header = 'Завтра';
-      }
-
-      // if (b.status === BookingStatus.CANCELED) {
-      //   isRent ? (b.dateEnd = b.dateEnd + '_') : (b.date = b.date + '_');
-      // }
 
       let group = groups.find((g) => g.header === header);
 
@@ -290,6 +246,7 @@ export class BookingService {
           status: b.status,
           img: b.ad.images[0],
           times: [],
+          createdAt: b.createdAt,
         };
       }
 
@@ -330,30 +287,20 @@ export class BookingService {
     Utils.checkEntity(ad, 'Объявление не найдено');
 
     // Объявление это аренда?
-    const isRent = ad.subcategory.category.name === 'Жилье';
+    const isRent = ad.isFullDay;
 
     // Получение даты для поиска
     let findDate: string;
-    if (date === 'Сегодня') {
-      const today = new Date();
-      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-    } else if (date === 'Завтра') {
-      const today = new Date();
-      today.setDate(today.getDate() + 1);
-      findDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-    } else {
-      const parts = date.split('.');
-      if (parts.length === 3 && parts[2].length === 2) {
-        parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
-      }
-      findDate = parts.join('.');
+    // date теперь всегда приходит как DD.MM.YYYY, а не 'today'/'tomorrow'
+    const parts = date.split('.');
+    if (parts.length === 3 && parts[2].length === 2) {
+      parts[2] = `20${parts[2]}`; // Добавляем "20" перед годом
     }
+    findDate = parts.join('.');
 
     let whereOptions: any;
     // Если Турист, то получить только свои брони.
-    if (user.role === ROLE_TYPE.TOURIST) {
-      whereOptions = { user: { id: tokenData.id } };
-    }
+    if (user.role === ROLE_TYPE.TOURIST) whereOptions = { user: { id: tokenData.id } };
     if (isRent) {
       whereOptions = {
         ...whereOptions,
@@ -371,26 +318,20 @@ export class BookingService {
       };
     }
     if (filter.onSidePayment !== filter.onlinePayment) {
-      if (filter.onSidePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.CASH,
-        };
-      }
-      if (filter.onlinePayment) {
-        whereOptions = {
-          ...whereOptions,
-          paymentType: PaymentType.ONLINE,
-        };
-      }
+      if (filter.onSidePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.CASH };
+      if (filter.onlinePayment) whereOptions = { ...whereOptions, paymentType: PaymentType.ONLINE };
     }
-    const bookings = await this.bookingRepository.find({
-      where: whereOptions,
-      relations: { ad: true, user: true },
-    });
-    if (bookings.length === 0) {
-      return [];
-    }
+    if (filter.status === 'ACTIVE')
+      whereOptions = {
+        ...whereOptions,
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      };
+    if (filter.status === 'DONE')
+      whereOptions = { ...whereOptions, status: In([BookingStatus.DONE, BookingStatus.CANCELED]) };
+
+    const bookings = await this.bookingRepository.find({ where: whereOptions, relations: { ad: true, user: true } });
+    if (bookings.length === 0) return [];
+
     const ad_bookins = [];
     if (isRent) {
       for (const b of bookings) {
@@ -437,38 +378,90 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async findOne(id: string) {
+  async findOne(id: string, tokenData: TokenData) {
     const booking = await this.bookingRepository.findOne({
       where: { id: id },
-      relations: { ad: { organization: true }, user: true },
+      relations: { ad: { organization: { user: true } }, user: true },
     });
-    Utils.checkEntity(booking, 'Бронирование не найдено');
+    Utils.checkEntity(booking, 'Бронирование не найдено');
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на просмотр этого бронирования', HttpStatus.FORBIDDEN);
+    delete booking.ad.organization.user;
+    delete booking.user;
     return booking;
   }
 
   @CatchErrors()
-  async update(id: string, updateBookingDto: UpdateBookingDto) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
+  async hasActiveBookings(adId: string): Promise<{ hasActive: boolean }> {
+    const count = await this.bookingRepository.count({
+      where: {
+        ad: { id: adId },
+        status: In([BookingStatus.CONFIRM, BookingStatus.IN_PROCESS, BookingStatus.PAYED]),
+      },
+    });
+    return { hasActive: count > 0 };
+  }
+
+  @CatchErrors()
+  async update(id: string, updateBookingDto: UpdateBookingDto, tokenData: TokenData) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: id },
+      relations: { user: true, ad: { organization: { user: true } } },
+    });
     Utils.checkEntity(booking, 'Бронирование не найдено');
+    if (booking.ad.organization.isBanned) throw new HttpException('Организация заблокирована', HttpStatus.NOT_FOUND);
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на изменение этого бронирования', HttpStatus.FORBIDDEN);
+
     Object.assign(booking, updateBookingDto);
     this.bookingRepository.save(booking);
+    delete booking.ad.organization.user;
+    delete booking.user;
     return JSON.stringify(HttpStatus.OK);
   }
 
   @CatchErrors()
-  async remove(id: string) {
+  async remove(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id: id },
-        relations: { user: true, ad: true },
+        relations: { user: true, ad: { organization: { user: true } } },
       });
-      Utils.checkEntity(booking, 'Бронирование не найдено');
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на удаление этого бронирования', HttpStatus.FORBIDDEN);
+
       await manager.remove(booking);
+      const notificationData = NotificationsMessages.getDeleteBookingMessage(booking.user.language, booking.ad.title);
       const notificationDto = {
         email: booking.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.NEGATIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была удалена`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
@@ -483,26 +476,50 @@ export class BookingService {
         relations: { user: true, ad: { organization: { user: true } } },
       });
       Utils.checkEntity(booking, 'Бронирование не найдено');
-      booking.status = BookingStatus.CANCELED;
-      await manager.save(booking);
+
       const user = await this.userRepository.findOne({
         where: { id: tokenData.id },
         select: { id: true, role: true },
       });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на отмену этого бронирования', HttpStatus.FORBIDDEN);
+
+      booking.status = BookingStatus.CANCELED;
+      await manager.save(booking);
+      const bbd = await manager.findOne(BookingBanDate, {
+        where: {
+          ad: { id: booking.ad.id },
+          date: booking.date,
+          isByBooking: true,
+        },
+      });
+      if (bbd) await manager.remove(bbd);
+      // Если отменил Бизнес, то уведомить Туриста.
       if (user.role === ROLE_TYPE.BUSINESS) {
+        const notificationData = NotificationsMessages.getCancelBookingMessageForTourist(
+          booking.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.ad.organization.user.email,
-          title: '',
+          title: notificationData.title,
           type: NotificationType.NEGATIVE,
-          message: `Бронь на объявление "${booking.ad.title}" была отменена`,
+          message: notificationData.text,
         };
         await this.notificationService.createForUser(notificationDto);
+        // Если отменил Турист, то уведомить Бизнес.
       } else if (user.role === ROLE_TYPE.TOURIST) {
+        const notificationData = NotificationsMessages.getCancelBookingMessageForOrg(
+          booking.ad.organization.user.language,
+          booking.ad.title,
+        );
         const notificationDto = {
           email: booking.user.email,
-          title: '',
+          title: notificationData.title,
           type: NotificationType.NEGATIVE,
-          message: `Ваша бронь на объявление "${booking.ad.title}" была отменена`,
+          message: notificationData.text,
         };
         await this.notificationService.createForUser(notificationDto);
       }
@@ -512,20 +529,32 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async bookingConfirm(id: string) {
+  async bookingConfirm(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
-        relations: { user: true, ad: true },
+        relations: { user: true, ad: { organization: { user: true } } },
       });
       Utils.checkEntity(booking, 'Объявление не найдено');
+      if (booking.status == BookingStatus.CANCELED || booking.status == BookingStatus.DONE)
+        throw new HttpException('Бронь отменена/завершена и не может быть подтверждена', HttpStatus.BAD_REQUEST);
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (user.id !== booking.user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на подтверждение этого бронирования', HttpStatus.FORBIDDEN);
       booking.status = BookingStatus.CONFIRM;
       await this.bookingRepository.save(booking);
+      const notificationData = NotificationsMessages.acceptBooking(booking.user.language, booking.ad.title, booking.ad.phoneNumber);
       const notificationDto = {
         email: booking.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Ваша бронь на объявление "${booking.ad.title}" была подтверждена`,
+        message: notificationData.text,
       };
       await this.notificationService.createForUser(notificationDto);
       return JSON.stringify(HttpStatus.OK);
@@ -533,21 +562,35 @@ export class BookingService {
   }
 
   @CatchErrors()
-  async bookingPayed(id: string) {
+  async bookingPayed(id: string, tokenData: TokenData) {
     return await this.dataSource.transaction(async () => {
       const booking = await this.bookingRepository.findOne({
         where: { id: id },
-        relations: { ad: { organization: { user: true } } },
+        relations: { ad: { organization: { user: true } }, user: true },
       });
-      Utils.checkEntity(booking, 'Объявление не найдено');
+      Utils.checkEntity(booking, 'Бронирование не найдено');
+
+      const user = await this.userRepository.findOne({
+        where: { id: tokenData.id },
+        select: { id: true, role: true },
+      });
+      Utils.checkEntity(user, 'Пользователь не найден');
+
+      // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+      if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+        throw new HttpException('У вас нет прав на изменение статуса оплаты этого бронирования', HttpStatus.FORBIDDEN);
+
       booking.status = BookingStatus.PAYED;
       await this.bookingRepository.save(booking);
-
+      const notificationData = NotificationsMessages.payBooking(
+        booking.ad.organization.user.language,
+        booking.ad.title,
+      );
       const notificationDto = {
         email: booking.ad.organization.user.email,
-        title: '',
+        title: notificationData.title,
         type: NotificationType.POSITIVE,
-        message: `Бронь на объявление "${booking.ad.title}" была оплачена`,
+        message: notificationData.text,
       };
 
       await this.notificationService.createForUser(notificationDto);
@@ -556,10 +599,110 @@ export class BookingService {
     });
   }
 
+  /** Отмена просроченных не принятых заказов */
   @CatchErrors()
-  async bookingDone(id: string) {
-    const booking = await this.bookingRepository.findOne({ where: { id: id } });
-    Utils.checkEntity(booking, 'Объявление не найдено');
+  async cancelExpiredUnacceptedBookings() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения только по дате
+
+    // Получаем все бронирования со статусом IN_PROCESS
+    const allBookings = await this.bookingRepository.find({
+      where: {
+        status: BookingStatus.IN_PROCESS,
+      },
+      relations: { ad: { subcategory: { category: true } }, user: true },
+    });
+
+    // Фильтруем бронирования на уровне приложения
+    const expiredBookings = allBookings.filter((booking) => {
+      const isRent = booking.ad.isFullDay;
+
+      if (isRent) {
+        // Для аренды проверяем dateEnd
+        if (!booking.dateEnd) return false;
+        const endDate = new Date(booking.dateEnd);
+        endDate.setHours(0, 0, 0, 0);
+        return endDate <= now;
+      } else {
+        // Для услуг проверяем поле date (строка)
+        if (!booking.date) return false;
+        const bookingDate = Utils.stringDateToDate(booking.date);
+        bookingDate.setHours(0, 0, 0, 0);
+        return bookingDate <= now;
+      }
+    });
+
+    for (const booking of expiredBookings) {
+      booking.status = BookingStatus.CANCELED;
+      await this.bookingRepository.save(booking);
+      const notificationData = NotificationsMessages.expiredBooking(booking.user.language, booking.ad.title);
+      const notificationDto = {
+        email: booking.user.email,
+        title: notificationData.title,
+        type: NotificationType.NEGATIVE,
+        message: notificationData.text,
+      };
+      await this.notificationService.createForUser(notificationDto);
+    }
+  }
+
+  /** Завершение просроченных принятых заказов */
+  @CatchErrors()
+  async doneExpiredAcceptedBookings() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Обнуляем время для корректного сравнения только по дате
+
+    // Получаем все бронирования со статусами PAYED и CONFIRM
+    const allBookings = await this.bookingRepository.find({
+      where: {
+        status: In([BookingStatus.PAYED, BookingStatus.CONFIRM]),
+      },
+      relations: { ad: { subcategory: { category: true } } },
+    });
+
+    // Фильтруем бронирования на уровне приложения
+    const expiredBookings = allBookings.filter((booking) => {
+      const isRent = booking.ad.isFullDay;
+
+      if (isRent) {
+        // Для аренды проверяем dateEnd
+        if (!booking.dateEnd) return false;
+        const endDate = new Date(booking.dateEnd);
+        endDate.setHours(0, 0, 0, 0);
+        return endDate <= now;
+      } else {
+        // Для услуг проверяем поле date (строка)
+        if (!booking.date) return false;
+        const bookingDate = Utils.stringDateToDate(booking.date);
+        bookingDate.setHours(0, 0, 0, 0);
+        return bookingDate <= now;
+      }
+    });
+
+    for (const booking of expiredBookings) {
+      booking.status = BookingStatus.DONE;
+      await this.bookingRepository.save(booking);
+    }
+  }
+
+  @CatchErrors()
+  async bookingDone(id: string, tokenData: TokenData) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id: id },
+      relations: { ad: { organization: { user: true } }, user: true },
+    });
+    Utils.checkEntity(booking, 'Бронирование не найдено');
+
+    const user = await this.userRepository.findOne({
+      where: { id: tokenData.id },
+      select: { id: true, role: true },
+    });
+    Utils.checkEntity(user, 'Пользователь не найден');
+
+    // Если не владелец брони и не владелец объявления и не админ - ошибка доступа.
+    if (booking.user.id !== user.id && booking.ad.organization.user.id !== user.id && user.role !== ROLE_TYPE.ADMIN)
+      throw new HttpException('У вас нет прав на завершение этого бронирования', HttpStatus.FORBIDDEN);
+
     booking.status = BookingStatus.DONE;
     await this.bookingRepository.save(booking);
     return JSON.stringify(HttpStatus.OK);

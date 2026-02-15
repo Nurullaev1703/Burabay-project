@@ -13,6 +13,7 @@ import { Vector as VectorSource } from "ol/source";
 import { Icon, Style } from "ol/style";
 import location from "../../app/icons/main/markerMap.png";
 import { Typography } from "../../shared/ui/Typography";
+import { defaults as defaultInteractions } from "ol/interaction";
 import { Header } from "../../components/Header";
 import { COLORS_TEXT } from "../../shared/ui/colors";
 import { IconContainer } from "../../shared/ui/IconContainer";
@@ -92,8 +93,14 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       view: new View({
         center: fromLonLat(initialCenter),
         zoom: 14,
+        enableRotation: false,
+        constrainRotation: false,
       }),
       controls: [],
+      interactions: defaultInteractions({
+        altShiftDragRotate: false,
+        pinchRotate: false,
+      }),
     });
 
     map.on("click", async (e) => {
@@ -135,9 +142,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         const fullAddress = `${street} ${houseNumber}`.trim(); // Формируем полный адрес
 
         setAddress(fullAddress || display_name); // Устанавливаем полный адрес или "display_name" как fallback
-      } catch (error) {
-        console.error("Ошибка при получении адреса:", error);
-      }
+      } catch (error) {}
     });
 
     return () => map.setTarget(undefined); // Очистка карты при размонтировании компонента
@@ -156,13 +161,26 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
         },
       });
       if (response.data) {
-        //TODO Сделать навигацию на следующий шаг редактирования
-        navigate({
-          to: "/announcements/addAnnouncements/step-five/$id",
-          params: {
-            id: adId,
-          },
+        // Проверяем наличие активных бронирований
+        const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
+          url: `/booking/has-active/${adId}`,
         });
+
+        if (hasActiveResponse.data?.hasActive) {
+          // Если есть активные бронирования, идем на страницу запрета дней
+          const serviceTime = announcement?.startTime?.join(",") || "";
+          navigate({
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ""}`,
+          });
+        } else {
+          // Иначе на шаг 5 (детали)
+          navigate({
+            to: "/announcements/addAnnouncements/step-five/$id",
+            params: {
+              id: adId,
+            },
+          });
+        }
       }
     } else {
       const response = await apiService.post({
@@ -178,12 +196,26 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       });
       // XXX поменял проверку со статусв на response.data
       if (response.data) {
-        navigate({
-          to: "/announcements/addAnnouncements/step-five/$id",
-          params: {
-            id: adId,
-          },
+        // Проверяем наличие активных бронирований
+        const hasActiveResponse = await apiService.get<{ hasActive: boolean }>({
+          url: `/booking/has-active/${adId}`,
         });
+
+        if (hasActiveResponse.data?.hasActive) {
+          // Если есть активные бронирования, идем на страницу запрета дней
+          const serviceTime = announcement?.startTime?.join(",") || "";
+          navigate({
+            to: `/announcements/bookingBan/${adId}${serviceTime ? `?serviceTime=${serviceTime}` : ""}`,
+          });
+        } else {
+          // Иначе на шаг 5 (детали)
+          navigate({
+            to: "/announcements/addAnnouncements/step-five/$id",
+            params: {
+              id: adId,
+            },
+          });
+        }
       }
     }
   };
@@ -216,7 +248,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
               color={COLORS_TEXT.blue200}
               align="center"
             >
-              {announcement?.address ? t("changeAd") : t("addNewAd")}
+              {announcement?.address ? t("changeAd") : t("choisePlaceTitle")}
             </Typography>
             <Typography
               size={14}
@@ -227,7 +259,18 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
               {t("choisePlace")}
             </Typography>
           </div>
-          <IconContainer align="end" action={() => setShowModal(true)}>
+          <IconContainer 
+            align="end" 
+            action={() => {
+              // Если метка НЕ поставлена (нет координат с бэка) - показываем модалку
+              // Если метка УЖЕ поставлена (есть координаты с бэка) - просто закрываем
+              if (!announcement?.address?.latitude || !announcement?.address?.longitude) {
+                setShowModal(true);
+              } else {
+                navigate({ to: "/announcements" });
+              }
+            }}
+          >
             <img src={XIcon} alt="" />
           </IconContainer>
         </div>
@@ -284,19 +327,22 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
       )}
       <div className="z-10" id="map" style={containerStyle}></div>
       {address && (
-        <div>
+        <div
+          className="fixed z-10"
+          style={{ top: "105px", left: "16px", right: "16px" }}
+        >
           <TextField
             value={address}
             label={t("adressService")}
             variant="outlined"
             placeholder={t("addressPlace")}
-            style={{
-              width: "80%",
-              height: "69px",
-              position: "absolute",
-              top: 105,
-              left: 55,
-              zIndex: 2,
+            disabled
+            multiline
+            fullWidth
+            slotProps={{
+              input: {
+                readOnly: true,
+              },
             }}
           />
         </div>
@@ -307,7 +353,7 @@ export const MapComponent: FC<Props> = ({ adId, announcement }) => {
           mode="default"
           disabled={coords.length === 0 || !Boolean(address)}
         >
-          {t("continueBtn")}
+          {announcement ? t("saveBtn") : t("continueBtn")}
         </Button>
       </div>
     </main>

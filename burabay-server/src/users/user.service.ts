@@ -1,19 +1,23 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CatchErrors, Utils } from 'src/utilities';
 import { Organization } from './entities/organization.entity';
 import { UpdateDocsDto } from './dto/update-docs.dto';
 import { ROLE_TYPE } from './types/user-types';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { BookingStatus } from 'src/booking/types/booking.types';
 import { Ad } from 'src/ad/entities/ad.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRep: Repository<User>,
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Organization)
     private readonly organizationRep: Repository<Organization>,
     private readonly dataSource: DataSource,
@@ -36,14 +40,20 @@ export class UserService {
 
       // Если организация, то удалить ее объявления.
       if (user.role === ROLE_TYPE.BUSINESS) {
-        // Проверить на наличие броней.
-        const booking = await manager.findOne(Booking, {
-          where: { ad: { organization: { id: user.organization.id } } },
-        });
-        if (booking) {
+        // Проверить на наличие активных броней (где дата еще не прошла И статус не завершен).
+        const activeBooking = await manager
+          .createQueryBuilder(Booking, 'booking')
+          .innerJoin('booking.ad', 'ad')
+          .innerJoin('ad.organization', 'organization')
+          .where('organization.id = :orgId', { orgId: user.organization.id })
+          .andWhere('booking.dateEnd >= :currentDate', { currentDate: new Date() })
+          .andWhere('booking.status NOT IN (:...statuses)', { statuses: [BookingStatus.DONE, BookingStatus.CANCELED] })
+          .getOne();
+
+        if (activeBooking) {
           return {
             status: HttpStatus.BAD_REQUEST,
-            message: 'Нельзя удалить аккаунт с бронированиями',
+            message: 'Нельзя удалить аккаунт с активными бронированиями',
           };
         }
         const ads = await manager.find(Ad, {
@@ -61,43 +71,77 @@ export class UserService {
       }
       // Если турист.
       else if (user.role === ROLE_TYPE.TOURIST) {
-        // Проверить на наличие броней.
-        const booking = await manager.findOne(Booking, {
-          where: { user: { id: user.id } },
-        });
-        // Если есть брони, то отменить удаление.
-        if (booking) {
+        // Проверить на наличие активных броней (где статус не DONE и не CANCELED).
+        const activeBooking = await manager
+          .createQueryBuilder(Booking, 'booking')
+          .where('booking.user.id = :userId', { userId: user.id })
+          .andWhere('booking.status NOT IN (:...statuses)', { statuses: [BookingStatus.DONE, BookingStatus.CANCELED] })
+          .getOne();
+
+        // Если есть активные брони, то отменить удаление.
+        if (activeBooking) {
           return {
             status: HttpStatus.BAD_REQUEST,
-            message: 'Нельзя удалить аккаунт с бронированиями',
+            message: 'Нельзя удалить аккаунт с активными бронированиями',
           };
         }
-        // Если броней нет, то удалить аккаунт.
-        else {
-          await manager.remove(user);
+        
+        // Удалить все бронирования пользователя (архивные: DONE и CANCELED)
+        const bookings = await manager.find(Booking, {
+          where: { user: { id: user.id } },
+        });
+        if (bookings.length > 0) {
+          await manager.remove(bookings);
         }
+        
+        // Если активных броней нет, то удалить аккаунт.
+        await manager.remove(user);
       }
-      return JSON.stringify(HttpStatus.OK);
+      return {
+        status: HttpStatus.OK,
+        message: 'Аккаунт успешно удален',
+      };
     });
   }
 
-  /* Метод для удаления Пользователей у которых не задан пароль. Метод испольузется в TasksService. */
+  /* Метод для удаления Пользователей у которых не задан пароль и которые созданы более 24 часов назад. 
+     Метод используется в TasksService. */
   async deleteEmptyPasswordUsers() {
     try {
-      const deleteUsers = await this.userRep
+      // Вычисляем дату 24 часа назад от текущего момента
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+      const deleteUsers = await this.userRepository
         .createQueryBuilder()
         .delete()
-        .where('password IS NULL OR password = :password', { password: '' })
+        .where('(password IS NULL OR password = :password)', { password: '' })
+        .andWhere('createdAt < :date', { date: twentyFourHoursAgo })
         .execute();
+
+      console.log(`Удалено ${deleteUsers.affected} пользователей без пароля старше 24 часов`);
       return deleteUsers;
-      // return await this.userRep.remove(deleteUser);
     } catch (error) {
       Utils.errorHandler(error);
     }
   }
 
-  /*
-   *  Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
+  async getLangugage(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    return user.language;
+  }
+
+  async changeLangugae(userId: string, language: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    Utils.checkEntity(user, 'Пользователь не найден');
+    user.language = language;
+    await this.userRepository.save(user);
+    return JSON.stringify(HttpStatus.OK);
+  }
+
+  /**
+   * Метод для удаления Организаций у которых не задано имя, а также для удаления Пользователя в Организации.
    * Метод испольузется в TasksService.
    */
   async deleteOrganizationsAndUsers() {
@@ -132,7 +176,7 @@ export class UserService {
     });
   }
 
-  /* Обновление полей с путями документов Организации. */
+  /** Обновление полей с путями документов Организации. */
   @CatchErrors()
   async updateOrgDocumentsPath(dto: UpdateDocsDto, tokenData: TokenData) {
     const { regCouponPath, ibanDocPath, orgRulePath, iin, phoneNumber } = dto;

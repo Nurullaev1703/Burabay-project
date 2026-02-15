@@ -41,7 +41,7 @@ export const ChangeEmail: FC = function ChangeEmail() {
           <IconContainer align="start" action={history.back}>
             <img src={BackIcon} alt="" />
           </IconContainer>
-          <Typography size={18} weight={500} color={COLORS_TEXT.white}>
+          <Typography size={18} align="center" weight={500} color={COLORS_TEXT.white}>
             {t("changeEmail")}
           </Typography>
           <LanguageButton hideIcon/>
